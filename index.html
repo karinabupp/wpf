@@ -1130,6 +1130,7 @@
   .switch { position: relative; display: inline-block; width: 34px; height: 19px; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
   .switch-slider { position: absolute; inset: 0; cursor: pointer; background: var(--border-strong); border-radius: 999px; transition: background 0.15s ease; }
+  .switch input:disabled + .switch-slider { cursor: not-allowed; opacity: 0.75; }
   .switch-slider::before { content: ""; position: absolute; height: 13px; width: 13px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.15s ease; }
   .switch input:checked + .switch-slider { background: var(--accent); }
   .switch input:checked + .switch-slider::before { transform: translateX(15px); }
@@ -1461,9 +1462,20 @@
     flex-wrap: wrap;
     gap: 12px;
   }
-  #social-mode-switch-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-  #social-mode-switch-row span { color: var(--text-muted); }
-  #social-mode-switch-row span.active { color: var(--text); font-weight: 500; }
+  #social-logo-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .view-switch-row-inline { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .view-switch-row-inline span { color: var(--text-muted); }
+  .view-switch-row-inline span.active { color: var(--text); font-weight: 500; }
+  #social-mode-select {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  #social-mode-select:hover { background: var(--land-default); }
   #social-controls-row {
     display: flex;
     align-items: center;
@@ -1692,12 +1704,11 @@
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
     </svg>
   </button>
-  <button class="nav-icon-btn" id="nav-social" data-tooltip="Social" type="button">
+  <button class="nav-icon-btn" id="nav-committee" data-tooltip="Committee" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="6" cy="12" r="2.6"/>
-      <circle cx="18" cy="5.5" r="2.6"/>
-      <circle cx="18" cy="18.5" r="2.6"/>
-      <path d="M8.3 10.8 L15.7 6.7 M8.3 13.2 L15.7 17.3"/>
+      <circle cx="12" cy="7" r="4.2"/>
+      <line x1="12" y1="11.2" x2="12" y2="19"/>
+      <line x1="8.7" y1="15.2" x2="15.3" y2="15.2"/>
     </svg>
   </button>
   <button class="nav-icon-btn" id="nav-marketing" data-tooltip="Marketing" type="button">
@@ -1789,12 +1800,11 @@
 
     <div class="mkt-section hidden" id="mkt-section-social">
       <div class="mkt-section-head">
-        <h3>Social — Seguidores</h3>
-        <span class="mkt-section-sub">Progressão de seguidores (Instagram)</span>
+        <h3>Social — Crescimento de Seguidores</h3>
+        <span class="mkt-section-sub">Aumento de seguidores (Instagram)</span>
         <div class="mkt-agg-toggle" data-target="followers">
-          <button class="mkt-agg-btn active" data-agg="daily" type="button">Diário</button>
           <button class="mkt-agg-btn" data-agg="weekly" type="button">Semanal</button>
-          <button class="mkt-agg-btn" data-agg="monthly" type="button">Mensal</button>
+          <button class="mkt-agg-btn active" data-agg="monthly" type="button">Mensal</button>
         </div>
       </div>
       <div class="mkt-chart-card"><canvas id="chart-social-followers"></canvas></div>
@@ -1893,12 +1903,12 @@
   <img id="logo" src="data:image/png;base64,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W7vkIV/d6rPD4XCkjRPgCcKpzEGFCOSnwEdRbkM1v4ljliqoDorqdcAHg0zhDzIScbZu2+7mOxwOxxaH29ibYJwry1BRRNkWeAdwBDAHM3yfB34H/E5hjSDMU7f07HA4HM3g/wPgkG97/p+DrwAAACl0RVh0ZGM6Zm9ybWF0AGFwcGxpY2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3DkrZ9UAAAAOHRFWHRpY2M6Y29weXJpZ2h0AENvcHlyaWdodCAoYykgMTk5OCBIZXdsZXR0LVBhY2thcmQgQ29tcGFueflXeTcAAAAhdEVYdGljYzpkZXNjcmlwdGlvbgBzUkdCIElFQzYxOTY2LTIuMVet2kcAAAAmdEVYdGljYzptYW51ZmFjdHVyZXIASUVDIGh0dHA6Ly93d3cuaWVjLmNoHH8ATAAAADd0RVh0aWNjOm1vZGVsAElFQyA2MTk2Ni0yLjEgRGVmYXVsdCBSR0IgY29sb3VyIHNwYWNlIC0gc1JHQkRTSKkAAAAidEVYdGlsbHVzdHJhdG9yOkNyZWF0b3JTdWJUb29sAEFJUm9iaW4K/HbMAAAAIHRFWHRpbGx1c3RyYXRvcjpTdGFydHVwUHJvZmlsZQBQcmludE1sg2oAAAAZdEVYdGlsbHVzdHJhdG9yOlR5cGUARG9jdW1lbnT/9yq9AAAAJHRFWHRwZGY6UHJvZHVjZXIAQWRvYmUgUERGIGxpYnJhcnkgMTYuMDcjN4bNAAAAFXRFWHRwaG90b3Nob3A6Q29sb3JNb2RlADNWArNAAAAAJnRFWHRwaG90b3Nob3A6SUNDUHJvZmlsZQBzUkdCIElFQzYxOTY2LTIuMRwvbAsAAAAodEVYdHhtcDpDcmVhdGVEYXRlADIwMjItMDktMjRUMTQ6MDM6MDQtMDM6MDCzmXy5AAAAMnRFWHR4bXA6Q3JlYXRvclRvb2wAQWRvYmUgSWxsdXN0cmF0b3IgMjYuNSAoTWFjaW50b3NoKZf4zwgAAAAqdEVYdHhtcDpNZXRhZGF0YURhdGUAMjAyMi0xMi0yOFQxNDoyMjo0My0wMzowMKUyghcAAAAodEVYdHhtcDpNb2RpZnlEYXRlADIwMjItMTItMjhUMTQ6MjI6NDMtMDM6MDCZltGpAAAAG3RFWHR4bXBNTTpEZXJpdmVkRnJvbQBwcm9vZjpwZGa2FS3lAAAAS3RFWHR4bXBNTTpEb2N1bWVudElEAGFkb2JlOmRvY2lkOnBob3Rvc2hvcDplYjI5NTE3ZS1lNzMyLWY3NDgtODg2ZC03ZjQ4ODhlMmZhODGciC7uAAAAPXRFWHR4bXBNTTpJbnN0YW5jZUlEAHhtcC5paWQ6ZmMwMzNjM2MtZWE5Ny00NTA3LWE2MGMtZDVmMWNjZWI3NTU2xvHajAAAAD50RVh0eG1wTU06T3JpZ2luYWxEb2N1bWVudElEAHV1aWQ6NUQyMDg5MjQ5M0JGREIxMTkxNEE4NTkwRDMxNTA4Qzj06MMmAAAAHnRFWHR4bXBNTTpSZW5kaXRpb25DbGFzcwBwcm9vZjpwZGaEpt+JAAAAIHRFWHR4bXBUUGc6SGFzVmlzaWJsZU92ZXJwcmludABGYWxzZXkZxuUAAAAjdEVYdHhtcFRQZzpIYXNWaXNpYmxlVHJhbnNwYXJlbmN5AEZhbHNlOlw9ggAAABl0RVh0eG1wVFBnOk1heFBhZ2VTaXplAFBvaW50c5UcBYMAAAAPdEVYdHhtcFRQZzpOUGFnZXMAMcmB27IAAAAASUVORK5CYII=" alt="WPF">
 
   <div id="view-switch-row">
-    <span class="active" id="view-label-federations">Federations</span>
+    <span class="active fedsoc-label-fed" id="fedsoc-label-left-members">Federations</span>
     <label class="switch">
-      <input type="checkbox" id="view-toggle">
+      <input type="checkbox" class="fedsoc-toggle" id="fedsoc-toggle-members">
       <span class="switch-slider"></span>
     </label>
-    <span id="view-label-committee">Committee</span>
+    <span class="fedsoc-label-social" id="fedsoc-label-right-members">Social</span>
   </div>
 </div>
 
@@ -2100,13 +2110,13 @@
   <div id="social-wrap">
     <div id="social-logo-row">
       <div id="social-logo-slot"></div>
-      <div id="social-mode-switch-row">
-        <span class="active" id="social-label-world">World</span>
+      <div class="view-switch-row-inline">
+        <span class="fedsoc-label-fed">Federations</span>
         <label class="switch">
-          <input type="checkbox" id="social-mode-toggle">
+          <input type="checkbox" class="fedsoc-toggle" id="fedsoc-toggle-social" checked>
           <span class="switch-slider"></span>
         </label>
-        <span id="social-label-br">BR</span>
+        <span class="active fedsoc-label-social">Social</span>
       </div>
     </div>
     <div id="social-controls-row">
@@ -2116,12 +2126,10 @@
         <button class="social-tab" data-filter="engage" type="button">Média Performance <span class="social-tab-count"></span></button>
         <button class="social-tab" data-filter="high" type="button">Alta Performance <span class="social-tab-count"></span></button>
       </div>
-      <div id="social-search-bar" class="map-search-bar">
-        <div class="map-search-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="social-search-input" class="map-search-input" placeholder="Buscar país..." autocomplete="off">
-        </div>
-      </div>
+      <select id="social-mode-select">
+        <option value="world">World</option>
+        <option value="br">BR</option>
+      </select>
     </div>
     <div id="social-country-grid"></div>
   </div>
@@ -2212,6 +2220,47 @@ try {
   committeeCountryData = {};
 }
 
+// Affiliations pipeline — split off from the Committee ("Ladies") dataset.
+// Same shape as Committee, but its own status flow ending in "Affiliated"
+// instead of "Closed", and it owns the affiliations list (moved here).
+const AFFILIATIONS_STATUS_OPTIONS = [
+  "Not Started",
+  "Needed",
+  "Reached Out",
+  "Negotiation",
+  "Affiliated"
+];
+
+const AFFILIATIONS_STATUS_COLORS = {
+  "Not Started":  { fill: "#cecbc0", badgeBg: "#f1efe8", badgeText: "#444441" },
+  "Needed":       { fill: "#e24b4a", badgeBg: "#fcebeb", badgeText: "#791f1f" },
+  "Reached Out":  { fill: "#afa9ec", badgeBg: "#eeedfe", badgeText: "#3c3489" },
+  "Negotiation":  { fill: "#534ab7", badgeBg: "#eeedfe", badgeText: "#26215c" },
+  "Affiliated":   { fill: "#639922", badgeBg: "#eaf3de", badgeText: "#173404" }
+};
+
+const AFFILIATIONS_STORAGE_KEY = "wpf_affiliations_data";
+let affiliationsCountryData = {};
+try {
+  affiliationsCountryData = JSON.parse(localStorage.getItem(AFFILIATIONS_STORAGE_KEY) || "{}");
+} catch (e) {
+  affiliationsCountryData = {};
+}
+// One-time migration: affiliations used to live on the Committee record.
+// If this new dataset hasn't been touched yet, seed it from whatever
+// affiliations already exist there so nothing is lost in the split.
+if (!Object.keys(affiliationsCountryData).length) {
+  Object.keys(committeeCountryData).forEach(name => {
+    const oldAffiliations = committeeCountryData[name] && committeeCountryData[name].affiliations;
+    if (oldAffiliations && oldAffiliations.length) {
+      affiliationsCountryData[name] = { status: "Affiliated", partner: "", affiliations: oldAffiliations.slice() };
+    }
+  });
+  if (Object.keys(affiliationsCountryData).length) {
+    localStorage.setItem(AFFILIATIONS_STORAGE_KEY, JSON.stringify(affiliationsCountryData));
+  }
+}
+
 // ══════════════════════════════════════════════════════════
 // CLOUD SYNC — JSONBin.io
 // Keeps all 5 datasets (Federations, Committee, per-state
@@ -2268,7 +2317,8 @@ function collectAllData() {
     tasks: tasksData,
     assignees: assigneesList,
     social: socialData,
-    socialBR: socialDataBR
+    socialBR: socialDataBR,
+    affiliations: affiliationsCountryData
   };
 }
 
@@ -2287,6 +2337,7 @@ function applyAllData(data) {
   if (data.assignees) assigneesList = data.assignees;
   if (data.social) socialData = data.social;
   if (data.socialBR) socialDataBR = data.socialBR;
+  if (data.affiliations) affiliationsCountryData = data.affiliations;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(countryData));
   localStorage.setItem(COMMITTEE_STORAGE_KEY, JSON.stringify(committeeCountryData));
   localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(stateData));
@@ -2297,6 +2348,7 @@ function applyAllData(data) {
   localStorage.setItem(ASSIGNEES_STORAGE_KEY, JSON.stringify(assigneesList));
   localStorage.setItem(SOCIAL_STORAGE_KEY, JSON.stringify(socialData));
   localStorage.setItem(SOCIAL_STORAGE_KEY_BR, JSON.stringify(socialDataBR));
+  localStorage.setItem(AFFILIATIONS_STORAGE_KEY, JSON.stringify(affiliationsCountryData));
   if (typeof renderGoalsTabCounts === "function") {
     renderGoalsTabCounts();
     renderGoalsGrid();
@@ -2381,8 +2433,36 @@ function setCommitteeRecord(name, patch) {
   saveCommitteeData();
 }
 
+function getAffiliationsRecord(name) {
+  const rec = affiliationsCountryData[name] || { status: "Not Started", partner: "", affiliations: [] };
+  if (rec.partner === undefined) rec.partner = "";
+  if (!Array.isArray(rec.affiliations)) rec.affiliations = [];
+  return rec;
+}
+
+function setAffiliationsRecord(name, patch) {
+  affiliationsCountryData[name] = Object.assign(getAffiliationsRecord(name), patch);
+  saveAffiliationsData();
+}
+function saveAffiliationsData() {
+  localStorage.setItem(AFFILIATIONS_STORAGE_KEY, JSON.stringify(affiliationsCountryData));
+  scheduleCloudSave();
+}
+
+// Committee mode is now driven by the nav rail (Members vs Committee
+// buttons), not by an on-screen switch — the Federations/Committee switch
+// was repurposed into the Federations/Social switch below.
+let committeeModeActive = false;
 function isCommitteeView() {
-  return document.getElementById("view-toggle").checked;
+  return committeeModeActive;
+}
+
+// Within Committee mode, a second switch flips between "Ladies" (the
+// original committee pipeline) and "Affiliations" (its own pipeline,
+// split out so affiliations tracking doesn't crowd the Ladies panel).
+let affiliationsModeActive = false;
+function isAffiliationsView() {
+  return committeeModeActive && affiliationsModeActive;
 }
 
 const CHECKLIST_ITEMS = [
@@ -2624,30 +2704,42 @@ window.addEventListener("error", (e) => {
   }
 });
 
-// --- Left nav rail (Goals / Members / Marketing) ---
+// --- Left nav rail (Goals / Members / Committee / Marketing / Tasks) ---
+// Social used to be its own rail button; it's now reached via the
+// Federations/Social switch inside the Members/Committee screen instead.
 const NAV_VIEWS = {
   "nav-goals": "goals-view",
   "nav-members": "members-view",
-  "nav-social": "social-view",
+  "nav-committee": "members-view",
   "nav-marketing": "marketing-view",
   "nav-tasks": "tasks-view"
 };
 Object.keys(NAV_VIEWS).forEach(btnId => {
   document.getElementById(btnId).addEventListener("click", () => {
+    const targetView = NAV_VIEWS[btnId];
+    // Several buttons can point at the same view div (Members/Committee both
+    // reuse members-view), so hide/show by view id, not by button id.
+    // social-view isn't in NAV_VIEWS anymore but still needs to hide
+    // whenever any other rail button is clicked.
+    new Set(Object.values(NAV_VIEWS).concat(["social-view"])).forEach(viewId => {
+      document.getElementById(viewId).classList.toggle("hidden", viewId !== targetView);
+    });
     Object.keys(NAV_VIEWS).forEach(id => {
       document.getElementById(id).classList.toggle("active", id === btnId);
-      document.getElementById(NAV_VIEWS[id]).classList.toggle("hidden", id !== btnId);
     });
-    if (btnId === "nav-members") {
+    if (btnId === "nav-members" || btnId === "nav-committee") {
       // The map's height may have changed while hidden (display:none skips
       // layout), so re-sync the sidebar once it's visible again.
       requestAnimationFrame(syncSidebarHeight);
+      // The Federations/Committee switch inside members-view is now driven
+      // by which nav button got you here, not by clicking the switch itself
+      // (that's disabled for now) — pin it to match.
+      setViewMode(btnId === "nav-committee");
+      // Arriving fresh via the rail always lands on the map, not Social.
+      setFedSocMode(false);
     }
     if (btnId === "nav-goals" && typeof fitGoalsGrid === "function") {
       requestAnimationFrame(fitGoalsGrid);
-    }
-    if (btnId === "nav-social" && typeof renderSocialTable === "function") {
-      renderSocialTable();
     }
   });
 });
@@ -4451,9 +4543,14 @@ function isCommitteeStarred(name) {
 
 function fillFor(name) {
   if (isCommitteeView()) {
+    if (isAffiliationsView()) {
+      const rec = getAffiliationsRecord(name);
+      return AFFILIATIONS_STATUS_COLORS[rec.status] ? AFFILIATIONS_STATUS_COLORS[rec.status].fill : AFFILIATIONS_STATUS_COLORS["Not Started"].fill;
+    }
     const rec = getCommitteeRecord(name);
     return COMMITTEE_STATUS_COLORS[rec.status] ? COMMITTEE_STATUS_COLORS[rec.status].fill : COMMITTEE_STATUS_COLORS["Not Started"].fill;
   }
+  if (!mapFilterPass(name)) return STATUS_COLORS["Not Started"].fill;
   const rec = getRecord(name);
   return STATUS_COLORS[rec.status] ? STATUS_COLORS[rec.status].fill : STATUS_COLORS["Not Started"].fill;
 }
@@ -4478,9 +4575,11 @@ let crownsLayer;
 
 function renderCrowns() {
   if (!crownsLayer || inStateView) return;
-  const completeCountries = isCommitteeView()
-    ? allCountries.filter(f => isCommitteeStarred(f.properties.name))
-    : allCountries.filter(f => isMemberComplete(f.properties.name));
+  const completeCountries = isAffiliationsView()
+    ? []
+    : isCommitteeView()
+      ? allCountries.filter(f => isCommitteeStarred(f.properties.name))
+      : allCountries.filter(f => isMemberComplete(f.properties.name) && mapFilterPass(f.properties.name));
   crownsLayer.selectAll("g.crown-marker")
     .data(completeCountries, d => d.properties.name)
     .join(
@@ -4524,7 +4623,7 @@ let tradingLayer;
 
 function renderTradingIcons() {
   if (!tradingLayer || inStateView) return;
-  const tradingCountries = isCommitteeView() ? [] : allCountries.filter(f => getRecord(f.properties.name).trading);
+  const tradingCountries = isCommitteeView() ? [] : allCountries.filter(f => getRecord(f.properties.name).trading && mapFilterPass(f.properties.name));
   tradingLayer.selectAll("g.trading-marker")
     .data(tradingCountries, d => d.properties.name)
     .join(
@@ -4558,6 +4657,7 @@ function renderAchievementIcons() {
   const trophyOnly = [];
   const igOnly = [];
   allCountries.forEach(f => {
+    if (!mapFilterPass(f.properties.name)) return;
     const rec = getRecord(f.properties.name);
     const champ = !!rec.checklist.nationalChampion;
     const media = !!rec.checklist.activeMedia;
@@ -4583,13 +4683,56 @@ function renderAchievementIcons() {
     });
 }
 
-function refreshMapColors() {
+// In Affiliations mode, a country with more than one affiliation gets a
+// small numbered badge (2, 3, 4...) so multi-affiliation countries stand
+// out on the map at a glance. Single/no affiliations get no badge.
+let affiliationBadgeLayer;
+
+function affiliationBadgeMarkup(count) {
+  return `
+    <circle r="6.5" fill="#2c2c2a" stroke="#ffffff" stroke-width="1"/>
+    <text x="0" y="0.5" text-anchor="middle" dominant-baseline="middle" font-size="8" font-weight="700" fill="#ffffff">${count}</text>
+  `;
+}
+
+function renderAffiliationBadges() {
+  if (!affiliationBadgeLayer || inStateView) return;
+  if (!isAffiliationsView()) {
+    affiliationBadgeLayer.selectAll("g.affiliation-badge").remove();
+    return;
+  }
+  const multi = allCountries
+    .map(f => ({ feature: f, count: getAffiliationsRecord(f.properties.name).affiliations.length }))
+    .filter(d => d.count > 1);
+
+  affiliationBadgeLayer.selectAll("g.affiliation-badge")
+    .data(multi, d => d.feature.properties.name)
+    .join(
+      enter => enter.append("g")
+        .attr("class", "affiliation-badge")
+        .attr("pointer-events", "none")
+        .html(d => affiliationBadgeMarkup(d.count)),
+      update => update.html(d => affiliationBadgeMarkup(d.count)),
+      exit => exit.remove()
+    )
+    .attr("transform", d => {
+      const [cx, cy] = mainLandCentroid(d.feature);
+      return `translate(${cx + 9}, ${cy - 9})`;
+    });
+}
+
+function recolorMapOnly() {
   if (!inStateView) {
     svg.selectAll("path.country").attr("fill", d => fillFor(d.properties.name));
     renderCrowns();
     renderTradingIcons();
     renderAchievementIcons();
+    renderAffiliationBadges();
   }
+}
+
+function refreshMapColors() {
+  recolorMapOnly();
   renderLegend();
 }
 
@@ -4631,12 +4774,15 @@ function renderWorldMap() {
   renderTradingIcons();
   achievementLayer = svg.append("g").attr("id", "achievement-layer");
   renderAchievementIcons();
+  affiliationBadgeLayer = svg.append("g").attr("id", "affiliation-badge-layer");
+  renderAffiliationBadges();
 
   highlightHalo.raise();
   highlightPath.raise();
   crownsLayer.raise();
   tradingLayer.raise();
   achievementLayer.raise();
+  affiliationBadgeLayer.raise();
 
   if (activeCountry && activeFeature) {
     highlightHalo.attr("d", path(activeFeature));
@@ -4947,6 +5093,14 @@ let legendExpandedKey = null;
 // Which of the 4 category rows (Trading/Digital Presence/Championships/Star)
 // is expanded, one level inside the "Member" row's own expansion.
 let legendExpandedSubKey = null;
+// When a legend row (or sub-row) is expanded, the map "spots" just that set
+// of countries — everyone else fades out — so clicking "Needed" or "Member"
+// (and then e.g. "Trading Member") narrows what's highlighted on the map.
+// null = no filter, show everyone at full opacity.
+let legendMapFilterNames = null;
+function mapFilterPass(name) {
+  return !legendMapFilterNames || legendMapFilterNames.has(name);
+}
 
 function selectCountryFromLegend(name) {
   const feature = allCountries.find(f => f.properties.name === name);
@@ -5082,7 +5236,12 @@ function renderExpandableLegendRows(container, rows, total, unitLabel, onSelectN
 
 function renderLegend() {
   if (isCommitteeView()) {
-    renderCommitteeLegend();
+    if (legendMapFilterNames) { legendMapFilterNames = null; recolorMapOnly(); }
+    if (isAffiliationsView()) {
+      renderAffiliationsLegend();
+    } else {
+      renderCommitteeLegend();
+    }
     return;
   }
 
@@ -5101,6 +5260,8 @@ function renderLegend() {
   const digitalPresenceNames = [];
   let championshipsCount = 0;
   const championshipsNames = [];
+  let othersCount = 0;
+  const othersNames = [];
 
   allCountries.forEach(f => {
     const name = f.properties.name;
@@ -5108,17 +5269,26 @@ function renderLegend() {
     if (counts[rec.status] === undefined) { counts[rec.status] = 0; namesByStatus[rec.status] = []; }
     counts[rec.status]++;
     namesByStatus[rec.status].push(name);
-    if (isMemberComplete(name)) { memberCompleteCount++; starMemberNames.push(name); }
-    if (rec.trading) { tradingCount++; tradingNames.push(name); }
-    if (rec.checklist.activeMedia) { digitalPresenceCount++; digitalPresenceNames.push(name); }
-    if (rec.checklist.nationalChampion) { championshipsCount++; championshipsNames.push(name); }
+    const star = isMemberComplete(name);
+    const trading = !!rec.trading;
+    const digital = !!rec.checklist.activeMedia;
+    const champion = !!rec.checklist.nationalChampion;
+    if (star) { memberCompleteCount++; starMemberNames.push(name); }
+    if (trading) { tradingCount++; tradingNames.push(name); }
+    if (digital) { digitalPresenceCount++; digitalPresenceNames.push(name); }
+    if (champion) { championshipsCount++; championshipsNames.push(name); }
+    if (rec.status === "Member" && !star && !trading && !digital && !champion) {
+      othersCount++;
+      othersNames.push(name);
+    }
   });
 
   const memberSubRows = [
     { key: "__trading_member__", label: "Trading Member", color: STATUS_COLORS["Member"].fill, count: tradingCount, names: tradingNames, icon: "trading" },
     { key: "__digital_presence__", label: "Digital Presence", color: STATUS_COLORS["Member"].fill, count: digitalPresenceCount, names: digitalPresenceNames, icon: "ig" },
     { key: "__championships__", label: "Championships", color: STATUS_COLORS["Member"].fill, count: championshipsCount, names: championshipsNames, icon: "trophy" },
-    { key: "__star_member__", label: "Star Member", color: STATUS_COLORS["Member"].fill, count: memberCompleteCount, names: starMemberNames, icon: "star" }
+    { key: "__star_member__", label: "Star Member", color: STATUS_COLORS["Member"].fill, count: memberCompleteCount, names: starMemberNames, icon: "star" },
+    { key: "__others__", label: "Others", color: STATUS_COLORS["Member"].fill, count: othersCount, names: othersNames, icon: null }
   ];
 
   const rows = STATUS_OPTIONS.map(status => ({
@@ -5137,10 +5307,24 @@ function renderLegend() {
     <span class="legend-total-value">${totalMembers}</span>
   </div>`;
   wireLegendRowClicks();
+
+  // Clicking a status (e.g. "Needed") spots just those countries on the
+  // map; clicking a sub-row under Member (e.g. "Trading Member") narrows
+  // it further to that subset. Collapsing back closes the spotlight.
+  const activeRow = rows.find(r => r.key === legendExpandedKey);
+  let nextFilter = null;
+  if (activeRow) {
+    const activeSub = activeRow.subRows && legendExpandedSubKey
+      ? activeRow.subRows.find(sr => sr.key === legendExpandedSubKey)
+      : null;
+    nextFilter = new Set((activeSub ? activeSub.names : activeRow.names).map(n => typeof n === "string" ? n : n.name));
+  }
+  legendMapFilterNames = nextFilter;
+  recolorMapOnly();
 }
 
 function renderCommitteeLegend() {
-  legendTitleEl.textContent = "Women's Committee";
+  legendTitleEl.textContent = "Ladies";
   const total = allCountries.length;
   legendTotal.textContent = total ? total + " países no total" : "";
 
@@ -5150,8 +5334,6 @@ function renderCommitteeLegend() {
   let closedEventsTotal = 0;
   let starEventsTotal = 0;
   const starClosedNames = [];
-  let affiliationsTotal = 0;
-  const affiliationNames = [];
 
   allCountries.forEach(f => {
     const name = f.properties.name;
@@ -5172,10 +5354,6 @@ function renderCommitteeLegend() {
       starEventsTotal += eventCount;
       starClosedNames.push(eventCount > 1 ? { name, label: `${name} (${eventCount} eventos)` } : name);
     }
-    if (rec.affiliations.length > 0) {
-      affiliationsTotal += rec.affiliations.length;
-      affiliationNames.push({ name, label: `${name} (${rec.affiliations.length})` });
-    }
   });
 
   const rows = COMMITTEE_STATUS_OPTIONS.map(status => ({
@@ -5188,17 +5366,46 @@ function renderCommitteeLegend() {
   }));
   rows.push({ key: "__star_closed__", label: "Star Events", color: COMMITTEE_STATUS_COLORS["Closed"].fill, count: starEventsTotal, names: starClosedNames, icon: "star" });
 
-  const affiliationsRow = `<div class="legend-row-wrap">
-    <div class="legend-row legend-row-clickable" data-key="__affiliations__">
-      <div class="legend-left"><span class="legend-dot" style="background:${COMMITTEE_STATUS_COLORS["Closed"].fill}"></span>Affiliations</div>
-      <div class="legend-stats"><span class="legend-pct">${affiliationsTotal}</span></div>
-    </div>
-    ${legendExpandedKey === "__affiliations__" ? `<div class="legend-dropdown">${legendDropdownMarkup(affiliationNames)}</div>` : ""}
-  </div>`;
-
-  legendRows.innerHTML = legendRowsMarkup(rows, total) + affiliationsRow + `<div class="legend-total-row">
+  legendRows.innerHTML = legendRowsMarkup(rows, total) + `<div class="legend-total-row">
     <span>Total Closed</span>
     <span class="legend-total-value">${closedEventsTotal}</span>
+  </div>`;
+  wireLegendRowClicks();
+}
+
+// Affiliations — split off from Ladies. Same 5-slot pipeline shape, ending
+// in "Affiliated" instead of "Closed"; multi-affiliation countries get a
+// numbered badge on the map instead of a special legend row here.
+function renderAffiliationsLegend() {
+  legendTitleEl.textContent = "Affiliations";
+  const total = allCountries.length;
+  legendTotal.textContent = total ? total + " países no total" : "";
+
+  const counts = {};
+  const namesByStatus = {};
+  AFFILIATIONS_STATUS_OPTIONS.forEach(s => { counts[s] = 0; namesByStatus[s] = []; });
+
+  allCountries.forEach(f => {
+    const name = f.properties.name;
+    const rec = getAffiliationsRecord(name);
+    if (counts[rec.status] === undefined) { counts[rec.status] = 0; namesByStatus[rec.status] = []; }
+    counts[rec.status]++;
+    namesByStatus[rec.status].push(rec.affiliations.length > 1 ? { name, label: `${name} (${rec.affiliations.length})` } : name);
+  });
+
+  const rows = AFFILIATIONS_STATUS_OPTIONS.map(status => ({
+    key: status,
+    label: status,
+    color: AFFILIATIONS_STATUS_COLORS[status].fill,
+    count: counts[status],
+    names: namesByStatus[status],
+    icon: null
+  }));
+
+  const totalAffiliated = counts["Affiliated"];
+  legendRows.innerHTML = legendRowsMarkup(rows, total) + `<div class="legend-total-row">
+    <span>Total Affiliated</span>
+    <span class="legend-total-value">${totalAffiliated}</span>
   </div>`;
   wireLegendRowClicks();
 }
@@ -5223,12 +5430,9 @@ const panelEvents = document.getElementById("panel-events");
 const saveBtn = document.getElementById("save-btn");
 const saveConfirm = document.getElementById("save-confirm");
 const countEl = document.getElementById("count");
-const viewToggle = document.getElementById("view-toggle");
-const viewLabelFederations = document.getElementById("view-label-federations");
-const viewLabelCommittee = document.getElementById("view-label-committee");
 function populatePanelStatusOptions() {
   panelStatus.innerHTML = "";
-  const options = isCommitteeView() ? COMMITTEE_STATUS_OPTIONS : STATUS_OPTIONS;
+  const options = !isCommitteeView() ? STATUS_OPTIONS : (isAffiliationsView() ? AFFILIATIONS_STATUS_OPTIONS : COMMITTEE_STATUS_OPTIONS);
   options.forEach(status => {
     const opt = document.createElement("option");
     opt.value = status;
@@ -5237,9 +5441,23 @@ function populatePanelStatusOptions() {
   });
 }
 
-viewToggle.addEventListener("change", () => {
-  viewLabelFederations.classList.toggle("active", !viewToggle.checked);
-  viewLabelCommittee.classList.toggle("active", viewToggle.checked);
+const fedsocLabelLeftMembers = document.getElementById("fedsoc-label-left-members");
+const fedsocLabelRightMembers = document.getElementById("fedsoc-label-right-members");
+const fedsocToggleMembers = document.getElementById("fedsoc-toggle-members");
+
+// Drives the Federations/Committee mode — called from the nav rail
+// (Members vs Committee buttons). No longer tied to any on-screen switch;
+// that switch was repurposed into the Federations/Social one below (which,
+// in Committee mode, becomes Ladies/Affiliations instead).
+function setViewMode(committee) {
+  if (committeeModeActive === committee) return;
+  committeeModeActive = committee;
+  affiliationsModeActive = false; // always land on Federations/Ladies side first
+  fedsocToggleMembers.checked = false;
+  fedsocLabelLeftMembers.textContent = committee ? "Ladies" : "Federations";
+  fedsocLabelRightMembers.textContent = committee ? "Affiliations" : "Social";
+  fedsocLabelLeftMembers.classList.add("active");
+  fedsocLabelRightMembers.classList.remove("active");
   legendExpandedKey = null;
   legendExpandedSubKey = null;
   populatePanelStatusOptions();
@@ -5248,6 +5466,57 @@ viewToggle.addEventListener("change", () => {
   if (activeCountry && activeFeature) {
     selectCountry(activeCountry, activeFeature);
   }
+}
+
+// Ladies <-> Affiliations, inside Committee mode — stays on the same map,
+// just swaps which pipeline (and panel fields) it's showing.
+function setAffiliationsMode(showAffiliations) {
+  if (affiliationsModeActive === showAffiliations) return;
+  affiliationsModeActive = showAffiliations;
+  fedsocToggleMembers.checked = showAffiliations;
+  fedsocLabelLeftMembers.classList.toggle("active", !showAffiliations);
+  fedsocLabelRightMembers.classList.toggle("active", showAffiliations);
+  legendExpandedKey = null;
+  legendExpandedSubKey = null;
+  populatePanelStatusOptions();
+  refreshMapColors();
+  if (activeCountry && activeFeature) {
+    selectCountry(activeCountry, activeFeature);
+  }
+}
+
+// The Federations/Social switch — one copy lives in the Members/Committee
+// screen, another in the Social screen, kept in sync via the shared
+// .fedsoc-toggle class so either can be used to jump between the two.
+// (In Committee mode the members-view copy means Ladies/Affiliations
+// instead — see setAffiliationsMode above.)
+const fedSocToggles = document.querySelectorAll(".fedsoc-toggle");
+function setFedSocMode(showSocial) {
+  const targetView = showSocial ? "social-view" : "members-view";
+  new Set(Object.values(NAV_VIEWS).concat(["social-view"])).forEach(viewId => {
+    document.getElementById(viewId).classList.toggle("hidden", viewId !== targetView);
+  });
+  fedSocToggles.forEach(t => { t.checked = showSocial; });
+  document.querySelectorAll(".fedsoc-label-fed").forEach(el => el.classList.toggle("active", !showSocial));
+  document.querySelectorAll(".fedsoc-label-social").forEach(el => el.classList.toggle("active", showSocial));
+  const stillActiveNavId = showSocial ? null : (committeeModeActive ? "nav-committee" : "nav-members");
+  document.querySelectorAll(".nav-icon-btn").forEach(btn => btn.classList.toggle("active", btn.id === stillActiveNavId));
+  if (showSocial) {
+    if (typeof renderSocialTable === "function") renderSocialTable();
+  } else {
+    requestAnimationFrame(syncSidebarHeight);
+  }
+}
+fedsocToggleMembers.addEventListener("change", () => {
+  if (committeeModeActive) {
+    setAffiliationsMode(fedsocToggleMembers.checked);
+  } else {
+    setFedSocMode(fedsocToggleMembers.checked);
+  }
+});
+document.querySelectorAll(".fedsoc-toggle").forEach(t => {
+  if (t === fedsocToggleMembers) return; // handled above with the committee-mode branch
+  t.addEventListener("change", () => setFedSocMode(t.checked));
 });
 
 const byStateRow = document.getElementById("by-state-row");
@@ -5298,7 +5567,8 @@ function selectCountry(name, feature) {
   activeStateFeature = null;
   showCountryFieldsView();
   const committeeMode = isCommitteeView();
-  const rec = committeeMode ? getCommitteeRecord(name) : getRecord(name);
+  const affiliationsMode = isAffiliationsView();
+  const rec = affiliationsMode ? getAffiliationsRecord(name) : (committeeMode ? getCommitteeRecord(name) : getRecord(name));
 
   panelName.textContent = name;
   panelStatus.value = rec.status;
@@ -5310,9 +5580,9 @@ function selectCountry(name, feature) {
   const committeeAffiliationsFieldEl = document.getElementById("committee-affiliations-field");
   checklistFieldEl.classList.toggle("hidden", committeeMode);
   tournamentsFieldEl.classList.toggle("hidden", committeeMode);
-  committeeStarFieldEl.classList.toggle("hidden", !committeeMode);
-  committeeEventsFieldEl.classList.toggle("hidden", !committeeMode);
-  committeeAffiliationsFieldEl.classList.toggle("hidden", !committeeMode);
+  committeeStarFieldEl.classList.toggle("hidden", !committeeMode || affiliationsMode);
+  committeeEventsFieldEl.classList.toggle("hidden", !committeeMode || affiliationsMode);
+  committeeAffiliationsFieldEl.classList.toggle("hidden", !affiliationsMode);
   document.getElementById("trading-field").classList.toggle("hidden", committeeMode);
   panelTrading.checked = !!rec.trading;
   if (!committeeMode) {
@@ -5320,10 +5590,11 @@ function selectCountry(name, feature) {
       document.getElementById(`check-${item.key}`).checked = !!rec.checklist[item.key];
     });
     updateChecklistProgress();
+  } else if (affiliationsMode) {
+    renderAffiliationsList();
   } else {
     panelStar.checked = !!rec.star;
     panelEvents.value = rec.events || 0;
-    renderAffiliationsList();
   }
   panelPartner.value = rec.partner || "";
   panelTournaments.value = rec.tournaments || "";
@@ -5897,7 +6168,9 @@ stateBackBtn.addEventListener("click", () => {
 
 panelStatus.addEventListener("change", () => {
   if (!activeCountry) return;
-  if (isCommitteeView()) {
+  if (isAffiliationsView()) {
+    setAffiliationsRecord(activeCountry, { status: panelStatus.value });
+  } else if (isCommitteeView()) {
     setCommitteeRecord(activeCountry, { status: panelStatus.value });
   } else {
     setRecord(activeCountry, { status: panelStatus.value });
@@ -5907,7 +6180,12 @@ panelStatus.addEventListener("change", () => {
 
 function saveCountryFields(showConfirm) {
   if (!activeCountry) return;
-  if (isCommitteeView()) {
+  if (isAffiliationsView()) {
+    setAffiliationsRecord(activeCountry, {
+      partner: panelPartner.value.trim()
+    });
+    renderLegend();
+  } else if (isCommitteeView()) {
     setCommitteeRecord(activeCountry, {
       partner: panelPartner.value.trim(),
       star: panelStar.checked,
@@ -5942,8 +6220,8 @@ const affiliationLinkInput = document.getElementById("affiliation-link-input");
 const affiliationAddBtn = document.getElementById("affiliation-add-btn");
 
 function renderAffiliationsList() {
-  if (!activeCountry || !isCommitteeView()) { affiliationsRowsEl.innerHTML = ""; return; }
-  const rec = getCommitteeRecord(activeCountry);
+  if (!activeCountry || !isAffiliationsView()) { affiliationsRowsEl.innerHTML = ""; return; }
+  const rec = getAffiliationsRecord(activeCountry);
   if (!rec.affiliations.length) {
     affiliationsRowsEl.innerHTML = `<div class="affiliations-empty">Nenhuma afiliação ainda.</div>`;
     return;
@@ -5960,9 +6238,9 @@ function renderAffiliationsList() {
   affiliationsRowsEl.querySelectorAll(".affiliation-remove-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const idx = parseInt(btn.dataset.index, 10);
-      const current = getCommitteeRecord(activeCountry).affiliations.slice();
+      const current = getAffiliationsRecord(activeCountry).affiliations.slice();
       current.splice(idx, 1);
-      setCommitteeRecord(activeCountry, { affiliations: current });
+      setAffiliationsRecord(activeCountry, { affiliations: current });
       renderAffiliationsList();
       renderLegend();
     });
@@ -5974,9 +6252,9 @@ function addAffiliation() {
   const name = affiliationNameInput.value.trim();
   const link = affiliationLinkInput.value.trim();
   if (!name) return;
-  const current = getCommitteeRecord(activeCountry).affiliations.slice();
+  const current = getAffiliationsRecord(activeCountry).affiliations.slice();
   current.push({ name, link });
-  setCommitteeRecord(activeCountry, { affiliations: current });
+  setAffiliationsRecord(activeCountry, { affiliations: current });
   affiliationNameInput.value = "";
   affiliationLinkInput.value = "";
   renderAffiliationsList();
@@ -5994,7 +6272,7 @@ saveBtn.addEventListener("click", () => {
 });
 
 panelStar.addEventListener("change", () => {
-  if (!activeCountry || !isCommitteeView()) return;
+  if (!activeCountry || !isCommitteeView() || isAffiliationsView()) return;
   setCommitteeRecord(activeCountry, { star: panelStar.checked });
   refreshMapColors();
 });
@@ -6099,7 +6377,6 @@ function classifySocial(rec) {
 }
 
 let socialFilter = "all";
-let socialSearchQuery = "";
 
 // The 27 Brazilian states + DF, pulled from the same geojson used elsewhere
 // in the dashboard so the names always match.
@@ -6193,11 +6470,8 @@ function renderSocialCountryCards() {
     countEl.textContent = f === "all" ? eligible.length : (tabCounts[f] || 0);
   });
 
-  const q = normalizeSearchStr(socialSearchQuery);
-  let names = eligible;
-  if (q) names = names.filter(name => normalizeSearchStr(name).includes(q));
   const order = { none: 0, engage: 1, high: 2 };
-  const rows = names
+  const rows = eligible
     .map(name => ({ name, rec: getSocialRecord(name), cls: classifySocial(getSocialRecord(name)) }))
     .filter(r => socialFilter === "all" || r.cls.key === socialFilter)
     .sort((a, b) => (order[a.cls.key] - order[b.cls.key]) || a.name.localeCompare(b.name));
@@ -6239,27 +6513,10 @@ document.querySelectorAll(".social-tab").forEach(tab => {
     renderSocialCountryCards();
   });
 });
-const socialSearchInputEl = document.getElementById("social-search-input");
-if (socialSearchInputEl) {
-  socialSearchInputEl.addEventListener("input", () => {
-    socialSearchQuery = socialSearchInputEl.value;
-    renderSocialCountryCards();
-  });
-}
-
-const socialModeToggle = document.getElementById("social-mode-toggle");
-const socialLabelWorld = document.getElementById("social-label-world");
-const socialLabelBR = document.getElementById("social-label-br");
-if (socialModeToggle) {
-  socialModeToggle.addEventListener("change", () => {
-    socialMode = socialModeToggle.checked ? "br" : "world";
-    socialLabelWorld.classList.toggle("active", socialMode === "world");
-    socialLabelBR.classList.toggle("active", socialMode === "br");
-    socialSearchQuery = "";
-    if (socialSearchInputEl) {
-      socialSearchInputEl.value = "";
-      socialSearchInputEl.placeholder = socialMode === "br" ? "Buscar estado..." : "Buscar país...";
-    }
+const socialModeSelect = document.getElementById("social-mode-select");
+if (socialModeSelect) {
+  socialModeSelect.addEventListener("change", () => {
+    socialMode = socialModeSelect.value;
     renderSocialTable();
   });
 }
@@ -6468,8 +6725,8 @@ const MKT_SHEET_ID = "1zRHJuj1-aP_KzuK0f7WVDhog3fKve2uXaRJ5JuLC-jE";
 const MKT_GIDS = {
   siteMetas: "1597253817",        // Site - Metas: Mes, Meta
   siteAnalytics: "1757891384",    // Site - Analytics GA4: Mes (YYYY-MM), Total + categorias
-  googleAdsMetas: "1698485948",   // Ads - Google Ads Metas: Mes (Mmm/AAAA), Spend/CPC/Clicks Meta
-  instagramHistorico: "25906588"  // Social - Instagram Historico: Data (diário), Seguidores, Reach, Views, Likes...
+  adsMetas: "1698485948",         // Ads - Google Ads Metas: Mes (Mmm/AAAA), Spend/CPC/Clicks Meta
+  igHistorico: "25906588"         // Social - Instagram Historico: Data (diário), Seguidores, Reach, Views, Likes...
 };
 const MKT_SNAPSHOT_KEY = "wpf_marketing_snapshot_v2";
 
@@ -6718,7 +6975,7 @@ function mktStackedBarOptions() {
 }
 
 let mktData = null;
-let mktSocialAgg = { followers: "daily", engagement: "daily" };
+let mktSocialAgg = { followers: "monthly", engagement: "daily" };
 
 function mktSetStatus(state) {
   const el = document.getElementById("marketing-sync-status");
@@ -6857,12 +7114,16 @@ function renderSocialCharts() {
   mktCardNote("chart-social-followers", null);
   mktCardNote("chart-social-engagement", null);
 
-  const fAgg = mktAggregateSeries(rows, "Data", ["Seguidores"], mktSocialAgg.followers, "last");
+  // "Saldo" is the sheet's daily net follower change (follows - unfollows) —
+  // summing it per period is exactly "increase in followers", instead of
+  // just snapshotting the running total at period end.
+  const fAgg = mktAggregateSeries(rows, "Data", ["Saldo"], mktSocialAgg.followers, "sum");
+  const fColors = fAgg.series[0].map(v => v >= 0 ? "#2f9e44" : "#e24b4a");
   mktChart("chart-social-followers", {
-    type: "line",
+    type: "bar",
     data: {
       labels: fAgg.labels,
-      datasets: [{ label: "Seguidores", data: fAgg.series[0], borderColor: "#7c3aed", backgroundColor: "#7c3aed", tension: 0.25, pointRadius: 0 }]
+      datasets: [{ label: "Novos seguidores", data: fAgg.series[0], backgroundColor: fColors }]
     },
     options: mktBarOptions()
   });
