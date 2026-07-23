@@ -1202,7 +1202,7 @@
   .legend-row:last-child { border-bottom: none; }
   .legend-row-clickable { cursor: pointer; border-radius: 6px; }
   .legend-row-clickable:hover { background: var(--bg); }
-  .legend-left { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+  .legend-left { display: flex; align-items: center; gap: 10px; font-size: 16px; white-space: nowrap; }
   .legend-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
   .legend-stats { display: flex; align-items: baseline; gap: 8px; font-size: 14px; color: var(--text-muted); white-space: nowrap; }
   .legend-pct { font-size: 16px; font-weight: 500; color: var(--text); min-width: 46px; text-align: right; }
@@ -3066,7 +3066,12 @@ const COLAB_PERMISSIONS_DEFAULT = {
   goalsDelete: false,
   fedGeralEdit: false,
   fedBrazilEdit: false,
-  committeeEdit: false
+  committeeEdit: false,
+  tabGoals: true,
+  tabTasks: true,
+  tabMembers: true,
+  tabCommittee: true,
+  tabMarketing: true
 };
 
 // Fills in permissions/mustChangePassword on any user record that predates
@@ -3153,10 +3158,42 @@ function applyFedCommitteeLock() {
   document.body.classList.toggle("fed-brazil-locked", colab && !colabCan("fedBrazilEdit"));
 }
 
+// Which nav-rail button each "ver aba X" permission controls. Settings and
+// logout are never configurable — always there for everyone.
+const NAV_TAB_PERMISSIONS = {
+  "nav-goals": "tabGoals",
+  "nav-tasks": "tabTasks",
+  "nav-members": "tabMembers",
+  "nav-committee": "tabCommittee",
+  "nav-marketing": "tabMarketing"
+};
+
+function applyTabVisibility() {
+  const colab = isColab();
+  let activeTabIsHidden = false;
+  Object.keys(NAV_TAB_PERMISSIONS).forEach(navId => {
+    const btn = document.getElementById(navId);
+    if (!btn) return;
+    const hidden = colab && !colabCan(NAV_TAB_PERMISSIONS[navId]);
+    btn.classList.toggle("hidden-by-perm", hidden);
+    if (hidden && btn.classList.contains("active")) activeTabIsHidden = true;
+  });
+  if (activeTabIsHidden) {
+    // Whatever tab they were on just got locked out from under them —
+    // land on the first one they can actually still see.
+    const firstVisibleId = Object.keys(NAV_TAB_PERMISSIONS).find(navId => {
+      const btn = document.getElementById(navId);
+      return btn && !btn.classList.contains("hidden-by-perm");
+    });
+    if (firstVisibleId) document.getElementById(firstVisibleId).click();
+  }
+}
+
 function applyRolePermissions() {
   const colab = isColab();
   document.body.classList.toggle("role-colab", colab); // fixed rules: Settings, assignee/email manager gear — never configurable
   applyFedCommitteeLock();
+  applyTabVisibility();
   const badge = document.getElementById("current-user-badge");
   if (badge && currentUser) badge.textContent = `${currentUser.username} (${currentUser.role})`;
 
@@ -3311,7 +3348,12 @@ const PERMISSION_LABELS = {
   goalsDelete: "Goals — excluir KPI",
   fedGeralEdit: "Federations — editar dados gerais (senão, só visualização)",
   fedBrazilEdit: "Federations — editar dados Brasil (senão, só visualização)",
-  committeeEdit: "Committee — editar dados (senão, só visualização)"
+  committeeEdit: "Committee — editar dados (senão, só visualização)",
+  tabGoals: "Abas — ver Goals",
+  tabTasks: "Abas — ver Tasks",
+  tabMembers: "Abas — ver Federations",
+  tabCommittee: "Abas — ver Committee",
+  tabMarketing: "Abas — ver Marketing"
 };
 
 // Which colab user's permission checklist is currently expanded in the
