@@ -8805,7 +8805,10 @@ function mktDualAxisOptions() {
 
 function mktGetAdsMonths() {
   const raw = (mktData && mktData.adsAccount) || [];
-  return mktTakeLeadingMonths(raw);
+  const months = mktTakeLeadingMonths(raw);
+  // Only 2026 is relevant for these 3 charts — everything from 2024/2025
+  // is history that shouldn't feed Clicks/Budget/CPC.
+  return months.filter(r => (r.Mes || "").trim().endsWith("/2026"));
 }
 
 function renderAdsClicksChart() {
