@@ -400,6 +400,24 @@
     flex-direction: column;
     gap: 4px;
   }
+  #mkt-accumulated-box {
+    padding: 10px 10px 16px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  #mkt-accumulated-value {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.15;
+    word-break: break-word;
+  }
+  #mkt-accumulated-label {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.35;
+  }
   .mkt-nav-btn {
     text-align: left;
     background: transparent;
@@ -2275,6 +2293,10 @@
 
     <div id="marketing-main-row">
       <div id="marketing-side-menu">
+        <div id="mkt-accumulated-box">
+          <div id="mkt-accumulated-value">—</div>
+          <div id="mkt-accumulated-label"></div>
+        </div>
         <button class="mkt-nav-btn active" data-mkt-view="social" type="button">Social Media</button>
         <button class="mkt-nav-btn" data-mkt-view="pr" type="button">Public Relations</button>
         <button class="mkt-nav-btn" data-mkt-view="website" type="button">Website</button>
@@ -8676,6 +8698,11 @@ function renderFollowersChart() {
 
 // Which of the 6 topics is showing on the single shared chart, and
 // everything needed to drive the side menu / title / agg-toggle for it.
+function mktFormatBigNumber(n, decimals) {
+  if (n === null || n === undefined || isNaN(n)) return "—";
+  return n.toLocaleString("pt-BR", { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+}
+
 const MKT_VIEWS = {
   social: {
     label: "Social Media",
@@ -8684,7 +8711,14 @@ const MKT_VIEWS = {
     aggOptions: [{ value: "daily", label: "Dia" }, { value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
     getAgg: () => mktFollowersAgg,
     setAgg: v => { mktFollowersAgg = v; },
-    render: renderFollowersChart
+    render: renderFollowersChart,
+    getAccumulated: () => {
+      const rows = (mktData && mktData.igHistorico) || [];
+      if (!rows.length) return null;
+      const sorted = rows.slice().sort((a, b) => (a.Data < b.Data ? -1 : 1));
+      const val = mktParseNum(sorted[sorted.length - 1].Seguidores);
+      return { value: mktFormatBigNumber(val), label: "Seguidores atuais" };
+    }
   },
   pr: {
     label: "Public Relations",
@@ -8693,35 +8727,77 @@ const MKT_VIEWS = {
     aggOptions: [{ value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
     getAgg: () => mktMentionsAgg,
     setAgg: v => { mktMentionsAgg = v; },
-    render: renderMentionsChart
+    render: renderMentionsChart,
+    getAccumulated: () => {
+      const raw = (mktData && mktData.prMencoes) || [];
+      if (!raw.length) return null;
+      const rows = prPrepareMentions(raw);
+      return { value: mktFormatBigNumber(rows.length), label: "Menções (total)" };
+    }
   },
   website: {
     label: "Website",
     title: "Website",
     sub: "Acessos — meta vs. atingido, por mês",
     aggOptions: null,
-    render: renderWebsiteChart
+    render: renderWebsiteChart,
+    getAccumulated: () => {
+      const analyticsRows = (mktData && mktData.siteAnalytics) || [];
+      if (!analyticsRows.length) return null;
+      let maxYear = 0;
+      analyticsRows.forEach(r => {
+        const y = parseInt((r.Mes || "").split("-")[0], 10);
+        if (!isNaN(y) && y > maxYear) maxYear = y;
+      });
+      const totalKey = mktFindKey(analyticsRows[0], ["Total"]);
+      let sum = 0;
+      analyticsRows.forEach(r => {
+        const [y] = (r.Mes || "").split("-");
+        if (parseInt(y, 10) === maxYear) sum += mktParseNum(totalKey ? r[totalKey] : r.Total) || 0;
+      });
+      return { value: mktFormatBigNumber(sum), label: `Acessos ${maxYear} (acumulado)` };
+    }
   },
   "ads-clicks": {
     label: "Adwords Campaigns",
     title: "Adwords Campaigns",
     sub: "Acessos ao site (cliques) — mês vs. acumulado",
     aggOptions: null,
-    render: renderAdsClicksChart
+    render: renderAdsClicksChart,
+    getAccumulated: () => {
+      const months = mktGetAdsMonths();
+      if (!months.length) return null;
+      const sum = months.reduce((s, r) => s + (mktParseNum(mktAdsColOf(r, "D")) || 0), 0);
+      return { value: mktFormatBigNumber(sum), label: "Cliques 2026 (acumulado até agora)" };
+    }
   },
   "ads-budget": {
     label: "Adwords Budget",
     title: "Adwords Budget",
     sub: "Uso do budget (spend) — mês vs. acumulado",
     aggOptions: null,
-    render: renderAdsBudgetChart
+    render: renderAdsBudgetChart,
+    getAccumulated: () => {
+      const months = mktGetAdsMonths();
+      if (!months.length) return null;
+      const sum = months.reduce((s, r) => s + (mktParseNum(mktAdsColOf(r, "B")) || 0), 0);
+      return { value: "$" + mktFormatBigNumber(sum, 2), label: "Spend 2026 (acumulado até agora, USD)" };
+    }
   },
   "ads-cpc": {
     label: "Adwords CPC",
     title: "Adwords CPC",
     sub: "Custo por clique, por mês",
     aggOptions: null,
-    render: renderAdsCpcChart
+    render: renderAdsCpcChart,
+    getAccumulated: () => {
+      const months = mktGetAdsMonths();
+      if (!months.length) return null;
+      const vals = months.map(r => mktParseNum(mktAdsColOf(r, "F"))).filter(v => v !== null && v > 0);
+      if (!vals.length) return null;
+      const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
+      return { value: "$" + mktFormatBigNumber(avg, 2), label: "CPC médio 2026 até agora" };
+    }
   }
 };
 let mktActiveView = "social";
@@ -8750,6 +8826,10 @@ function renderActiveMarketingView() {
   document.getElementById("mkt-main-sub").textContent = view.sub;
   renderMktAggToggle();
   view.render();
+
+  const acc = view.getAccumulated ? view.getAccumulated() : null;
+  document.getElementById("mkt-accumulated-value").textContent = acc ? acc.value : "—";
+  document.getElementById("mkt-accumulated-label").textContent = acc ? acc.label : "Sem dados";
 }
 
 // Kept as the entry point loadMarketingData() calls after a fetch — only
@@ -8805,7 +8885,21 @@ function mktDualAxisOptions() {
 
 function mktGetAdsMonths() {
   const raw = (mktData && mktData.adsAccount) || [];
-  const months = mktTakeLeadingMonths(raw);
+  const monthPattern = /^[A-Za-zçÇéÉ]{3}\/\d{4}$/;
+  const seen = new Set();
+  const months = [];
+  for (const r of raw) {
+    const mes = (r.Mes || "").trim();
+    // Skip anything that isn't a clean "Mmm/AAAA" row (title rows, the
+    // second header row) — and once a month has been seen, skip any later
+    // repeat of it (the "POR CAMPANHA" table below has one row per month
+    // PER campaign, which would otherwise duplicate every month 5-6x).
+    // The account-wide monthly row comes first in the sheet, so first
+    // occurrence is always the right one to keep.
+    if (!monthPattern.test(mes) || seen.has(mes)) continue;
+    seen.add(mes);
+    months.push(r);
+  }
   // Only 2026 is relevant for these 3 charts — everything from 2024/2025
   // is history that shouldn't feed Clicks/Budget/CPC.
   return months.filter(r => (r.Mes || "").trim().endsWith("/2026"));
