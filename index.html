@@ -3270,7 +3270,7 @@ async function attemptLogin() {
     return;
   }
   currentUser = { username: match.username, role: match.role };
-  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(currentUser));
+  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: currentUser.username, role: currentUser.role, savedAt: Date.now() }));
   hideLoginGate();
   applyRolePermissions();
 }
@@ -3299,7 +3299,7 @@ async function submitPasswordChange() {
     return;
   }
   currentUser = { username: u.username, role: u.role };
-  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(currentUser));
+  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: currentUser.username, role: currentUser.role, savedAt: Date.now() }));
   pendingPasswordChangeUsername = null;
   hideLoginGate();
   applyRolePermissions();
@@ -3331,7 +3331,30 @@ if (loginGateLogoImg && document.getElementById("logo")) {
   loginGateLogoImg.src = document.getElementById("logo").src;
 }
 
-showLoginGate();
+// Restore a previous login instead of always showing the gate — this is
+// what was missing: the session was written to localStorage on login but
+// never read back on the next page load/refresh, so the gate reappeared
+// every single time even right after logging in. Sessions now last 30
+// days, and using the dashboard refreshes that window each time (rolling),
+// so an active user is never logged out mid-use.
+const AUTH_SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+function restoreSession() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || "null"); } catch (e) { saved = null; }
+  if (!saved || !saved.username || !saved.savedAt) return false;
+  if (Date.now() - saved.savedAt > AUTH_SESSION_MAX_AGE_MS) {
+    localStorage.removeItem(AUTH_SESSION_KEY);
+    return false;
+  }
+  currentUser = { username: saved.username, role: saved.role };
+  saved.savedAt = Date.now(); // rolling window: being active resets the clock
+  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(saved));
+  hideLoginGate();
+  return true;
+}
+if (!restoreSession()) {
+  showLoginGate();
+}
 // applyRolePermissions() also runs once the rest of the page's render
 // functions exist — see the bottom of the file, right after first paint.
 
@@ -3413,7 +3436,7 @@ function settingsShowError(msg) {
       if (u) u.username = newName;
       if (currentUser && currentUser.username === oldName) {
         currentUser.username = newName;
-        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(currentUser));
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: currentUser.username, role: currentUser.role, savedAt: Date.now() }));
       }
       if (settingsExpandedPermsUser === oldName) settingsExpandedPermsUser = newName;
       // Usernames double as the "responsável" name on tasks now, so a
@@ -3477,7 +3500,7 @@ function settingsShowError(msg) {
       u.role = select.value;
       if (currentUser && currentUser.username === u.username) {
         currentUser.role = u.role;
-        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(currentUser));
+        localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: currentUser.username, role: currentUser.role, savedAt: Date.now() }));
       }
       settingsShowError("Salvando…");
       const result = await saveUsersListNow();
@@ -8803,12 +8826,14 @@ function renderWebsiteChart() {
     if (parseInt(y, 10) === maxYear) realizedByMonth[parseInt(m, 10) - 1] = mktParseNum(totalKey ? r[totalKey] : r.Total);
   });
 
-  const labels = MKT_PT_MONTH_LABELS;
-  const metaData = labels.map((_, i) => metaByMonth[i] ?? null);
-  // Months that haven't happened yet just have no row in the Analytics
-  // sheet — left as a gap (null) instead of a drop to zero, so the line
-  // doesn't look like traffic crashed.
-  const atingidoData = labels.map((_, i) => realizedByMonth[i] ?? null);
+  // Only show months that actually have a row in the Analytics sheet —
+  // future months just aren't there yet, so they don't appear at all
+  // (rather than showing as a gap on a full Jan-Dez axis). As each new
+  // month gets entered in the spreadsheet, it shows up here on its own.
+  const presentMonthIdxs = Object.keys(realizedByMonth).map(Number).sort((a, b) => a - b);
+  const labels = presentMonthIdxs.map(i => MKT_PT_MONTH_LABELS[i]);
+  const metaData = presentMonthIdxs.map(i => metaByMonth[i] ?? null);
+  const atingidoData = presentMonthIdxs.map(i => realizedByMonth[i] ?? null);
 
   mktChart("chart-website", {
     type: "line",
