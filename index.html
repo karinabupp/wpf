@@ -8533,6 +8533,10 @@ async function mktFetchSheet(gid) {
       const parsed = rows.slice(headerIdx + 1).map(r => {
         const obj = {};
         header.forEach((h, i) => { if (h) obj[h] = (r[i] || "").trim(); });
+        // Column letters (A=0, B=1, C=2...) as given, independent of
+        // whatever the header text actually says — a robust fallback for
+        // sheets where header-name matching turns out to be unreliable.
+        Object.defineProperty(obj, "__col", { value: r, enumerable: false });
         return obj;
       });
       if (!parsed.length) throw new Error(`gid ${gid}: header found but no data rows after it`);
@@ -8723,14 +8727,19 @@ function renderAdsCharts() {
   }
   ids.forEach(id => mktCardNote(id, null));
 
-  const cliquesKey = mktFindKey(months[0], ["Cliques", "Clicks"]);
-  const spendKey = mktFindKey(months[0], ["Spend", "Custo"]);
-  const cpcKey = mktFindKey(months[0], ["CPC"]);
+  // Read by column letter (B=Spend, D=Cliques, F=CPC), as confirmed against
+  // the actual sheet — more reliable than matching header text, which was
+  // coming back empty on the live data for reasons that weren't obvious
+  // from the fetched preview alone.
+  const colOf = (r, letter) => {
+    const idx = letter.toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2...
+    return r.__col ? r.__col[idx] : undefined;
+  };
 
   const labels = months.map(r => r.Mes);
-  const clicksMonthly = months.map(r => mktParseNum(cliquesKey ? r[cliquesKey] : r.Cliques) || 0);
-  const spendMonthly = months.map(r => mktParseNum(spendKey ? r[spendKey] : r.Spend) || 0);
-  const cpc = months.map(r => mktParseNum(cpcKey ? r[cpcKey] : r.CPC) || 0);
+  const clicksMonthly = months.map(r => mktParseNum(colOf(r, "D")) || 0);
+  const spendMonthly = months.map(r => mktParseNum(colOf(r, "B")) || 0);
+  const cpc = months.map(r => mktParseNum(colOf(r, "F")) || 0);
 
   const runningTotal = arr => { let sum = 0; return arr.map(v => (sum += v)); };
   const clicksCumulative = runningTotal(clicksMonthly);
