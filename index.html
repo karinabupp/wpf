@@ -8883,6 +8883,13 @@ function mktDualAxisOptions() {
   });
 }
 
+function mktMonthSortKey(mes) {
+  const [mon, year] = (mes || "").split("/");
+  const idx = MKT_PT_MONTHS[mon];
+  if (idx === undefined || !year) return Infinity;
+  return parseInt(year, 10) * 12 + idx;
+}
+
 function mktGetAdsMonths() {
   const raw = (mktData && mktData.adsAccount) || [];
   const monthPattern = /^[A-Za-zçÇéÉ]{3}\/\d{4}$/;
@@ -8890,19 +8897,21 @@ function mktGetAdsMonths() {
   const months = [];
   for (const r of raw) {
     const mes = (r.Mes || "").trim();
-    // Skip anything that isn't a clean "Mmm/AAAA" row (title rows, the
-    // second header row) — and once a month has been seen, skip any later
-    // repeat of it (the "POR CAMPANHA" table below has one row per month
-    // PER campaign, which would otherwise duplicate every month 5-6x).
-    // The account-wide monthly row comes first in the sheet, so first
-    // occurrence is always the right one to keep.
-    if (!monthPattern.test(mes) || seen.has(mes)) continue;
+    // Stop at the first row that isn't a clean "Mmm/AAAA" — that's exactly
+    // where the "CONTA COMPLETA" table ends and "POR CAMPANHA" begins
+    // (title row, then a second header row). Also dedupe defensively and
+    // sort chronologically, in case any of that ordering assumption ever
+    // breaks — a duplicated or out-of-order month should never slip through.
+    if (!monthPattern.test(mes)) break;
+    if (seen.has(mes)) continue;
     seen.add(mes);
     months.push(r);
   }
   // Only 2026 is relevant for these 3 charts — everything from 2024/2025
   // is history that shouldn't feed Clicks/Budget/CPC.
-  return months.filter(r => (r.Mes || "").trim().endsWith("/2026"));
+  const only2026 = months.filter(r => (r.Mes || "").trim().endsWith("/2026"));
+  only2026.sort((a, b) => mktMonthSortKey(a.Mes) - mktMonthSortKey(b.Mes));
+  return only2026;
 }
 
 function renderAdsClicksChart() {
