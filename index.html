@@ -388,9 +388,32 @@
   #marketing-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #marketing-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
   #marketing-sync-status { font-size: 12px; color: var(--text-muted); }
-  #marketing-charts-row { display: flex; gap: 16px; align-items: stretch; flex: 1 1 0; min-height: 0; }
-  #marketing-charts-row-2 { display: flex; gap: 16px; align-items: stretch; flex: 1 1 0; min-height: 0; margin-top: 14px; }
-  .mkt-chart-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  #marketing-main-row { display: flex; gap: 18px; align-items: stretch; flex: 1 1 0; min-height: 0; }
+  #marketing-side-menu {
+    width: 200px;
+    flex: 0 0 200px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .mkt-nav-btn {
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .mkt-nav-btn:hover { background: var(--land-default); color: var(--text); }
+  .mkt-nav-btn.active { background: var(--text); color: #ffffff; }
+  #marketing-main-chart-area { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
   .mkt-section { margin-bottom: 30px; }
   .mkt-section-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; flex: 0 0 auto; }
   .mkt-section-head h3 { margin: 0; font-size: 15px; font-weight: 600; }
@@ -2250,64 +2273,23 @@
       <span id="marketing-sync-status"></span>
     </div>
 
-    <div id="marketing-charts-row">
-      <div class="mkt-chart-col">
-        <div class="mkt-section-head">
-          <h3>Social Media</h3>
-          <span class="mkt-section-sub">Progressão de seguidores (Instagram)</span>
-          <div class="mkt-agg-toggle" data-target="followers">
-            <button class="mkt-agg-btn" data-agg="daily" type="button">Dia</button>
-            <button class="mkt-agg-btn" data-agg="weekly" type="button">Semana</button>
-            <button class="mkt-agg-btn active" data-agg="monthly" type="button">Mês</button>
-          </div>
-        </div>
-        <div class="mkt-chart-card"><canvas id="chart-social-followers"></canvas></div>
+    <div id="marketing-main-row">
+      <div id="marketing-side-menu">
+        <button class="mkt-nav-btn active" data-mkt-view="social" type="button">Social Media</button>
+        <button class="mkt-nav-btn" data-mkt-view="pr" type="button">Public Relations</button>
+        <button class="mkt-nav-btn" data-mkt-view="website" type="button">Website</button>
+        <button class="mkt-nav-btn" data-mkt-view="ads-clicks" type="button">Adwords Campaigns</button>
+        <button class="mkt-nav-btn" data-mkt-view="ads-budget" type="button">Adwords Budget</button>
+        <button class="mkt-nav-btn" data-mkt-view="ads-cpc" type="button">Adwords CPC</button>
       </div>
 
-      <div class="mkt-chart-col">
+      <div id="marketing-main-chart-area">
         <div class="mkt-section-head">
-          <h3>PR</h3>
-          <span class="mkt-section-sub">Progressão de menções</span>
-          <div class="mkt-agg-toggle" data-target="mentions">
-            <button class="mkt-agg-btn" data-agg="weekly" type="button">Semana</button>
-            <button class="mkt-agg-btn active" data-agg="monthly" type="button">Mês</button>
-          </div>
+          <h3 id="mkt-main-title">Social Media</h3>
+          <span class="mkt-section-sub" id="mkt-main-sub">Progressão de seguidores (Instagram)</span>
+          <div class="mkt-agg-toggle" id="mkt-main-agg-toggle"></div>
         </div>
-        <div class="mkt-chart-card"><canvas id="chart-pr-mentions"></canvas></div>
-      </div>
-
-      <div class="mkt-chart-col">
-        <div class="mkt-section-head">
-          <h3>Website</h3>
-          <span class="mkt-section-sub">Acessos — meta vs. atingido, por mês</span>
-        </div>
-        <div class="mkt-chart-card"><canvas id="chart-website"></canvas></div>
-      </div>
-    </div>
-
-    <div id="marketing-charts-row-2">
-      <div class="mkt-chart-col">
-        <div class="mkt-section-head">
-          <h3>Campanhas de AdWords</h3>
-          <span class="mkt-section-sub">Acessos ao site (cliques) — mês vs. acumulado</span>
-        </div>
-        <div class="mkt-chart-card"><canvas id="chart-ads-clicks"></canvas></div>
-      </div>
-
-      <div class="mkt-chart-col">
-        <div class="mkt-section-head">
-          <h3>Budget AdWords</h3>
-          <span class="mkt-section-sub">Uso do budget (spend) — mês vs. acumulado</span>
-        </div>
-        <div class="mkt-chart-card"><canvas id="chart-ads-budget"></canvas></div>
-      </div>
-
-      <div class="mkt-chart-col">
-        <div class="mkt-section-head">
-          <h3>CPC AdWords</h3>
-          <span class="mkt-section-sub">Custo por clique, por mês</span>
-        </div>
-        <div class="mkt-chart-card"><canvas id="chart-ads-cpc"></canvas></div>
+        <div class="mkt-chart-card" id="mkt-main-chart-card"><canvas id="chart-marketing-main"></canvas></div>
       </div>
     </div>
   </div>
@@ -8664,17 +8646,17 @@ let mktFollowersAgg = "monthly";
 function renderFollowersChart() {
   const rows = (mktData && mktData.igHistorico) || [];
   if (!rows.length) {
-    mktCardNote("chart-social-followers", "Sem dados — não consegui carregar \"Social - Instagram Historico\".");
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Social - Instagram Historico\".");
     return;
   }
-  mktCardNote("chart-social-followers", null);
+  mktCardNote("chart-marketing-main", null);
 
   // Seguidores is a running total (snapshot), so weekly/monthly aggregation
   // takes the last value recorded in that period — not a sum.
   const agg = mktAggregateSeries(rows, "Data", ["Seguidores"], mktFollowersAgg, "last");
   const labels = mktFollowersAgg === "monthly" ? agg.labels.map(mktFormatMonthLabel) : agg.labels;
 
-  mktChart("chart-social-followers", {
+  mktChart("chart-marketing-main", {
     type: "line",
     data: {
       labels,
@@ -8692,13 +8674,97 @@ function renderFollowersChart() {
   });
 }
 
-function renderMarketingCharts() {
-  if (!mktData) return;
-  renderFollowersChart();
-  renderMentionsChart();
-  renderWebsiteChart();
-  renderAdsCharts();
+// Which of the 6 topics is showing on the single shared chart, and
+// everything needed to drive the side menu / title / agg-toggle for it.
+const MKT_VIEWS = {
+  social: {
+    label: "Social Media",
+    title: "Social Media",
+    sub: "Progressão de seguidores (Instagram)",
+    aggOptions: [{ value: "daily", label: "Dia" }, { value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
+    getAgg: () => mktFollowersAgg,
+    setAgg: v => { mktFollowersAgg = v; },
+    render: renderFollowersChart
+  },
+  pr: {
+    label: "Public Relations",
+    title: "Public Relations",
+    sub: "Progressão de menções",
+    aggOptions: [{ value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
+    getAgg: () => mktMentionsAgg,
+    setAgg: v => { mktMentionsAgg = v; },
+    render: renderMentionsChart
+  },
+  website: {
+    label: "Website",
+    title: "Website",
+    sub: "Acessos — meta vs. atingido, por mês",
+    aggOptions: null,
+    render: renderWebsiteChart
+  },
+  "ads-clicks": {
+    label: "Adwords Campaigns",
+    title: "Adwords Campaigns",
+    sub: "Acessos ao site (cliques) — mês vs. acumulado",
+    aggOptions: null,
+    render: renderAdsClicksChart
+  },
+  "ads-budget": {
+    label: "Adwords Budget",
+    title: "Adwords Budget",
+    sub: "Uso do budget (spend) — mês vs. acumulado",
+    aggOptions: null,
+    render: renderAdsBudgetChart
+  },
+  "ads-cpc": {
+    label: "Adwords CPC",
+    title: "Adwords CPC",
+    sub: "Custo por clique, por mês",
+    aggOptions: null,
+    render: renderAdsCpcChart
+  }
+};
+let mktActiveView = "social";
+
+function renderMktAggToggle() {
+  const view = MKT_VIEWS[mktActiveView];
+  const el = document.getElementById("mkt-main-agg-toggle");
+  if (!view.aggOptions) { el.innerHTML = ""; return; }
+  const current = view.getAgg();
+  el.innerHTML = view.aggOptions.map(opt =>
+    `<button class="mkt-agg-btn${opt.value === current ? " active" : ""}" data-agg="${opt.value}" type="button">${opt.label}</button>`
+  ).join("");
+  el.querySelectorAll(".mkt-agg-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      view.setAgg(btn.dataset.agg);
+      el.querySelectorAll(".mkt-agg-btn").forEach(b => b.classList.toggle("active", b === btn));
+      view.render();
+    });
+  });
 }
+
+function renderActiveMarketingView() {
+  if (!mktData) return;
+  const view = MKT_VIEWS[mktActiveView];
+  document.getElementById("mkt-main-title").textContent = view.title;
+  document.getElementById("mkt-main-sub").textContent = view.sub;
+  renderMktAggToggle();
+  view.render();
+}
+
+// Kept as the entry point loadMarketingData() calls after a fetch — only
+// the currently selected topic actually needs to redraw the shared chart.
+function renderMarketingCharts() {
+  renderActiveMarketingView();
+}
+
+document.querySelectorAll(".mkt-nav-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    mktActiveView = btn.dataset.mktView;
+    document.querySelectorAll(".mkt-nav-btn").forEach(b => b.classList.toggle("active", b === btn));
+    renderActiveMarketingView();
+  });
+});
 
 // ── AdWords charts (Cliques, Spend, CPC) ───────────────────────────────
 
@@ -8717,72 +8783,89 @@ function mktTakeLeadingMonths(rows) {
   return out;
 }
 
-function renderAdsCharts() {
+// Read by column letter (B=Spend, D=Cliques, F=CPC), as confirmed against
+// the actual sheet — more reliable than matching header text, which was
+// coming back empty on the live data for reasons that weren't obvious
+// from the fetched preview alone.
+function mktAdsColOf(r, letter) {
+  const idx = letter.toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2...
+  return r.__col ? r.__col[idx] : undefined;
+}
+
+// Mensal e acumulado ficam em escalas bem diferentes (acumulado só
+// cresce), então cada um usa seu próprio eixo Y pra continuar legível.
+function mktDualAxisOptions() {
+  return mktBarOptions({
+    scales: {
+      y: { beginAtZero: true, position: "left" },
+      y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false } }
+    }
+  });
+}
+
+function mktGetAdsMonths() {
   const raw = (mktData && mktData.adsAccount) || [];
-  const months = mktTakeLeadingMonths(raw);
-  const ids = ["chart-ads-clicks", "chart-ads-budget", "chart-ads-cpc"];
+  return mktTakeLeadingMonths(raw);
+}
+
+function renderAdsClicksChart() {
+  const months = mktGetAdsMonths();
   if (!months.length) {
-    ids.forEach(id => mktCardNote(id, "Sem dados — não consegui carregar \"Ads - Google Ads\"."));
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Ads - Google Ads\".");
     return;
   }
-  ids.forEach(id => mktCardNote(id, null));
-
-  // Read by column letter (B=Spend, D=Cliques, F=CPC), as confirmed against
-  // the actual sheet — more reliable than matching header text, which was
-  // coming back empty on the live data for reasons that weren't obvious
-  // from the fetched preview alone.
-  const colOf = (r, letter) => {
-    const idx = letter.toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2...
-    return r.__col ? r.__col[idx] : undefined;
-  };
-
+  mktCardNote("chart-marketing-main", null);
   const labels = months.map(r => r.Mes);
-  const clicksMonthly = months.map(r => mktParseNum(colOf(r, "D")) || 0);
-  const spendMonthly = months.map(r => mktParseNum(colOf(r, "B")) || 0);
-  const cpc = months.map(r => mktParseNum(colOf(r, "F")) || 0);
-
+  const clicksMonthly = months.map(r => mktParseNum(mktAdsColOf(r, "D")) || 0);
   const runningTotal = arr => { let sum = 0; return arr.map(v => (sum += v)); };
   const clicksCumulative = runningTotal(clicksMonthly);
-  const spendCumulative = runningTotal(spendMonthly);
+  mktChart("chart-marketing-main", {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        { label: "Cliques (mês)", data: clicksMonthly, borderColor: "#1f6feb", backgroundColor: "#1f6feb", tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y" },
+        { label: "Cliques (acumulado)", data: clicksCumulative, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y1" }
+      ]
+    },
+    options: mktDualAxisOptions()
+  });
+}
 
-  // Mensal e acumulado ficam em escalas bem diferentes (acumulado só
-  // cresce), então cada um usa seu próprio eixo Y pra continuar legível.
-  // IMPORTANTE: cada gráfico recebe seu PRÓPRIO objeto de options (Chart.js
-  // guarda estado interno dentro do objeto que recebe) — reusar o mesmo
-  // objeto em duas instâncias de Chart quebrava a segunda e travava a
-  // função antes de chegar no gráfico de CPC, que nunca era desenhado.
-  function dualAxisOptions() {
-    return mktBarOptions({
-      scales: {
-        y: { beginAtZero: true, position: "left" },
-        y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false } }
-      }
-    });
+function renderAdsBudgetChart() {
+  const months = mktGetAdsMonths();
+  if (!months.length) {
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Ads - Google Ads\".");
+    return;
   }
+  mktCardNote("chart-marketing-main", null);
+  const labels = months.map(r => r.Mes);
+  const spendMonthly = months.map(r => mktParseNum(mktAdsColOf(r, "B")) || 0);
+  const runningTotal = arr => { let sum = 0; return arr.map(v => (sum += v)); };
+  const spendCumulative = runningTotal(spendMonthly);
+  mktChart("chart-marketing-main", {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        { label: "Spend (mês, USD)", data: spendMonthly, borderColor: "#2f6f4f", backgroundColor: "#2f6f4f", tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y" },
+        { label: "Spend (acumulado, USD)", data: spendCumulative, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y1" }
+      ]
+    },
+    options: mktDualAxisOptions()
+  });
+}
 
-  mktChart("chart-ads-clicks", {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        { label: "Cliques (mês)", data: clicksMonthly, borderColor: "#1f6feb", backgroundColor: "#1f6feb", tension: 0.3, pointRadius: 2, fill: false, yAxisID: "y" },
-        { label: "Cliques (acumulado)", data: clicksCumulative, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.3, pointRadius: 2, fill: false, yAxisID: "y1" }
-      ]
-    },
-    options: dualAxisOptions()
-  });
-  mktChart("chart-ads-budget", {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        { label: "Spend (mês, USD)", data: spendMonthly, borderColor: "#2f6f4f", backgroundColor: "#2f6f4f", tension: 0.3, pointRadius: 2, fill: false, yAxisID: "y" },
-        { label: "Spend (acumulado, USD)", data: spendCumulative, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.3, pointRadius: 2, fill: false, yAxisID: "y1" }
-      ]
-    },
-    options: dualAxisOptions()
-  });
-  mktChart("chart-ads-cpc", {
+function renderAdsCpcChart() {
+  const months = mktGetAdsMonths();
+  if (!months.length) {
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Ads - Google Ads\".");
+    return;
+  }
+  mktCardNote("chart-marketing-main", null);
+  const labels = months.map(r => r.Mes);
+  const cpc = months.map(r => mktParseNum(mktAdsColOf(r, "F")) || 0);
+  mktChart("chart-marketing-main", {
     type: "line",
     data: { labels, datasets: [{ label: "CPC (USD)", data: cpc, borderColor: "#e8590c", backgroundColor: "#e8590c", tension: 0.3, pointRadius: 3, fill: false }] },
     options: mktBarOptions()
@@ -8808,10 +8891,10 @@ function renderWebsiteChart() {
   const metasRows = (mktData && mktData.siteMetas) || [];
   const analyticsRows = (mktData && mktData.siteAnalytics) || [];
   if (!metasRows.length && !analyticsRows.length) {
-    mktCardNote("chart-website", "Sem dados — não consegui carregar \"Site - Metas\" nem \"Site - Analytics GA4\".");
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Site - Metas\" nem \"Site - Analytics GA4\".");
     return;
   }
-  mktCardNote("chart-website", null);
+  mktCardNote("chart-marketing-main", null);
 
   const metaKey = mktFindKey(metasRows[0], ["Meta"]);
   const metaByMonth = {};
@@ -8844,7 +8927,7 @@ function renderWebsiteChart() {
   const metaData = presentMonthIdxs.map(i => metaByMonth[i] ?? null);
   const atingidoData = presentMonthIdxs.map(i => realizedByMonth[i] ?? null);
 
-  mktChart("chart-website", {
+  mktChart("chart-marketing-main", {
     type: "line",
     data: {
       labels,
@@ -8883,20 +8966,20 @@ function prPrepareMentions(rows) {
 function renderMentionsChart() {
   const raw = (mktData && mktData.prMencoes) || [];
   if (!raw.length) {
-    mktCardNote("chart-pr-mentions", "Sem dados — não consegui carregar \"PR - Menções\".");
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"PR - Menções\".");
     return;
   }
   const rows = prPrepareMentions(raw);
   if (!rows.length) {
-    mktCardNote("chart-pr-mentions", "Sem menções válidas (todas marcadas como falso positivo?).");
+    mktCardNote("chart-marketing-main", "Sem menções válidas (todas marcadas como falso positivo?).");
     return;
   }
-  mktCardNote("chart-pr-mentions", null);
+  mktCardNote("chart-marketing-main", null);
 
   const agg = mktAggregateSeries(rows, "DataISO", ["Count"], mktMentionsAgg, "sum");
   const labels = mktMentionsAgg === "monthly" ? agg.labels.map(mktFormatMonthLabel) : agg.labels;
 
-  mktChart("chart-pr-mentions", {
+  mktChart("chart-marketing-main", {
     type: "line",
     data: {
       labels,
@@ -8948,21 +9031,6 @@ marketingLogoClone.style.height = "44px";
 marketingLogoClone.style.width = "auto";
 marketingLogoClone.style.display = "block";
 marketingLogoRow.prepend(marketingLogoClone);
-
-document.querySelectorAll(".mkt-agg-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const group = btn.closest(".mkt-agg-toggle");
-    const target = group.dataset.target;
-    group.querySelectorAll(".mkt-agg-btn").forEach(b => b.classList.toggle("active", b === btn));
-    if (target === "followers") {
-      mktFollowersAgg = btn.dataset.agg;
-      renderFollowersChart();
-    } else if (target === "mentions") {
-      mktMentionsAgg = btn.dataset.agg;
-      renderMentionsChart();
-    }
-  });
-});
 
 loadMarketingData(); // paint the saved snapshot immediately, then try to refresh live
 // Re-pull from the sheet every 5 minutes while the dashboard stays open, so
