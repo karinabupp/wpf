@@ -267,6 +267,19 @@
     white-space: nowrap;
   }
   .settings-user-reset-btn:hover { background: var(--land-default); color: var(--text); }
+  .settings-user-digest-btn {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11.5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .settings-user-digest-btn:hover { background: var(--land-default); color: var(--text); }
+  .settings-user-digest-btn:disabled { opacity: 0.6; cursor: default; }
   .settings-role-badge {
     font-size: 11px;
     font-weight: 700;
@@ -477,17 +490,16 @@
 
   #tasks-general-filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
   #tasks-general-filter-row label { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
-  #tasks-test-email-btn {
+  #settings-webhook-url-input {
     background: #ffffff;
     color: #2c2c2a;
     border: 1px solid var(--border);
     border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    width: 280px;
   }
-  #tasks-test-email-btn:hover { background: var(--land-default); }
+  #settings-webhook-url-input:focus { border-color: var(--border-strong); outline: none; }
   #settings-backup-btn {
     background: #ffffff;
     color: #2c2c2a;
@@ -1580,98 +1592,6 @@
   #overdue-modal-close:hover { background: var(--land-default); color: var(--text); }
   #overdue-modal-body { padding: 6px 18px 18px; overflow-y: auto; }
 
-  #email-test-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  #email-test-modal-backdrop.hidden { display: none; }
-  #email-test-modal {
-    background: #ffffff;
-    border-radius: 12px;
-    width: 640px;
-    max-width: 92vw;
-    max-height: 82vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-  }
-  #email-test-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--border);
-  }
-  #email-test-modal-header h3 { margin: 0; font-size: 15px; font-weight: 600; }
-  #email-test-modal-close {
-    background: transparent;
-    border: none;
-    font-size: 15px;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 4px;
-  }
-  #email-test-modal-close:hover { background: var(--land-default); color: var(--text); }
-  #email-test-modal-body { padding: 16px 18px 20px; overflow-y: auto; }
-  #email-test-send-row { display: flex; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-  #email-test-webhook-url {
-    flex: 1 1 auto;
-    min-width: 0;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    border-radius: 6px;
-    padding: 8px 10px;
-    font-size: 12px;
-    color: var(--text);
-  }
-  #email-test-webhook-url:focus { background: #ffffff; border-color: var(--border-strong); outline: none; }
-  #email-test-send-btn {
-    background: #5a35c2;
-    color: #ffffff;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-  #email-test-send-btn:hover { background: #432799; }
-  #email-test-send-btn:disabled { background: #b8a8f0; cursor: default; }
-  #email-test-send-status { font-size: 12px; color: var(--text-muted); margin-top: 8px; min-height: 16px; }
-  #email-test-picker-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-  #email-test-picker-row label { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
-  #email-test-person-select {
-    border: 1px solid var(--border-strong);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 13px;
-    color: var(--text);
-    cursor: pointer;
-  }
-  #email-test-open-popup-btn {
-    margin-left: auto;
-    background: transparent;
-    border: none;
-    color: var(--accent);
-    font-size: 12px;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-  #email-test-open-popup-btn.hidden { display: none; }
-  .email-preview-card {
-    padding: 4px 2px;
-    font-size: 13.5px;
-    color: var(--text);
-  }
-  .email-preview-greeting { margin: 0 0 16px; }
   .email-preview-section { margin-bottom: 20px; }
   .email-preview-section:last-child { margin-bottom: 0; }
   .email-preview-section h4 { margin: 0 0 10px; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
@@ -1687,16 +1607,6 @@
   .email-preview-item-parent { color: var(--text-muted); font-size: 12px; margin-top: 3px; }
   .email-preview-item-dates { color: var(--text-muted); font-size: 12px; margin-top: 3px; }
   .email-preview-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
-  .email-preview-cta { text-align: center; margin-top: 4px; }
-  .email-preview-cta-btn {
-    display: inline-block;
-    background: var(--accent);
-    color: #ffffff;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 9px 20px;
-    border-radius: 6px;
-  }
 
   #digest-tasks-modal-backdrop {
     position: fixed;
@@ -2394,7 +2304,7 @@
         <option value="adm">Adm</option>
       </select>
       <button id="settings-add-user-btn" type="button">+User</button>
-      <button id="tasks-test-email-btn" type="button" title="Ver como ficaria o email diário de uma pessoa">Test Email</button>
+      <input type="text" id="settings-webhook-url-input" placeholder="URL do Apps Script (Web App) — cole aqui uma vez" title="Necessária pros botões 'Daily Digest' de cada usuário funcionarem">
       <button id="settings-backup-btn" type="button" title="Baixa um arquivo com tudo que está salvo hoje (federations, tasks, goals, usuários, social, etc)">Backup</button>
     </div>
     <div id="settings-add-error"></div>
@@ -2709,28 +2619,6 @@
       <button id="overdue-modal-close" type="button">✕</button>
     </div>
     <div id="overdue-modal-body"></div>
-  </div>
-</div>
-
-<div id="email-test-modal-backdrop" class="hidden">
-  <div id="email-test-modal">
-    <div id="email-test-modal-header">
-      <h3>🧪 Testar email diário</h3>
-      <button id="email-test-modal-close" type="button">✕</button>
-    </div>
-    <div id="email-test-modal-body">
-      <div id="email-test-picker-row">
-        <label for="email-test-person-select">Ver como ficaria para:</label>
-        <select id="email-test-person-select"></select>
-        <button id="email-test-open-popup-btn" type="button" class="hidden">👁 Abrir popup "Ver tarefas"</button>
-      </div>
-      <div id="email-test-preview"></div>
-      <div id="email-test-send-row">
-        <input type="text" id="email-test-webhook-url" placeholder="Cole aqui a URL do Apps Script (Web App) — só precisa colar uma vez">
-        <button id="email-test-send-btn" type="button">📨 Enviar de verdade</button>
-      </div>
-      <div id="email-test-send-status"></div>
-    </div>
   </div>
 </div>
 
@@ -3404,6 +3292,7 @@ function renderSettingsUsersList() {
           <option value="adm" ${u.role === "adm" ? "selected" : ""}>Adm</option>
         </select>
         <button type="button" class="settings-user-reset-btn" data-username="${uname}" title="Volta a senha pra padrão (wpf2026) — a pessoa troca no próximo login">↺ Resetar senha</button>
+        <button type="button" class="settings-user-digest-btn" data-username="${uname}" title="Envia agora o resumo diário de tarefas pra essa pessoa">📨 Daily Digest</button>
         <button type="button" class="settings-user-delete-btn" data-username="${uname}" title="Excluir">🗑</button>
       </div>
       ${u.mustChangePassword ? `<div class="settings-provisional-note">⏳ Senha provisória — ${u.username} vai precisar trocar no próximo login</div>` : ""}
@@ -3495,6 +3384,9 @@ function settingsShowError(msg) {
       settingsShowError(result.ok ? "" : `Não consegui salvar o reset na nuvem (${result.error}) — a senha nova só vale neste computador até tentar de novo.`);
       renderSettingsUsersList();
     });
+  });
+  el.querySelectorAll(".settings-user-digest-btn").forEach(btn => {
+    btn.addEventListener("click", () => sendDailyDigestNow(btn.dataset.username, btn));
   });
   el.querySelectorAll(".settings-user-role-select").forEach(select => {
     select.addEventListener("change", async () => {
@@ -5700,117 +5592,67 @@ function buildDigestForPerson(personName) {
   return grouped;
 }
 
-function renderEmailPreview(personName) {
-  const previewEl = document.getElementById("email-test-preview");
-  const openBtn = document.getElementById("email-test-open-popup-btn");
-  if (!personName) {
-    previewEl.innerHTML = `<div class="email-preview-empty">Cadastre pelo menos um responsável primeiro.</div>`;
-    openBtn.classList.add("hidden");
-    return;
-  }
-  openBtn.classList.remove("hidden");
-  openBtn.dataset.name = personName;
-  const person = usersList.find(u => u.username === personName);
-  const grouped = buildDigestForPerson(personName);
-  const total = EMAIL_DIGEST_ORDER.reduce((sum, s) => sum + grouped[s].length, 0);
-  const firstName = personName.split(" ")[0];
-  const today = formatEntryDate(todayISO());
-
-  let note = "";
-  if (person && !person.email) {
-    note = `<div class="email-preview-empty" style="color:#a3312a;padding:0 0 12px;text-align:left;">⚠️ Essa pessoa ainda não tem email cadastrado — o envio automático pularia ela.</div>`;
-  }
-
-  let html = note + `<div class="email-preview-card">`;
-  html += `<p class="email-preview-greeting">Oi ${firstName}, esse é o resumo das suas tasks no WPF Dashboard hoje (${today}):</p>`;
-
-  if (!total) {
-    html += `<div class="email-preview-empty">Nenhuma subtask já iniciada, atrasada ou em andamento pra essa pessoa hoje — o email diário não seria enviado (não manda email vazio).</div>`;
-  } else {
-    EMAIL_DIGEST_ORDER.forEach(status => {
-      const list = grouped[status];
-      if (!list.length) return;
-      const color = (TASK_STATUS_COLORS[status] || {}).text || "inherit";
-      html += `<div class="email-preview-section">
-        <h4 style="color:${color}">${EMAIL_DIGEST_LABELS[status]} (${list.length})</h4>
-        ${list.map(item => `
-          <div class="email-preview-item">
-            <div class="email-preview-item-name">${item.name}</div>
-            ${item.parent ? `<div class="email-preview-item-parent">↳ ${item.parent}</div>` : ""}
-            <div class="email-preview-item-dates">Início: ${item.startDate ? formatEntryDate(item.startDate) : "—"} · Vence: ${item.endDate ? formatEntryDate(item.endDate) : "—"}</div>
-          </div>
-        `).join("")}
-      </div>`;
-    });
-    html += `<div class="email-preview-cta"><span class="email-preview-cta-btn">Ver tarefas</span></div>`;
-  }
-  html += `</div>`;
-  previewEl.innerHTML = html;
-}
-
-function populateEmailTestPicker() {
-  const sel = document.getElementById("email-test-person-select");
-  const current = sel.value;
-  sel.innerHTML = usersList.map(u => `<option value="${u.username}">${u.username}${u.email ? "" : " (sem email)"}</option>`).join("");
-  if (usersList.some(u => u.username === current)) sel.value = current;
-}
-
-// --- Real send: fires the same digest email for one person on demand, via
-// a small doGet() added to the Apps Script that already sends the daily
-// batch. Since it's a Google Apps Script Web App called cross-origin, the
-// browser can't read the response (CORS) — the request still reaches and
-// runs the script either way, it's only the confirmation we can't see.
+// --- Real send: fires the daily digest email for one person on demand,
+// via a small doGet() added to the Apps Script that already sends the
+// daily batch. Tries a normal fetch first so we can actually confirm
+// success/failure; only falls back to a blind no-cors fire-and-hope if
+// the browser refuses the readable request outright (some Apps Script
+// deployments don't send CORS headers on the GET response).
 const EMAIL_WEBHOOK_STORAGE_KEY = "wpf_email_webhook_url";
 function getEmailWebhookUrl() {
-  return localStorage.getItem(EMAIL_WEBHOOK_STORAGE_KEY) || "";
+  return localStorage.getItem(EMAIL_WEBHOOK_STORAGE_KEY) || document.getElementById("settings-webhook-url-input").value.trim();
 }
-document.getElementById("email-test-webhook-url").addEventListener("blur", (e) => {
+const webhookInput = document.getElementById("settings-webhook-url-input");
+webhookInput.value = getEmailWebhookUrl();
+webhookInput.addEventListener("blur", (e) => {
   localStorage.setItem(EMAIL_WEBHOOK_STORAGE_KEY, e.target.value.trim());
 });
-document.getElementById("email-test-send-btn").addEventListener("click", async () => {
-  const url = document.getElementById("email-test-webhook-url").value.trim();
-  const statusEl = document.getElementById("email-test-send-status");
-  const btn = document.getElementById("email-test-send-btn");
-  const person = document.getElementById("email-test-person-select").value;
-  if (!url) { statusEl.textContent = "Cole a URL do Apps Script (Web App) primeiro."; return; }
-  if (!person) { statusEl.textContent = "Escolhe uma pessoa primeiro."; return; }
-  localStorage.setItem(EMAIL_WEBHOOK_STORAGE_KEY, url);
+
+async function sendDailyDigestNow(personName, btn) {
+  const url = getEmailWebhookUrl();
+  if (!url) {
+    settingsShowError("Cole a URL do Apps Script (Web App) no campo do topo primeiro — precisa só uma vez.");
+    return;
+  }
+  const originalHTML = btn.innerHTML;
   btn.disabled = true;
-  statusEl.textContent = `Enviando pra ${person}…`;
+  btn.innerHTML = "⏳ Enviando…";
+  const target = `${url}?pessoa=${encodeURIComponent(personName)}`;
+  let confirmed = false;
+  let errorMsg = "";
   try {
-    await fetch(`${url}?pessoa=${encodeURIComponent(person)}`, { method: "GET", mode: "no-cors" });
-    statusEl.textContent = `Solicitação enviada pra ${person}. O navegador não deixa confirmar por aqui (é assim com Apps Script), mas confere a caixa de entrada em alguns segundos.`;
+    // Readable attempt: if this succeeds, we get a real yes/no instead of
+    // just hoping the request landed.
+    const res = await fetch(target, { method: "GET" });
+    if (res.ok) {
+      const text = await res.text().catch(() => "");
+      confirmed = true;
+      if (/error|erro/i.test(text)) { confirmed = false; errorMsg = text.slice(0, 200); }
+    } else {
+      errorMsg = `HTTP ${res.status}`;
+    }
   } catch (err) {
-    statusEl.textContent = "Não consegui nem disparar a solicitação — confere se a URL está certa e se o script foi publicado como Web App.";
+    // CORS or network-level failure on the readable request — fall back to
+    // a blind fire so the email still has a chance to go out, but we can't
+    // confirm it from here.
+    try {
+      await fetch(target, { method: "GET", mode: "no-cors" });
+      errorMsg = "sent-blind";
+    } catch (err2) {
+      errorMsg = "Não consegui nem disparar a solicitação — confere se a URL está certa e se o script foi publicado como Web App (Anyone / Qualquer pessoa).";
+    }
   }
   btn.disabled = false;
-});
-
-function openEmailTestModal() {
-  populateEmailTestPicker();
-  const sel = document.getElementById("email-test-person-select");
-  renderEmailPreview(sel.value || null);
-  document.getElementById("email-test-webhook-url").value = getEmailWebhookUrl();
-  document.getElementById("email-test-send-status").textContent = "";
-  document.getElementById("email-test-modal-backdrop").classList.remove("hidden");
+  btn.innerHTML = originalHTML;
+  if (confirmed) {
+    settingsShowError(`✅ Email enviado pra ${personName} agora.`);
+  } else if (errorMsg === "sent-blind") {
+    settingsShowError(`📨 Solicitação disparada pra ${personName} — o navegador não deixou confirmar (normal em alguns deploys do Apps Script), confere a caixa de entrada em instantes.`);
+  } else {
+    settingsShowError(`⚠️ Falha ao enviar pra ${personName}: ${errorMsg}`);
+  }
 }
-function closeEmailTestModal() {
-  document.getElementById("email-test-modal-backdrop").classList.add("hidden");
-}
-document.getElementById("tasks-test-email-btn").addEventListener("click", openEmailTestModal);
-document.getElementById("email-test-modal-close").addEventListener("click", closeEmailTestModal);
-document.getElementById("email-test-modal-backdrop").addEventListener("click", (e) => {
-  if (e.target.id === "email-test-modal-backdrop") closeEmailTestModal();
-});
-document.getElementById("email-test-person-select").addEventListener("change", (e) => {
-  renderEmailPreview(e.target.value);
-});
-document.getElementById("email-test-open-popup-btn").addEventListener("click", (e) => {
-  const name = e.currentTarget.dataset.name;
-  if (name) openDigestTasksModal(name);
-});
 
-// --- "Ver tarefas" popup — the button at the end of the real email links
 // back here with ?verTarefas=<nome>, which opens this same list so the
 // person can update statuses (In Progress, Done, etc) without digging
 // through the full table. Each item drops off the list the moment its
@@ -8473,7 +8315,7 @@ importFile.addEventListener("change", () => {
 // now read from here, each its own clean tab (Mes / value / Meta).
 const MKT_SHEET_ID_2 = "1SGkhm4OHcsic4IggEt3Dn8B2Qg_JZ3bHCl37A18KuvM";
 const MKT_SOURCES = {
-  igDaily: { gid: "1735819281", sheetId: MKT_SHEET_ID_2 },    // "Instagram" tab: Data (diário), Seguidores, Saldo
+  igMonthly: { gid: "759878494", sheetId: MKT_SHEET_ID_2 },   // "Instagram" tab: Mês (YYYY-MM), Atingido, Seguidores Final
   websiteData: { gid: "0", sheetId: MKT_SHEET_ID_2 },         // "Website" tab: Mes (Jan..Dez), Meta 2026, Atingido
   adsClicks: { gid: "2019287772", sheetId: MKT_SHEET_ID_2 },  // "Campaign" tab: Mes, Cliques, Meta
   adsBudget: { gid: "980486597", sheetId: MKT_SHEET_ID_2 },   // "Budget" tab: Mes, Spend, Meta
@@ -8665,36 +8507,31 @@ function mktAggregateSeries(rows, dateKey, valueKeys, mode, aggType) {
 
 // ── Follower-progression chart (Social Media) ─────────────────────────
 
-let mktFollowersAgg = "monthly";
-
 function renderFollowersChart() {
-  const rows = (mktData && mktData.igDaily) || [];
+  const rows = (mktData && mktData.igMonthly) || [];
   if (!rows.length) {
     mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"Instagram\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
 
-  const dataKey = mktFindKey(rows[0], ["Data"]);
-  const seguidoresKey = mktFindKey(rows[0], ["Seguidores"]);
-  const cleanRows = rows.map(r => ({ Data: r[dataKey], Seguidores: r[seguidoresKey] }));
-
-  // Seguidores is a running total (snapshot), so weekly/monthly aggregation
-  // takes the last value recorded in that period — not a sum.
-  const agg = mktAggregateSeries(cleanRows, "Data", ["Seguidores"], mktFollowersAgg, "last");
-  const labels = mktFollowersAgg === "monthly" ? agg.labels.map(mktFormatMonthLabel) : agg.labels;
+  const mesKey = mktFindKey(rows[0], ["Mês", "Mes"]);
+  const seguidoresKey = mktFindKey(rows[0], ["Seguidores Final", "Seguidores"]);
+  // Sheet lists newest month first — sort ascending (oldest to newest) for
+  // a left-to-right progression on the chart.
+  const sorted = rows.slice().sort((a, b) => (a[mesKey] < b[mesKey] ? -1 : 1));
 
   mktChart("chart-marketing-main", {
     type: "line",
     data: {
-      labels,
+      labels: sorted.map(r => mktFormatMonthLabel(r[mesKey])),
       datasets: [{
         label: "Seguidores",
-        data: agg.series[0],
+        data: sorted.map(r => mktParseNum(r[seguidoresKey])),
         borderColor: "#7048e8",
         backgroundColor: "#7048e8",
         tension: 0.3,
-        pointRadius: mktFollowersAgg === "daily" ? 0 : 3,
+        pointRadius: 3,
         fill: false
       }]
     },
@@ -8714,16 +8551,14 @@ const MKT_VIEWS = {
     label: "Social Media",
     title: "Social Media",
     sub: "Progressão de seguidores (Instagram)",
-    aggOptions: [{ value: "daily", label: "Dia" }, { value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
-    getAgg: () => mktFollowersAgg,
-    setAgg: v => { mktFollowersAgg = v; },
+    aggOptions: null,
     render: renderFollowersChart,
     getAccumulated: () => {
-      const rows = (mktData && mktData.igDaily) || [];
+      const rows = (mktData && mktData.igMonthly) || [];
       if (!rows.length) return null;
-      const dataKey = mktFindKey(rows[0], ["Data"]);
-      const seguidoresKey = mktFindKey(rows[0], ["Seguidores"]);
-      const sorted = rows.slice().sort((a, b) => (a[dataKey] < b[dataKey] ? -1 : 1));
+      const mesKey = mktFindKey(rows[0], ["Mês", "Mes"]);
+      const seguidoresKey = mktFindKey(rows[0], ["Seguidores Final", "Seguidores"]);
+      const sorted = rows.slice().sort((a, b) => (a[mesKey] < b[mesKey] ? -1 : 1));
       const val = mktParseNum(sorted[sorted.length - 1][seguidoresKey]);
       return { value: mktFormatBigNumber(val), label: "Seguidores atuais" };
     }
@@ -8972,7 +8807,7 @@ async function loadMarketingData() {
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(MKT_SNAPSHOT_KEY) || "null"); } catch (e) { cached = null; }
 
-  const keys = ["igDaily", "websiteData", "adsClicks", "adsBudget", "adsCpc"];
+  const keys = ["igMonthly", "websiteData", "adsClicks", "adsBudget", "adsCpc"];
   const results = await Promise.allSettled(keys.map(k => mktFetchSheet(MKT_SOURCES[k].gid, MKT_SOURCES[k].sheetId)));
 
   const next = Object.assign({}, mktData || cached || {});
