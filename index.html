@@ -5619,6 +5619,10 @@ async function sendDailyDigestNow(personName, btn) {
     settingsShowError("Cole a URL do Apps Script (Web App) no campo do topo primeiro — precisa só uma vez.");
     return;
   }
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) {
+    settingsShowError("Essa URL não parece uma URL de Apps Script válida — precisa começar com \"https://script.google.com/macros/s/\" e terminar em \"/exec\". Copia de novo em Implantar → Gerenciar implantações.");
+    return;
+  }
   const originalHTML = btn.innerHTML;
   try {
     btn.disabled = true;
