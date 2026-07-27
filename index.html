@@ -5599,12 +5599,16 @@ function buildDigestForPerson(personName) {
 // the browser refuses the readable request outright (some Apps Script
 // deployments don't send CORS headers on the GET response).
 const EMAIL_WEBHOOK_STORAGE_KEY = "wpf_email_webhook_url";
+// The box on screen always wins over whatever was saved before — otherwise
+// pasting a corrected URL without clicking away first would silently keep
+// using a stale (possibly broken) one from localStorage.
 function getEmailWebhookUrl() {
-  return localStorage.getItem(EMAIL_WEBHOOK_STORAGE_KEY) || document.getElementById("settings-webhook-url-input").value.trim();
+  const boxVal = document.getElementById("settings-webhook-url-input").value.trim();
+  return boxVal || localStorage.getItem(EMAIL_WEBHOOK_STORAGE_KEY) || "";
 }
 const webhookInput = document.getElementById("settings-webhook-url-input");
-webhookInput.value = getEmailWebhookUrl();
-webhookInput.addEventListener("blur", (e) => {
+webhookInput.value = localStorage.getItem(EMAIL_WEBHOOK_STORAGE_KEY) || "";
+webhookInput.addEventListener("input", (e) => {
   localStorage.setItem(EMAIL_WEBHOOK_STORAGE_KEY, e.target.value.trim());
 });
 
@@ -5615,41 +5619,49 @@ async function sendDailyDigestNow(personName, btn) {
     return;
   }
   const originalHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = "⏳ Enviando…";
-  const target = `${url}?pessoa=${encodeURIComponent(personName)}`;
-  let confirmed = false;
-  let errorMsg = "";
   try {
-    // Readable attempt: if this succeeds, we get a real yes/no instead of
-    // just hoping the request landed.
-    const res = await fetch(target, { method: "GET" });
-    if (res.ok) {
-      const text = await res.text().catch(() => "");
-      confirmed = true;
-      if (/error|erro/i.test(text)) { confirmed = false; errorMsg = text.slice(0, 200); }
-    } else {
-      errorMsg = `HTTP ${res.status}`;
-    }
-  } catch (err) {
-    // CORS or network-level failure on the readable request — fall back to
-    // a blind fire so the email still has a chance to go out, but we can't
-    // confirm it from here.
+    btn.disabled = true;
+    btn.innerHTML = "⏳ Enviando…";
+    settingsShowError(`Enviando pra ${personName}…`);
+    const target = `${url}?pessoa=${encodeURIComponent(personName)}`;
+    let confirmed = false;
+    let errorMsg = "";
     try {
-      await fetch(target, { method: "GET", mode: "no-cors" });
-      errorMsg = "sent-blind";
-    } catch (err2) {
-      errorMsg = "Não consegui nem disparar a solicitação — confere se a URL está certa e se o script foi publicado como Web App (Anyone / Qualquer pessoa).";
+      // Readable attempt: if this succeeds, we get a real yes/no instead of
+      // just hoping the request landed.
+      const res = await fetch(target, { method: "GET" });
+      if (res.ok) {
+        const text = await res.text().catch(() => "");
+        confirmed = true;
+        if (/error|erro/i.test(text)) { confirmed = false; errorMsg = text.slice(0, 200); }
+      } else {
+        errorMsg = `HTTP ${res.status}`;
+      }
+    } catch (err) {
+      // CORS or network-level failure on the readable request — fall back to
+      // a blind fire so the email still has a chance to go out, but we can't
+      // confirm it from here.
+      try {
+        await fetch(target, { method: "GET", mode: "no-cors" });
+        errorMsg = "sent-blind";
+      } catch (err2) {
+        errorMsg = "Não consegui nem disparar a solicitação — confere se a URL está certa e se o script foi publicado como Web App (Anyone / Qualquer pessoa).";
+      }
     }
-  }
-  btn.disabled = false;
-  btn.innerHTML = originalHTML;
-  if (confirmed) {
-    settingsShowError(`✅ Email enviado pra ${personName} agora.`);
-  } else if (errorMsg === "sent-blind") {
-    settingsShowError(`📨 Solicitação disparada pra ${personName} — o navegador não deixou confirmar (normal em alguns deploys do Apps Script), confere a caixa de entrada em instantes.`);
-  } else {
-    settingsShowError(`⚠️ Falha ao enviar pra ${personName}: ${errorMsg}`);
+    if (confirmed) {
+      settingsShowError(`✅ Email enviado pra ${personName} agora.`);
+    } else if (errorMsg === "sent-blind") {
+      settingsShowError(`📨 Solicitação disparada pra ${personName} — o navegador não deixou confirmar (normal em alguns deploys do Apps Script), confere a caixa de entrada em instantes.`);
+    } else {
+      settingsShowError(`⚠️ Falha ao enviar pra ${personName}: ${errorMsg}`);
+    }
+  } catch (fatalErr) {
+    // Belt-and-suspenders: whatever goes wrong, the person always gets a
+    // visible message instead of the button just silently doing nothing.
+    settingsShowError(`⚠️ Erro inesperado ao tentar enviar pra ${personName}: ${fatalErr && fatalErr.message ? fatalErr.message : fatalErr}`);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
   }
 }
 
@@ -8315,7 +8327,7 @@ importFile.addEventListener("change", () => {
 // now read from here, each its own clean tab (Mes / value / Meta).
 const MKT_SHEET_ID_2 = "1SGkhm4OHcsic4IggEt3Dn8B2Qg_JZ3bHCl37A18KuvM";
 const MKT_SOURCES = {
-  igMonthly: { gid: "759878494", sheetId: MKT_SHEET_ID_2 },   // "Instagram" tab: Mês (YYYY-MM), Atingido, Seguidores Final
+  igDaily: { gid: "1735819281", sheetId: MKT_SHEET_ID_2 },    // "Instagram" tab: Data (diário), Seguidores, Saldo
   websiteData: { gid: "0", sheetId: MKT_SHEET_ID_2 },         // "Website" tab: Mes (Jan..Dez), Meta 2026, Atingido
   adsClicks: { gid: "2019287772", sheetId: MKT_SHEET_ID_2 },  // "Campaign" tab: Mes, Cliques, Meta
   adsBudget: { gid: "980486597", sheetId: MKT_SHEET_ID_2 },   // "Budget" tab: Mes, Spend, Meta
@@ -8507,31 +8519,38 @@ function mktAggregateSeries(rows, dateKey, valueKeys, mode, aggType) {
 
 // ── Follower-progression chart (Social Media) ─────────────────────────
 
+let mktFollowersAgg = "monthly";
+
 function renderFollowersChart() {
-  const rows = (mktData && mktData.igMonthly) || [];
+  const rows = (mktData && mktData.igDaily) || [];
   if (!rows.length) {
     mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"Instagram\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
 
-  const mesKey = mktFindKey(rows[0], ["Mês", "Mes"]);
-  const seguidoresKey = mktFindKey(rows[0], ["Seguidores Final", "Seguidores"]);
-  // Sheet lists newest month first — sort ascending (oldest to newest) for
-  // a left-to-right progression on the chart.
-  const sorted = rows.slice().sort((a, b) => (a[mesKey] < b[mesKey] ? -1 : 1));
+  const dataKey = mktFindKey(rows[0], ["Data"]);
+  const seguidoresKey = mktFindKey(rows[0], ["Seguidores"]);
+  const cleanRows = rows.map(r => ({ Data: r[dataKey], Seguidores: r[seguidoresKey] }));
+
+  // Seguidores is a running total (snapshot), so weekly/monthly aggregation
+  // takes the last value recorded in that period — not a sum. Buckets with
+  // no valid number get dropped instead of showing as a gap/zero.
+  const agg = mktAggregateSeries(cleanRows, "Data", ["Seguidores"], mktFollowersAgg, "last");
+  const pairs = agg.labels.map((l, i) => ({ label: l, value: agg.series[0][i] })).filter(p => p.value !== null && p.value !== undefined && !isNaN(p.value) && p.value !== 0);
+  const labels = mktFollowersAgg === "monthly" ? pairs.map(p => mktFormatMonthLabel(p.label)) : pairs.map(p => p.label);
 
   mktChart("chart-marketing-main", {
     type: "line",
     data: {
-      labels: sorted.map(r => mktFormatMonthLabel(r[mesKey])),
+      labels,
       datasets: [{
         label: "Seguidores",
-        data: sorted.map(r => mktParseNum(r[seguidoresKey])),
+        data: pairs.map(p => p.value),
         borderColor: "#7048e8",
         backgroundColor: "#7048e8",
         tension: 0.3,
-        pointRadius: 3,
+        pointRadius: mktFollowersAgg === "daily" ? 0 : 3,
         fill: false
       }]
     },
@@ -8551,14 +8570,16 @@ const MKT_VIEWS = {
     label: "Social Media",
     title: "Social Media",
     sub: "Progressão de seguidores (Instagram)",
-    aggOptions: null,
+    aggOptions: [{ value: "daily", label: "Dia" }, { value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
+    getAgg: () => mktFollowersAgg,
+    setAgg: v => { mktFollowersAgg = v; },
     render: renderFollowersChart,
     getAccumulated: () => {
-      const rows = (mktData && mktData.igMonthly) || [];
+      const rows = (mktData && mktData.igDaily) || [];
       if (!rows.length) return null;
-      const mesKey = mktFindKey(rows[0], ["Mês", "Mes"]);
-      const seguidoresKey = mktFindKey(rows[0], ["Seguidores Final", "Seguidores"]);
-      const sorted = rows.slice().sort((a, b) => (a[mesKey] < b[mesKey] ? -1 : 1));
+      const dataKey = mktFindKey(rows[0], ["Data"]);
+      const seguidoresKey = mktFindKey(rows[0], ["Seguidores"]);
+      const sorted = rows.slice().sort((a, b) => (a[dataKey] < b[dataKey] ? -1 : 1));
       const val = mktParseNum(sorted[sorted.length - 1][seguidoresKey]);
       return { value: mktFormatBigNumber(val), label: "Seguidores atuais" };
     }
@@ -8807,7 +8828,7 @@ async function loadMarketingData() {
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(MKT_SNAPSHOT_KEY) || "null"); } catch (e) { cached = null; }
 
-  const keys = ["igMonthly", "websiteData", "adsClicks", "adsBudget", "adsCpc"];
+  const keys = ["igDaily", "websiteData", "adsClicks", "adsBudget", "adsCpc"];
   const results = await Promise.allSettled(keys.map(k => mktFetchSheet(MKT_SOURCES[k].gid, MKT_SOURCES[k].sheetId)));
 
   const next = Object.assign({}, mktData || cached || {});
