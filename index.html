@@ -3274,6 +3274,11 @@ const PERMISSION_LABELS = {
 // Settings user list — usernames, so it survives a re-render.
 let settingsExpandedPermsUser = null;
 
+function settingsShowError(msg) {
+  const el = document.getElementById("settings-add-error");
+  if (el) el.textContent = msg;
+}
+
 function renderSettingsUsersList() {
   const el = document.getElementById("settings-users-list");
   if (!el) return;
@@ -3311,10 +3316,6 @@ function renderSettingsUsersList() {
   `;
   }).join("") : `<div class="settings-users-empty">Nenhum usuário ainda.</div>`;
 
-function settingsShowError(msg) {
-  const el = document.getElementById("settings-add-error");
-  if (el) el.textContent = msg;
-}
   el.querySelectorAll(".settings-user-name-input").forEach(input => {
     async function commit() {
       const oldName = input.dataset.old;
