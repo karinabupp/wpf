@@ -2298,7 +2298,6 @@
           <div id="mkt-accumulated-label"></div>
         </div>
         <button class="mkt-nav-btn active" data-mkt-view="social" type="button">Social Media</button>
-        <button class="mkt-nav-btn" data-mkt-view="pr" type="button">Public Relations</button>
         <button class="mkt-nav-btn" data-mkt-view="website" type="button">Website</button>
         <button class="mkt-nav-btn" data-mkt-view="ads-clicks" type="button">Adwords Campaigns</button>
         <button class="mkt-nav-btn" data-mkt-view="ads-budget" type="button">Adwords Budget</button>
@@ -8470,13 +8469,15 @@ importFile.addEventListener("change", () => {
 // (public "anyone with the link can view" sheet, pulled client-side
 // via the gviz CSV export endpoint — no API key needed)
 // ═══════════════════════════════════════════════════════════
-const MKT_SHEET_ID = "1zRHJuj1-aP_KzuK0f7WVDhog3fKve2uXaRJ5JuLC-jE";
-const MKT_GIDS = {
-  igHistorico: "25906588",     // Social - Instagram Historico: Data (diário), Seguidores, Reach, Views, Likes...
-  prMencoes: "1485007269",     // PR - Mencoes: banco de dados de menções, uma linha por menção (ID, Data, ..., Falso Positivo)
-  siteMetas: "1597253817",     // Site - Metas: Mes (Jan..Dez), Meta
-  siteAnalytics: "1757891384", // Site - Analytics GA4: Mes (YYYY-MM), Total + categorias
-  adsAccount: "982839140"      // Ads - Google Ads: "HISTORICO MENSAL - CONTA COMPLETA" (Mes, Spend, Impressoes, Cliques, CTR, CPC, CPM, Conversoes), depois "POR CAMPANHA" (ignorado)
+// "MKT dashboard" — a separate, consolidated spreadsheet. All 5 topics
+// now read from here, each its own clean tab (Mes / value / Meta).
+const MKT_SHEET_ID_2 = "1SGkhm4OHcsic4IggEt3Dn8B2Qg_JZ3bHCl37A18KuvM";
+const MKT_SOURCES = {
+  igDaily: { gid: "1735819281", sheetId: MKT_SHEET_ID_2 },    // "Instagram" tab: Data (diário), Seguidores, Saldo
+  websiteData: { gid: "0", sheetId: MKT_SHEET_ID_2 },         // "Website" tab: Mes (Jan..Dez), Meta 2026, Atingido
+  adsClicks: { gid: "2019287772", sheetId: MKT_SHEET_ID_2 },  // "Campaign" tab: Mes, Cliques, Meta
+  adsBudget: { gid: "980486597", sheetId: MKT_SHEET_ID_2 },   // "Budget" tab: Mes, Spend, Meta
+  adsCpc: { gid: "1185070446", sheetId: MKT_SHEET_ID_2 }      // "CPC" tab: Mes, CPC ("R$ x,xx"), Meta ("R$ x,xx")
 };
 const MKT_SNAPSHOT_KEY = "wpf_marketing_snapshot_v2";
 
@@ -8514,10 +8515,11 @@ function mktFindHeaderRow(rows) {
   return 0;
 }
 
-async function mktFetchSheet(gid) {
+async function mktFetchSheet(gid, sheetId) {
+  sheetId = sheetId || MKT_SHEET_ID_2;
   const urls = [
-    `https://docs.google.com/spreadsheets/d/${MKT_SHEET_ID}/gviz/tq?tqx=out:csv&gid=${gid}`,
-    `https://docs.google.com/spreadsheets/d/${MKT_SHEET_ID}/export?format=csv&gid=${gid}`
+    `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`,
+    `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`
   ];
   let lastErr = null;
   for (const url of urls) {
@@ -8555,7 +8557,7 @@ async function mktFetchSheet(gid) {
 // Handles both plain numbers ("22871") and pt-BR formatted ones ("4,51" / "22.871,50").
 function mktParseNum(v) {
   if (v === undefined || v === null) return null;
-  let s = String(v).trim();
+  let s = String(v).trim().replace(/^[^\d,.\-]+/, "").trim(); // strip "R$ ", "$ ", etc.
   if (s === "") return null;
   if (/,\d{1,2}$/.test(s)) s = s.replace(/\./g, "").replace(",", ".");
   else s = s.replace(/,/g, "");
@@ -8666,16 +8668,20 @@ function mktAggregateSeries(rows, dateKey, valueKeys, mode, aggType) {
 let mktFollowersAgg = "monthly";
 
 function renderFollowersChart() {
-  const rows = (mktData && mktData.igHistorico) || [];
+  const rows = (mktData && mktData.igDaily) || [];
   if (!rows.length) {
-    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Social - Instagram Historico\".");
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"Instagram\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
 
+  const dataKey = mktFindKey(rows[0], ["Data"]);
+  const seguidoresKey = mktFindKey(rows[0], ["Seguidores"]);
+  const cleanRows = rows.map(r => ({ Data: r[dataKey], Seguidores: r[seguidoresKey] }));
+
   // Seguidores is a running total (snapshot), so weekly/monthly aggregation
   // takes the last value recorded in that period — not a sum.
-  const agg = mktAggregateSeries(rows, "Data", ["Seguidores"], mktFollowersAgg, "last");
+  const agg = mktAggregateSeries(cleanRows, "Data", ["Seguidores"], mktFollowersAgg, "last");
   const labels = mktFollowersAgg === "monthly" ? agg.labels.map(mktFormatMonthLabel) : agg.labels;
 
   mktChart("chart-marketing-main", {
@@ -8713,26 +8719,13 @@ const MKT_VIEWS = {
     setAgg: v => { mktFollowersAgg = v; },
     render: renderFollowersChart,
     getAccumulated: () => {
-      const rows = (mktData && mktData.igHistorico) || [];
+      const rows = (mktData && mktData.igDaily) || [];
       if (!rows.length) return null;
-      const sorted = rows.slice().sort((a, b) => (a.Data < b.Data ? -1 : 1));
-      const val = mktParseNum(sorted[sorted.length - 1].Seguidores);
+      const dataKey = mktFindKey(rows[0], ["Data"]);
+      const seguidoresKey = mktFindKey(rows[0], ["Seguidores"]);
+      const sorted = rows.slice().sort((a, b) => (a[dataKey] < b[dataKey] ? -1 : 1));
+      const val = mktParseNum(sorted[sorted.length - 1][seguidoresKey]);
       return { value: mktFormatBigNumber(val), label: "Seguidores atuais" };
-    }
-  },
-  pr: {
-    label: "Public Relations",
-    title: "Public Relations",
-    sub: "Progressão de menções",
-    aggOptions: [{ value: "weekly", label: "Semana" }, { value: "monthly", label: "Mês" }],
-    getAgg: () => mktMentionsAgg,
-    setAgg: v => { mktMentionsAgg = v; },
-    render: renderMentionsChart,
-    getAccumulated: () => {
-      const raw = (mktData && mktData.prMencoes) || [];
-      if (!raw.length) return null;
-      const rows = prPrepareMentions(raw);
-      return { value: mktFormatBigNumber(rows.length), label: "Menções (total)" };
     }
   },
   website: {
@@ -8742,58 +8735,53 @@ const MKT_VIEWS = {
     aggOptions: null,
     render: renderWebsiteChart,
     getAccumulated: () => {
-      const analyticsRows = (mktData && mktData.siteAnalytics) || [];
-      if (!analyticsRows.length) return null;
-      let maxYear = 0;
-      analyticsRows.forEach(r => {
-        const y = parseInt((r.Mes || "").split("-")[0], 10);
-        if (!isNaN(y) && y > maxYear) maxYear = y;
-      });
-      const totalKey = mktFindKey(analyticsRows[0], ["Total"]);
-      let sum = 0;
-      analyticsRows.forEach(r => {
-        const [y] = (r.Mes || "").split("-");
-        if (parseInt(y, 10) === maxYear) sum += mktParseNum(totalKey ? r[totalKey] : r.Total) || 0;
-      });
-      return { value: mktFormatBigNumber(sum), label: `Acessos ${maxYear} (acumulado)` };
+      const rows = (mktData && mktData.websiteData) || [];
+      if (!rows.length) return null;
+      const atingidoKey = mktFindKey(rows[0], ["Atingido"]);
+      const monthRows = rows.filter(r => MKT_PT_MONTHS[(r.Mes || "").trim()] !== undefined);
+      const sum = monthRows.reduce((s, r) => s + (mktParseNum(atingidoKey ? r[atingidoKey] : r.Atingido) || 0), 0);
+      return { value: mktFormatBigNumber(sum), label: "Acessos 2026 (acumulado até agora)" };
     }
   },
   "ads-clicks": {
     label: "Adwords Campaigns",
     title: "Adwords Campaigns",
-    sub: "Acessos ao site (cliques) — mês vs. acumulado",
+    sub: "Cliques — meta vs. realizado, por mês",
     aggOptions: null,
     render: renderAdsClicksChart,
     getAccumulated: () => {
-      const months = mktGetAdsMonths();
-      if (!months.length) return null;
-      const sum = months.reduce((s, r) => s + (mktParseNum(mktAdsColOf(r, "D")) || 0), 0);
+      const rows = (mktData && mktData.adsClicks) || [];
+      if (!rows.length) return null;
+      const built = mktBuildMetaVsRealChart(rows, ["Cliques"]);
+      const sum = built.realData.reduce((s, v) => s + (v || 0), 0);
       return { value: mktFormatBigNumber(sum), label: "Cliques 2026 (acumulado até agora)" };
     }
   },
   "ads-budget": {
     label: "Adwords Budget",
     title: "Adwords Budget",
-    sub: "Uso do budget (spend) — mês vs. acumulado",
+    sub: "Spend — meta vs. realizado, por mês (USD)",
     aggOptions: null,
     render: renderAdsBudgetChart,
     getAccumulated: () => {
-      const months = mktGetAdsMonths();
-      if (!months.length) return null;
-      const sum = months.reduce((s, r) => s + (mktParseNum(mktAdsColOf(r, "B")) || 0), 0);
+      const rows = (mktData && mktData.adsBudget) || [];
+      if (!rows.length) return null;
+      const built = mktBuildMetaVsRealChart(rows, ["Spend"]);
+      const sum = built.realData.reduce((s, v) => s + (v || 0), 0);
       return { value: "$" + mktFormatBigNumber(sum, 2), label: "Spend 2026 (acumulado até agora, USD)" };
     }
   },
   "ads-cpc": {
     label: "Adwords CPC",
     title: "Adwords CPC",
-    sub: "Custo por clique, por mês",
+    sub: "CPC — meta vs. realizado, por mês (USD)",
     aggOptions: null,
     render: renderAdsCpcChart,
     getAccumulated: () => {
-      const months = mktGetAdsMonths();
-      if (!months.length) return null;
-      const vals = months.map(r => mktParseNum(mktAdsColOf(r, "F"))).filter(v => v !== null && v > 0);
+      const rows = (mktData && mktData.adsCpc) || [];
+      if (!rows.length) return null;
+      const built = mktBuildMetaVsRealChart(rows, ["CPC"]);
+      const vals = built.realData.filter(v => v !== null && v > 0);
       if (!vals.length) return null;
       const avg = vals.reduce((s, v) => s + v, 0) / vals.length;
       return { value: "$" + mktFormatBigNumber(avg, 2), label: "CPC médio 2026 até agora" };
@@ -8863,119 +8851,67 @@ function mktTakeLeadingMonths(rows) {
   return out;
 }
 
-// Read by column letter (B=Spend, D=Cliques, F=CPC), as confirmed against
-// the actual sheet — more reliable than matching header text, which was
-// coming back empty on the live data for reasons that weren't obvious
-// from the fetched preview alone.
-function mktAdsColOf(r, letter) {
-  const idx = letter.toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2...
-  return r.__col ? r.__col[idx] : undefined;
+// A generic "Mes / value / Meta" chart reader — Clicks, Budget and CPC all
+// share this exact shape now that each has its own clean tab, so one
+// function builds all three instead of three near-duplicates.
+function mktBuildMetaVsRealChart(rows, valueCandidates) {
+  const valueKey = mktFindKey(rows[0], valueCandidates);
+  const metaKey = mktFindKey(rows[0], ["Meta"]);
+  // Only rows with a real "Mmm/AAAA" month — the sheets pad extra Meta-only
+  // rows below (future months already forecasted) with a blank Mes cell.
+  const monthRows = rows.filter(r => /^[A-Za-zçÇéÉ]{3}\/\d{4}$/.test((r.Mes || "").trim()));
+  return {
+    labels: monthRows.map(r => r.Mes),
+    metaData: monthRows.map(r => mktParseNum(metaKey ? r[metaKey] : r.Meta)),
+    realData: monthRows.map(r => mktParseNum(valueKey ? r[valueKey] : undefined))
+  };
 }
 
-// Mensal e acumulado ficam em escalas bem diferentes (acumulado só
-// cresce), então cada um usa seu próprio eixo Y pra continuar legível.
-function mktDualAxisOptions() {
-  return mktBarOptions({
-    scales: {
-      y: { beginAtZero: true, position: "left" },
-      y1: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false } }
-    }
-  });
-}
-
-function mktMonthSortKey(mes) {
-  const [mon, year] = (mes || "").split("/");
-  const idx = MKT_PT_MONTHS[mon];
-  if (idx === undefined || !year) return Infinity;
-  return parseInt(year, 10) * 12 + idx;
-}
-
-function mktGetAdsMonths() {
-  const raw = (mktData && mktData.adsAccount) || [];
-  const monthPattern = /^[A-Za-zçÇéÉ]{3}\/\d{4}$/;
-  const seen = new Set();
-  const months = [];
-  for (const r of raw) {
-    const mes = (r.Mes || "").trim();
-    // Stop at the first row that isn't a clean "Mmm/AAAA" — that's exactly
-    // where the "CONTA COMPLETA" table ends and "POR CAMPANHA" begins
-    // (title row, then a second header row). Also dedupe defensively and
-    // sort chronologically, in case any of that ordering assumption ever
-    // breaks — a duplicated or out-of-order month should never slip through.
-    if (!monthPattern.test(mes)) break;
-    if (seen.has(mes)) continue;
-    seen.add(mes);
-    months.push(r);
-  }
-  // Only 2026 is relevant for these 3 charts — everything from 2024/2025
-  // is history that shouldn't feed Clicks/Budget/CPC.
-  const only2026 = months.filter(r => (r.Mes || "").trim().endsWith("/2026"));
-  only2026.sort((a, b) => mktMonthSortKey(a.Mes) - mktMonthSortKey(b.Mes));
-  return only2026;
+function mktMetaVsRealChartConfig(built, realLabel) {
+  return {
+    type: "line",
+    data: {
+      labels: built.labels,
+      datasets: [
+        { label: "Meta", data: built.metaData, borderColor: "#7048e8", backgroundColor: "#7048e8", tension: 0.2, pointRadius: 3, fill: false },
+        { label: realLabel, data: built.realData, borderColor: "#1f6feb", backgroundColor: "#1f6feb", tension: 0.3, pointRadius: 3, fill: false }
+      ]
+    },
+    options: mktBarOptions()
+  };
 }
 
 function renderAdsClicksChart() {
-  const months = mktGetAdsMonths();
-  if (!months.length) {
-    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Ads - Google Ads\".");
+  const rows = (mktData && mktData.adsClicks) || [];
+  if (!rows.length) {
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"Campaign\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
-  const labels = months.map(r => r.Mes);
-  const clicksMonthly = months.map(r => mktParseNum(mktAdsColOf(r, "D")) || 0);
-  const runningTotal = arr => { let sum = 0; return arr.map(v => (sum += v)); };
-  const clicksCumulative = runningTotal(clicksMonthly);
-  mktChart("chart-marketing-main", {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        { label: "Cliques (mês)", data: clicksMonthly, borderColor: "#1f6feb", backgroundColor: "#1f6feb", tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y" },
-        { label: "Cliques (acumulado)", data: clicksCumulative, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y1" }
-      ]
-    },
-    options: mktDualAxisOptions()
-  });
+  const built = mktBuildMetaVsRealChart(rows, ["Cliques"]);
+  mktChart("chart-marketing-main", mktMetaVsRealChartConfig(built, "Cliques"));
 }
 
 function renderAdsBudgetChart() {
-  const months = mktGetAdsMonths();
-  if (!months.length) {
-    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Ads - Google Ads\".");
+  const rows = (mktData && mktData.adsBudget) || [];
+  if (!rows.length) {
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"Budget\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
-  const labels = months.map(r => r.Mes);
-  const spendMonthly = months.map(r => mktParseNum(mktAdsColOf(r, "B")) || 0);
-  const runningTotal = arr => { let sum = 0; return arr.map(v => (sum += v)); };
-  const spendCumulative = runningTotal(spendMonthly);
-  mktChart("chart-marketing-main", {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        { label: "Spend (mês, USD)", data: spendMonthly, borderColor: "#2f6f4f", backgroundColor: "#2f6f4f", tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y" },
-        { label: "Spend (acumulado, USD)", data: spendCumulative, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.3, pointRadius: 3, fill: false, yAxisID: "y1" }
-      ]
-    },
-    options: mktDualAxisOptions()
-  });
+  const built = mktBuildMetaVsRealChart(rows, ["Spend"]);
+  mktChart("chart-marketing-main", mktMetaVsRealChartConfig(built, "Spend (USD)"));
 }
 
 function renderAdsCpcChart() {
-  const months = mktGetAdsMonths();
-  if (!months.length) {
-    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Ads - Google Ads\".");
+  const rows = (mktData && mktData.adsCpc) || [];
+  if (!rows.length) {
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"CPC\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
-  const labels = months.map(r => r.Mes);
-  const cpc = months.map(r => mktParseNum(mktAdsColOf(r, "F")) || 0);
-  mktChart("chart-marketing-main", {
-    type: "line",
-    data: { labels, datasets: [{ label: "CPC (USD)", data: cpc, borderColor: "#e8590c", backgroundColor: "#e8590c", tension: 0.3, pointRadius: 3, fill: false }] },
-    options: mktBarOptions()
-  });
+  const built = mktBuildMetaVsRealChart(rows, ["CPC"]);
+  mktChart("chart-marketing-main", mktMetaVsRealChartConfig(built, "CPC (USD)"));
 }
 
 // ── Website chart (Meta vs. Atingido) ──────────────────────────────────
@@ -8994,114 +8930,41 @@ function mktFindKey(row, candidates) {
 }
 
 function renderWebsiteChart() {
-  const metasRows = (mktData && mktData.siteMetas) || [];
-  const analyticsRows = (mktData && mktData.siteAnalytics) || [];
-  if (!metasRows.length && !analyticsRows.length) {
-    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"Site - Metas\" nem \"Site - Analytics GA4\".");
+  const rows = (mktData && mktData.websiteData) || [];
+  if (!rows.length) {
+    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar a aba \"Website\".");
     return;
   }
   mktCardNote("chart-marketing-main", null);
 
-  const metaKey = mktFindKey(metasRows[0], ["Meta"]);
-  const metaByMonth = {};
-  metasRows.forEach(r => {
-    const idx = MKT_PT_MONTHS[(r.Mes || "").trim()];
-    if (idx !== undefined) metaByMonth[idx] = mktParseNum(metaKey ? r[metaKey] : r.Meta);
-  });
+  const metaKey = mktFindKey(rows[0], ["Meta 2026", "Meta"]);
+  const atingidoKey = mktFindKey(rows[0], ["Atingido"]);
 
-  // "Site - Analytics GA4" keys months as YYYY-MM — take the current
-  // (latest) year present, and use its "Total" column as the realized
-  // number for each month that's already happened.
-  let maxYear = 0;
-  analyticsRows.forEach(r => {
-    const y = parseInt((r.Mes || "").split("-")[0], 10);
-    if (!isNaN(y) && y > maxYear) maxYear = y;
-  });
-  const totalKey = mktFindKey(analyticsRows[0], ["Total"]);
-  const realizedByMonth = {};
-  analyticsRows.forEach(r => {
-    const [y, m] = (r.Mes || "").split("-");
-    if (parseInt(y, 10) === maxYear) realizedByMonth[parseInt(m, 10) - 1] = mktParseNum(totalKey ? r[totalKey] : r.Total);
-  });
+  // Skip the "Total" summary row at the bottom, keep just the 12 months.
+  const monthRows = rows.filter(r => MKT_PT_MONTHS[(r.Mes || "").trim()] !== undefined);
+  // Only show months that actually have a realized value so far — future
+  // months sit at 0 in the sheet until they happen, and shouldn't show as
+  // a flat drop to zero on the chart.
+  const withData = monthRows.filter(r => (mktParseNum(atingidoKey ? r[atingidoKey] : r.Atingido) || 0) > 0);
 
-  // Only show months that actually have a row in the Analytics sheet —
-  // future months just aren't there yet, so they don't appear at all
-  // (rather than showing as a gap on a full Jan-Dez axis). As each new
-  // month gets entered in the spreadsheet, it shows up here on its own.
-  const presentMonthIdxs = Object.keys(realizedByMonth).map(Number).sort((a, b) => a - b);
-  const labels = presentMonthIdxs.map(i => MKT_PT_MONTH_LABELS[i]);
-  const metaData = presentMonthIdxs.map(i => metaByMonth[i] ?? null);
-  const atingidoData = presentMonthIdxs.map(i => realizedByMonth[i] ?? null);
+  const labels = withData.map(r => r.Mes);
+  const metaData = withData.map(r => mktParseNum(metaKey ? r[metaKey] : r["Meta 2026"]));
+  const atingidoData = withData.map(r => mktParseNum(atingidoKey ? r[atingidoKey] : r.Atingido));
 
   mktChart("chart-marketing-main", {
     type: "line",
     data: {
       labels,
       datasets: [
-        { label: "Meta", data: metaData, borderColor: "#9c9a92", backgroundColor: "#9c9a92", borderDash: [5, 4], tension: 0.2, pointRadius: 3, fill: false },
-        { label: "Atingido", data: atingidoData, borderColor: "#2f6f4f", backgroundColor: "#2f6f4f", tension: 0.3, pointRadius: 3, fill: false }
+        { label: "Meta", data: metaData, borderColor: "#7048e8", backgroundColor: "#7048e8", tension: 0.2, pointRadius: 3, fill: false },
+        { label: "Atingido", data: atingidoData, borderColor: "#1f6feb", backgroundColor: "#1f6feb", tension: 0.3, pointRadius: 3, fill: false }
       ]
     },
     options: mktBarOptions()
   });
 }
 
-// ── Mentions-progression chart (PR) ────────────────────────────────────
-
-let mktMentionsAgg = "monthly";
-
-// "Data" in this sheet is DD/MM/YYYY, not ISO — convert so it sorts/buckets
-// correctly alongside every other date-keyed series in this file.
-function prParseDateBR(s) {
-  const [d, m, y] = (s || "").split("/");
-  if (!d || !m || !y) return null;
-  return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-}
-
-// PR - Mencoes is one row per mention (not pre-aggregated) — drop the ones
-// flagged "Falso Positivo" (false positive) and give each real mention a
-// Count of 1, so summing Count per bucket via mktAggregateSeries is exactly
-// "how many mentions in that day/week/month".
-function prPrepareMentions(rows) {
-  return rows
-    .filter(r => (r["Falso Positivo"] || "").trim().toUpperCase() !== "TRUE")
-    .map(r => ({ DataISO: prParseDateBR(r.Data), Count: "1" }))
-    .filter(r => r.DataISO);
-}
-
-function renderMentionsChart() {
-  const raw = (mktData && mktData.prMencoes) || [];
-  if (!raw.length) {
-    mktCardNote("chart-marketing-main", "Sem dados — não consegui carregar \"PR - Menções\".");
-    return;
-  }
-  const rows = prPrepareMentions(raw);
-  if (!rows.length) {
-    mktCardNote("chart-marketing-main", "Sem menções válidas (todas marcadas como falso positivo?).");
-    return;
-  }
-  mktCardNote("chart-marketing-main", null);
-
-  const agg = mktAggregateSeries(rows, "DataISO", ["Count"], mktMentionsAgg, "sum");
-  const labels = mktMentionsAgg === "monthly" ? agg.labels.map(mktFormatMonthLabel) : agg.labels;
-
-  mktChart("chart-marketing-main", {
-    type: "line",
-    data: {
-      labels,
-      datasets: [{
-        label: "Menções",
-        data: agg.series[0],
-        borderColor: "#e8590c",
-        backgroundColor: "#e8590c",
-        tension: 0.3,
-        pointRadius: 3,
-        fill: false
-      }]
-    },
-    options: mktBarOptions()
-  });
-}
+// ── Mentions-progression chart (PR) — removed, PR section dropped ──────
 
 
 async function loadMarketingData() {
@@ -9109,8 +8972,8 @@ async function loadMarketingData() {
   let cached = null;
   try { cached = JSON.parse(localStorage.getItem(MKT_SNAPSHOT_KEY) || "null"); } catch (e) { cached = null; }
 
-  const keys = ["igHistorico", "prMencoes", "siteMetas", "siteAnalytics", "adsAccount"];
-  const results = await Promise.allSettled(keys.map(k => mktFetchSheet(MKT_GIDS[k])));
+  const keys = ["igDaily", "websiteData", "adsClicks", "adsBudget", "adsCpc"];
+  const results = await Promise.allSettled(keys.map(k => mktFetchSheet(MKT_SOURCES[k].gid, MKT_SOURCES[k].sheetId)));
 
   const next = Object.assign({}, mktData || cached || {});
   let anyOk = false, anyErr = false;
@@ -9121,7 +8984,7 @@ async function loadMarketingData() {
       anyOk = true;
     } else {
       anyErr = true;
-      console.warn(`Marketing: failed to load "${key}" (gid ${MKT_GIDS[key]}):`, r.reason && r.reason.message ? r.reason.message : r.reason);
+      console.warn(`Marketing: failed to load "${key}" (gid ${MKT_SOURCES[key].gid}):`, r.reason && r.reason.message ? r.reason.message : r.reason);
     }
   });
   mktData = next;
