@@ -5623,18 +5623,38 @@ async function sendDailyDigestNow(personName, btn) {
     settingsShowError("Essa URL não parece uma URL de Apps Script válida — precisa começar com \"https://script.google.com/macros/s/\" e terminar em \"/exec\". Copia de novo em Implantar → Gerenciar implantações.");
     return;
   }
+  const person = usersList.find(u => u.username === personName);
+  const email = (person && person.email || "").trim();
+  if (!email) {
+    settingsShowError(`${personName} não tem email cadastrado — preenche o campo de email dela na lista acima primeiro.`);
+    return;
+  }
+  // Built straight from what's already on screen (tasksData/usersList) —
+  // the script just sends exactly this, no re-fetch of a cloud snapshot
+  // that could be a few seconds (or more) out of date.
+  const grouped = buildDigestForPerson(personName);
+  const tasks = EMAIL_DIGEST_ORDER.flatMap(status => grouped[status]);
+  if (!tasks.length) {
+    settingsShowError(`${personName} não tem tarefas pendentes hoje — nada foi enviado (não manda email vazio).`);
+    return;
+  }
+
   const originalHTML = btn.innerHTML;
   try {
     btn.disabled = true;
     btn.innerHTML = "⏳ Enviando…";
     settingsShowError(`Enviando pra ${personName}…`);
-    const target = `${url}?pessoa=${encodeURIComponent(personName)}`;
+    const payload = { personName, email, tasks };
     let confirmed = false;
     let errorMsg = "";
     try {
       // Readable attempt: if this succeeds, we get a real yes/no instead of
       // just hoping the request landed.
-      const res = await fetch(target, { method: "GET" });
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids a CORS preflight Apps Script can't answer
+        body: JSON.stringify(payload)
+      });
       if (res.ok) {
         const text = await res.text().catch(() => "");
         confirmed = true;
@@ -5647,7 +5667,7 @@ async function sendDailyDigestNow(personName, btn) {
       // a blind fire so the email still has a chance to go out, but we can't
       // confirm it from here.
       try {
-        await fetch(target, { method: "GET", mode: "no-cors" });
+        await fetch(url, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
         errorMsg = "sent-blind";
       } catch (err2) {
         errorMsg = "Não consegui nem disparar a solicitação — confere se a URL está certa e se o script foi publicado como Web App (Anyone / Qualquer pessoa).";
