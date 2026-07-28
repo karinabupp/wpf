@@ -401,7 +401,6 @@
   #slack-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #slack-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
   #slack-sync-status { font-size: 12px; color: var(--text-muted); }
-  #slack-header-controls { display: flex; align-items: center; gap: 10px; }
   #slack-backfill-btn {
     border: 1px solid var(--border);
     background: #ffffff;
@@ -413,18 +412,75 @@
   }
   #slack-backfill-btn:hover { background: var(--land-default); color: var(--text); }
   #slack-backfill-btn:disabled { opacity: 0.6; cursor: default; }
-  #slack-channel-filter {
+
+  #slack-main-row { display: flex; gap: 18px; align-items: stretch; flex: 1 1 0; min-height: 0; }
+  #slack-content-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+
+  #slack-channels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    align-content: start;
+    overflow-y: auto;
+  }
+  .slack-channel-tile {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .slack-channel-tile:hover { border-color: var(--border-strong); background: var(--land-default); }
+  .slack-channel-tile-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: #4a154b;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+  .slack-channel-tile-name { font-weight: 700; font-size: 14px; color: var(--text); }
+  .slack-channel-tile-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+  .slack-channel-tile-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #e5473d;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+  }
+  .slack-channels-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+
+  #slack-channel-detail { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  #slack-channel-detail.hidden { display: none; }
+  #slack-channels-grid.hidden { display: none; }
+  #slack-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex: 0 0 auto; }
+  #slack-back-btn {
     border: 1px solid var(--border);
     background: #ffffff;
-    border-radius: 8px;
-    padding: 8px 12px;
-    font-size: 13px;
     color: var(--text);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 12.5px;
     cursor: pointer;
   }
-  #slack-main-row { display: flex; gap: 18px; align-items: stretch; flex: 1 1 0; min-height: 0; }
-  #slack-feed-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
-  #slack-feed {
+  #slack-back-btn:hover { background: var(--land-default); }
+  #slack-detail-title { font-weight: 700; font-size: 15px; color: var(--text); }
+  #slack-detail-feed {
     flex: 1 1 0;
     min-height: 0;
     overflow-y: auto;
@@ -453,13 +509,12 @@
   .slack-msg-body { flex: 1 1 0; min-width: 0; }
   .slack-msg-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .slack-msg-name { font-weight: 700; font-size: 13.5px; color: var(--text); }
-  .slack-msg-channel { font-size: 11px; color: var(--accent); background: var(--bg); border-radius: 5px; padding: 1px 7px; }
   .slack-msg-time { font-size: 11px; color: var(--text-muted); }
   .slack-msg-text { font-size: 13.5px; color: var(--text); margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
   .slack-feed-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
 
-  #slack-send-col { flex: 0 0 280px; }
-  .slack-send-card {
+  #slack-side-col { flex: 0 0 300px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+  .slack-tasks-card, .slack-send-card {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -467,11 +522,12 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    height: 100%;
+    flex: 0 0 auto;
   }
-  .slack-send-title { font-size: 14px; font-weight: 700; color: var(--text); }
-  .slack-send-hint { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px; }
+  .slack-tasks-title, .slack-send-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .slack-tasks-hint, .slack-send-hint { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px; }
   .slack-send-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
+  #slack-task-name, #slack-task-parent, #slack-task-assignee,
   #slack-send-channel, #slack-send-text {
     border: 1px solid var(--border);
     border-radius: 7px;
@@ -480,8 +536,8 @@
     font-family: inherit;
     color: var(--text);
   }
-  #slack-send-text { min-height: 90px; resize: vertical; }
-  #slack-send-btn {
+  #slack-send-text { min-height: 80px; resize: vertical; }
+  #slack-task-add-btn, #slack-send-btn {
     margin-top: 6px;
     background: #4a154b;
     color: #ffffff;
@@ -492,9 +548,15 @@
     font-weight: 600;
     cursor: pointer;
   }
-  #slack-send-btn:hover { background: #3a1039; }
+  #slack-task-add-btn:hover, #slack-send-btn:hover { background: #3a1039; }
   #slack-send-btn:disabled { opacity: 0.6; cursor: default; }
   #slack-send-status { font-size: 12px; color: var(--text-muted); min-height: 15px; }
+  #slack-tasks-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; max-height: 260px; overflow-y: auto; }
+  .slack-task-item { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  .slack-task-item-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .slack-task-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .slack-task-item-status { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px; }
+  .slack-tasks-empty { font-size: 12px; color: var(--text-muted); padding: 8px 0; }
 
   #marketing-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #marketing-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
@@ -2336,19 +2398,36 @@
   <div id="slack-wrap">
     <div id="slack-logo-row">
       <span id="slack-sync-status"></span>
-      <div id="slack-header-controls">
-        <button id="slack-backfill-btn" type="button" title="Busca mensagens antigas dos canais onde o bot já está — só precisa rodar uma vez (ou de novo se quiser trazer mais recente)">↻ Importar histórico</button>
-        <select id="slack-channel-filter">
-          <option value="">Todos os canais</option>
-        </select>
-      </div>
+      <button id="slack-backfill-btn" type="button" title="Busca mensagens antigas dos canais onde o bot já está — só precisa rodar uma vez (ou de novo se quiser trazer mais recente)">↻ Importar histórico</button>
     </div>
 
     <div id="slack-main-row">
-      <div id="slack-feed-col">
-        <div id="slack-feed"></div>
+      <div id="slack-content-col">
+        <div id="slack-channels-grid"></div>
+
+        <div id="slack-channel-detail" class="hidden">
+          <div id="slack-detail-header">
+            <button id="slack-back-btn" type="button">← Canais</button>
+            <span id="slack-detail-title"></span>
+          </div>
+          <div id="slack-detail-feed"></div>
+        </div>
       </div>
-      <div id="slack-send-col">
+
+      <div id="slack-side-col">
+        <div class="slack-tasks-card">
+          <div class="slack-tasks-title">Tasks do Slack</div>
+          <div class="slack-tasks-hint">Coisas que vieram de conversas no Slack — associa a uma tarefa mãe e aparece direto na aba Tasks também.</div>
+          <label class="slack-send-label" for="slack-task-name">O que precisa ser feito</label>
+          <input type="text" id="slack-task-name" placeholder="Ex: Responder Maureen sobre a Estônia">
+          <label class="slack-send-label" for="slack-task-parent">Tarefa mãe</label>
+          <select id="slack-task-parent"></select>
+          <label class="slack-send-label" for="slack-task-assignee">Responsável</label>
+          <select id="slack-task-assignee"></select>
+          <button id="slack-task-add-btn" type="button">+ Adicionar</button>
+          <div id="slack-tasks-list"></div>
+        </div>
+
         <div class="slack-send-card">
           <div class="slack-send-title">Mandar mensagem</div>
           <div class="slack-send-hint">Vai como <b>WPF Dashboard Bot</b>, não como você — o Slack não deixa mandar "como uma pessoa" sem cada uma autorizar individualmente.</div>
@@ -3971,6 +4050,9 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     }
     if (btnId === "nav-slack" && typeof loadSlackMessages === "function") {
       loadSlackMessages();
+      if (typeof renderSlackTaskParentSelect === "function") renderSlackTaskParentSelect();
+      if (typeof renderSlackTaskAssigneeSelect === "function") renderSlackTaskAssigneeSelect();
+      if (typeof renderSlackTasksList === "function") renderSlackTasksList();
     }
   });
 });
@@ -9036,8 +9118,11 @@ setInterval(loadMarketingData, 5 * 60 * 1000);
 // ═══════════════════════════════════════════════════════════
 const SLACK_WORKER_URL = "https://wpf-slack-bridge.worldpokerfederation.workers.dev";
 const SLACK_TABLE_URL = `${SUPABASE_URL}/rest/v1/wpf_slack_messages`;
-let slackMessages = [];
-let slackChannelFilter = "";
+const SLACK_LAST_SEEN_KEY = "wpf_slack_last_seen";
+let slackMessages = [];         // recent messages across all channels — feeds the tile grid/badges
+let slackAllChannels = [];      // every channel the bot is in, from the Worker's /channels
+let slackActiveChannel = null;  // { id, name } while a channel's full thread is open
+let slackChannelDetailMessages = [];
 
 function slackAvatarInitials(name) {
   const clean = (name || "?").trim();
@@ -9053,7 +9138,18 @@ function slackFormatTime(ts) {
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-let slackAllChannels = [];
+function slackGetLastSeen() {
+  try { return JSON.parse(localStorage.getItem(SLACK_LAST_SEEN_KEY) || "{}"); } catch (e) { return {}; }
+}
+function slackSetLastSeen(channelId, ts) {
+  const map = slackGetLastSeen();
+  map[channelId] = ts;
+  localStorage.setItem(SLACK_LAST_SEEN_KEY, JSON.stringify(map));
+}
+function slackChannelUnreadCount(channelId) {
+  const lastSeen = slackGetLastSeen()[channelId] || 0;
+  return slackMessages.filter(m => m.channel === channelId && parseFloat(m.ts) > lastSeen).length;
+}
 
 async function loadSlackChannelsList() {
   try {
@@ -9063,30 +9159,81 @@ async function loadSlackChannelsList() {
   } catch (err) {
     console.warn("Slack: failed to load channel list:", err);
   }
-  renderSlackChannelFilter();
+  renderSlackChannelsGrid();
 }
 
-function renderSlackChannelFilter() {
-  const sel = document.getElementById("slack-channel-filter");
-  const current = sel.value;
-  const fromApi = slackAllChannels.map(c => c.name);
-  const fromMessages = slackMessages.map(m => m.channel_name || m.channel);
-  const names = Array.from(new Set([...fromApi, ...fromMessages].filter(Boolean))).sort();
-  sel.innerHTML = `<option value="">Todos os canais</option>` +
-    names.map(n => `<option value="${n}">#${n}</option>`).join("");
-  if (names.includes(current)) sel.value = current;
-}
+function renderSlackChannelsGrid() {
+  const el = document.getElementById("slack-channels-grid");
+  // Merge what the Worker says the bot is in with anything only seen in
+  // messages so far (belt-and-suspenders if the bot ever leaves a channel
+  // that still has history worth keeping visible).
+  const byId = new Map();
+  slackAllChannels.forEach(c => byId.set(c.id, { id: c.id, name: c.name }));
+  slackMessages.forEach(m => {
+    if (!byId.has(m.channel)) byId.set(m.channel, { id: m.channel, name: m.channel_name || m.channel });
+  });
+  const channels = Array.from(byId.values()).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
-function renderSlackFeed() {
-  const el = document.getElementById("slack-feed");
-  const rows = slackChannelFilter
-    ? slackMessages.filter(m => (m.channel_name || m.channel) === slackChannelFilter)
-    : slackMessages;
-  if (!rows.length) {
-    el.innerHTML = `<div class="slack-feed-empty">Nenhuma mensagem ainda — assim que alguém escrever num canal onde o bot está, aparece aqui.</div>`;
+  if (!channels.length) {
+    el.innerHTML = `<div class="slack-channels-empty">Nenhum canal ainda — convida o bot num canal do Slack (/invite @WPF Dashboard Bot) que ele aparece aqui.</div>`;
     return;
   }
-  el.innerHTML = rows.map(m => {
+
+  el.innerHTML = channels.map(c => {
+    const unread = slackChannelUnreadCount(c.id);
+    const channelMsgs = slackMessages.filter(m => m.channel === c.id).sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts));
+    const last = channelMsgs[0];
+    const preview = last ? `${(last.user_name || "Alguém").split(" ")[0]}: ${(last.text || "").slice(0, 40)}` : "Sem mensagens ainda";
+    return `
+      <button class="slack-channel-tile" data-channel-id="${c.id}" data-channel-name="${c.name || c.id}" type="button">
+        ${unread > 0 ? `<span class="slack-channel-tile-badge">${unread}</span>` : ""}
+        <div class="slack-channel-tile-icon">#</div>
+        <div class="slack-channel-tile-name">#${c.name || c.id}</div>
+        <div class="slack-channel-tile-meta">${preview}</div>
+      </button>
+    `;
+  }).join("");
+
+  el.querySelectorAll(".slack-channel-tile").forEach(btn => {
+    btn.addEventListener("click", () => openSlackChannel(btn.dataset.channelId, btn.dataset.channelName));
+  });
+}
+
+async function openSlackChannel(channelId, channelName) {
+  slackActiveChannel = { id: channelId, name: channelName };
+  document.getElementById("slack-channels-grid").classList.add("hidden");
+  document.getElementById("slack-channel-detail").classList.remove("hidden");
+  document.getElementById("slack-detail-title").textContent = "#" + channelName;
+  const feedEl = document.getElementById("slack-detail-feed");
+  feedEl.innerHTML = `<div class="slack-feed-empty">Carregando…</div>`;
+
+  try {
+    const res = await fetch(`${SLACK_TABLE_URL}?channel=eq.${encodeURIComponent(channelId)}&select=*&order=ts.asc&limit=500`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    slackChannelDetailMessages = res.ok ? await res.json() : [];
+  } catch (err) {
+    slackChannelDetailMessages = [];
+  }
+  renderSlackChannelDetail();
+
+  // Everything currently loaded for this channel counts as "seen" now —
+  // clears the badge, refreshes the grid underneath so it's ready when
+  // they go back to it.
+  if (slackChannelDetailMessages.length) {
+    const newestTs = Math.max(...slackChannelDetailMessages.map(m => parseFloat(m.ts) || 0));
+    slackSetLastSeen(channelId, newestTs);
+  }
+  renderSlackChannelsGrid();
+}
+
+function renderSlackChannelDetail() {
+  const el = document.getElementById("slack-detail-feed");
+  if (!slackChannelDetailMessages.length) {
+    el.innerHTML = `<div class="slack-feed-empty">Nenhuma mensagem nesse canal ainda — tenta "Importar histórico" se ele já tinha conversa antes do bot entrar.</div>`;
+    return;
+  }
+  el.innerHTML = slackChannelDetailMessages.map(m => {
     const name = m.user_name || m.user_id || "Alguém";
     return `
       <div class="slack-msg">
@@ -9094,7 +9241,6 @@ function renderSlackFeed() {
         <div class="slack-msg-body">
           <div class="slack-msg-head">
             <span class="slack-msg-name">${name}</span>
-            <span class="slack-msg-channel">#${m.channel_name || m.channel}</span>
             <span class="slack-msg-time">${slackFormatTime(m.ts)}</span>
           </div>
           <div class="slack-msg-text">${(m.text || "").replace(/</g, "&lt;")}</div>
@@ -9102,20 +9248,40 @@ function renderSlackFeed() {
       </div>
     `;
   }).join("");
+  el.scrollTop = el.scrollHeight;
 }
+
+function closeSlackChannelDetail() {
+  slackActiveChannel = null;
+  document.getElementById("slack-channel-detail").classList.add("hidden");
+  document.getElementById("slack-channels-grid").classList.remove("hidden");
+}
+document.getElementById("slack-back-btn").addEventListener("click", closeSlackChannelDetail);
 
 async function loadSlackMessages() {
   const statusEl = document.getElementById("slack-sync-status");
   statusEl.textContent = "☁️ Atualizando…";
-  loadSlackChannelsList(); // runs in parallel, re-renders the filter on its own when done
+  loadSlackChannelsList(); // parallel — re-renders the grid on its own when it lands
   try {
-    const res = await fetch(`${SLACK_TABLE_URL}?select=*&order=ts.desc&limit=200`, {
+    const res = await fetch(`${SLACK_TABLE_URL}?select=*&order=ts.desc&limit=300`, {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     slackMessages = await res.json();
-    renderSlackChannelFilter();
-    renderSlackFeed();
+    renderSlackChannelsGrid();
+    if (slackActiveChannel) {
+      // Keep an open thread live too, without losing place mid-read.
+      const res2 = await fetch(`${SLACK_TABLE_URL}?channel=eq.${encodeURIComponent(slackActiveChannel.id)}&select=*&order=ts.asc&limit=500`, {
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      });
+      if (res2.ok) {
+        slackChannelDetailMessages = await res2.json();
+        renderSlackChannelDetail();
+        if (slackChannelDetailMessages.length) {
+          slackSetLastSeen(slackActiveChannel.id, Math.max(...slackChannelDetailMessages.map(m => parseFloat(m.ts) || 0)));
+        }
+      }
+    }
     statusEl.textContent = "☁️ Atualizado agora";
   } catch (err) {
     console.warn("Slack: failed to load messages:", err);
@@ -9123,9 +9289,84 @@ async function loadSlackMessages() {
   }
 }
 
-document.getElementById("slack-channel-filter").addEventListener("change", (e) => {
-  slackChannelFilter = e.target.value;
-  renderSlackFeed();
+// ── Slack-linked tasks — created here, but they live in the real
+// tasksData tree (under whichever parent task you pick), so they show up
+// in the Tasks tab too, not just in this side panel. ─────────────────────
+
+function renderSlackTaskParentSelect() {
+  const sel = document.getElementById("slack-task-parent");
+  const current = sel.value;
+  sel.innerHTML = tasksData.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
+  if (Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+}
+
+function renderSlackTaskAssigneeSelect() {
+  const sel = document.getElementById("slack-task-assignee");
+  const current = sel.value;
+  sel.innerHTML = `<option value="">— ninguém ainda —</option>` +
+    usersList.map(u => `<option value="${u.username}">${u.username}</option>`).join("");
+  if (Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+}
+
+function collectSlackTasks() {
+  const out = [];
+  function walk(list, parentName) {
+    (list || []).forEach(t => {
+      if (t.fromSlack) out.push({ task: t, parentName });
+      walk(t.subtasks, t.name);
+    });
+  }
+  walk(tasksData, null);
+  return out;
+}
+
+function renderSlackTasksList() {
+  const el = document.getElementById("slack-tasks-list");
+  const items = collectSlackTasks();
+  if (!items.length) {
+    el.innerHTML = `<div class="slack-tasks-empty">Nenhuma task do Slack ainda.</div>`;
+    return;
+  }
+  el.innerHTML = items.map(({ task, parentName }) => {
+    const colors = TASK_STATUS_COLORS[task.status] || TASK_STATUS_COLORS["Not Started"];
+    return `
+      <div class="slack-task-item">
+        <div class="slack-task-item-name">${task.name}</div>
+        <div class="slack-task-item-meta">
+          <span class="slack-task-item-status" style="background:${colors.bg};color:${colors.text}">${task.status}</span>
+          <span>↳ ${parentName || "—"}</span>
+          ${task.assignees.length ? `<span>· ${task.assignees.join(", ")}</span>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+document.getElementById("slack-task-add-btn").addEventListener("click", () => {
+  const nameInput = document.getElementById("slack-task-name");
+  const parentSel = document.getElementById("slack-task-parent");
+  const assigneeSel = document.getElementById("slack-task-assignee");
+  const name = nameInput.value.trim();
+  if (!name) return;
+  const parent = findTaskById(tasksData, parentSel.value);
+  if (!parent) return;
+  const newId = "task-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+  parent.subtasks.push({
+    id: newId,
+    name,
+    status: "Not Started",
+    startDate: "",
+    endDate: "",
+    assignees: assigneeSel.value ? [assigneeSel.value] : [],
+    kpiLink: "",
+    rowType: "subtask",
+    subtasks: [],
+    fromSlack: true
+  });
+  saveTasksData();
+  nameInput.value = "";
+  renderSlackTasksList();
+  if (typeof renderTasksTable === "function") renderTasksTable();
 });
 
 document.getElementById("slack-backfill-btn").addEventListener("click", async () => {
@@ -9140,6 +9381,7 @@ document.getElementById("slack-backfill-btn").addEventListener("click", async ()
     if (data.ok || data.messagesSaved > 0) {
       statusEl.textContent = `✅ Importado: ${data.messagesSaved} mensagens de ${data.channels} canal(is).`;
       await loadSlackMessages();
+      if (slackActiveChannel) openSlackChannel(slackActiveChannel.id, slackActiveChannel.name);
     } else {
       statusEl.textContent = `⚠️ Importação com problemas: ${(data.errors || []).join("; ") || "erro desconhecido"}`;
     }
@@ -9197,6 +9439,10 @@ slackLogoClone.style.height = "44px";
 slackLogoClone.style.width = "auto";
 slackLogoClone.style.display = "block";
 slackLogoRow.prepend(slackLogoClone);
+
+renderSlackTaskParentSelect();
+renderSlackTaskAssigneeSelect();
+renderSlackTasksList();
 
 // Refresh every 20s while the dashboard is open — cheap since it's just a
 // small read from Supabase — so new messages show up without needing to
