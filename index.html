@@ -401,17 +401,15 @@
   #slack-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #slack-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
   #slack-sync-status { font-size: 12px; color: var(--text-muted); }
-  #slack-backfill-btn {
+  #slack-workspace-select {
     border: 1px solid var(--border);
     background: #ffffff;
-    color: var(--text-muted);
+    color: var(--text);
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 12.5px;
     cursor: pointer;
   }
-  #slack-backfill-btn:hover { background: var(--land-default); color: var(--text); }
-  #slack-backfill-btn:disabled { opacity: 0.6; cursor: default; }
 
   #slack-main-row { display: flex; gap: 18px; align-items: stretch; flex: 1 1 0; min-height: 0; }
   #slack-content-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
@@ -446,7 +444,7 @@
     margin-bottom: 10px;
   }
   .slack-channel-tile-name { font-weight: 700; font-size: 14px; color: var(--text); }
-  .slack-channel-tile-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
+  .slack-channel-tile-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .slack-channel-tile-badge {
     position: absolute;
     top: 12px;
@@ -465,7 +463,16 @@
   }
   .slack-channels-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
 
-  #slack-channel-detail { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  #slack-channel-detail {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
   #slack-channel-detail.hidden { display: none; }
   #slack-channels-grid.hidden { display: none; }
   #slack-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex: 0 0 auto; }
@@ -479,15 +486,26 @@
     cursor: pointer;
   }
   #slack-back-btn:hover { background: var(--land-default); }
-  #slack-detail-title { font-weight: 700; font-size: 15px; color: var(--text); }
+  #slack-detail-title { font-weight: 700; font-size: 15px; color: var(--text); flex: 1 1 auto; }
+  #slack-backfill-btn {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #slack-backfill-btn:hover { background: var(--land-default); color: var(--text); }
+  #slack-backfill-btn:disabled { opacity: 0.6; cursor: default; }
   #slack-detail-feed {
     flex: 1 1 0;
     min-height: 0;
     overflow-y: auto;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -511,10 +529,40 @@
   .slack-msg-name { font-weight: 700; font-size: 13.5px; color: var(--text); }
   .slack-msg-time { font-size: 11px; color: var(--text-muted); }
   .slack-msg-text { font-size: 13.5px; color: var(--text); margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
+  .slack-msg-text a { color: var(--accent); }
   .slack-feed-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
 
-  #slack-side-col { flex: 0 0 300px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
-  .slack-tasks-card, .slack-send-card {
+  #slack-compose-row { display: flex; gap: 8px; margin-top: 12px; flex: 0 0 auto; }
+  #slack-compose-text {
+    flex: 1 1 auto;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    min-height: 40px;
+    max-height: 120px;
+    resize: vertical;
+  }
+  #slack-compose-send-btn {
+    background: #4a154b;
+    color: #ffffff;
+    border: none;
+    border-radius: 7px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #slack-compose-send-btn:hover { background: #3a1039; }
+  #slack-compose-send-btn:disabled { opacity: 0.6; cursor: default; }
+  #slack-compose-status { font-size: 12px; color: var(--text-muted); min-height: 15px; margin-top: 4px; }
+  #slack-compose-hint { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+  #slack-side-col { flex: 0 0 320px; display: flex; flex-direction: column; }
+  .slack-tasks-card {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -522,22 +570,22 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
-    flex: 0 0 auto;
+    flex: 1 1 0;
+    min-height: 0;
   }
-  .slack-tasks-title, .slack-send-title { font-size: 14px; font-weight: 700; color: var(--text); }
-  .slack-tasks-hint, .slack-send-hint { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px; }
+  .slack-tasks-title { font-size: 14px; font-weight: 700; color: var(--text); }
+  .slack-tasks-hint { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px; }
   .slack-send-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
-  #slack-task-name, #slack-task-parent, #slack-task-assignee,
-  #slack-send-channel, #slack-send-text {
+  #slack-task-name, #slack-task-parent, #slack-task-assignee {
     border: 1px solid var(--border);
     border-radius: 7px;
     padding: 8px 10px;
     font-size: 13px;
     font-family: inherit;
     color: var(--text);
+    flex: 0 0 auto;
   }
-  #slack-send-text { min-height: 80px; resize: vertical; }
-  #slack-task-add-btn, #slack-send-btn {
+  #slack-task-add-btn {
     margin-top: 6px;
     background: #4a154b;
     color: #ffffff;
@@ -547,12 +595,12 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
+    flex: 0 0 auto;
   }
-  #slack-task-add-btn:hover, #slack-send-btn:hover { background: #3a1039; }
-  #slack-send-btn:disabled { opacity: 0.6; cursor: default; }
-  #slack-send-status { font-size: 12px; color: var(--text-muted); min-height: 15px; }
-  #slack-tasks-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; max-height: 260px; overflow-y: auto; }
-  .slack-task-item { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+  #slack-task-add-btn:hover { background: #3a1039; }
+  #slack-tasks-list-title { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin-top: 10px; flex: 0 0 auto; }
+  #slack-tasks-list { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-height: 0; overflow-y: auto; }
+  .slack-task-item { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; flex: 0 0 auto; }
   .slack-task-item-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
   .slack-task-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .slack-task-item-status { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px; }
@@ -2398,7 +2446,7 @@
   <div id="slack-wrap">
     <div id="slack-logo-row">
       <span id="slack-sync-status"></span>
-      <button id="slack-backfill-btn" type="button" title="Busca mensagens antigas dos canais onde o bot já está — só precisa rodar uma vez (ou de novo se quiser trazer mais recente)">↻ Importar histórico</button>
+      <select id="slack-workspace-select"></select>
     </div>
 
     <div id="slack-main-row">
@@ -2409,8 +2457,15 @@
           <div id="slack-detail-header">
             <button id="slack-back-btn" type="button">← Canais</button>
             <span id="slack-detail-title"></span>
+            <button id="slack-backfill-btn" type="button" title="Busca mensagens antigas dos canais onde o bot já está — só precisa rodar uma vez (ou de novo se quiser trazer mais recente)">↻ Importar histórico</button>
           </div>
           <div id="slack-detail-feed"></div>
+          <div id="slack-compose-row">
+            <textarea id="slack-compose-text" placeholder="Escreve uma mensagem pro canal..."></textarea>
+            <button id="slack-compose-send-btn" type="button">📨 Enviar</button>
+          </div>
+          <div id="slack-compose-status"></div>
+          <div id="slack-compose-hint">Vai como <b>WPF Dashboard Bot</b>, não como você — o Slack não deixa mandar "como uma pessoa" sem cada uma autorizar individualmente.</div>
         </div>
       </div>
 
@@ -2425,18 +2480,8 @@
           <label class="slack-send-label" for="slack-task-assignee">Responsável</label>
           <select id="slack-task-assignee"></select>
           <button id="slack-task-add-btn" type="button">+ Adicionar</button>
+          <div id="slack-tasks-list-title">Tasks existentes</div>
           <div id="slack-tasks-list"></div>
-        </div>
-
-        <div class="slack-send-card">
-          <div class="slack-send-title">Mandar mensagem</div>
-          <div class="slack-send-hint">Vai como <b>WPF Dashboard Bot</b>, não como você — o Slack não deixa mandar "como uma pessoa" sem cada uma autorizar individualmente.</div>
-          <label class="slack-send-label" for="slack-send-channel">Canal (ex: #europe ou C0123ABC)</label>
-          <input type="text" id="slack-send-channel" placeholder="#nome-do-canal">
-          <label class="slack-send-label" for="slack-send-text">Mensagem</label>
-          <textarea id="slack-send-text" placeholder="Escreve aqui..."></textarea>
-          <button id="slack-send-btn" type="button">📨 Enviar pro Slack</button>
-          <div id="slack-send-status"></div>
         </div>
       </div>
     </div>
@@ -9116,7 +9161,18 @@ setInterval(loadMarketingData, 5 * 60 * 1000);
 // Cloudflare Worker, which listens to Slack's Events API) and can send
 // notifications back into Slack via that same Worker's /notify endpoint.
 // ═══════════════════════════════════════════════════════════
-const SLACK_WORKER_URL = "https://wpf-slack-bridge.worldpokerfederation.workers.dev";
+
+// Only one workspace is wired up today — add another entry here (plus its
+// own Worker + a "workspace" column on wpf_slack_messages to keep the two
+// separated) when there's a second one to connect.
+const SLACK_WORKSPACES = [
+  { id: "womens-committee", name: "Women's Committee", workerUrl: "https://wpf-slack-bridge.worldpokerfederation.workers.dev" }
+];
+let slackActiveWorkspaceId = SLACK_WORKSPACES[0].id;
+function slackWorkerUrl() {
+  return (SLACK_WORKSPACES.find(w => w.id === slackActiveWorkspaceId) || SLACK_WORKSPACES[0]).workerUrl;
+}
+
 const SLACK_TABLE_URL = `${SUPABASE_URL}/rest/v1/wpf_slack_messages`;
 const SLACK_LAST_SEEN_KEY = "wpf_slack_last_seen";
 let slackMessages = [];         // recent messages across all channels — feeds the tile grid/badges
@@ -9128,6 +9184,73 @@ function slackAvatarInitials(name) {
   const clean = (name || "?").trim();
   const parts = clean.split(/\s+/);
   return ((parts[0] || "")[0] || "?").toUpperCase() + ((parts[1] || "")[0] || "").toUpperCase();
+}
+
+// Common Slack shortcode -> emoji. Doesn't cover custom workspace emoji
+// (those only exist as an image, not a text character), but covers the
+// standard set that shows up in normal conversation.
+const SLACK_EMOJI_MAP = {
+  smile: "😄", simple_smile: "🙂", blush: "😊", grinning: "😀", grin: "😁", joy: "😂",
+  slightly_smiling_face: "🙂", wink: "😉", heart_eyes: "😍", thinking: "🤔",
+  thinking_face: "🤔", laughing: "😆", satisfied: "😆", sweat_smile: "😅",
+  cry: "😢", sob: "😭", scream: "😱", angry: "😠", rage: "😡", confused: "😕",
+  neutral_face: "😐", expressionless: "😑", roll_eyes: "🙄", flushed: "😳",
+  heart: "❤️", purple_heart: "💜", blue_heart: "💙", green_heart: "💚",
+  yellow_heart: "💛", black_heart: "🖤", orange_heart: "🧡", broken_heart: "💔",
+  sparkling_heart: "💖", two_hearts: "💕", heartbeat: "💓", heartpulse: "💗",
+  thumbsup: "👍", "+1": "👍", thumbsdown: "👎", "-1": "👎", clap: "👏",
+  raised_hands: "🙌", pray: "🙏", muscle: "💪", ok_hand: "👌", wave: "👋",
+  point_up: "☝️", point_right: "👉", eyes: "👀", fire: "🔥", tada: "🎉",
+  confetti_ball: "🎊", sparkles: "✨", star: "⭐", star2: "🌟", zap: "⚡",
+  100: "💯", white_check_mark: "✅", heavy_check_mark: "✔️", x: "❌",
+  warning: "⚠️", question: "❓", exclamation: "❗", bulb: "💡",
+  rocket: "🚀", trophy: "🏆", medal: "🏅", gift: "🎁", calendar: "📅",
+  clock1: "🕐", alarm_clock: "⏰", email: "✉️", envelope: "✉️", memo: "📝",
+  pushpin: "📌", round_pushpin: "📍", link: "🔗", moneybag: "💰",
+  chart_with_upwards_trend: "📈", chart_with_downwards_trend: "📉",
+  coffee: "☕", pizza: "🍕", beers: "🍻", tada2: "🎉", raised_hand: "✋",
+  handshake: "🤝", crown: "👑", poker_chip: "🎰", spades: "♠️", hearts: "♥️",
+  diamonds: "♦️", clubs: "♣️", partying_face: "🥳", eyes_emoji: "👀"
+};
+
+function slackFlagEmoji(code) {
+  if (!/^[a-z]{2}$/i.test(code)) return null;
+  const codePoints = [...code.toUpperCase()].map(c => 127397 + c.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+// Turns Slack's mrkdwn (already had @mentions/#channels resolved to plain
+// text server-side) into safe, readable HTML: emoji shortcodes/flags,
+// *bold*, _italic_, ~strike~, `code`, and <url|label> links.
+function slackFormatText(raw) {
+  let text = (raw || "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  text = text
+    .replace(/&lt;(https?:\/\/[^|&]+)\|([^&]+)&gt;/g, (m, url, label) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`)
+    .replace(/&lt;(https?:\/\/[^&]+)&gt;/g, (m, url) => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
+  text = text
+    .replace(/\*([^*\n]+)\*/g, "<b>$1</b>")
+    .replace(/_([^_\n]+)_/g, "<i>$1</i>")
+    .replace(/~([^~\n]+)~/g, "<s>$1</s>")
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  text = text.replace(/:([a-z0-9_+\-]+):/gi, (m, name) => {
+    const flagMatch = name.match(/^flag-([a-z]{2})$/i);
+    if (flagMatch) { const f = slackFlagEmoji(flagMatch[1]); if (f) return f; }
+    if (SLACK_EMOJI_MAP[name.toLowerCase()]) return SLACK_EMOJI_MAP[name.toLowerCase()];
+    return m;
+  });
+  return text;
+}
+
+function slackFormatPreviewText(raw) {
+  let text = (raw || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  text = text.replace(/:([a-z0-9_+\-]+):/gi, (m, name) => {
+    const flagMatch = name.match(/^flag-([a-z]{2})$/i);
+    if (flagMatch) { const f = slackFlagEmoji(flagMatch[1]); if (f) return f; }
+    if (SLACK_EMOJI_MAP[name.toLowerCase()]) return SLACK_EMOJI_MAP[name.toLowerCase()];
+    return m;
+  });
+  return text.replace(/[*_~`]/g, "");
 }
 
 function slackFormatTime(ts) {
@@ -9153,7 +9276,7 @@ function slackChannelUnreadCount(channelId) {
 
 async function loadSlackChannelsList() {
   try {
-    const res = await fetch(`${SLACK_WORKER_URL}/channels`);
+    const res = await fetch(`${slackWorkerUrl()}/channels`);
     const data = await res.json();
     if (data.ok) slackAllChannels = data.channels;
   } catch (err) {
@@ -9183,7 +9306,7 @@ function renderSlackChannelsGrid() {
     const unread = slackChannelUnreadCount(c.id);
     const channelMsgs = slackMessages.filter(m => m.channel === c.id).sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts));
     const last = channelMsgs[0];
-    const preview = last ? `${(last.user_name || "Alguém").split(" ")[0]}: ${(last.text || "").slice(0, 40)}` : "Sem mensagens ainda";
+    const preview = last ? `${(last.user_name || "Alguém").split(" ")[0]}: ${slackFormatPreviewText((last.text || "").slice(0, 40))}` : "Sem mensagens ainda";
     return `
       <button class="slack-channel-tile" data-channel-id="${c.id}" data-channel-name="${c.name || c.id}" type="button">
         ${unread > 0 ? `<span class="slack-channel-tile-badge">${unread}</span>` : ""}
@@ -9243,7 +9366,7 @@ function renderSlackChannelDetail() {
             <span class="slack-msg-name">${name}</span>
             <span class="slack-msg-time">${slackFormatTime(m.ts)}</span>
           </div>
-          <div class="slack-msg-text">${(m.text || "").replace(/</g, "&lt;")}</div>
+          <div class="slack-msg-text">${slackFormatText(m.text)}</div>
         </div>
       </div>
     `;
@@ -9308,6 +9431,7 @@ function renderSlackTaskAssigneeSelect() {
   if (Array.from(sel.options).some(o => o.value === current)) sel.value = current;
 }
 
+const SLACK_TASK_STATUS_PRIORITY = { "Late": 0, "In Progress": 1, "Not Started": 2 };
 function collectSlackTasks() {
   const out = [];
   function walk(list, parentName) {
@@ -9317,6 +9441,11 @@ function collectSlackTasks() {
     });
   }
   walk(tasksData, null);
+  out.sort((a, b) => {
+    const pa = SLACK_TASK_STATUS_PRIORITY[a.task.status] ?? 9;
+    const pb = SLACK_TASK_STATUS_PRIORITY[b.task.status] ?? 9;
+    return pa - pb;
+  });
   return out;
 }
 
@@ -9376,7 +9505,7 @@ document.getElementById("slack-backfill-btn").addEventListener("click", async ()
   btn.disabled = true;
   btn.innerHTML = "⏳ Importando (pode levar um tempinho)…";
   try {
-    const res = await fetch(`${SLACK_WORKER_URL}/backfill`, { method: "POST" });
+    const res = await fetch(`${slackWorkerUrl()}/backfill`, { method: "POST" });
     const data = await res.json();
     if (data.ok || data.messagesSaved > 0) {
       statusEl.textContent = `✅ Importado: ${data.messagesSaved} mensagens de ${data.channels} canal(is).`;
@@ -9393,34 +9522,28 @@ document.getElementById("slack-backfill-btn").addEventListener("click", async ()
   }
 });
 
-document.getElementById("slack-send-btn").addEventListener("click", async () => {
-  const btn = document.getElementById("slack-send-btn");
-  const statusEl = document.getElementById("slack-send-status");
-  const channelInput = document.getElementById("slack-send-channel");
-  const textInput = document.getElementById("slack-send-text");
-  let channel = channelInput.value.trim();
+document.getElementById("slack-compose-send-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("slack-compose-send-btn");
+  const statusEl = document.getElementById("slack-compose-status");
+  const textInput = document.getElementById("slack-compose-text");
   const text = textInput.value.trim();
-  if (!channel || !text) {
-    statusEl.textContent = "Preenche o canal e a mensagem primeiro.";
-    return;
-  }
-  if (!channel.startsWith("#") && !channel.startsWith("C") && !channel.startsWith("G")) {
-    channel = "#" + channel; // friendlier default if they just typed the name
-  }
+  if (!slackActiveChannel) { statusEl.textContent = "Abre um canal primeiro."; return; }
+  if (!text) return;
   const originalHTML = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = "⏳ Enviando…";
+  btn.innerHTML = "⏳";
   statusEl.textContent = "";
   try {
-    const res = await fetch(`${SLACK_WORKER_URL}/notify`, {
+    const res = await fetch(`${slackWorkerUrl()}/notify`, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids a CORS preflight the Worker can't answer
-      body: JSON.stringify({ channel, text })
+      body: JSON.stringify({ channel: slackActiveChannel.id, text })
     });
     const data = await res.json().catch(() => ({}));
     if (data.ok) {
-      statusEl.textContent = "✅ Enviado!";
       textInput.value = "";
+      statusEl.textContent = "✅ Enviado!";
+      setTimeout(() => loadSlackMessages(), 1200); // gives Slack a moment to fire the event back to us
     } else {
       statusEl.textContent = `⚠️ Falha: ${data.error || `HTTP ${res.status}`}`;
     }
@@ -9430,6 +9553,21 @@ document.getElementById("slack-send-btn").addEventListener("click", async () => 
     btn.disabled = false;
     btn.innerHTML = originalHTML;
   }
+});
+document.getElementById("slack-compose-text").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById("slack-compose-send-btn").click();
+  }
+});
+
+const slackWorkspaceSelect = document.getElementById("slack-workspace-select");
+slackWorkspaceSelect.innerHTML = SLACK_WORKSPACES.map(w => `<option value="${w.id}">${w.name}</option>`).join("");
+slackWorkspaceSelect.value = slackActiveWorkspaceId;
+slackWorkspaceSelect.addEventListener("change", (e) => {
+  slackActiveWorkspaceId = e.target.value;
+  closeSlackChannelDetail();
+  loadSlackMessages();
 });
 
 const slackLogoRow = document.getElementById("slack-logo-row");
