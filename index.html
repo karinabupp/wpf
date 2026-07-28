@@ -551,17 +551,26 @@
   .slack-thread-replies-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
   #slack-compose-row { display: flex; gap: 8px; margin-top: 12px; flex: 0 0 auto; align-items: flex-end; }
-  #slack-mention-picker {
+  #slack-compose-input-wrap { position: relative; flex: 1 1 auto; }
+  #slack-mention-suggestions {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 6px;
+    background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 9px 8px;
-    font-size: 12.5px;
-    color: var(--text);
-    max-width: 110px;
-    flex-shrink: 0;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+    max-height: 190px;
+    overflow-y: auto;
+    min-width: 220px;
+    z-index: 30;
   }
+  #slack-mention-suggestions.hidden { display: none; }
+  .slack-mention-suggestion { padding: 8px 12px; font-size: 13px; color: var(--text); cursor: pointer; }
+  .slack-mention-suggestion.active, .slack-mention-suggestion:hover { background: var(--land-default); }
   #slack-compose-text {
-    flex: 1 1 auto;
+    width: 100%;
     border: 1px solid var(--border);
     border-radius: 7px;
     padding: 9px 10px;
@@ -571,6 +580,7 @@
     min-height: 40px;
     max-height: 120px;
     resize: vertical;
+    box-sizing: border-box;
   }
   #slack-compose-send-btn {
     background: #4a154b;
@@ -603,7 +613,7 @@
   .slack-tasks-title { font-size: 14px; font-weight: 700; color: var(--text); }
   .slack-tasks-hint { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px; }
   .slack-send-label { font-size: 11.5px; font-weight: 600; color: var(--text-muted); margin-top: 4px; }
-  #slack-task-name, #slack-task-parent, #slack-task-assignee {
+  #slack-task-name, #slack-task-parent, #slack-task-assignee, #slack-task-start, #slack-task-end {
     border: 1px solid var(--border);
     border-radius: 7px;
     padding: 8px 10px;
@@ -611,7 +621,11 @@
     font-family: inherit;
     color: var(--text);
     flex: 0 0 auto;
+    width: 100%;
+    box-sizing: border-box;
   }
+  #slack-task-dates-row { display: flex; gap: 8px; }
+  #slack-task-dates-row > div { flex: 1 1 0; min-width: 0; }
   #slack-task-add-btn {
     margin-top: 6px;
     background: #4a154b;
@@ -2488,8 +2502,10 @@
           </div>
           <div id="slack-detail-feed"></div>
           <div id="slack-compose-row">
-            <select id="slack-mention-picker" title="Marcar alguém na mensagem"><option value="">@ marcar…</option></select>
-            <textarea id="slack-compose-text" placeholder="Escreve uma mensagem pro canal..."></textarea>
+            <div id="slack-compose-input-wrap">
+              <div id="slack-mention-suggestions" class="hidden"></div>
+              <textarea id="slack-compose-text" placeholder="Escreve uma mensagem pro canal... (digita @ pra marcar alguém)"></textarea>
+            </div>
             <button id="slack-compose-send-btn" type="button">📨 Enviar</button>
           </div>
           <div id="slack-compose-status"></div>
@@ -2507,6 +2523,16 @@
           <select id="slack-task-parent"></select>
           <label class="slack-send-label" for="slack-task-assignee">Responsável</label>
           <select id="slack-task-assignee"></select>
+          <div id="slack-task-dates-row">
+            <div>
+              <label class="slack-send-label" for="slack-task-start">Início</label>
+              <input type="date" id="slack-task-start">
+            </div>
+            <div>
+              <label class="slack-send-label" for="slack-task-end">Fim</label>
+              <input type="date" id="slack-task-end">
+            </div>
+          </div>
           <button id="slack-task-add-btn" type="button">+ Adicionar</button>
           <div id="slack-tasks-list-title">Tasks existentes</div>
           <div id="slack-tasks-list"></div>
@@ -9536,11 +9562,22 @@ async function loadSlackMessages() {
 // tasksData tree (under whichever parent task you pick), so they show up
 // in the Tasks tab too, not just in this side panel. ─────────────────────
 
+function slackFlattenTaskOptions(list, depth) {
+  const out = [];
+  (list || []).forEach(t => {
+    const prefix = depth > 0 ? "　".repeat(depth) + "↳ " : "";
+    out.push({ id: t.id, label: prefix + t.name });
+    out.push(...slackFlattenTaskOptions(t.subtasks, depth + 1));
+  });
+  return out;
+}
+
 function renderSlackTaskParentSelect() {
   const sel = document.getElementById("slack-task-parent");
   const current = sel.value;
-  sel.innerHTML = tasksData.map(t => `<option value="${t.id}">${t.name}</option>`).join("");
-  if (Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+  const options = slackFlattenTaskOptions(tasksData, 0);
+  sel.innerHTML = options.map(o => `<option value="${o.id}">${o.label}</option>`).join("");
+  if (options.some(o => o.id === current)) sel.value = current;
 }
 
 function renderSlackTaskAssigneeSelect() {
@@ -9585,6 +9622,7 @@ function renderSlackTasksList() {
           <span class="slack-task-item-status" style="background:${colors.bg};color:${colors.text}">${task.status}</span>
           <span>↳ ${parentName || "—"}</span>
           ${task.assignees.length ? `<span>· ${task.assignees.join(", ")}</span>` : ""}
+          ${task.endDate ? `<span>· Vence ${formatEntryDate(task.endDate)}</span>` : ""}
         </div>
       </div>
     `;
@@ -9595,6 +9633,8 @@ document.getElementById("slack-task-add-btn").addEventListener("click", () => {
   const nameInput = document.getElementById("slack-task-name");
   const parentSel = document.getElementById("slack-task-parent");
   const assigneeSel = document.getElementById("slack-task-assignee");
+  const startInput = document.getElementById("slack-task-start");
+  const endInput = document.getElementById("slack-task-end");
   const name = nameInput.value.trim();
   if (!name) return;
   const parent = findTaskById(tasksData, parentSel.value);
@@ -9604,8 +9644,8 @@ document.getElementById("slack-task-add-btn").addEventListener("click", () => {
     id: newId,
     name,
     status: "Not Started",
-    startDate: "",
-    endDate: "",
+    startDate: startInput.value || "",
+    endDate: endInput.value || "",
     assignees: assigneeSel.value ? [assigneeSel.value] : [],
     kpiLink: "",
     rowType: "subtask",
@@ -9614,6 +9654,8 @@ document.getElementById("slack-task-add-btn").addEventListener("click", () => {
   });
   saveTasksData();
   nameInput.value = "";
+  startInput.value = "";
+  endInput.value = "";
   renderSlackTasksList();
   if (typeof renderTasksTable === "function") renderTasksTable();
 });
@@ -9674,12 +9716,6 @@ document.getElementById("slack-compose-send-btn").addEventListener("click", asyn
     btn.innerHTML = originalHTML;
   }
 });
-document.getElementById("slack-compose-text").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    document.getElementById("slack-compose-send-btn").click();
-  }
-});
 
 async function loadSlackUsersList() {
   try {
@@ -9689,24 +9725,98 @@ async function loadSlackUsersList() {
   } catch (err) {
     console.warn("Slack: failed to load user list:", err);
   }
-  const sel = document.getElementById("slack-mention-picker");
-  sel.innerHTML = `<option value="">@ marcar…</option>` +
-    slackAllUsers.map(u => `<option value="${u.id}">${u.name}</option>`).join("");
 }
 
-// Inserts the RAW <@UID> syntax Slack needs to actually notify/tag that
-// person — plain "@Name" text does not ping anyone, only this does.
-document.getElementById("slack-mention-picker").addEventListener("change", (e) => {
-  const uid = e.target.value;
-  if (!uid) return;
+// ── Inline @ autocomplete in the compose box ────────────────────────────
+// Type "@" then start a name — a picker shows up above the box, same idea
+// as Slack itself. Picking someone inserts the RAW <@UID> syntax Slack
+// needs to actually notify/tag them — plain "@Name" text pings no one.
+let slackMentionMatches = [];
+let slackMentionActiveIndex = -1;
+let slackMentionRange = null; // { start, end } of the "@query" being replaced
+
+function slackCurrentMentionQuery(textarea) {
+  const cursor = textarea.selectionStart;
+  const before = textarea.value.slice(0, cursor);
+  const match = before.match(/(?:^|\s)@([^\s@]*)$/);
+  if (!match) return null;
+  const start = before.lastIndexOf("@" + match[1]);
+  return { query: match[1], start, end: cursor };
+}
+
+function slackCloseMentionSuggestions() {
+  slackMentionMatches = [];
+  slackMentionActiveIndex = -1;
+  slackMentionRange = null;
+  document.getElementById("slack-mention-suggestions").classList.add("hidden");
+}
+
+function slackRenderMentionSuggestions() {
+  const box = document.getElementById("slack-mention-suggestions");
+  if (!slackMentionMatches.length) { box.classList.add("hidden"); return; }
+  box.innerHTML = slackMentionMatches.map((u, i) =>
+    `<div class="slack-mention-suggestion${i === slackMentionActiveIndex ? " active" : ""}" data-index="${i}">${u.name}</div>`
+  ).join("");
+  box.classList.remove("hidden");
+  box.querySelectorAll(".slack-mention-suggestion").forEach(el => {
+    el.addEventListener("mousedown", (e) => {
+      e.preventDefault(); // keeps focus/selection in the textarea instead of the click stealing it
+      slackPickMention(parseInt(el.dataset.index, 10));
+    });
+  });
+}
+
+function slackPickMention(index) {
+  const u = slackMentionMatches[index];
+  if (!u || !slackMentionRange) return;
   const textarea = document.getElementById("slack-compose-text");
-  const mention = `<@${uid}> `;
-  const start = textarea.selectionStart ?? textarea.value.length;
-  const end = textarea.selectionEnd ?? textarea.value.length;
-  textarea.value = textarea.value.slice(0, start) + mention + textarea.value.slice(end);
+  const mention = `<@${u.id}> `;
+  textarea.value = textarea.value.slice(0, slackMentionRange.start) + mention + textarea.value.slice(slackMentionRange.end);
+  const newPos = slackMentionRange.start + mention.length;
   textarea.focus();
-  textarea.selectionStart = textarea.selectionEnd = start + mention.length;
-  e.target.value = "";
+  textarea.selectionStart = textarea.selectionEnd = newPos;
+  slackCloseMentionSuggestions();
+}
+
+document.getElementById("slack-compose-text").addEventListener("input", (e) => {
+  const textarea = e.target;
+  const current = slackCurrentMentionQuery(textarea);
+  if (!current) { slackCloseMentionSuggestions(); return; }
+  slackMentionRange = { start: current.start, end: current.end };
+  const q = current.query.toLowerCase();
+  slackMentionMatches = slackAllUsers.filter(u => u.name.toLowerCase().includes(q)).slice(0, 8);
+  slackMentionActiveIndex = slackMentionMatches.length ? 0 : -1;
+  slackRenderMentionSuggestions();
+});
+
+document.getElementById("slack-compose-text").addEventListener("keydown", (e) => {
+  const suggestionsOpen = slackMentionMatches.length > 0;
+  if (suggestionsOpen && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+    e.preventDefault();
+    const dir = e.key === "ArrowDown" ? 1 : -1;
+    slackMentionActiveIndex = (slackMentionActiveIndex + dir + slackMentionMatches.length) % slackMentionMatches.length;
+    slackRenderMentionSuggestions();
+    return;
+  }
+  if (suggestionsOpen && (e.key === "Enter" || e.key === "Tab") && slackMentionActiveIndex >= 0) {
+    e.preventDefault();
+    slackPickMention(slackMentionActiveIndex);
+    return;
+  }
+  if (suggestionsOpen && e.key === "Escape") {
+    e.preventDefault();
+    slackCloseMentionSuggestions();
+    return;
+  }
+  if (e.key === "Enter" && !e.shiftKey && !suggestionsOpen) {
+    e.preventDefault();
+    document.getElementById("slack-compose-send-btn").click();
+  }
+});
+document.getElementById("slack-compose-text").addEventListener("blur", () => {
+  // Small delay so a click on a suggestion (mousedown, handled above)
+  // still registers before the list disappears.
+  setTimeout(slackCloseMentionSuggestions, 150);
 });
 
 const slackWorkspaceSelect = document.getElementById("slack-workspace-select");
