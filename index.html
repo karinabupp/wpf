@@ -401,6 +401,18 @@
   #slack-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #slack-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
   #slack-sync-status { font-size: 12px; color: var(--text-muted); }
+  #slack-header-controls { display: flex; align-items: center; gap: 10px; }
+  #slack-backfill-btn {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  #slack-backfill-btn:hover { background: var(--land-default); color: var(--text); }
+  #slack-backfill-btn:disabled { opacity: 0.6; cursor: default; }
   #slack-channel-filter {
     border: 1px solid var(--border);
     background: #ffffff;
@@ -2324,9 +2336,12 @@
   <div id="slack-wrap">
     <div id="slack-logo-row">
       <span id="slack-sync-status"></span>
-      <select id="slack-channel-filter">
-        <option value="">Todos os canais</option>
-      </select>
+      <div id="slack-header-controls">
+        <button id="slack-backfill-btn" type="button" title="Busca mensagens antigas dos canais onde o bot já está — só precisa rodar uma vez (ou de novo se quiser trazer mais recente)">↻ Importar histórico</button>
+        <select id="slack-channel-filter">
+          <option value="">Todos os canais</option>
+        </select>
+      </div>
     </div>
 
     <div id="slack-main-row">
@@ -9038,10 +9053,25 @@ function slackFormatTime(ts) {
   return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
+let slackAllChannels = [];
+
+async function loadSlackChannelsList() {
+  try {
+    const res = await fetch(`${SLACK_WORKER_URL}/channels`);
+    const data = await res.json();
+    if (data.ok) slackAllChannels = data.channels;
+  } catch (err) {
+    console.warn("Slack: failed to load channel list:", err);
+  }
+  renderSlackChannelFilter();
+}
+
 function renderSlackChannelFilter() {
   const sel = document.getElementById("slack-channel-filter");
   const current = sel.value;
-  const names = Array.from(new Set(slackMessages.map(m => m.channel_name || m.channel).filter(Boolean))).sort();
+  const fromApi = slackAllChannels.map(c => c.name);
+  const fromMessages = slackMessages.map(m => m.channel_name || m.channel);
+  const names = Array.from(new Set([...fromApi, ...fromMessages].filter(Boolean))).sort();
   sel.innerHTML = `<option value="">Todos os canais</option>` +
     names.map(n => `<option value="${n}">#${n}</option>`).join("");
   if (names.includes(current)) sel.value = current;
@@ -9077,6 +9107,7 @@ function renderSlackFeed() {
 async function loadSlackMessages() {
   const statusEl = document.getElementById("slack-sync-status");
   statusEl.textContent = "☁️ Atualizando…";
+  loadSlackChannelsList(); // runs in parallel, re-renders the filter on its own when done
   try {
     const res = await fetch(`${SLACK_TABLE_URL}?select=*&order=ts.desc&limit=200`, {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
@@ -9095,6 +9126,29 @@ async function loadSlackMessages() {
 document.getElementById("slack-channel-filter").addEventListener("change", (e) => {
   slackChannelFilter = e.target.value;
   renderSlackFeed();
+});
+
+document.getElementById("slack-backfill-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("slack-backfill-btn");
+  const statusEl = document.getElementById("slack-sync-status");
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = "⏳ Importando (pode levar um tempinho)…";
+  try {
+    const res = await fetch(`${SLACK_WORKER_URL}/backfill`, { method: "POST" });
+    const data = await res.json();
+    if (data.ok || data.messagesSaved > 0) {
+      statusEl.textContent = `✅ Importado: ${data.messagesSaved} mensagens de ${data.channels} canal(is).`;
+      await loadSlackMessages();
+    } else {
+      statusEl.textContent = `⚠️ Importação com problemas: ${(data.errors || []).join("; ") || "erro desconhecido"}`;
+    }
+  } catch (err) {
+    statusEl.textContent = "⚠️ Não consegui importar — confere se o Worker está no ar.";
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+  }
 });
 
 document.getElementById("slack-send-btn").addEventListener("click", async () => {
