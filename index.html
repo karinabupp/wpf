@@ -647,6 +647,197 @@
   .slack-task-item-status { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px; }
   .slack-tasks-empty { font-size: 12px; color: var(--text-muted); padding: 8px 0; }
 
+  #forms-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
+  #forms-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
+  #forms-sync-status { font-size: 12px; color: var(--text-muted); }
+
+  #forms-list-mode { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+  #forms-list-mode.hidden { display: none; }
+  #forms-list-header { flex: 0 0 auto; margin-bottom: 14px; }
+  #forms-new-btn {
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #forms-new-btn:hover { opacity: 0.9; }
+  #forms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    align-content: start;
+    overflow-y: auto;
+  }
+  .forms-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .forms-card-title { font-weight: 700; font-size: 14.5px; color: var(--text); }
+  .forms-card-desc { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .forms-card-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .forms-card-status { font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 2px 7px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .forms-card-status.draft { background: #f1efe8; color: #6b6a63; }
+  .forms-card-status.published { background: #eaf3de; color: #173404; }
+  .forms-card-count { font-size: 11.5px; color: var(--text-muted); }
+  .forms-card-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .forms-card-actions button {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11.5px;
+    cursor: pointer;
+  }
+  .forms-card-actions button:hover { background: var(--land-default); }
+  .forms-grid-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+
+  #forms-builder-mode, #forms-responses-mode { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
+  #forms-builder-mode.hidden, #forms-responses-mode.hidden { display: none; }
+  #forms-builder-header, #forms-responses-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex: 0 0 auto; }
+  #forms-back-btn, #forms-responses-back-btn {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #forms-back-btn:hover, #forms-responses-back-btn:hover { background: var(--land-default); }
+  #forms-responses-title { font-weight: 700; font-size: 15px; color: var(--text); }
+  #forms-builder-title {
+    font-size: 18px;
+    font-weight: 700;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  #forms-builder-description {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text);
+    min-height: 50px;
+    resize: vertical;
+    margin-bottom: 16px;
+  }
+  #forms-questions-list { display: flex; flex-direction: column; gap: 12px; }
+  .forms-question-row {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .forms-question-row-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .forms-question-label {
+    flex: 1 1 220px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    color: var(--text);
+  }
+  .forms-question-type {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .forms-question-required { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+  .forms-question-delete {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: #a3312a;
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .forms-question-delete:hover { background: #fcebeb; }
+  .forms-question-options { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+  .forms-option-row { display: flex; gap: 6px; align-items: center; }
+  .forms-option-row input {
+    flex: 1 1 auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .forms-option-row button { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 6px; }
+  .forms-option-row button:hover { color: #a3312a; }
+  .forms-add-option-btn {
+    align-self: flex-start;
+    border: 1px dashed var(--border-strong);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    cursor: pointer;
+  }
+  .forms-add-option-btn:hover { background: var(--land-default); }
+  #forms-add-question-btn {
+    align-self: flex-start;
+    margin-top: 12px;
+    border: 1px dashed var(--border-strong);
+    background: transparent;
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #forms-add-question-btn:hover { background: var(--land-default); }
+  #forms-builder-actions { display: flex; gap: 8px; margin-top: 20px; flex: 0 0 auto; }
+  #forms-save-btn, #forms-publish-btn, #forms-delete-btn {
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  #forms-save-btn { background: #ffffff; color: var(--text); }
+  #forms-save-btn:hover { background: var(--land-default); }
+  #forms-publish-btn { background: var(--accent); color: #ffffff; border-color: var(--accent); }
+  #forms-publish-btn:hover { opacity: 0.9; }
+  #forms-delete-btn { background: #ffffff; color: #a3312a; margin-left: auto; }
+  #forms-delete-btn:hover { background: #fcebeb; }
+  #forms-builder-status { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; min-height: 16px; }
+  #forms-publish-link-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 12.5px; }
+  #forms-publish-link-row.hidden { display: none; }
+  #forms-publish-link { flex: 1 1 auto; border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 12px; color: var(--text-muted); background: var(--bg); }
+  #forms-copy-link-btn { border: 1px solid var(--border); background: #ffffff; border-radius: 6px; padding: 7px 12px; font-size: 12px; cursor: pointer; }
+  #forms-copy-link-btn:hover { background: var(--land-default); }
+
+  #forms-responses-list { display: flex; flex-direction: column; gap: 10px; }
+  .forms-response-card { background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .forms-response-time { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+  .forms-response-answer { margin-bottom: 8px; }
+  .forms-response-answer:last-child { margin-bottom: 0; }
+  .forms-response-q { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+  .forms-response-a { font-size: 13px; color: var(--text); margin-top: 2px; }
+  .forms-responses-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+
   #marketing-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #marketing-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
   #marketing-sync-status { font-size: 12px; color: var(--text-muted); }
@@ -2418,6 +2609,13 @@
       <rect x="9" y="15" width="6" height="6" rx="1.6"/>
     </svg>
   </button>
+  <button class="nav-icon-btn" id="nav-forms" data-tooltip="Forms" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="2"/>
+      <path d="M12 9v6"/>
+      <path d="M9 12.5l3 3 3-3"/>
+    </svg>
+  </button>
   <button class="nav-icon-btn" id="nav-settings" data-tooltip="Settings" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
@@ -2538,6 +2736,50 @@
           <div id="slack-tasks-list"></div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="forms-view" class="content-view hidden">
+  <div id="forms-wrap">
+    <div id="forms-logo-row">
+      <span id="forms-sync-status"></span>
+    </div>
+
+    <div id="forms-list-mode">
+      <div id="forms-list-header">
+        <button id="forms-new-btn" type="button">+ Novo formulário</button>
+      </div>
+      <div id="forms-grid"></div>
+    </div>
+
+    <div id="forms-builder-mode" class="hidden">
+      <div id="forms-builder-header">
+        <button id="forms-back-btn" type="button">← Formulários</button>
+      </div>
+      <input type="text" id="forms-builder-title" placeholder="Título do formulário">
+      <textarea id="forms-builder-description" placeholder="Descrição (opcional)"></textarea>
+      <div id="forms-questions-list"></div>
+      <button id="forms-add-question-btn" type="button">+ Adicionar pergunta</button>
+      <div id="forms-builder-actions">
+        <button id="forms-save-btn" type="button">Salvar</button>
+        <button id="forms-publish-btn" type="button">🚀 Publicar</button>
+        <button id="forms-delete-btn" type="button">🗑 Excluir</button>
+      </div>
+      <div id="forms-builder-status"></div>
+      <div id="forms-publish-link-row" class="hidden">
+        <span>Link público:</span>
+        <input type="text" id="forms-publish-link" readonly>
+        <button id="forms-copy-link-btn" type="button">Copiar</button>
+      </div>
+    </div>
+
+    <div id="forms-responses-mode" class="hidden">
+      <div id="forms-responses-header">
+        <button id="forms-responses-back-btn" type="button">← Formulários</button>
+        <span id="forms-responses-title"></span>
+      </div>
+      <div id="forms-responses-list"></div>
     </div>
   </div>
 </div>
@@ -4115,6 +4357,7 @@ const NAV_VIEWS = {
   "nav-committee": "members-view",
   "nav-marketing": "marketing-view",
   "nav-slack": "slack-view",
+  "nav-forms": "forms-view",
   "nav-tasks": "tasks-view",
   "nav-settings": "settings-view"
 };
@@ -4156,6 +4399,9 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
       if (typeof renderSlackTaskParentSelect === "function") renderSlackTaskParentSelect();
       if (typeof renderSlackTaskAssigneeSelect === "function") renderSlackTaskAssigneeSelect();
       if (typeof renderSlackTasksList === "function") renderSlackTasksList();
+    }
+    if (btnId === "nav-forms" && typeof loadFormsList === "function") {
+      loadFormsList();
     }
   });
 });
@@ -9846,6 +10092,368 @@ renderSlackTasksList();
 setInterval(() => {
   if (!document.getElementById("slack-view").classList.contains("hidden")) loadSlackMessages();
 }, 20 * 1000);
+
+// ═══════════════════════════════════════════════════════════
+// FORMS — a form builder + public-facing collector. Forms and their
+// questions live in wpf_forms; submitted answers live in
+// wpf_form_responses. The actual public page respondents fill out is a
+// SEPARATE static file (form.html) that reads/writes these same two
+// tables directly via the Supabase anon key — no login needed to answer.
+// ═══════════════════════════════════════════════════════════
+const FORMS_TABLE_URL = `${SUPABASE_URL}/rest/v1/wpf_forms`;
+const FORM_RESPONSES_TABLE_URL = `${SUPABASE_URL}/rest/v1/wpf_form_responses`;
+// Adjust this if the dashboard ever moves to a different host/path —
+// form.html needs to sit right next to index.html for this to resolve.
+const FORM_PUBLIC_BASE_URL = new URL("form.html", window.location.href).href;
+
+const FORM_QUESTION_TYPES = {
+  text: "Texto livre",
+  multiple_choice: "Múltipla escolha",
+  single_select: "Single select",
+  checkbox: "Checkbox",
+  attachment: "Anexo"
+};
+const FORM_CHOICE_TYPES = ["multiple_choice", "single_select", "checkbox"];
+
+let formsList = [];
+let formsCurrentBuilder = null; // { id, title, description, questions, status } while editing
+let formsResponseCounts = {};
+
+function formsShowMode(mode) {
+  document.getElementById("forms-list-mode").classList.toggle("hidden", mode !== "list");
+  document.getElementById("forms-builder-mode").classList.toggle("hidden", mode !== "builder");
+  document.getElementById("forms-responses-mode").classList.toggle("hidden", mode !== "responses");
+}
+
+async function loadFormsList() {
+  const statusEl = document.getElementById("forms-sync-status");
+  statusEl.textContent = "☁️ Atualizando…";
+  try {
+    const res = await fetch(`${FORMS_TABLE_URL}?select=*&order=updated_at.desc`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    formsList = await res.json();
+    await loadFormResponseCounts();
+    renderFormsGrid();
+    statusEl.textContent = "☁️ Atualizado agora";
+  } catch (err) {
+    console.warn("Forms: failed to load:", err);
+    statusEl.textContent = "⚠️ Não consegui atualizar — confere se a tabela wpf_forms existe no Supabase.";
+  }
+}
+
+async function loadFormResponseCounts() {
+  formsResponseCounts = {};
+  try {
+    const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?select=form_id`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if (!res.ok) return;
+    const rows = await res.json();
+    rows.forEach(r => { formsResponseCounts[r.form_id] = (formsResponseCounts[r.form_id] || 0) + 1; });
+  } catch (err) {
+    console.warn("Forms: failed to load response counts:", err);
+  }
+}
+
+function renderFormsGrid() {
+  const el = document.getElementById("forms-grid");
+  if (!formsList.length) {
+    el.innerHTML = `<div class="forms-grid-empty">Nenhum formulário ainda — clica em "+ Novo formulário" pra começar.</div>`;
+    return;
+  }
+  el.innerHTML = formsList.map(f => {
+    const count = formsResponseCounts[f.id] || 0;
+    return `
+      <div class="forms-card">
+        <div class="forms-card-title">${f.title || "Sem título"}</div>
+        ${f.description ? `<div class="forms-card-desc">${f.description}</div>` : ""}
+        <div class="forms-card-meta">
+          <span class="forms-card-status ${f.status}">${f.status === "published" ? "Publicado" : "Rascunho"}</span>
+          <span class="forms-card-count">${count} resposta${count === 1 ? "" : "s"}</span>
+        </div>
+        <div class="forms-card-actions">
+          <button data-action="edit" data-id="${f.id}" type="button">Editar</button>
+          <button data-action="responses" data-id="${f.id}" type="button">Ver respostas</button>
+          ${f.status === "published" ? `<button data-action="copy" data-id="${f.id}" type="button">🔗 Copiar link</button>` : ""}
+        </div>
+      </div>
+    `;
+  }).join("");
+  el.querySelectorAll("[data-action='edit']").forEach(btn => btn.addEventListener("click", () => openFormBuilder(btn.dataset.id)));
+  el.querySelectorAll("[data-action='responses']").forEach(btn => btn.addEventListener("click", () => openFormResponses(btn.dataset.id)));
+  el.querySelectorAll("[data-action='copy']").forEach(btn => btn.addEventListener("click", () => copyFormLink(btn.dataset.id)));
+}
+
+document.getElementById("forms-new-btn").addEventListener("click", () => {
+  formsCurrentBuilder = {
+    id: "form-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+    title: "",
+    description: "",
+    questions: [],
+    status: "draft"
+  };
+  renderFormBuilder();
+  formsShowMode("builder");
+});
+
+function openFormBuilder(id) {
+  const form = formsList.find(f => f.id === id);
+  if (!form) return;
+  formsCurrentBuilder = JSON.parse(JSON.stringify(form)); // deep copy so editing doesn't mutate the list until Saved
+  if (!Array.isArray(formsCurrentBuilder.questions)) formsCurrentBuilder.questions = [];
+  renderFormBuilder();
+  formsShowMode("builder");
+}
+
+document.getElementById("forms-back-btn").addEventListener("click", () => {
+  formsCurrentBuilder = null;
+  formsShowMode("list");
+});
+
+function formsNewQuestion() {
+  return { id: "q-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6), type: "text", label: "", required: false, options: [] };
+}
+
+document.getElementById("forms-add-question-btn").addEventListener("click", () => {
+  formsCurrentBuilder.questions.push(formsNewQuestion());
+  renderFormQuestions();
+});
+
+function renderFormBuilder() {
+  document.getElementById("forms-builder-title").value = formsCurrentBuilder.title || "";
+  document.getElementById("forms-builder-description").value = formsCurrentBuilder.description || "";
+  document.getElementById("forms-builder-status").textContent = "";
+  const linkRow = document.getElementById("forms-publish-link-row");
+  if (formsCurrentBuilder.status === "published") {
+    linkRow.classList.remove("hidden");
+    document.getElementById("forms-publish-link").value = formPublicLink(formsCurrentBuilder.id);
+  } else {
+    linkRow.classList.add("hidden");
+  }
+  renderFormQuestions();
+}
+
+function renderFormQuestions() {
+  const el = document.getElementById("forms-questions-list");
+  const qs = formsCurrentBuilder.questions;
+  if (!qs.length) {
+    el.innerHTML = `<div style="font-size:12.5px;color:var(--text-muted);">Nenhuma pergunta ainda — clica em "+ Adicionar pergunta".</div>`;
+    return;
+  }
+  el.innerHTML = qs.map((q, i) => {
+    const isChoice = FORM_CHOICE_TYPES.includes(q.type);
+    return `
+      <div class="forms-question-row" data-index="${i}">
+        <div class="forms-question-row-top">
+          <input type="text" class="forms-question-label" data-index="${i}" placeholder="Escreve a pergunta..." value="${(q.label || "").replace(/"/g, "&quot;")}">
+          <select class="forms-question-type" data-index="${i}">
+            ${Object.entries(FORM_QUESTION_TYPES).map(([val, label]) => `<option value="${val}" ${q.type === val ? "selected" : ""}>${label}</option>`).join("")}
+          </select>
+          <label class="forms-question-required"><input type="checkbox" data-index="${i}" ${q.required ? "checked" : ""}> Obrigatória</label>
+          <button class="forms-question-delete" data-index="${i}" type="button">🗑</button>
+        </div>
+        ${isChoice ? `
+          <div class="forms-question-options">
+            ${(q.options || []).map((opt, oi) => `
+              <div class="forms-option-row">
+                <input type="text" data-qindex="${i}" data-oindex="${oi}" value="${(opt || "").replace(/"/g, "&quot;")}" placeholder="Opção ${oi + 1}">
+                <button type="button" class="forms-option-delete" data-qindex="${i}" data-oindex="${oi}">✕</button>
+              </div>
+            `).join("")}
+            <button type="button" class="forms-add-option-btn" data-index="${i}">+ Opção</button>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+
+  el.querySelectorAll(".forms-question-label").forEach(inp => {
+    inp.addEventListener("input", (e) => { formsCurrentBuilder.questions[+e.target.dataset.index].label = e.target.value; });
+  });
+  el.querySelectorAll(".forms-question-type").forEach(sel => {
+    sel.addEventListener("change", (e) => {
+      const q = formsCurrentBuilder.questions[+e.target.dataset.index];
+      q.type = e.target.value;
+      if (FORM_CHOICE_TYPES.includes(q.type) && (!q.options || !q.options.length)) q.options = ["Opção 1"];
+      renderFormQuestions();
+    });
+  });
+  el.querySelectorAll(".forms-question-required input").forEach(cb => {
+    cb.addEventListener("change", (e) => { formsCurrentBuilder.questions[+e.target.dataset.index].required = e.target.checked; });
+  });
+  el.querySelectorAll(".forms-question-delete").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      formsCurrentBuilder.questions.splice(+e.currentTarget.dataset.index, 1);
+      renderFormQuestions();
+    });
+  });
+  el.querySelectorAll(".forms-option-row input").forEach(inp => {
+    inp.addEventListener("input", (e) => {
+      formsCurrentBuilder.questions[+e.target.dataset.qindex].options[+e.target.dataset.oindex] = e.target.value;
+    });
+  });
+  el.querySelectorAll(".forms-option-delete").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const t = e.currentTarget;
+      formsCurrentBuilder.questions[+t.dataset.qindex].options.splice(+t.dataset.oindex, 1);
+      renderFormQuestions();
+    });
+  });
+  el.querySelectorAll(".forms-add-option-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const q = formsCurrentBuilder.questions[+e.currentTarget.dataset.index];
+      q.options.push(`Opção ${q.options.length + 1}`);
+      renderFormQuestions();
+    });
+  });
+}
+
+document.getElementById("forms-builder-title").addEventListener("input", (e) => {
+  if (formsCurrentBuilder) formsCurrentBuilder.title = e.target.value;
+});
+document.getElementById("forms-builder-description").addEventListener("input", (e) => {
+  if (formsCurrentBuilder) formsCurrentBuilder.description = e.target.value;
+});
+
+function formPublicLink(id) {
+  return `${FORM_PUBLIC_BASE_URL}?id=${encodeURIComponent(id)}`;
+}
+
+async function saveFormToSupabase(statusOverride) {
+  if (!formsCurrentBuilder.title.trim()) {
+    document.getElementById("forms-builder-status").textContent = "Dá um título pro formulário antes de salvar.";
+    return false;
+  }
+  const payload = {
+    id: formsCurrentBuilder.id,
+    title: formsCurrentBuilder.title.trim(),
+    description: formsCurrentBuilder.description || "",
+    questions: formsCurrentBuilder.questions,
+    status: statusOverride || formsCurrentBuilder.status,
+    updated_at: new Date().toISOString()
+  };
+  try {
+    const res = await fetch(`${FORMS_TABLE_URL}?on_conflict=id`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates,return=minimal"
+      },
+      body: JSON.stringify([payload])
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    formsCurrentBuilder.status = payload.status;
+    return true;
+  } catch (err) {
+    document.getElementById("forms-builder-status").textContent = "⚠️ Não consegui salvar — confere sua conexão e se a tabela wpf_forms existe.";
+    return false;
+  }
+}
+
+document.getElementById("forms-save-btn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("forms-builder-status");
+  statusEl.textContent = "Salvando…";
+  const ok = await saveFormToSupabase();
+  if (ok) {
+    statusEl.textContent = "✅ Salvo.";
+    await loadFormsList();
+  }
+});
+
+document.getElementById("forms-publish-btn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("forms-builder-status");
+  if (!formsCurrentBuilder.questions.length) {
+    statusEl.textContent = "Adiciona pelo menos uma pergunta antes de publicar.";
+    return;
+  }
+  statusEl.textContent = "Publicando…";
+  const ok = await saveFormToSupabase("published");
+  if (ok) {
+    statusEl.textContent = "✅ Publicado!";
+    renderFormBuilder();
+    await loadFormsList();
+  }
+});
+
+document.getElementById("forms-copy-link-btn").addEventListener("click", () => {
+  const input = document.getElementById("forms-publish-link");
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => {
+    document.getElementById("forms-builder-status").textContent = "🔗 Link copiado!";
+  }).catch(() => {});
+});
+
+document.getElementById("forms-delete-btn").addEventListener("click", async () => {
+  if (!formsCurrentBuilder || !formsCurrentBuilder.id) return;
+  if (!confirm(`Apagar o formulário "${formsCurrentBuilder.title || "sem título"}"? Isso não apaga as respostas já recebidas, só o formulário em si.`)) return;
+  try {
+    await fetch(`${FORMS_TABLE_URL}?id=eq.${encodeURIComponent(formsCurrentBuilder.id)}`, {
+      method: "DELETE",
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+  } catch (err) { /* best effort */ }
+  formsCurrentBuilder = null;
+  formsShowMode("list");
+  loadFormsList();
+});
+
+function copyFormLink(id) {
+  const link = formPublicLink(id);
+  navigator.clipboard.writeText(link).then(() => {
+    const statusEl = document.getElementById("forms-sync-status");
+    statusEl.textContent = "🔗 Link copiado!";
+    setTimeout(() => { statusEl.textContent = "☁️ Atualizado agora"; }, 2000);
+  }).catch(() => {
+    prompt("Copia esse link:", link);
+  });
+}
+
+async function openFormResponses(id) {
+  const form = formsList.find(f => f.id === id);
+  if (!form) return;
+  document.getElementById("forms-responses-title").textContent = form.title || "Sem título";
+  const listEl = document.getElementById("forms-responses-list");
+  listEl.innerHTML = `<div class="forms-responses-empty">Carregando…</div>`;
+  formsShowMode("responses");
+  try {
+    const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?form_id=eq.${encodeURIComponent(id)}&select=*&order=submitted_at.desc`, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    const rows = res.ok ? await res.json() : [];
+    if (!rows.length) {
+      listEl.innerHTML = `<div class="forms-responses-empty">Nenhuma resposta recebida ainda.</div>`;
+      return;
+    }
+    listEl.innerHTML = rows.map(r => {
+      const when = new Date(r.submitted_at).toLocaleString("pt-BR");
+      const answersHtml = (form.questions || []).map(q => {
+        const raw = (r.answers || {})[q.id];
+        let display;
+        if (raw === undefined || raw === null || raw === "") display = "—";
+        else if (Array.isArray(raw)) display = raw.map(v => String(v).replace(/</g, "&lt;")).join(", ");
+        else if (q.type === "attachment" && typeof raw === "object" && raw.name) display = `<a href="${raw.dataUrl}" download="${raw.name}">${raw.name}</a>`;
+        else display = String(raw).replace(/</g, "&lt;");
+        return `<div class="forms-response-answer"><div class="forms-response-q">${q.label}</div><div class="forms-response-a">${display}</div></div>`;
+      }).join("");
+      return `<div class="forms-response-card"><div class="forms-response-time">${when}</div>${answersHtml}</div>`;
+    }).join("");
+  } catch (err) {
+    listEl.innerHTML = `<div class="forms-responses-empty">⚠️ Não consegui carregar as respostas.</div>`;
+  }
+}
+document.getElementById("forms-responses-back-btn").addEventListener("click", () => formsShowMode("list"));
+
+const formsLogoRow = document.getElementById("forms-logo-row");
+const formsLogoClone = document.getElementById("logo").cloneNode(true);
+formsLogoClone.removeAttribute("id");
+formsLogoClone.style.height = "44px";
+formsLogoClone.style.width = "auto";
+formsLogoClone.style.display = "block";
+formsLogoRow.prepend(formsLogoClone);
 
 // Everything above is defined and has had its first render — safe now to
 // apply the logged-in user's role (hides Settings/Geral for colab, flips
