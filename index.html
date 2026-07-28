@@ -530,6 +530,7 @@
   .slack-msg-time { font-size: 11px; color: var(--text-muted); }
   .slack-msg-text { font-size: 13.5px; color: var(--text); margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
   .slack-msg-text a { color: var(--accent); }
+  .slack-mention { background: #e8f5fa; color: #1264a3; font-weight: 600; border-radius: 4px; padding: 0 3px; }
   .slack-feed-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
 
   #slack-compose-row { display: flex; gap: 8px; margin-top: 12px; flex: 0 0 auto; }
@@ -9225,6 +9226,11 @@ function slackFlagEmoji(code) {
 function slackFormatText(raw) {
   let text = (raw || "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  // @{Name} / #{channel} — markers the Worker wraps resolved mentions in —
+  // become highlighted chips, same idea as how Slack itself shows them.
+  text = text
+    .replace(/@\{([^}]+)\}/g, '<span class="slack-mention">@$1</span>')
+    .replace(/#\{([^}]+)\}/g, '<span class="slack-mention">#$1</span>');
   text = text
     .replace(/&lt;(https?:\/\/[^|&]+)\|([^&]+)&gt;/g, (m, url, label) => `<a href="${url}" target="_blank" rel="noopener">${label}</a>`)
     .replace(/&lt;(https?:\/\/[^&]+)&gt;/g, (m, url) => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
