@@ -653,7 +653,6 @@
 
   #forms-list-mode { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
   #forms-list-mode.hidden { display: none; }
-  #forms-list-header { flex: 0 0 auto; margin-bottom: 14px; }
   #forms-new-btn {
     background: var(--accent);
     color: #ffffff;
@@ -2744,39 +2743,37 @@
   <div id="forms-wrap">
     <div id="forms-logo-row">
       <span id="forms-sync-status"></span>
+      <button id="forms-new-btn" type="button">+ New Form</button>
     </div>
 
     <div id="forms-list-mode">
-      <div id="forms-list-header">
-        <button id="forms-new-btn" type="button">+ Novo formulário</button>
-      </div>
       <div id="forms-grid"></div>
     </div>
 
     <div id="forms-builder-mode" class="hidden">
       <div id="forms-builder-header">
-        <button id="forms-back-btn" type="button">← Formulários</button>
+        <button id="forms-back-btn" type="button">← Forms</button>
       </div>
-      <input type="text" id="forms-builder-title" placeholder="Título do formulário">
-      <textarea id="forms-builder-description" placeholder="Descrição (opcional)"></textarea>
+      <input type="text" id="forms-builder-title" placeholder="Form title">
+      <textarea id="forms-builder-description" placeholder="Description (optional)"></textarea>
       <div id="forms-questions-list"></div>
-      <button id="forms-add-question-btn" type="button">+ Adicionar pergunta</button>
+      <button id="forms-add-question-btn" type="button">+ Add question</button>
       <div id="forms-builder-actions">
-        <button id="forms-save-btn" type="button">Salvar</button>
-        <button id="forms-publish-btn" type="button">🚀 Publicar</button>
-        <button id="forms-delete-btn" type="button">🗑 Excluir</button>
+        <button id="forms-save-btn" type="button">Save</button>
+        <button id="forms-publish-btn" type="button">🚀 Publish</button>
+        <button id="forms-delete-btn" type="button">🗑 Delete</button>
       </div>
       <div id="forms-builder-status"></div>
       <div id="forms-publish-link-row" class="hidden">
-        <span>Link público:</span>
+        <span>Public link:</span>
         <input type="text" id="forms-publish-link" readonly>
-        <button id="forms-copy-link-btn" type="button">Copiar</button>
+        <button id="forms-copy-link-btn" type="button">Copy</button>
       </div>
     </div>
 
     <div id="forms-responses-mode" class="hidden">
       <div id="forms-responses-header">
-        <button id="forms-responses-back-btn" type="button">← Formulários</button>
+        <button id="forms-responses-back-btn" type="button">← Forms</button>
         <span id="forms-responses-title"></span>
       </div>
       <div id="forms-responses-list"></div>
@@ -3520,7 +3517,9 @@ const COLAB_PERMISSIONS_DEFAULT = {
   tabTasks: true,
   tabMembers: true,
   tabCommittee: true,
-  tabMarketing: true
+  tabMarketing: true,
+  tabSlack: true,
+  tabForms: true
 };
 
 // Fills in permissions/mustChangePassword on any user record that predates
@@ -3614,7 +3613,9 @@ const NAV_TAB_PERMISSIONS = {
   "nav-tasks": "tabTasks",
   "nav-members": "tabMembers",
   "nav-committee": "tabCommittee",
-  "nav-marketing": "tabMarketing"
+  "nav-marketing": "tabMarketing",
+  "nav-slack": "tabSlack",
+  "nav-forms": "tabForms"
 };
 
 function applyTabVisibility() {
@@ -3825,7 +3826,9 @@ const PERMISSION_LABELS = {
   tabTasks: "Abas — ver Tasks",
   tabMembers: "Abas — ver Federations",
   tabCommittee: "Abas — ver Committee",
-  tabMarketing: "Abas — ver Marketing"
+  tabMarketing: "Abas — ver Marketing",
+  tabSlack: "Abas — ver Slack",
+  tabForms: "Abas — ver Forms"
 };
 
 // Which colab user's permission checklist is currently expanded in the
@@ -10107,13 +10110,12 @@ const FORM_RESPONSES_TABLE_URL = `${SUPABASE_URL}/rest/v1/wpf_form_responses`;
 const FORM_PUBLIC_BASE_URL = new URL("form.html", window.location.href).href;
 
 const FORM_QUESTION_TYPES = {
-  text: "Texto livre",
-  multiple_choice: "Múltipla escolha",
-  single_select: "Single select",
+  text: "Free text",
+  multiple_choice: "Single select",
   checkbox: "Checkbox",
-  attachment: "Anexo"
+  attachment: "Attachment"
 };
-const FORM_CHOICE_TYPES = ["multiple_choice", "single_select", "checkbox"];
+const FORM_CHOICE_TYPES = ["multiple_choice", "checkbox"];
 
 let formsList = [];
 let formsCurrentBuilder = null; // { id, title, description, questions, status } while editing
@@ -10127,7 +10129,7 @@ function formsShowMode(mode) {
 
 async function loadFormsList() {
   const statusEl = document.getElementById("forms-sync-status");
-  statusEl.textContent = "☁️ Atualizando…";
+  statusEl.textContent = "☁️ Updating…";
   try {
     const res = await fetch(`${FORMS_TABLE_URL}?select=*&order=updated_at.desc`, {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
@@ -10136,10 +10138,10 @@ async function loadFormsList() {
     formsList = await res.json();
     await loadFormResponseCounts();
     renderFormsGrid();
-    statusEl.textContent = "☁️ Atualizado agora";
+    statusEl.textContent = "☁️ Updated just now";
   } catch (err) {
     console.warn("Forms: failed to load:", err);
-    statusEl.textContent = "⚠️ Não consegui atualizar — confere se a tabela wpf_forms existe no Supabase.";
+    statusEl.textContent = "⚠️ Couldn't update — check that the wpf_forms table exists in Supabase.";
   }
 }
 
@@ -10160,23 +10162,23 @@ async function loadFormResponseCounts() {
 function renderFormsGrid() {
   const el = document.getElementById("forms-grid");
   if (!formsList.length) {
-    el.innerHTML = `<div class="forms-grid-empty">Nenhum formulário ainda — clica em "+ Novo formulário" pra começar.</div>`;
+    el.innerHTML = `<div class="forms-grid-empty">No forms yet — click "+ New Form" to get started.</div>`;
     return;
   }
   el.innerHTML = formsList.map(f => {
     const count = formsResponseCounts[f.id] || 0;
     return `
       <div class="forms-card">
-        <div class="forms-card-title">${f.title || "Sem título"}</div>
+        <div class="forms-card-title">${f.title || "Untitled"}</div>
         ${f.description ? `<div class="forms-card-desc">${f.description}</div>` : ""}
         <div class="forms-card-meta">
-          <span class="forms-card-status ${f.status}">${f.status === "published" ? "Publicado" : "Rascunho"}</span>
-          <span class="forms-card-count">${count} resposta${count === 1 ? "" : "s"}</span>
+          <span class="forms-card-status ${f.status}">${f.status === "published" ? "Published" : "Draft"}</span>
+          <span class="forms-card-count">${count} response${count === 1 ? "" : "s"}</span>
         </div>
         <div class="forms-card-actions">
-          <button data-action="edit" data-id="${f.id}" type="button">Editar</button>
-          <button data-action="responses" data-id="${f.id}" type="button">Ver respostas</button>
-          ${f.status === "published" ? `<button data-action="copy" data-id="${f.id}" type="button">🔗 Copiar link</button>` : ""}
+          <button data-action="edit" data-id="${f.id}" type="button">Edit</button>
+          <button data-action="responses" data-id="${f.id}" type="button">View responses</button>
+          ${f.status === "published" ? `<button data-action="copy" data-id="${f.id}" type="button">🔗 Copy link</button>` : ""}
         </div>
       </div>
     `;
@@ -10239,7 +10241,7 @@ function renderFormQuestions() {
   const el = document.getElementById("forms-questions-list");
   const qs = formsCurrentBuilder.questions;
   if (!qs.length) {
-    el.innerHTML = `<div style="font-size:12.5px;color:var(--text-muted);">Nenhuma pergunta ainda — clica em "+ Adicionar pergunta".</div>`;
+    el.innerHTML = `<div style="font-size:12.5px;color:var(--text-muted);">No questions yet — click "+ Add question".</div>`;
     return;
   }
   el.innerHTML = qs.map((q, i) => {
@@ -10247,22 +10249,22 @@ function renderFormQuestions() {
     return `
       <div class="forms-question-row" data-index="${i}">
         <div class="forms-question-row-top">
-          <input type="text" class="forms-question-label" data-index="${i}" placeholder="Escreve a pergunta..." value="${(q.label || "").replace(/"/g, "&quot;")}">
+          <input type="text" class="forms-question-label" data-index="${i}" placeholder="Write the question..." value="${(q.label || "").replace(/"/g, "&quot;")}">
           <select class="forms-question-type" data-index="${i}">
             ${Object.entries(FORM_QUESTION_TYPES).map(([val, label]) => `<option value="${val}" ${q.type === val ? "selected" : ""}>${label}</option>`).join("")}
           </select>
-          <label class="forms-question-required"><input type="checkbox" data-index="${i}" ${q.required ? "checked" : ""}> Obrigatória</label>
+          <label class="forms-question-required"><input type="checkbox" data-index="${i}" ${q.required ? "checked" : ""}> Required</label>
           <button class="forms-question-delete" data-index="${i}" type="button">🗑</button>
         </div>
         ${isChoice ? `
           <div class="forms-question-options">
             ${(q.options || []).map((opt, oi) => `
               <div class="forms-option-row">
-                <input type="text" data-qindex="${i}" data-oindex="${oi}" value="${(opt || "").replace(/"/g, "&quot;")}" placeholder="Opção ${oi + 1}">
+                <input type="text" data-qindex="${i}" data-oindex="${oi}" value="${(opt || "").replace(/"/g, "&quot;")}" placeholder="Option ${oi + 1}">
                 <button type="button" class="forms-option-delete" data-qindex="${i}" data-oindex="${oi}">✕</button>
               </div>
             `).join("")}
-            <button type="button" class="forms-add-option-btn" data-index="${i}">+ Opção</button>
+            <button type="button" class="forms-add-option-btn" data-index="${i}">+ Option</button>
           </div>
         ` : ""}
       </div>
@@ -10276,7 +10278,7 @@ function renderFormQuestions() {
     sel.addEventListener("change", (e) => {
       const q = formsCurrentBuilder.questions[+e.target.dataset.index];
       q.type = e.target.value;
-      if (FORM_CHOICE_TYPES.includes(q.type) && (!q.options || !q.options.length)) q.options = ["Opção 1"];
+      if (FORM_CHOICE_TYPES.includes(q.type) && (!q.options || !q.options.length)) q.options = ["Option 1"];
       renderFormQuestions();
     });
   });
@@ -10304,7 +10306,7 @@ function renderFormQuestions() {
   el.querySelectorAll(".forms-add-option-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       const q = formsCurrentBuilder.questions[+e.currentTarget.dataset.index];
-      q.options.push(`Opção ${q.options.length + 1}`);
+      q.options.push(`Option ${q.options.length + 1}`);
       renderFormQuestions();
     });
   });
@@ -10323,7 +10325,7 @@ function formPublicLink(id) {
 
 async function saveFormToSupabase(statusOverride) {
   if (!formsCurrentBuilder.title.trim()) {
-    document.getElementById("forms-builder-status").textContent = "Dá um título pro formulário antes de salvar.";
+    document.getElementById("forms-builder-status").textContent = "Give the form a title before saving.";
     return false;
   }
   const payload = {
@@ -10349,17 +10351,17 @@ async function saveFormToSupabase(statusOverride) {
     formsCurrentBuilder.status = payload.status;
     return true;
   } catch (err) {
-    document.getElementById("forms-builder-status").textContent = "⚠️ Não consegui salvar — confere sua conexão e se a tabela wpf_forms existe.";
+    document.getElementById("forms-builder-status").textContent = "⚠️ Couldn't save — check your connection and that the wpf_forms table exists.";
     return false;
   }
 }
 
 document.getElementById("forms-save-btn").addEventListener("click", async () => {
   const statusEl = document.getElementById("forms-builder-status");
-  statusEl.textContent = "Salvando…";
+  statusEl.textContent = "Saving…";
   const ok = await saveFormToSupabase();
   if (ok) {
-    statusEl.textContent = "✅ Salvo.";
+    statusEl.textContent = "✅ Saved.";
     await loadFormsList();
   }
 });
@@ -10367,13 +10369,13 @@ document.getElementById("forms-save-btn").addEventListener("click", async () => 
 document.getElementById("forms-publish-btn").addEventListener("click", async () => {
   const statusEl = document.getElementById("forms-builder-status");
   if (!formsCurrentBuilder.questions.length) {
-    statusEl.textContent = "Adiciona pelo menos uma pergunta antes de publicar.";
+    statusEl.textContent = "Add at least one question before publishing.";
     return;
   }
-  statusEl.textContent = "Publicando…";
+  statusEl.textContent = "Publishing…";
   const ok = await saveFormToSupabase("published");
   if (ok) {
-    statusEl.textContent = "✅ Publicado!";
+    statusEl.textContent = "✅ Published!";
     renderFormBuilder();
     await loadFormsList();
   }
@@ -10383,13 +10385,13 @@ document.getElementById("forms-copy-link-btn").addEventListener("click", () => {
   const input = document.getElementById("forms-publish-link");
   input.select();
   navigator.clipboard.writeText(input.value).then(() => {
-    document.getElementById("forms-builder-status").textContent = "🔗 Link copiado!";
+    document.getElementById("forms-builder-status").textContent = "🔗 Link copied!";
   }).catch(() => {});
 });
 
 document.getElementById("forms-delete-btn").addEventListener("click", async () => {
   if (!formsCurrentBuilder || !formsCurrentBuilder.id) return;
-  if (!confirm(`Apagar o formulário "${formsCurrentBuilder.title || "sem título"}"? Isso não apaga as respostas já recebidas, só o formulário em si.`)) return;
+  if (!confirm(`Delete the form "${formsCurrentBuilder.title || "untitled"}"? This won't delete responses already received, just the form itself.`)) return;
   try {
     await fetch(`${FORMS_TABLE_URL}?id=eq.${encodeURIComponent(formsCurrentBuilder.id)}`, {
       method: "DELETE",
@@ -10405,19 +10407,19 @@ function copyFormLink(id) {
   const link = formPublicLink(id);
   navigator.clipboard.writeText(link).then(() => {
     const statusEl = document.getElementById("forms-sync-status");
-    statusEl.textContent = "🔗 Link copiado!";
-    setTimeout(() => { statusEl.textContent = "☁️ Atualizado agora"; }, 2000);
+    statusEl.textContent = "🔗 Link copied!";
+    setTimeout(() => { statusEl.textContent = "☁️ Updated just now"; }, 2000);
   }).catch(() => {
-    prompt("Copia esse link:", link);
+    prompt("Copy this link:", link);
   });
 }
 
 async function openFormResponses(id) {
   const form = formsList.find(f => f.id === id);
   if (!form) return;
-  document.getElementById("forms-responses-title").textContent = form.title || "Sem título";
+  document.getElementById("forms-responses-title").textContent = form.title || "Untitled";
   const listEl = document.getElementById("forms-responses-list");
-  listEl.innerHTML = `<div class="forms-responses-empty">Carregando…</div>`;
+  listEl.innerHTML = `<div class="forms-responses-empty">Loading…</div>`;
   formsShowMode("responses");
   try {
     const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?form_id=eq.${encodeURIComponent(id)}&select=*&order=submitted_at.desc`, {
@@ -10425,11 +10427,11 @@ async function openFormResponses(id) {
     });
     const rows = res.ok ? await res.json() : [];
     if (!rows.length) {
-      listEl.innerHTML = `<div class="forms-responses-empty">Nenhuma resposta recebida ainda.</div>`;
+      listEl.innerHTML = `<div class="forms-responses-empty">No responses received yet.</div>`;
       return;
     }
     listEl.innerHTML = rows.map(r => {
-      const when = new Date(r.submitted_at).toLocaleString("pt-BR");
+      const when = new Date(r.submitted_at).toLocaleString("en-US");
       const answersHtml = (form.questions || []).map(q => {
         const raw = (r.answers || {})[q.id];
         let display;
@@ -10442,7 +10444,7 @@ async function openFormResponses(id) {
       return `<div class="forms-response-card"><div class="forms-response-time">${when}</div>${answersHtml}</div>`;
     }).join("");
   } catch (err) {
-    listEl.innerHTML = `<div class="forms-responses-empty">⚠️ Não consegui carregar as respostas.</div>`;
+    listEl.innerHTML = `<div class="forms-responses-empty">⚠️ Couldn't load responses.</div>`;
   }
 }
 document.getElementById("forms-responses-back-btn").addEventListener("click", () => formsShowMode("list"));
