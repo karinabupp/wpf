@@ -280,6 +280,19 @@
   }
   .settings-user-digest-btn:hover { background: var(--land-default); color: var(--text); }
   .settings-user-digest-btn:disabled { opacity: 0.6; cursor: default; }
+  .settings-user-reminder-btn {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-size: 11.5px;
+    cursor: pointer;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .settings-user-reminder-btn:hover { background: var(--land-default); color: var(--text); }
+  .settings-user-reminder-btn:disabled { opacity: 0.6; cursor: default; }
   .settings-role-badge {
     font-size: 11px;
     font-weight: 700;
@@ -530,10 +543,23 @@
   .slack-msg-time { font-size: 11px; color: var(--text-muted); }
   .slack-msg-text { font-size: 13.5px; color: var(--text); margin-top: 2px; white-space: pre-wrap; word-break: break-word; }
   .slack-msg-text a { color: var(--accent); }
-  .slack-mention { background: #e8f5fa; color: #1264a3; font-weight: 600; border-radius: 4px; padding: 0 3px; }
+  .slack-mention { background: #e8f5fa; color: #1264a3; font-weight: 600; border-radius: 4px; padding: 0 3px; text-decoration: none; }
+  a.slack-mention { cursor: pointer; }
+  a.slack-mention:hover { background: #d3ecf5; }
   .slack-feed-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+  .slack-thread-replies { margin: 4px 0 0 42px; padding-left: 12px; border-left: 2px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+  .slack-thread-replies-label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
-  #slack-compose-row { display: flex; gap: 8px; margin-top: 12px; flex: 0 0 auto; }
+  #slack-compose-row { display: flex; gap: 8px; margin-top: 12px; flex: 0 0 auto; align-items: flex-end; }
+  #slack-mention-picker {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 8px;
+    font-size: 12.5px;
+    color: var(--text);
+    max-width: 110px;
+    flex-shrink: 0;
+  }
   #slack-compose-text {
     flex: 1 1 auto;
     border: 1px solid var(--border);
@@ -2462,6 +2488,7 @@
           </div>
           <div id="slack-detail-feed"></div>
           <div id="slack-compose-row">
+            <select id="slack-mention-picker" title="Marcar alguém na mensagem"><option value="">@ marcar…</option></select>
             <textarea id="slack-compose-text" placeholder="Escreve uma mensagem pro canal..."></textarea>
             <button id="slack-compose-send-btn" type="button">📨 Enviar</button>
           </div>
@@ -3561,6 +3588,7 @@ function renderSettingsUsersList() {
         </select>
         <button type="button" class="settings-user-reset-btn" data-username="${uname}" title="Volta a senha pra padrão (wpf2026) — a pessoa troca no próximo login">↺ Resetar senha</button>
         <button type="button" class="settings-user-digest-btn" data-username="${uname}" title="Envia agora o resumo diário de tarefas pra essa pessoa">📨 Daily Digest</button>
+        <button type="button" class="settings-user-reminder-btn" data-username="${uname}" title="Envia agora o lembrete de 'vence amanhã' pra essa pessoa (testa com as tarefas que já vencem amanhã de verdade)">⏰ Lembrete Amanhã</button>
         <button type="button" class="settings-user-delete-btn" data-username="${uname}" title="Excluir">🗑</button>
       </div>
       ${u.mustChangePassword ? `<div class="settings-provisional-note">⏳ Senha provisória — ${u.username} vai precisar trocar no próximo login</div>` : ""}
@@ -3650,7 +3678,10 @@ function renderSettingsUsersList() {
     });
   });
   el.querySelectorAll(".settings-user-digest-btn").forEach(btn => {
-    btn.addEventListener("click", () => sendDailyDigestNow(btn.dataset.username, btn));
+    btn.addEventListener("click", () => sendEmailNow(btn.dataset.username, btn, "digest"));
+  });
+  el.querySelectorAll(".settings-user-reminder-btn").forEach(btn => {
+    btn.addEventListener("click", () => sendEmailNow(btn.dataset.username, btn, "due_tomorrow"));
   });
   el.querySelectorAll(".settings-user-role-select").forEach(select => {
     select.addEventListener("change", async () => {
@@ -5863,12 +5894,33 @@ function buildDigestForPerson(personName) {
   return grouped;
 }
 
-// --- Real send: fires the daily digest email for one person on demand,
-// via a small doGet() added to the Apps Script that already sends the
-// daily batch. Tries a normal fetch first so we can actually confirm
+const DONE_LIKE_STATUSES = ["Done", "Cancelled"];
+function tomorrowISODash() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+function buildDueTomorrowForPerson(personName) {
+  const tomorrow = tomorrowISODash();
+  const out = [];
+  function walk(items, parentName, depth) {
+    items.forEach(t => {
+      if (depth > 0 && t.assignees.includes(personName) && t.endDate === tomorrow && !DONE_LIKE_STATUSES.includes(t.status)) {
+        out.push({ id: t.id, name: t.name, status: t.status, parent: parentName, startDate: t.startDate, endDate: t.endDate });
+      }
+      walk(t.subtasks, t.name, depth + 1);
+    });
+  }
+  walk(tasksData, null, 0);
+  return out;
+}
+
+// --- Real send: fires either type of email for one person on demand, via
+// a small doPost() on the Apps Script that already sends the automatic
+// batches. Tries a normal fetch first so we can actually confirm
 // success/failure; only falls back to a blind no-cors fire-and-hope if
 // the browser refuses the readable request outright (some Apps Script
-// deployments don't send CORS headers on the GET response).
+// deployments don't send CORS headers on the response).
 const EMAIL_WEBHOOK_STORAGE_KEY = "wpf_email_webhook_url";
 // The box on screen always wins over whatever was saved before — otherwise
 // pasting a corrected URL without clicking away first would silently keep
@@ -5883,7 +5935,8 @@ webhookInput.addEventListener("input", (e) => {
   localStorage.setItem(EMAIL_WEBHOOK_STORAGE_KEY, e.target.value.trim());
 });
 
-async function sendDailyDigestNow(personName, btn) {
+// type: "digest" (resumo de pendentes) or "due_tomorrow" (vence amanhã)
+async function sendEmailNow(personName, btn, type) {
   const url = getEmailWebhookUrl();
   if (!url) {
     settingsShowError("Cole a URL do Apps Script (Web App) no campo do topo primeiro — precisa só uma vez.");
@@ -5902,11 +5955,20 @@ async function sendDailyDigestNow(personName, btn) {
   // Built straight from what's already on screen (tasksData/usersList) —
   // the script just sends exactly this, no re-fetch of a cloud snapshot
   // that could be a few seconds (or more) out of date.
-  const grouped = buildDigestForPerson(personName);
-  const tasks = EMAIL_DIGEST_ORDER.flatMap(status => grouped[status]);
-  if (!tasks.length) {
-    settingsShowError(`${personName} não tem tarefas pendentes hoje — nada foi enviado (não manda email vazio).`);
-    return;
+  let tasks;
+  if (type === "due_tomorrow") {
+    tasks = buildDueTomorrowForPerson(personName);
+    if (!tasks.length) {
+      settingsShowError(`${personName} não tem nenhuma tarefa vencendo amanhã — nada foi enviado (não manda email vazio).`);
+      return;
+    }
+  } else {
+    const grouped = buildDigestForPerson(personName);
+    tasks = EMAIL_DIGEST_ORDER.flatMap(status => grouped[status]);
+    if (!tasks.length) {
+      settingsShowError(`${personName} não tem tarefas pendentes hoje — nada foi enviado (não manda email vazio).`);
+      return;
+    }
   }
 
   const originalHTML = btn.innerHTML;
@@ -5914,7 +5976,7 @@ async function sendDailyDigestNow(personName, btn) {
     btn.disabled = true;
     btn.innerHTML = "⏳ Enviando…";
     settingsShowError(`Enviando pra ${personName}…`);
-    const payload = { personName, email, tasks };
+    const payload = { personName, email, tasks, type };
     let confirmed = false;
     let errorMsg = "";
     try {
@@ -9165,19 +9227,25 @@ setInterval(loadMarketingData, 5 * 60 * 1000);
 
 // Only one workspace is wired up today — add another entry here (plus its
 // own Worker + a "workspace" column on wpf_slack_messages to keep the two
-// separated) when there's a second one to connect.
+// separated) when there's a second one to connect. teamId is the "Txxxxx"
+// ID visible in your Slack app's URLs (Basic Information page) — used to
+// build clickable links to someone's profile from a mention.
 const SLACK_WORKSPACES = [
-  { id: "womens-committee", name: "Women's Committee", workerUrl: "https://wpf-slack-bridge.worldpokerfederation.workers.dev" }
+  { id: "womens-committee", name: "Women's Committee", workerUrl: "https://wpf-slack-bridge.worldpokerfederation.workers.dev", teamId: "T0AHHFRHN3B" }
 ];
 let slackActiveWorkspaceId = SLACK_WORKSPACES[0].id;
 function slackWorkerUrl() {
   return (SLACK_WORKSPACES.find(w => w.id === slackActiveWorkspaceId) || SLACK_WORKSPACES[0]).workerUrl;
+}
+function slackActiveTeamId() {
+  return (SLACK_WORKSPACES.find(w => w.id === slackActiveWorkspaceId) || SLACK_WORKSPACES[0]).teamId || "";
 }
 
 const SLACK_TABLE_URL = `${SUPABASE_URL}/rest/v1/wpf_slack_messages`;
 const SLACK_LAST_SEEN_KEY = "wpf_slack_last_seen";
 let slackMessages = [];         // recent messages across all channels — feeds the tile grid/badges
 let slackAllChannels = [];      // every channel the bot is in, from the Worker's /channels
+let slackAllUsers = [];         // real Slack members, from the Worker's /users — feeds the @ mention picker
 let slackActiveChannel = null;  // { id, name } while a channel's full thread is open
 let slackChannelDetailMessages = [];
 
@@ -9226,8 +9294,13 @@ function slackFlagEmoji(code) {
 function slackFormatText(raw) {
   let text = (raw || "")
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  // @{Name} / #{channel} — markers the Worker wraps resolved mentions in —
-  // become highlighted chips, same idea as how Slack itself shows them.
+  // @{Name|UID} — a person mention with an ID — becomes a clickable chip
+  // linking to their Slack profile. @{everyone}/@{here}/#{channel} (no
+  // |UID) have nothing to link to, so those stay plain highlighted text.
+  text = text.replace(/@\{([^|}]+)\|([A-Z0-9]+)\}/g, (m, name, uid) => {
+    const href = `slack://user?team=${slackActiveTeamId()}&id=${uid}`;
+    return `<a class="slack-mention" href="${href}">@${name}</a>`;
+  });
   text = text
     .replace(/@\{([^}]+)\}/g, '<span class="slack-mention">@$1</span>')
     .replace(/#\{([^}]+)\}/g, '<span class="slack-mention">#$1</span>');
@@ -9335,6 +9408,7 @@ async function openSlackChannel(channelId, channelName) {
   document.getElementById("slack-detail-title").textContent = "#" + channelName;
   const feedEl = document.getElementById("slack-detail-feed");
   feedEl.innerHTML = `<div class="slack-feed-empty">Carregando…</div>`;
+  loadSlackUsersList(); // runs in parallel, populates the @ mention picker
 
   try {
     const res = await fetch(`${SLACK_TABLE_URL}?channel=eq.${encodeURIComponent(channelId)}&select=*&order=ts.asc&limit=500`, {
@@ -9356,26 +9430,66 @@ async function openSlackChannel(channelId, channelName) {
   renderSlackChannelsGrid();
 }
 
+// Splits a channel's messages into top-level ones and their thread
+// replies (Slack marks a reply with thread_ts pointing at its parent's
+// ts — a root message has no thread_ts, or thread_ts === its own ts).
+function slackBuildThreadTree(messages) {
+  const tsSet = new Set(messages.map(m => m.ts));
+  const roots = [];
+  const repliesByParent = new Map();
+  messages.forEach(m => {
+    if (m.thread_ts && m.thread_ts !== m.ts) {
+      if (!repliesByParent.has(m.thread_ts)) repliesByParent.set(m.thread_ts, []);
+      repliesByParent.get(m.thread_ts).push(m);
+    } else {
+      roots.push(m);
+    }
+  });
+  // A reply whose parent isn't loaded (older history not imported yet)
+  // still needs to show up somewhere — falls back to being its own root.
+  Array.from(repliesByParent.entries()).forEach(([parentTs, replies]) => {
+    if (!tsSet.has(parentTs)) {
+      replies.forEach(r => roots.push(r));
+      repliesByParent.delete(parentTs);
+    }
+  });
+  roots.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts));
+  repliesByParent.forEach(list => list.sort((a, b) => parseFloat(a.ts) - parseFloat(b.ts)));
+  return { roots, repliesByParent };
+}
+
+function slackRenderMsgHtml(m) {
+  const name = m.user_name || m.user_id || "Alguém";
+  return `
+    <div class="slack-msg">
+      <div class="slack-msg-avatar">${slackAvatarInitials(name)}</div>
+      <div class="slack-msg-body">
+        <div class="slack-msg-head">
+          <span class="slack-msg-name">${name}</span>
+          <span class="slack-msg-time">${slackFormatTime(m.ts)}</span>
+        </div>
+        <div class="slack-msg-text">${slackFormatText(m.text)}</div>
+      </div>
+    </div>
+  `;
+}
+
 function renderSlackChannelDetail() {
   const el = document.getElementById("slack-detail-feed");
   if (!slackChannelDetailMessages.length) {
     el.innerHTML = `<div class="slack-feed-empty">Nenhuma mensagem nesse canal ainda — tenta "Importar histórico" se ele já tinha conversa antes do bot entrar.</div>`;
     return;
   }
-  el.innerHTML = slackChannelDetailMessages.map(m => {
-    const name = m.user_name || m.user_id || "Alguém";
-    return `
-      <div class="slack-msg">
-        <div class="slack-msg-avatar">${slackAvatarInitials(name)}</div>
-        <div class="slack-msg-body">
-          <div class="slack-msg-head">
-            <span class="slack-msg-name">${name}</span>
-            <span class="slack-msg-time">${slackFormatTime(m.ts)}</span>
-          </div>
-          <div class="slack-msg-text">${slackFormatText(m.text)}</div>
-        </div>
-      </div>
-    `;
+  const { roots, repliesByParent } = slackBuildThreadTree(slackChannelDetailMessages);
+  el.innerHTML = roots.map(root => {
+    const replies = repliesByParent.get(root.ts);
+    const repliesHtml = (replies && replies.length)
+      ? `<div class="slack-thread-replies">
+           <div class="slack-thread-replies-label">↳ ${replies.length} resposta${replies.length > 1 ? "s" : ""}</div>
+           ${replies.map(slackRenderMsgHtml).join("")}
+         </div>`
+      : "";
+    return slackRenderMsgHtml(root) + repliesHtml;
   }).join("");
   el.scrollTop = el.scrollHeight;
 }
@@ -9565,6 +9679,34 @@ document.getElementById("slack-compose-text").addEventListener("keydown", (e) =>
     e.preventDefault();
     document.getElementById("slack-compose-send-btn").click();
   }
+});
+
+async function loadSlackUsersList() {
+  try {
+    const res = await fetch(`${slackWorkerUrl()}/users`);
+    const data = await res.json();
+    if (data.ok) slackAllUsers = data.users;
+  } catch (err) {
+    console.warn("Slack: failed to load user list:", err);
+  }
+  const sel = document.getElementById("slack-mention-picker");
+  sel.innerHTML = `<option value="">@ marcar…</option>` +
+    slackAllUsers.map(u => `<option value="${u.id}">${u.name}</option>`).join("");
+}
+
+// Inserts the RAW <@UID> syntax Slack needs to actually notify/tag that
+// person — plain "@Name" text does not ping anyone, only this does.
+document.getElementById("slack-mention-picker").addEventListener("change", (e) => {
+  const uid = e.target.value;
+  if (!uid) return;
+  const textarea = document.getElementById("slack-compose-text");
+  const mention = `<@${uid}> `;
+  const start = textarea.selectionStart ?? textarea.value.length;
+  const end = textarea.selectionEnd ?? textarea.value.length;
+  textarea.value = textarea.value.slice(0, start) + mention + textarea.value.slice(end);
+  textarea.focus();
+  textarea.selectionStart = textarea.selectionEnd = start + mention.length;
+  e.target.value = "";
 });
 
 const slackWorkspaceSelect = document.getElementById("slack-workspace-select");
