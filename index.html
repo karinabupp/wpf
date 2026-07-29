@@ -647,12 +647,12 @@
   .slack-task-item-status { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px; }
   .slack-tasks-empty { font-size: 12px; color: var(--text-muted); padding: 8px 0; }
 
-  #forms-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
-  #forms-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
+  #forms-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: row; gap: 22px; }
+  #forms-sidebar { width: 300px; flex: 0 0 300px; min-height: 0; display: flex; flex-direction: column; }
+  #forms-logo-row { display: flex; flex-direction: column; align-items: stretch; width: 100%; margin-bottom: 14px; flex: 0 0 auto; gap: 10px; }
+  #forms-toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   #forms-sync-status { font-size: 12px; color: var(--text-muted); }
 
-  #forms-list-mode { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
-  #forms-list-mode.hidden { display: none; }
   #forms-new-btn {
     background: var(--accent);
     color: #ffffff;
@@ -662,44 +662,51 @@
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
+    flex-shrink: 0;
   }
   #forms-new-btn:hover { opacity: 0.9; }
   #forms-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 14px;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
   }
   .forms-card {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px;
+    padding: 14px;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    cursor: pointer;
   }
-  .forms-card-title { font-weight: 700; font-size: 14.5px; color: var(--text); }
-  .forms-card-desc { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .forms-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .forms-card-title { font-weight: 700; font-size: 14px; color: var(--text); }
+  .forms-card-desc { font-size: 11.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .forms-card-meta { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
   .forms-card-status { font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 2px 7px; text-transform: uppercase; letter-spacing: 0.02em; }
   .forms-card-status.draft { background: #f1efe8; color: #6b6a63; }
   .forms-card-status.published { background: #eaf3de; color: #173404; }
   .forms-card-count { font-size: 11.5px; color: var(--text-muted); }
-  .forms-card-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .forms-card-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
   .forms-card-actions button {
     border: 1px solid var(--border);
     background: #ffffff;
     color: var(--text);
     border-radius: 6px;
     padding: 5px 9px;
-    font-size: 11.5px;
+    font-size: 11px;
     cursor: pointer;
   }
   .forms-card-actions button:hover { background: var(--land-default); }
-  .forms-grid-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+  .forms-grid-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
 
+  #forms-detail { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; border-left: 1px solid var(--border); padding-left: 24px; }
+  #forms-empty-mode { flex: 1 1 0; display: flex; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 20px; }
+  #forms-empty-mode.hidden { display: none; }
   #forms-builder-mode, #forms-responses-mode { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; }
   #forms-builder-mode.hidden, #forms-responses-mode.hidden { display: none; }
   #forms-builder-header, #forms-responses-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex: 0 0 auto; }
@@ -2745,42 +2752,47 @@
 
 <div id="forms-view" class="content-view hidden">
   <div id="forms-wrap">
-    <div id="forms-logo-row">
-      <span id="forms-sync-status"></span>
-      <button id="forms-new-btn" type="button">+ New Form</button>
-    </div>
-
-    <div id="forms-list-mode">
+    <div id="forms-sidebar">
+      <div id="forms-logo-row">
+        <div id="forms-toolbar-row">
+          <span id="forms-sync-status"></span>
+          <button id="forms-new-btn" type="button">+ New Form</button>
+        </div>
+      </div>
       <div id="forms-grid"></div>
     </div>
 
-    <div id="forms-builder-mode" class="hidden">
-      <div id="forms-builder-header">
-        <button id="forms-back-btn" type="button">← Forms</button>
-      </div>
-      <input type="text" id="forms-builder-title" placeholder="Form title">
-      <textarea id="forms-builder-description" placeholder="Description (optional)"></textarea>
-      <div id="forms-questions-list"></div>
-      <button id="forms-add-question-btn" type="button">+ Add question</button>
-      <div id="forms-builder-actions">
-        <button id="forms-save-btn" type="button">Save</button>
-        <button id="forms-publish-btn" type="button">🚀 Publish</button>
-        <button id="forms-delete-btn" type="button">🗑 Delete</button>
-      </div>
-      <div id="forms-builder-status"></div>
-      <div id="forms-publish-link-row" class="hidden">
-        <span>Public link:</span>
-        <input type="text" id="forms-publish-link" readonly>
-        <button id="forms-copy-link-btn" type="button">Copy</button>
-      </div>
-    </div>
+    <div id="forms-detail">
+      <div id="forms-empty-mode">Select a form on the left to edit it or view responses — or click "+ New Form" to create one.</div>
 
-    <div id="forms-responses-mode" class="hidden">
-      <div id="forms-responses-header">
-        <button id="forms-responses-back-btn" type="button">← Forms</button>
-        <span id="forms-responses-title"></span>
+      <div id="forms-builder-mode" class="hidden">
+        <div id="forms-builder-header">
+          <button id="forms-back-btn" type="button">✕ Close</button>
+        </div>
+        <input type="text" id="forms-builder-title" placeholder="Form title">
+        <textarea id="forms-builder-description" placeholder="Description (optional)"></textarea>
+        <div id="forms-questions-list"></div>
+        <button id="forms-add-question-btn" type="button">+ Add question</button>
+        <div id="forms-builder-actions">
+          <button id="forms-save-btn" type="button">Save</button>
+          <button id="forms-publish-btn" type="button">🚀 Publish</button>
+          <button id="forms-delete-btn" type="button">🗑 Delete</button>
+        </div>
+        <div id="forms-builder-status"></div>
+        <div id="forms-publish-link-row" class="hidden">
+          <span>Public link:</span>
+          <input type="text" id="forms-publish-link" readonly>
+          <button id="forms-copy-link-btn" type="button">Copy</button>
+        </div>
       </div>
-      <div id="forms-responses-list"></div>
+
+      <div id="forms-responses-mode" class="hidden">
+        <div id="forms-responses-header">
+          <button id="forms-responses-back-btn" type="button">✕ Close</button>
+          <span id="forms-responses-title"></span>
+        </div>
+        <div id="forms-responses-list"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -10129,9 +10141,10 @@ const FORM_CHOICE_TYPES = ["multiple_choice", "checkbox"];
 let formsList = [];
 let formsCurrentBuilder = null; // { id, title, description, questions, status } while editing
 let formsResponseCounts = {};
+let formsActiveId = null; // id of the form currently open on the right (builder or responses), for highlighting its card
 
 function formsShowMode(mode) {
-  document.getElementById("forms-list-mode").classList.toggle("hidden", mode !== "list");
+  document.getElementById("forms-empty-mode").classList.toggle("hidden", mode !== "empty");
   document.getElementById("forms-builder-mode").classList.toggle("hidden", mode !== "builder");
   document.getElementById("forms-responses-mode").classList.toggle("hidden", mode !== "responses");
 }
@@ -10177,7 +10190,7 @@ function renderFormsGrid() {
   el.innerHTML = formsList.map(f => {
     const count = formsResponseCounts[f.id] || 0;
     return `
-      <div class="forms-card">
+      <div class="forms-card ${f.id === formsActiveId ? "active" : ""}" data-id="${f.id}">
         <div class="forms-card-title">${f.title || "Untitled"}</div>
         ${f.description ? `<div class="forms-card-desc">${f.description}</div>` : ""}
         <div class="forms-card-meta">
@@ -10193,6 +10206,12 @@ function renderFormsGrid() {
       </div>
     `;
   }).join("");
+  el.querySelectorAll(".forms-card").forEach(card => {
+    card.addEventListener("click", () => openFormBuilder(card.dataset.id));
+  });
+  el.querySelectorAll("[data-action]").forEach(btn => {
+    btn.addEventListener("click", (e) => e.stopPropagation()); // don't let the card's own click (open builder) also fire
+  });
   el.querySelectorAll("[data-action='edit']").forEach(btn => btn.addEventListener("click", () => openFormBuilder(btn.dataset.id)));
   el.querySelectorAll("[data-action='responses']").forEach(btn => btn.addEventListener("click", () => openFormResponses(btn.dataset.id)));
   el.querySelectorAll("[data-action='copy']").forEach(btn => btn.addEventListener("click", () => copyFormLink(btn.dataset.id)));
@@ -10213,6 +10232,11 @@ async function deleteFormById(id, title) {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
     });
   } catch (err) { /* best effort */ }
+  if (formsActiveId === id) {
+    formsActiveId = null;
+    formsCurrentBuilder = null;
+    formsShowMode("empty");
+  }
   await loadFormsList();
   return true;
 }
@@ -10225,6 +10249,8 @@ document.getElementById("forms-new-btn").addEventListener("click", () => {
     questions: [],
     status: "draft"
   };
+  formsActiveId = null; // brand new, unsaved — no matching card to highlight yet
+  renderFormsGrid();
   renderFormBuilder();
   formsShowMode("builder");
 });
@@ -10234,13 +10260,17 @@ function openFormBuilder(id) {
   if (!form) return;
   formsCurrentBuilder = JSON.parse(JSON.stringify(form)); // deep copy so editing doesn't mutate the list until Saved
   if (!Array.isArray(formsCurrentBuilder.questions)) formsCurrentBuilder.questions = [];
+  formsActiveId = id;
+  renderFormsGrid();
   renderFormBuilder();
   formsShowMode("builder");
 }
 
 document.getElementById("forms-back-btn").addEventListener("click", () => {
   formsCurrentBuilder = null;
-  formsShowMode("list");
+  formsActiveId = null;
+  renderFormsGrid();
+  formsShowMode("empty");
 });
 
 function formsNewQuestion() {
@@ -10391,6 +10421,7 @@ document.getElementById("forms-save-btn").addEventListener("click", async () => 
   const ok = await saveFormToSupabase();
   if (ok) {
     statusEl.textContent = "✅ Saved.";
+    formsActiveId = formsCurrentBuilder.id;
     await loadFormsList();
   }
 });
@@ -10405,6 +10436,7 @@ document.getElementById("forms-publish-btn").addEventListener("click", async () 
   const ok = await saveFormToSupabase("published");
   if (ok) {
     statusEl.textContent = "✅ Published!";
+    formsActiveId = formsCurrentBuilder.id;
     renderFormBuilder();
     await loadFormsList();
   }
@@ -10424,7 +10456,7 @@ document.getElementById("forms-delete-btn").addEventListener("click", async () =
   const deleted = await deleteFormById(formsCurrentBuilder.id, formsCurrentBuilder.title);
   if (!deleted) return;
   formsCurrentBuilder = null;
-  formsShowMode("list");
+  formsShowMode("empty");
 });
 
 function copyFormLink(id) {
@@ -10441,6 +10473,8 @@ function copyFormLink(id) {
 async function openFormResponses(id) {
   const form = formsList.find(f => f.id === id);
   if (!form) return;
+  formsActiveId = id;
+  renderFormsGrid();
   document.getElementById("forms-responses-title").textContent = form.title || "Untitled";
   const listEl = document.getElementById("forms-responses-list");
   listEl.innerHTML = `<div class="forms-responses-empty">Loading…</div>`;
@@ -10475,7 +10509,11 @@ async function openFormResponses(id) {
     listEl.innerHTML = `<div class="forms-responses-empty">⚠️ Couldn't load responses.</div>`;
   }
 }
-document.getElementById("forms-responses-back-btn").addEventListener("click", () => formsShowMode("list"));
+document.getElementById("forms-responses-back-btn").addEventListener("click", () => {
+  formsActiveId = null;
+  renderFormsGrid();
+  formsShowMode("empty");
+});
 
 // Deletes a single response row and refreshes both the responses list
 // (currently open) and the card counts back in the grid.
