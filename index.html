@@ -881,6 +881,47 @@
   .forms-response-delete { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 5px; }
   .forms-response-delete:hover { background: #fcebeb; color: #a3312a; }
 
+  #forms-responses-table tbody tr[data-response-id] { cursor: pointer; }
+
+  #forms-response-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 44, 42, 0.4);
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #forms-response-detail-overlay.hidden { display: none; }
+  #forms-response-detail-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 28px 30px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(44, 44, 42, 0.28);
+  }
+  #forms-response-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+  #forms-response-detail-time { font-size: 12px; color: var(--text-muted); }
+  #forms-response-detail-close {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #forms-response-detail-close:hover { background: var(--land-default); }
+  .frd-answer { margin-bottom: 18px; }
+  .frd-answer:last-child { margin-bottom: 0; }
+  .frd-q { font-size: 12.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 5px; }
+  .frd-a { font-size: 14px; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+
   #marketing-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #marketing-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
   #marketing-sync-status { font-size: 12px; color: var(--text-muted); }
@@ -2833,6 +2874,16 @@
             </table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="forms-response-detail-overlay" class="hidden">
+      <div id="forms-response-detail-card">
+        <div id="forms-response-detail-header">
+          <span id="forms-response-detail-time"></span>
+          <button id="forms-response-detail-close" type="button">✕ Close</button>
+        </div>
+        <div id="forms-response-detail-body"></div>
       </div>
     </div>
   </div>
@@ -10518,14 +10569,22 @@ function copyFormLink(id) {
 function formsEsc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function formsEscAttr(s) { return formsEsc(s).replace(/"/g, "&quot;"); }
 
-// Cell content for one answer, as HTML (attachments render as a download link).
-function formsAnswerCellHtml(raw, q) {
+// Plain-text version of one answer (used for cell tooltips, filter matching, and the detail overlay).
+function formsAnswerPlainText(raw, q) {
   if (raw === undefined || raw === null || raw === "") return "—";
-  if (Array.isArray(raw)) return formsEsc(raw.map(String).join(", "));
-  if (q.type === "attachment" && typeof raw === "object" && raw.name) {
-    return `<a href="${raw.dataUrl}" download="${formsEscAttr(raw.name)}">${formsEsc(raw.name)}</a>`;
+  if (Array.isArray(raw)) return raw.map(String).join(", ");
+  if (q.type === "attachment" && typeof raw === "object" && raw.name) return raw.name;
+  return String(raw);
+}
+
+// Cell content for one answer, as HTML (attachments render as a download link).
+// Full text always sits in a title attribute so hovering a truncated cell shows it all.
+function formsAnswerCellHtml(raw, q) {
+  const text = formsAnswerPlainText(raw, q);
+  if (q.type === "attachment" && raw && typeof raw === "object" && raw.name) {
+    return `<a href="${raw.dataUrl}" download="${formsEscAttr(raw.name)}" title="${formsEscAttr(text)}">${formsEsc(text)}</a>`;
   }
-  return formsEsc(String(raw));
+  return `<span title="${formsEscAttr(text)}">${formsEsc(text)}</span>`;
 }
 
 // The filter control for one column's header: a dropdown of the form's own
@@ -10606,16 +10665,54 @@ function renderFormsResponsesBody() {
     const when = new Date(r.submitted_at).toLocaleString("en-US");
     const cells = questions.map(q => `<td>${formsAnswerCellHtml((r.answers || {})[q.id], q)}</td>`).join("");
     const deleteCell = canDelete ? `<td><button class="forms-response-delete" data-id="${r.id}" type="button" title="Excluir resposta">🗑</button></td>` : "";
-    return `<tr><td class="frt-date-cell">${when}</td>${cells}${deleteCell}</tr>`;
+    return `<tr data-response-id="${r.id}"><td class="frt-date-cell">${when}</td>${cells}${deleteCell}</tr>`;
   }).join("");
   tbody.querySelectorAll(".forms-response-delete").forEach(btn => {
-    btn.addEventListener("click", () => deleteFormResponse(btn.dataset.id));
+    btn.addEventListener("click", (e) => { e.stopPropagation(); deleteFormResponse(btn.dataset.id); });
   });
 }
+
+// Row clicks are delegated to the (persistent) tbody element so this only
+// needs wiring once — it keeps working across every re-render of its rows.
+document.getElementById("forms-responses-tbody").addEventListener("click", (e) => {
+  if (e.target.closest("button") || e.target.closest("a")) return; // let delete/download handle their own click
+  const tr = e.target.closest("tr[data-response-id]");
+  if (!tr) return;
+  openResponseDetail(tr.dataset.responseId);
+});
+
+// Expands one submission into a full read-out of every question + full
+// answer text — the spreadsheet truncates long cells, this doesn't.
+function openResponseDetail(responseId) {
+  const row = formsResponsesData.find(r => r.id === responseId);
+  if (!row || !formsResponsesForm) return;
+  const questions = formsResponsesForm.questions || [];
+  document.getElementById("forms-response-detail-time").textContent = new Date(row.submitted_at).toLocaleString("en-US");
+  document.getElementById("forms-response-detail-body").innerHTML = questions.map(q => {
+    const raw = (row.answers || {})[q.id];
+    let html;
+    if (q.type === "attachment" && raw && typeof raw === "object" && raw.name) {
+      html = `<a href="${raw.dataUrl}" download="${formsEscAttr(raw.name)}">${formsEsc(raw.name)}</a>`;
+    } else {
+      html = formsEsc(formsAnswerPlainText(raw, q));
+    }
+    return `<div class="frd-answer"><div class="frd-q">${formsEsc(q.label || "")}</div><div class="frd-a">${html}</div></div>`;
+  }).join("");
+  document.getElementById("forms-response-detail-overlay").classList.remove("hidden");
+}
+
+function closeResponseDetail() {
+  document.getElementById("forms-response-detail-overlay").classList.add("hidden");
+}
+document.getElementById("forms-response-detail-close").addEventListener("click", closeResponseDetail);
+document.getElementById("forms-response-detail-overlay").addEventListener("click", (e) => {
+  if (e.target.id === "forms-response-detail-overlay") closeResponseDetail(); // backdrop click only, not the card itself
+});
 
 async function openFormResponses(id) {
   const form = formsList.find(f => f.id === id);
   if (!form) return;
+  closeResponseDetail();
   formsActiveId = id;
   renderFormsGrid();
   document.getElementById("forms-responses-title").textContent = form.title || "Untitled";
@@ -10646,6 +10743,7 @@ async function openFormResponses(id) {
   }
 }
 document.getElementById("forms-responses-back-btn").addEventListener("click", () => {
+  closeResponseDetail();
   formsActiveId = null;
   formsResponsesForm = null;
   formsResponsesData = [];
