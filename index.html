@@ -647,10 +647,11 @@
   .slack-task-item-status { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 1px 6px; }
   .slack-tasks-empty { font-size: 12px; color: var(--text-muted); padding: 8px 0; }
 
-  #forms-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: row; gap: 22px; }
-  #forms-sidebar { width: 300px; flex: 0 0 300px; min-height: 0; display: flex; flex-direction: column; }
-  #forms-logo-row { display: flex; flex-direction: column; align-items: stretch; width: 100%; margin-bottom: 14px; flex: 0 0 auto; gap: 10px; }
-  #forms-toolbar-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  #forms-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
+  #forms-logo-row { display: flex; align-items: center; width: 100%; margin-bottom: 20px; flex: 0 0 auto; }
+  #forms-split { flex: 1 1 0; min-height: 0; display: flex; flex-direction: row; gap: 24px; }
+  #forms-sidebar { width: 340px; flex: 0 0 340px; min-height: 0; display: flex; flex-direction: column; }
+  #forms-toolbar-row { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 14px; flex: 0 0 auto; }
   #forms-sync-status { font-size: 12px; color: var(--text-muted); }
 
   #forms-new-btn {
@@ -2752,46 +2753,48 @@
 
 <div id="forms-view" class="content-view hidden">
   <div id="forms-wrap">
-    <div id="forms-sidebar">
-      <div id="forms-logo-row">
+    <div id="forms-logo-row"></div>
+
+    <div id="forms-split">
+      <div id="forms-sidebar">
         <div id="forms-toolbar-row">
-          <span id="forms-sync-status"></span>
           <button id="forms-new-btn" type="button">+ New Form</button>
+          <span id="forms-sync-status"></span>
         </div>
-      </div>
-      <div id="forms-grid"></div>
-    </div>
-
-    <div id="forms-detail">
-      <div id="forms-empty-mode">Select a form on the left to edit it or view responses — or click "+ New Form" to create one.</div>
-
-      <div id="forms-builder-mode" class="hidden">
-        <div id="forms-builder-header">
-          <button id="forms-back-btn" type="button">✕ Close</button>
-        </div>
-        <input type="text" id="forms-builder-title" placeholder="Form title">
-        <textarea id="forms-builder-description" placeholder="Description (optional)"></textarea>
-        <div id="forms-questions-list"></div>
-        <button id="forms-add-question-btn" type="button">+ Add question</button>
-        <div id="forms-builder-actions">
-          <button id="forms-save-btn" type="button">Save</button>
-          <button id="forms-publish-btn" type="button">🚀 Publish</button>
-          <button id="forms-delete-btn" type="button">🗑 Delete</button>
-        </div>
-        <div id="forms-builder-status"></div>
-        <div id="forms-publish-link-row" class="hidden">
-          <span>Public link:</span>
-          <input type="text" id="forms-publish-link" readonly>
-          <button id="forms-copy-link-btn" type="button">Copy</button>
-        </div>
+        <div id="forms-grid"></div>
       </div>
 
-      <div id="forms-responses-mode" class="hidden">
-        <div id="forms-responses-header">
-          <button id="forms-responses-back-btn" type="button">✕ Close</button>
-          <span id="forms-responses-title"></span>
+      <div id="forms-detail">
+        <div id="forms-empty-mode">Select a form on the left to edit it or view responses — or click "+ New Form" to create one.</div>
+
+        <div id="forms-builder-mode" class="hidden">
+          <div id="forms-builder-header">
+            <button id="forms-back-btn" type="button">✕ Close</button>
+          </div>
+          <input type="text" id="forms-builder-title" placeholder="Form title">
+          <textarea id="forms-builder-description" placeholder="Description (optional)"></textarea>
+          <div id="forms-questions-list"></div>
+          <button id="forms-add-question-btn" type="button">+ Add question</button>
+          <div id="forms-builder-actions">
+            <button id="forms-save-btn" type="button">Save</button>
+            <button id="forms-publish-btn" type="button">🚀 Publish</button>
+            <button id="forms-delete-btn" type="button">🗑 Delete</button>
+          </div>
+          <div id="forms-builder-status"></div>
+          <div id="forms-publish-link-row" class="hidden">
+            <span>Public link:</span>
+            <input type="text" id="forms-publish-link" readonly>
+            <button id="forms-copy-link-btn" type="button">Copy</button>
+          </div>
         </div>
-        <div id="forms-responses-list"></div>
+
+        <div id="forms-responses-mode" class="hidden">
+          <div id="forms-responses-header">
+            <button id="forms-responses-back-btn" type="button">✕ Close</button>
+            <span id="forms-responses-title"></span>
+          </div>
+          <div id="forms-responses-list"></div>
+        </div>
       </div>
     </div>
   </div>
