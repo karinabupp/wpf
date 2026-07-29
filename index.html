@@ -836,18 +836,50 @@
   #forms-copy-link-btn { border: 1px solid var(--border); background: #ffffff; border-radius: 6px; padding: 7px 12px; font-size: 12px; cursor: pointer; }
   #forms-copy-link-btn:hover { background: var(--land-default); }
 
-  #forms-responses-list { display: flex; flex-direction: column; gap: 10px; }
-  .forms-response-card { background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-  .forms-response-time { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
-  .forms-response-delete { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 5px; }
-  .forms-response-delete:hover { background: #fcebeb; color: #a3312a; }
   .forms-card-actions button[data-action="delete"] { color: #a3312a; }
   .forms-card-actions button[data-action="delete"]:hover { background: #fcebeb; }
-  .forms-response-answer { margin-bottom: 8px; }
-  .forms-response-answer:last-child { margin-bottom: 0; }
-  .forms-response-q { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
-  .forms-response-a { font-size: 13px; color: var(--text); margin-top: 2px; }
   .forms-responses-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+
+  #forms-responses-table-wrap { flex: 1 1 0; min-height: 0; overflow: auto; border: 1px solid var(--border); border-radius: 10px; }
+  #forms-responses-table-wrap.hidden { display: none; }
+  #forms-responses-table { border-collapse: collapse; width: 100%; font-size: 12.5px; background: #ffffff; }
+  #forms-responses-table th, #forms-responses-table td {
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    white-space: nowrap;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #forms-responses-table th:last-child, #forms-responses-table td:last-child { border-right: none; }
+  .frt-header-row th {
+    position: sticky;
+    top: 0;
+    background: var(--panel);
+    font-weight: 700;
+    color: var(--text);
+    white-space: normal;
+    z-index: 2;
+  }
+  .frt-filter-row th { background: var(--bg); padding: 6px 8px; }
+  .frt-filter-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 7px;
+    font-size: 11.5px;
+    font-family: inherit;
+    color: var(--text);
+    background: #ffffff;
+  }
+  .frt-date-cell { color: var(--text-muted); }
+  #forms-responses-table tbody tr:nth-child(even) { background: var(--bg); }
+  #forms-responses-table tbody tr:hover { background: var(--land-default); }
+  .frt-empty-cell { text-align: center; color: var(--text-muted); padding: 30px 0 !important; white-space: normal; }
+  .forms-response-delete { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 5px; }
+  .forms-response-delete:hover { background: #fcebeb; color: #a3312a; }
 
   #marketing-wrap { width: 100%; height: calc(100vh - 40px); display: flex; flex-direction: column; }
   #marketing-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 14px; flex: 0 0 auto; }
@@ -2794,6 +2826,12 @@
             <span id="forms-responses-title"></span>
           </div>
           <div id="forms-responses-list"></div>
+          <div id="forms-responses-table-wrap" class="hidden">
+            <table id="forms-responses-table">
+              <thead></thead>
+              <tbody id="forms-responses-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -10145,6 +10183,9 @@ let formsList = [];
 let formsCurrentBuilder = null; // { id, title, description, questions, status } while editing
 let formsResponseCounts = {};
 let formsActiveId = null; // id of the form currently open on the right (builder or responses), for highlighting its card
+let formsResponsesData = []; // raw response rows for whichever form is open in the responses table
+let formsResponsesForm = null; // the form object (title/questions) for the currently open responses table
+let formsResponsesFilters = {}; // per-column filter values, keyed by question id (or "__submitted" for the date column)
 
 function formsShowMode(mode) {
   document.getElementById("forms-empty-mode").classList.toggle("hidden", mode !== "empty");
@@ -10473,13 +10514,117 @@ function copyFormLink(id) {
   });
 }
 
+// Minimal HTML/attribute escaping for values we inject into the responses table.
+function formsEsc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function formsEscAttr(s) { return formsEsc(s).replace(/"/g, "&quot;"); }
+
+// Cell content for one answer, as HTML (attachments render as a download link).
+function formsAnswerCellHtml(raw, q) {
+  if (raw === undefined || raw === null || raw === "") return "—";
+  if (Array.isArray(raw)) return formsEsc(raw.map(String).join(", "));
+  if (q.type === "attachment" && typeof raw === "object" && raw.name) {
+    return `<a href="${raw.dataUrl}" download="${formsEscAttr(raw.name)}">${formsEsc(raw.name)}</a>`;
+  }
+  return formsEsc(String(raw));
+}
+
+// The filter control for one column's header: a dropdown of the form's own
+// defined options for choice-type questions (easy exact-match filtering),
+// a free-text box for everything else (substring match).
+function formsFilterControlHtml(q) {
+  if (q.type === "multiple_choice" || q.type === "single_select" || q.type === "checkbox") {
+    const options = q.options || [];
+    return `<select class="frt-filter-input" data-qid="${q.id}"><option value="">All</option>${options.map(o => `<option value="${formsEscAttr(o)}">${formsEsc(o)}</option>`).join("")}</select>`;
+  }
+  return `<input type="text" class="frt-filter-input" data-qid="${q.id}" placeholder="Filter…">`;
+}
+
+function formsRowMatchesFilters(row, questions) {
+  const dateFilter = formsResponsesFilters.__submitted;
+  if (dateFilter) {
+    const when = new Date(row.submitted_at).toLocaleString("en-US");
+    if (!when.toLowerCase().includes(dateFilter.toLowerCase())) return false;
+  }
+  for (const q of questions) {
+    const filterVal = formsResponsesFilters[q.id];
+    if (!filterVal) continue;
+    const raw = (row.answers || {})[q.id];
+    if (q.type === "multiple_choice" || q.type === "single_select") {
+      if (String(raw || "") !== filterVal) return false;
+    } else if (q.type === "checkbox") {
+      const arr = Array.isArray(raw) ? raw.map(String) : [];
+      if (!arr.includes(filterVal)) return false;
+    } else {
+      const raw2 = (raw && typeof raw === "object" && raw.name) ? raw.name : raw; // attachment → filename
+      const text = String(raw2 || "").toLowerCase();
+      if (!text.includes(filterVal.toLowerCase())) return false;
+    }
+  }
+  return true;
+}
+
+// Builds the header + filter row once per open (so filter inputs keep focus
+// while typing — only renderFormsResponsesBody() re-runs on every keystroke).
+function renderFormsResponsesTable() {
+  const questions = (formsResponsesForm && formsResponsesForm.questions) || [];
+  const canDelete = colabCan("formsDeleteResponse");
+  const theadEl = document.querySelector("#forms-responses-table thead");
+  theadEl.innerHTML = `
+    <tr class="frt-header-row">
+      <th>Submitted</th>
+      ${questions.map(q => `<th>${formsEsc(q.label || "")}</th>`).join("")}
+      ${canDelete ? `<th></th>` : ""}
+    </tr>
+    <tr class="frt-filter-row">
+      <th><input type="text" class="frt-filter-input" data-qid="__submitted" placeholder="Filter…"></th>
+      ${questions.map(q => `<th>${formsFilterControlHtml(q)}</th>`).join("")}
+      ${canDelete ? `<th></th>` : ""}
+    </tr>
+  `;
+  theadEl.querySelectorAll(".frt-filter-input").forEach(el => {
+    const handler = () => {
+      formsResponsesFilters[el.dataset.qid] = el.value;
+      renderFormsResponsesBody();
+    };
+    el.addEventListener("input", handler);
+    el.addEventListener("change", handler);
+  });
+  renderFormsResponsesBody();
+}
+
+function renderFormsResponsesBody() {
+  const questions = (formsResponsesForm && formsResponsesForm.questions) || [];
+  const canDelete = colabCan("formsDeleteResponse");
+  const tbody = document.getElementById("forms-responses-tbody");
+  const filtered = formsResponsesData.filter(r => formsRowMatchesFilters(r, questions));
+  if (!filtered.length) {
+    const colspan = 1 + questions.length + (canDelete ? 1 : 0);
+    tbody.innerHTML = `<tr><td colspan="${colspan}" class="frt-empty-cell">No responses match these filters.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(r => {
+    const when = new Date(r.submitted_at).toLocaleString("en-US");
+    const cells = questions.map(q => `<td>${formsAnswerCellHtml((r.answers || {})[q.id], q)}</td>`).join("");
+    const deleteCell = canDelete ? `<td><button class="forms-response-delete" data-id="${r.id}" type="button" title="Excluir resposta">🗑</button></td>` : "";
+    return `<tr><td class="frt-date-cell">${when}</td>${cells}${deleteCell}</tr>`;
+  }).join("");
+  tbody.querySelectorAll(".forms-response-delete").forEach(btn => {
+    btn.addEventListener("click", () => deleteFormResponse(btn.dataset.id));
+  });
+}
+
 async function openFormResponses(id) {
   const form = formsList.find(f => f.id === id);
   if (!form) return;
   formsActiveId = id;
   renderFormsGrid();
   document.getElementById("forms-responses-title").textContent = form.title || "Untitled";
+  formsResponsesForm = form;
+  formsResponsesFilters = {};
   const listEl = document.getElementById("forms-responses-list");
+  const tableWrap = document.getElementById("forms-responses-table-wrap");
+  tableWrap.classList.add("hidden");
+  listEl.classList.remove("hidden");
   listEl.innerHTML = `<div class="forms-responses-empty">Loading…</div>`;
   formsShowMode("responses");
   try {
@@ -10487,40 +10632,31 @@ async function openFormResponses(id) {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
     });
     const rows = res.ok ? await res.json() : [];
+    formsResponsesData = rows;
     if (!rows.length) {
       listEl.innerHTML = `<div class="forms-responses-empty">No responses received yet.</div>`;
       return;
     }
-    listEl.innerHTML = rows.map(r => {
-      const when = new Date(r.submitted_at).toLocaleString("en-US");
-      const answersHtml = (form.questions || []).map(q => {
-        const raw = (r.answers || {})[q.id];
-        let display;
-        if (raw === undefined || raw === null || raw === "") display = "—";
-        else if (Array.isArray(raw)) display = raw.map(v => String(v).replace(/</g, "&lt;")).join(", ");
-        else if (q.type === "attachment" && typeof raw === "object" && raw.name) display = `<a href="${raw.dataUrl}" download="${raw.name}">${raw.name}</a>`;
-        else display = String(raw).replace(/</g, "&lt;");
-        return `<div class="forms-response-answer"><div class="forms-response-q">${q.label}</div><div class="forms-response-a">${display}</div></div>`;
-      }).join("");
-      const deleteBtn = colabCan("formsDeleteResponse") ? `<button class="forms-response-delete" data-id="${r.id}" type="button" title="Excluir resposta">🗑</button>` : "";
-      return `<div class="forms-response-card"><div class="forms-response-time">${when}${deleteBtn}</div>${answersHtml}</div>`;
-    }).join("");
-    listEl.querySelectorAll(".forms-response-delete").forEach(btn => {
-      btn.addEventListener("click", () => deleteFormResponse(btn.dataset.id, id));
-    });
+    listEl.classList.add("hidden");
+    tableWrap.classList.remove("hidden");
+    renderFormsResponsesTable();
   } catch (err) {
+    formsResponsesData = [];
     listEl.innerHTML = `<div class="forms-responses-empty">⚠️ Couldn't load responses.</div>`;
   }
 }
 document.getElementById("forms-responses-back-btn").addEventListener("click", () => {
   formsActiveId = null;
+  formsResponsesForm = null;
+  formsResponsesData = [];
+  formsResponsesFilters = {};
   renderFormsGrid();
   formsShowMode("empty");
 });
 
-// Deletes a single response row and refreshes both the responses list
-// (currently open) and the card counts back in the grid.
-async function deleteFormResponse(responseId, formId) {
+// Deletes a single response row in place — updates the table (keeping any
+// active filters) and the card counts back in the grid, without a full reload.
+async function deleteFormResponse(responseId) {
   if (!colabCan("formsDeleteResponse")) return;
   if (!confirm("Delete this response? This can't be undone.")) return;
   try {
@@ -10529,8 +10665,10 @@ async function deleteFormResponse(responseId, formId) {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
     });
   } catch (err) { /* best effort */ }
-  await openFormResponses(formId);
+  formsResponsesData = formsResponsesData.filter(r => r.id !== responseId);
+  renderFormsResponsesBody();
   await loadFormResponseCounts();
+  renderFormsGrid();
 }
 
 const formsLogoRow = document.getElementById("forms-logo-row");
