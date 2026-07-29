@@ -830,7 +830,11 @@
 
   #forms-responses-list { display: flex; flex-direction: column; gap: 10px; }
   .forms-response-card { background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-  .forms-response-time { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; }
+  .forms-response-time { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .forms-response-delete { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 2px 6px; border-radius: 5px; }
+  .forms-response-delete:hover { background: #fcebeb; color: #a3312a; }
+  .forms-card-actions button[data-action="delete"] { color: #a3312a; }
+  .forms-card-actions button[data-action="delete"]:hover { background: #fcebeb; }
   .forms-response-answer { margin-bottom: 8px; }
   .forms-response-answer:last-child { margin-bottom: 0; }
   .forms-response-q { font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
@@ -3519,7 +3523,9 @@ const COLAB_PERMISSIONS_DEFAULT = {
   tabCommittee: true,
   tabMarketing: true,
   tabSlack: true,
-  tabForms: true
+  tabForms: true,
+  formsDeleteForm: false,
+  formsDeleteResponse: false
 };
 
 // Fills in permissions/mustChangePassword on any user record that predates
@@ -3651,6 +3657,7 @@ function applyRolePermissions() {
   document.getElementById("tasks-add-btn").classList.toggle("hidden-by-perm", colab && !colabCan("tasksCreate"));
   document.getElementById("goals-add-btn").classList.toggle("hidden-by-perm", colab && !colabCan("goalsCreate"));
   document.getElementById("tasks-bulk-delete").classList.toggle("hidden-by-perm", colab && !colabCan("tasksDelete"));
+  document.getElementById("forms-delete-btn").classList.toggle("hidden-by-perm", colab && !colabCan("formsDeleteForm"));
 
   // If a colab session somehow lands on Settings or Tasks > Geral (e.g. a
   // stale view from before logging out/in, or a permission that was just
@@ -3828,7 +3835,9 @@ const PERMISSION_LABELS = {
   tabCommittee: "Abas — ver Committee",
   tabMarketing: "Abas — ver Marketing",
   tabSlack: "Abas — ver Slack",
-  tabForms: "Abas — ver Forms"
+  tabForms: "Abas — ver Forms",
+  formsDeleteForm: "Forms — excluir formulários",
+  formsDeleteResponse: "Forms — excluir respostas"
 };
 
 // Which colab user's permission checklist is currently expanded in the
@@ -10179,6 +10188,7 @@ function renderFormsGrid() {
           <button data-action="edit" data-id="${f.id}" type="button">Edit</button>
           <button data-action="responses" data-id="${f.id}" type="button">View responses</button>
           ${f.status === "published" ? `<button data-action="copy" data-id="${f.id}" type="button">🔗 Copy link</button>` : ""}
+          ${colabCan("formsDeleteForm") ? `<button data-action="delete" data-id="${f.id}" type="button" title="Excluir formulário">🗑 Delete</button>` : ""}
         </div>
       </div>
     `;
@@ -10186,6 +10196,25 @@ function renderFormsGrid() {
   el.querySelectorAll("[data-action='edit']").forEach(btn => btn.addEventListener("click", () => openFormBuilder(btn.dataset.id)));
   el.querySelectorAll("[data-action='responses']").forEach(btn => btn.addEventListener("click", () => openFormResponses(btn.dataset.id)));
   el.querySelectorAll("[data-action='copy']").forEach(btn => btn.addEventListener("click", () => copyFormLink(btn.dataset.id)));
+  el.querySelectorAll("[data-action='delete']").forEach(btn => btn.addEventListener("click", async () => {
+    const form = formsList.find(f => f.id === btn.dataset.id);
+    await deleteFormById(btn.dataset.id, form ? form.title : "");
+  }));
+}
+
+// Shared by the grid's "Delete" button and the builder's delete button.
+// Confirms, deletes the form row from Supabase, and refreshes the list.
+async function deleteFormById(id, title) {
+  if (!colabCan("formsDeleteForm")) return false;
+  if (!confirm(`Delete the form "${title || "untitled"}"? This won't delete responses already received, just the form itself.`)) return false;
+  try {
+    await fetch(`${FORMS_TABLE_URL}?id=eq.${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+  } catch (err) { /* best effort */ }
+  await loadFormsList();
+  return true;
 }
 
 document.getElementById("forms-new-btn").addEventListener("click", () => {
@@ -10391,16 +10420,11 @@ document.getElementById("forms-copy-link-btn").addEventListener("click", () => {
 
 document.getElementById("forms-delete-btn").addEventListener("click", async () => {
   if (!formsCurrentBuilder || !formsCurrentBuilder.id) return;
-  if (!confirm(`Delete the form "${formsCurrentBuilder.title || "untitled"}"? This won't delete responses already received, just the form itself.`)) return;
-  try {
-    await fetch(`${FORMS_TABLE_URL}?id=eq.${encodeURIComponent(formsCurrentBuilder.id)}`, {
-      method: "DELETE",
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
-    });
-  } catch (err) { /* best effort */ }
+  if (!colabCan("formsDeleteForm")) return;
+  const deleted = await deleteFormById(formsCurrentBuilder.id, formsCurrentBuilder.title);
+  if (!deleted) return;
   formsCurrentBuilder = null;
   formsShowMode("list");
-  loadFormsList();
 });
 
 function copyFormLink(id) {
@@ -10441,13 +10465,32 @@ async function openFormResponses(id) {
         else display = String(raw).replace(/</g, "&lt;");
         return `<div class="forms-response-answer"><div class="forms-response-q">${q.label}</div><div class="forms-response-a">${display}</div></div>`;
       }).join("");
-      return `<div class="forms-response-card"><div class="forms-response-time">${when}</div>${answersHtml}</div>`;
+      const deleteBtn = colabCan("formsDeleteResponse") ? `<button class="forms-response-delete" data-id="${r.id}" type="button" title="Excluir resposta">🗑</button>` : "";
+      return `<div class="forms-response-card"><div class="forms-response-time">${when}${deleteBtn}</div>${answersHtml}</div>`;
     }).join("");
+    listEl.querySelectorAll(".forms-response-delete").forEach(btn => {
+      btn.addEventListener("click", () => deleteFormResponse(btn.dataset.id, id));
+    });
   } catch (err) {
     listEl.innerHTML = `<div class="forms-responses-empty">⚠️ Couldn't load responses.</div>`;
   }
 }
 document.getElementById("forms-responses-back-btn").addEventListener("click", () => formsShowMode("list"));
+
+// Deletes a single response row and refreshes both the responses list
+// (currently open) and the card counts back in the grid.
+async function deleteFormResponse(responseId, formId) {
+  if (!colabCan("formsDeleteResponse")) return;
+  if (!confirm("Delete this response? This can't be undone.")) return;
+  try {
+    await fetch(`${FORM_RESPONSES_TABLE_URL}?id=eq.${encodeURIComponent(responseId)}`, {
+      method: "DELETE",
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+  } catch (err) { /* best effort */ }
+  await openFormResponses(formId);
+  await loadFormResponseCounts();
+}
 
 const formsLogoRow = document.getElementById("forms-logo-row");
 const formsLogoClone = document.getElementById("logo").cloneNode(true);
