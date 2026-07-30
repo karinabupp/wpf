@@ -1045,16 +1045,34 @@
     cursor: pointer;
   }
   #tasks-general-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  #tasks-stat-cards-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 260px;
+    flex-shrink: 0;
+  }
+  #tasks-stat-breakdown-col { flex: 1 1 0; min-width: 0; }
+  @media (max-width: 720px) {
+    #tasks-general-stats { flex-direction: column; }
+    #tasks-stat-cards-col { width: 100%; }
   }
   .tasks-stat-card {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 18px 20px;
+    padding: 16px 20px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
+  .tasks-stat-card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06); }
   .tasks-stat-card-label {
     font-size: 11px;
     font-weight: 700;
@@ -1075,6 +1093,65 @@
   }
   .tasks-stat-breakdown-row:last-child { border-bottom: none; }
   .tasks-stat-breakdown-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+  #tasks-stat-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  #tasks-stat-modal-backdrop.hidden { display: none; }
+  #tasks-stat-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 640px;
+    max-width: 92vw;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+  }
+  #tasks-stat-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  #tasks-stat-modal-header h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  #tasks-stat-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+  }
+  #tasks-stat-modal-close:hover { background: var(--land-default); color: var(--text); }
+  #tasks-stat-modal-body { padding: 16px 18px 20px; overflow-y: auto; }
+  .tasks-stat-modal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+  .tasks-stat-modal-item:last-child { margin-bottom: 0; }
+  .tasks-stat-modal-parent { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .tasks-stat-modal-name { font-size: 13.5px; color: var(--text); }
+  .tasks-stat-modal-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .tasks-stat-modal-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .tasks-stat-modal-pill { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 9px; white-space: nowrap; }
+  .tasks-stat-modal-date { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+  .tasks-stat-modal-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
 
   #tasks-header h2 { margin: 0; font-size: 20px; font-weight: 600; }
   #tasks-add-btn {
@@ -1641,117 +1718,6 @@
     max-width: min(96vw, 1900px);
     margin-bottom: 20px;
   }
-
-  /* --- Home tab: small stat cards up top, click one to expand its detail --- */
-  #home-wrap { width: 100%; }
-  #home-logo-row { display: flex; align-items: center; width: 100%; margin-bottom: 30px; }
-
-  #home-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
-  #home-title { font-size: 21px; font-weight: 700; color: var(--text); margin: 0; letter-spacing: -0.01em; }
-  #home-scope-toggle { display: inline-flex; background: var(--land-default); border-radius: 9px; padding: 3px; gap: 2px; }
-  .home-scope-pill {
-    border: none;
-    background: none;
-    padding: 6px 14px;
-    font-size: 12.5px;
-    font-weight: 600;
-    color: var(--text-muted);
-    border-radius: 7px;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .home-scope-pill.active { background: #ffffff; color: var(--text); box-shadow: 0 1px 2px rgba(44, 44, 42, 0.08); }
-
-  #home-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 4px; }
-  @media (max-width: 640px) {
-    #home-cards-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-  .home-stat-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    cursor: pointer;
-    font: inherit;
-    text-align: left;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-  }
-  .home-stat-card:hover { border-color: var(--border-strong); }
-  .home-stat-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .home-stat-count { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
-  .home-stat-count.zero { color: var(--text-muted); }
-  #home-due-count { color: #b98900; }
-  #home-overdue-count { color: #a3312a; }
-  #home-forms-count { color: #2e7d32; }
-  .home-stat-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
-
-  #home-detail-panel {
-    margin-top: 16px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 16px 18px 18px;
-  }
-  #home-detail-panel.hidden { display: none; }
-  #home-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  #home-detail-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
-  #home-detail-close {
-    border: none;
-    background: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 13px;
-    padding: 3px 6px;
-    border-radius: 6px;
-  }
-  #home-detail-close:hover { background: var(--land-default); color: var(--text); }
-  #home-detail-body { display: flex; flex-direction: column; gap: 7px; max-height: 420px; overflow-y: auto; }
-
-  .home-task-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 9px 12px;
-    font-size: 13px;
-  }
-  .home-task-row.overdue { border-left: 3px solid #a3312a; }
-  .home-task-status-select {
-    border: none;
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 11.5px;
-    font-weight: 700;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .home-task-namewrap { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-  .home-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
-  .home-task-parent { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .home-task-assignees { font-size: 11px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
-  .home-task-date-input {
-    border: 1px solid var(--border);
-    background: #ffffff;
-    font-size: 12px;
-    color: var(--text);
-    padding: 5px 6px;
-    border-radius: 6px;
-    flex-shrink: 0;
-    width: 128px;
-  }
-  .home-task-date-input:focus { outline: 1px solid var(--border-strong); }
-
-  .home-detail-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; font-size: 13px; }
-  .home-detail-row-label { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .home-detail-row-value { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
-  .home-detail-row.home-row-up .home-detail-row-value { color: #173404; font-weight: 700; }
-  .home-detail-row.home-row-down .home-detail-row-value { color: #791f1f; font-weight: 700; }
-  .home-detail-empty { color: var(--text-muted); font-size: 13px; padding: 8px 2px; }
 
   #view-switch-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
   #view-switch-row span { color: var(--text-muted); }
@@ -2764,14 +2730,7 @@
 </div>
 
 <div id="nav-rail">
-  <button class="nav-icon-btn active" id="nav-home" data-tooltip="Home" type="button">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M9 18h6"/>
-      <path d="M10 22h4"/>
-      <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3v1h6v-1c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>
-    </svg>
-  </button>
-  <button class="nav-icon-btn" id="nav-goals" data-tooltip="Goals" type="button">
+  <button class="nav-icon-btn active" id="nav-goals" data-tooltip="Goals" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9"/>
       <circle cx="12" cy="12" r="5"/>
@@ -2837,56 +2796,7 @@
 
 <div id="content-column">
 
-<div id="home-view" class="content-view">
-  <div id="home-wrap">
-    <div id="home-logo-row"></div>
-
-    <div id="home-header-row">
-      <div id="home-scope-toggle">
-        <button class="home-scope-pill active" id="home-scope-today" type="button">Today</button>
-        <button class="home-scope-pill" id="home-scope-week" type="button">This week</button>
-      </div>
-      <h1 id="home-title">What's for <span id="home-scope-label">Today</span>?</h1>
-    </div>
-
-    <div id="home-cards-grid">
-      <button class="home-stat-card" id="home-card-due" data-panel="due" type="button">
-        <span class="home-stat-count" id="home-due-count">—</span>
-        <span class="home-stat-label" id="home-due-label">Tasks due</span>
-      </button>
-      <button class="home-stat-card" id="home-card-overdue" data-panel="overdue" type="button">
-        <span class="home-stat-count" id="home-overdue-count">—</span>
-        <span class="home-stat-label">Late Tasks</span>
-      </button>
-      <button class="home-stat-card" id="home-card-forms" data-panel="forms" type="button">
-        <span class="home-stat-count" id="home-forms-count">—</span>
-        <span class="home-stat-label">New form responses</span>
-      </button>
-      <button class="home-stat-card" id="home-card-goals" data-panel="goals" type="button">
-        <span class="home-stat-count" id="home-goals-count">—</span>
-        <span class="home-stat-label">Goals moved</span>
-      </button>
-      <button class="home-stat-card" id="home-card-pipelines" data-panel="pipelines" type="button">
-        <span class="home-stat-count" id="home-pipelines-count">—</span>
-        <span class="home-stat-label">Pipeline changes</span>
-      </button>
-      <button class="home-stat-card" id="home-card-slack" data-panel="slack" type="button">
-        <span class="home-stat-count" id="home-slack-count">—</span>
-        <span class="home-stat-label">New Slack messages</span>
-      </button>
-    </div>
-
-    <div id="home-detail-panel" class="hidden">
-      <div id="home-detail-header">
-        <span id="home-detail-title"></span>
-        <button id="home-detail-close" type="button">✕ Close</button>
-      </div>
-      <div id="home-detail-body"></div>
-    </div>
-  </div>
-</div>
-
-<div id="goals-view" class="content-view hidden">
+<div id="goals-view" class="content-view">
   <div id="goals-wrap">
     <div id="goals-logo-row"></div>
     <div id="goals-header">
@@ -3460,6 +3370,16 @@
       <button id="digest-tasks-modal-close" type="button">✕</button>
     </div>
     <div id="digest-tasks-modal-body"></div>
+  </div>
+</div>
+
+<div id="tasks-stat-modal-backdrop" class="hidden">
+  <div id="tasks-stat-modal">
+    <div id="tasks-stat-modal-header">
+      <h3 id="tasks-stat-modal-title"></h3>
+      <button id="tasks-stat-modal-close" type="button">✕</button>
+    </div>
+    <div id="tasks-stat-modal-body"></div>
   </div>
 </div>
 
@@ -4709,7 +4629,6 @@ window.addEventListener("error", (e) => {
 // Social used to be its own rail button; it's now reached via the
 // Federations/Social switch inside the Members/Committee screen instead.
 const NAV_VIEWS = {
-  "nav-home": "home-view",
   "nav-goals": "goals-view",
   "nav-members": "members-view",
   "nav-committee": "members-view",
@@ -4760,9 +4679,6 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     }
     if (btnId === "nav-forms" && typeof loadFormsList === "function") {
       loadFormsList();
-    }
-    if (btnId === "nav-home" && typeof renderHomeTab === "function") {
-      renderHomeTab();
     }
   });
 });
@@ -6431,70 +6347,134 @@ function populateTasksGeneralFilter() {
   sel.value = tasksGeneralFilter;
 }
 
-function renderTasksGeneralStats() {
-  autoSyncLateStatuses();
-  let total = 0;
-  const statusCounts = {};
-  TASK_STATUS_OPTIONS.forEach(s => statusCounts[s] = 0);
-  let durationSum = 0, durationCount = 0;
-  const today = todayISO();
-  let overdueCount = 0;
-
+// Collects every task/subtask matching predicate, honoring the current
+// assignee filter (tasksGeneralFilter) — shared by the stat cards' counts
+// and by the popup that lists what's actually behind each count.
+function collectGeneralTasks(predicate) {
+  const result = [];
   function walk(items) {
     items.forEach(t => {
-      if (!tasksGeneralFilter || t.assignees.includes(tasksGeneralFilter)) {
-        total++;
-        statusCounts[t.status] = (statusCounts[t.status] || 0) + 1;
-        if (t.startDate && t.endDate) {
-          const days = (new Date(t.endDate) - new Date(t.startDate)) / 86400000;
-          if (days >= 0) { durationSum += days; durationCount++; }
-        }
-        if (t.status !== "Done" && t.status !== "Cancelled" && t.endDate && t.endDate < today) overdueCount++;
-      }
+      if ((!tasksGeneralFilter || t.assignees.includes(tasksGeneralFilter)) && predicate(t)) result.push(t);
       walk(t.subtasks);
     });
   }
   walk(tasksData);
+  return result;
+}
 
-  const done = statusCounts["Done"] || 0;
-  const pctDone = total ? Math.round((done / total) * 100) : 0;
-  const avgDuration = durationCount ? Math.round(durationSum / durationCount) : null;
+function renderTasksGeneralStats() {
+  autoSyncLateStatuses();
+  const today = todayISO();
+  const total = collectGeneralTasks(() => true);
+  const statusCounts = {};
+  TASK_STATUS_OPTIONS.forEach(s => statusCounts[s] = 0);
+  total.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
+
+  const done = collectGeneralTasks(t => t.status === "Done");
+  const overdue = collectGeneralTasks(t => t.status !== "Done" && t.status !== "Cancelled" && t.endDate && t.endDate < today);
+  const upcoming = collectGeneralTasks(t => t.status !== "Done" && t.status !== "Cancelled" && t.endDate && t.endDate >= today);
+  const withDuration = collectGeneralTasks(t => t.startDate && t.endDate && (new Date(t.endDate) - new Date(t.startDate)) >= 0);
+  const durationSum = withDuration.reduce((sum, t) => sum + (new Date(t.endDate) - new Date(t.startDate)) / 86400000, 0);
+  const avgDuration = withDuration.length ? Math.round(durationSum / withDuration.length) : null;
+
+  const pctDone = total.length ? Math.round((done.length / total.length) * 100) : 0;
 
   const el = document.getElementById("tasks-general-stats");
   el.innerHTML = `
-    <div class="tasks-stat-card">
-      <div class="tasks-stat-card-label">Total de tasks</div>
-      <div class="tasks-stat-card-value">${total}</div>
-      <div class="tasks-stat-card-sub">Contando subtasks e sub-subtasks</div>
+    <div id="tasks-stat-cards-col">
+      <button class="tasks-stat-card" type="button" data-stat="total">
+        <div class="tasks-stat-card-label">Total de tasks</div>
+        <div class="tasks-stat-card-value">${total.length}</div>
+        <div class="tasks-stat-card-sub">Contando subtasks e sub-subtasks</div>
+      </button>
+      <button class="tasks-stat-card" type="button" data-stat="done">
+        <div class="tasks-stat-card-label">Concluídas</div>
+        <div class="tasks-stat-card-value">${pctDone}%</div>
+        <div class="tasks-stat-card-sub">${done.length} de ${total.length} tasks</div>
+      </button>
+      <button class="tasks-stat-card" type="button" data-stat="overdue">
+        <div class="tasks-stat-card-label">Em atraso</div>
+        <div class="tasks-stat-card-value" style="color:${overdue.length ? '#e24b4a' : 'inherit'}">${overdue.length}</div>
+        <div class="tasks-stat-card-sub">No momento</div>
+      </button>
+      <button class="tasks-stat-card" type="button" data-stat="upcoming">
+        <div class="tasks-stat-card-label">A vencer</div>
+        <div class="tasks-stat-card-value">${upcoming.length}</div>
+        <div class="tasks-stat-card-sub">Ainda dentro do prazo</div>
+      </button>
+      <button class="tasks-stat-card" type="button" data-stat="duration">
+        <div class="tasks-stat-card-label">Duração média</div>
+        <div class="tasks-stat-card-value">${avgDuration !== null ? avgDuration + "d" : "—"}</div>
+        <div class="tasks-stat-card-sub">Entre início e fim, quando ambos preenchidos</div>
+      </button>
     </div>
-    <div class="tasks-stat-card">
-      <div class="tasks-stat-card-label">Concluídas</div>
-      <div class="tasks-stat-card-value">${pctDone}%</div>
-      <div class="tasks-stat-card-sub">${done} de ${total} tasks</div>
-    </div>
-    <div class="tasks-stat-card">
-      <div class="tasks-stat-card-label">Em atraso</div>
-      <div class="tasks-stat-card-value" style="color:${overdueCount ? '#e24b4a' : 'inherit'}">${overdueCount}</div>
-      <div class="tasks-stat-card-sub">No momento</div>
-    </div>
-    <div class="tasks-stat-card">
-      <div class="tasks-stat-card-label">Duração média</div>
-      <div class="tasks-stat-card-value">${avgDuration !== null ? avgDuration + "d" : "—"}</div>
-      <div class="tasks-stat-card-sub">Entre início e fim, quando ambos preenchidos</div>
-    </div>
-    <div class="tasks-stat-card" style="grid-column: 1 / -1;">
-      <div class="tasks-stat-card-label">Distribuição por status</div>
-      ${TASK_STATUS_OPTIONS.map(s => {
-        const c = TASK_STATUS_COLORS[s];
-        const pct = total ? Math.round((statusCounts[s] / total) * 100) : 0;
-        return `<div class="tasks-stat-breakdown-row">
-          <span><span class="tasks-stat-breakdown-dot" style="background:${c.text}"></span>${s}</span>
-          <span>${statusCounts[s]} (${pct}%)</span>
-        </div>`;
-      }).join("")}
+    <div id="tasks-stat-breakdown-col">
+      <div class="tasks-stat-card" style="cursor:default;">
+        <div class="tasks-stat-card-label">Distribuição por status</div>
+        ${TASK_STATUS_OPTIONS.map(s => {
+          const c = TASK_STATUS_COLORS[s];
+          const pct = total.length ? Math.round((statusCounts[s] / total.length) * 100) : 0;
+          return `<div class="tasks-stat-breakdown-row">
+            <span><span class="tasks-stat-breakdown-dot" style="background:${c.text}"></span>${s}</span>
+            <span>${statusCounts[s]} (${pct}%)</span>
+          </div>`;
+        }).join("")}
+      </div>
     </div>
   `;
+  el.querySelectorAll(".tasks-stat-card[data-stat]").forEach(btn => {
+    btn.addEventListener("click", () => openTasksStatModal(btn.dataset.stat, { total, done, overdue, upcoming, withDuration }));
+  });
 }
+
+const TASKS_STAT_MODAL_TITLES = {
+  total: "Total de tasks",
+  done: "Tasks concluídas",
+  overdue: "Tasks em atraso",
+  upcoming: "Tasks a vencer",
+  duration: "Tasks com duração calculada"
+};
+
+function tasksStatModalItemHtml(t, showDuration) {
+  const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
+  const parentName = findParentTaskName(t.id);
+  const assignees = (t.assignees || []).join(", ");
+  const durationLabel = showDuration && t.startDate && t.endDate
+    ? Math.round((new Date(t.endDate) - new Date(t.startDate)) / 86400000) + "d"
+    : (t.endDate ? formatEntryDate(t.endDate) : "");
+  return `<div class="tasks-stat-modal-item">
+    <div>
+      ${parentName ? `<div class="tasks-stat-modal-parent">↳ ${parentName}</div>` : ""}
+      <div class="tasks-stat-modal-name">${t.name}</div>
+      ${assignees ? `<div class="tasks-stat-modal-meta">${assignees}</div>` : ""}
+    </div>
+    <div class="tasks-stat-modal-right">
+      <span class="tasks-stat-modal-pill" style="background:${colors.bg};color:${colors.text}">${t.status}</span>
+      ${durationLabel ? `<span class="tasks-stat-modal-date">${durationLabel}</span>` : ""}
+    </div>
+  </div>`;
+}
+
+function openTasksStatModal(stat, sets) {
+  const items = stat === "total" ? sets.total
+    : stat === "done" ? sets.done
+    : stat === "overdue" ? sets.overdue
+    : stat === "upcoming" ? sets.upcoming
+    : sets.withDuration;
+  document.getElementById("tasks-stat-modal-title").textContent = TASKS_STAT_MODAL_TITLES[stat] || "";
+  const body = document.getElementById("tasks-stat-modal-body");
+  body.innerHTML = items.length
+    ? items.map(t => tasksStatModalItemHtml(t, stat === "duration")).join("")
+    : `<div class="tasks-stat-modal-empty">Nada por aqui.</div>`;
+  document.getElementById("tasks-stat-modal-backdrop").classList.remove("hidden");
+}
+function closeTasksStatModal() {
+  document.getElementById("tasks-stat-modal-backdrop").classList.add("hidden");
+}
+document.getElementById("tasks-stat-modal-close").addEventListener("click", closeTasksStatModal);
+document.getElementById("tasks-stat-modal-backdrop").addEventListener("click", (e) => {
+  if (e.target.id === "tasks-stat-modal-backdrop") closeTasksStatModal();
+});
 
 document.getElementById("tasks-general-filter").addEventListener("change", (e) => {
   tasksGeneralFilter = e.target.value;
@@ -11044,258 +11024,6 @@ formsLogoClone.style.height = "44px";
 formsLogoClone.style.width = "auto";
 formsLogoClone.style.display = "block";
 formsLogoRow.prepend(formsLogoClone);
-
-// --- Home tab: small stat cards, click one to expand its detail below ---
-const homeLogoRow = document.getElementById("home-logo-row");
-const homeLogoClone = document.getElementById("logo").cloneNode(true);
-homeLogoClone.removeAttribute("id");
-homeLogoClone.style.height = "44px";
-homeLogoClone.style.width = "auto";
-homeLogoClone.style.display = "block";
-homeLogoRow.appendChild(homeLogoClone);
-
-let homeScope = "today"; // "today" | "week" — only affects the "due" bucket; overdue is scope-independent
-let homeOpenPanel = null; // which card's detail is currently expanded, or null
-
-// Monday–Sunday range for "this week", in the same YYYY-MM-DD shape as endDate.
-function homeWeekRange() {
-  const now = new Date();
-  const day = now.getDay(); // 0=Sun..6=Sat
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diffToMonday);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const iso = d => d.toISOString().slice(0, 10);
-  return { monday: iso(monday), sunday: iso(sunday) };
-}
-
-// Walks the task tree carrying along each node's immediate parent name.
-function walkTasksWithParent(list, parentName, fn) {
-  list.forEach(t => {
-    fn(t, parentName);
-    walkTasksWithParent(t.subtasks, t.name, fn);
-  });
-}
-
-// Two non-overlapping buckets: tasks coming due (within scope, not yet late)
-// and tasks already overdue (any scope) — both exclude Done/Cancelled, and
-// only ever include subtasks (rowType "subtask"), not the parent task rows.
-function homeDueTasks(scope) {
-  const today = todayISO();
-  const { monday, sunday } = homeWeekRange();
-  const result = [];
-  walkTasksWithParent(tasksData, null, (t, parentName) => {
-    if (t.rowType !== "subtask") return;
-    if (!t.endDate || t.endDate < today) return;
-    if (t.status === "Done" || t.status === "Cancelled") return;
-    if (scope === "today" ? t.endDate === today : (t.endDate >= monday && t.endDate <= sunday)) result.push({ t, parentName });
-  });
-  result.sort((a, b) => (a.t.endDate || "").localeCompare(b.t.endDate || ""));
-  return result;
-}
-function homeOverdueTasks() {
-  const today = todayISO();
-  const result = [];
-  walkTasksWithParent(tasksData, null, (t, parentName) => {
-    if (t.rowType !== "subtask") return;
-    if (!t.endDate || t.endDate >= today) return;
-    if (t.status === "Done" || t.status === "Cancelled") return;
-    result.push({ t, parentName });
-  });
-  result.sort((a, b) => (a.t.endDate || "").localeCompare(b.t.endDate || ""));
-  return result;
-}
-function homeTaskRowHtml(t, parentName, overdue) {
-  const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
-  const assignees = (t.assignees || []).join(", ");
-  return `<div class="home-task-row ${overdue ? "overdue" : ""}">
-    <select class="home-task-status-select" data-id="${t.id}" style="background:${colors.bg};color:${colors.text}">${taskStatusOptionsMarkup(t.status)}</select>
-    <div class="home-task-namewrap">
-      <span class="home-task-name">${formsEsc(t.name || "")}</span>
-      ${parentName ? `<span class="home-task-parent">${formsEsc(parentName)}</span>` : ""}
-    </div>
-    ${assignees ? `<span class="home-task-assignees">${formsEsc(assignees)}</span>` : ""}
-    <input type="date" class="home-task-date-input" data-id="${t.id}" value="${t.endDate || ""}" title="Due date">
-  </div>`;
-}
-// Wires the inline status/date editors after homePanelBodyHtml() renders
-// them — lets a due-date or status change happen right on the Home tab.
-function wireHomeTaskInlineEditors() {
-  document.querySelectorAll("#home-detail-body .home-task-status-select").forEach(select => {
-    select.addEventListener("change", () => {
-      const t = findTaskById(tasksData, select.dataset.id);
-      if (!t) return;
-      t.status = select.value;
-      saveTasksData();
-      if (typeof renderTasksTable === "function") renderTasksTable();
-      if (typeof renderGoalsGrid === "function") renderGoalsGrid();
-      renderHomeCounts();
-      homeOpenPanelIfShown();
-    });
-  });
-  document.querySelectorAll("#home-detail-body .home-task-date-input").forEach(input => {
-    input.addEventListener("change", () => {
-      const t = findTaskById(tasksData, input.dataset.id);
-      if (!t) return;
-      t.endDate = input.value;
-      saveTasksData();
-      if (typeof renderTasksTable === "function") renderTasksTable();
-      if (typeof renderGoalsGrid === "function") renderGoalsGrid();
-      renderHomeCounts();
-      homeOpenPanelIfShown();
-    });
-  });
-}
-
-function homeUnreadSlackChannels() {
-  const known = new Map();
-  slackAllChannels.forEach(c => known.set(c.id, c.name));
-  slackMessages.forEach(m => { if (!known.has(m.channel)) known.set(m.channel, m.channel); });
-  return Array.from(known.entries())
-    .map(([id, name]) => ({ name, count: slackChannelUnreadCount(id) }))
-    .filter(c => c.count > 0)
-    .sort((a, b) => b.count - a.count);
-}
-
-function homeNewFormsByForm() {
-  const lastSeen = formsGetLastSeen();
-  const byForm = {};
-  formsResponseRows.forEach(r => {
-    const seen = lastSeen[r.form_id] || 0;
-    if (new Date(r.submitted_at).getTime() > seen) byForm[r.form_id] = (byForm[r.form_id] || 0) + 1;
-  });
-  return Object.keys(byForm)
-    .map(fid => ({ id: fid, name: (formsList.find(f => f.id === fid) || {}).title || "Untitled form", count: byForm[fid] }))
-    .sort((a, b) => b.count - a.count);
-}
-
-// Goals whose latest entry moved from the one before it — reuses the same
-// latestEntry/prevEntry/displayedValueThrough logic the Goals tab's own
-// trend arrows are built from, so this is a real read of the same data.
-function homeMovedGoals() {
-  return goalsData.map(g => {
-    const latest = latestEntry(g);
-    const prev = prevEntry(g);
-    if (!latest || !prev) return null;
-    const val = displayedValueThrough(g, latest);
-    const prevVal = displayedValueThrough(g, prev);
-    if (Math.abs(val - prevVal) < 1e-9) return null;
-    const isUp = val > prevVal;
-    const isGood = (g.direction === "down") ? !isUp : isUp;
-    return { name: g.name, isUp, isGood, latestDate: latest.date };
-  }).filter(Boolean).sort((a, b) => (b.latestDate || "").localeCompare(a.latestDate || ""));
-}
-
-const HOME_PANEL_TITLES = {
-  due: "Tasks due",
-  overdue: "Late Tasks",
-  forms: "New form responses",
-  goals: "Goals that moved",
-  pipelines: "Recent pipeline changes",
-  slack: "New Slack messages"
-};
-
-function homePanelBodyHtml(panel) {
-  if (panel === "due") {
-    const items = homeDueTasks(homeScope);
-    return items.length ? items.map(({ t, parentName }) => homeTaskRowHtml(t, parentName, false)).join("") : `<div class="home-detail-empty">Nothing due ${homeScope === "today" ? "today" : "this week"} — all caught up.</div>`;
-  }
-  if (panel === "overdue") {
-    const items = homeOverdueTasks();
-    return items.length ? items.map(({ t, parentName }) => homeTaskRowHtml(t, parentName, true)).join("") : `<div class="home-detail-empty">No overdue tasks.</div>`;
-  }
-  if (panel === "forms") {
-    const rows = homeNewFormsByForm();
-    return rows.length
-      ? rows.map(r => `<div class="home-detail-row"><span class="home-detail-row-label">${formsEsc(r.name)}</span><span class="home-detail-row-value">${r.count} new</span></div>`).join("")
-      : `<div class="home-detail-empty">No new responses.</div>`;
-  }
-  if (panel === "goals") {
-    const moved = homeMovedGoals();
-    return moved.length
-      ? moved.map(m => `<div class="home-detail-row ${m.isGood ? "home-row-up" : "home-row-down"}"><span class="home-detail-row-label">${formsEsc(m.name)}</span><span class="home-detail-row-value">${m.isUp ? "↑" : "↓"}</span></div>`).join("")
-      : `<div class="home-detail-empty">No recent movement.</div>`;
-  }
-  if (panel === "pipelines") {
-    // Sourced from pipelineActivityLog, which only records changes made
-    // after that logging was added (see logPipelineChange) — starts empty.
-    return pipelineActivityLog.length
-      ? pipelineActivityLog.slice(0, 30).map(entry => {
-          const dir = pipelineChangeDirection(entry);
-          const cls = dir === "up" ? "home-row-up" : dir === "down" ? "home-row-down" : "";
-          const arrow = dir === "up" ? "↑" : dir === "down" ? "↓" : "•";
-          return `<div class="home-detail-row ${cls}"><span class="home-detail-row-label">${formsEsc(entry.entity)} (${formsEsc(entry.pipeline)})</span><span class="home-detail-row-value">${arrow} ${formsEsc(entry.newVal)}</span></div>`;
-        }).join("")
-      : `<div class="home-detail-empty">No changes logged yet.</div>`;
-  }
-  if (panel === "slack") {
-    const channels = homeUnreadSlackChannels();
-    return channels.length
-      ? channels.map(c => `<div class="home-detail-row"><span class="home-detail-row-label">#${formsEsc(c.name)}</span><span class="home-detail-row-value">${c.count} new</span></div>`).join("")
-      : `<div class="home-detail-empty">No new messages.</div>`;
-  }
-  return "";
-}
-
-function homeOpenPanelIfShown() {
-  if (!homeOpenPanel) return;
-  document.getElementById("home-detail-title").textContent = HOME_PANEL_TITLES[homeOpenPanel];
-  document.getElementById("home-detail-body").innerHTML = homePanelBodyHtml(homeOpenPanel);
-  wireHomeTaskInlineEditors();
-}
-
-function homeTogglePanel(panel) {
-  homeOpenPanel = homeOpenPanel === panel ? null : panel;
-  document.querySelectorAll(".home-stat-card").forEach(btn => btn.classList.toggle("active", btn.dataset.panel === homeOpenPanel));
-  document.getElementById("home-detail-panel").classList.toggle("hidden", !homeOpenPanel);
-  homeOpenPanelIfShown();
-}
-document.querySelectorAll(".home-stat-card").forEach(btn => {
-  btn.addEventListener("click", () => homeTogglePanel(btn.dataset.panel));
-});
-document.getElementById("home-detail-close").addEventListener("click", () => homeTogglePanel(homeOpenPanel));
-
-document.getElementById("home-scope-today").addEventListener("click", () => {
-  homeScope = "today";
-  document.getElementById("home-scope-today").classList.add("active");
-  document.getElementById("home-scope-week").classList.remove("active");
-  document.getElementById("home-scope-label").textContent = "Today";
-  renderHomeCounts();
-  homeOpenPanelIfShown();
-});
-document.getElementById("home-scope-week").addEventListener("click", () => {
-  homeScope = "week";
-  document.getElementById("home-scope-week").classList.add("active");
-  document.getElementById("home-scope-today").classList.remove("active");
-  document.getElementById("home-scope-label").textContent = "This Week";
-  renderHomeCounts();
-  homeOpenPanelIfShown();
-});
-
-function homeSetCount(elId, n) {
-  const el = document.getElementById(elId);
-  el.textContent = n;
-  el.classList.toggle("zero", n === 0);
-}
-
-function renderHomeCounts() {
-  document.getElementById("home-due-label").textContent = homeScope === "today" ? "Tasks due today" : "Tasks due this week";
-  homeSetCount("home-due-count", homeDueTasks(homeScope).length);
-  homeSetCount("home-overdue-count", homeOverdueTasks().length);
-  homeSetCount("home-forms-count", formsNewResponsesCount());
-  homeSetCount("home-goals-count", homeMovedGoals().length);
-  homeSetCount("home-pipelines-count", pipelineActivityLog.length);
-  homeSetCount("home-slack-count", homeUnreadSlackChannels().reduce((sum, c) => sum + c.count, 0));
-}
-
-function renderHomeTab() {
-  renderHomeCounts();
-  homeOpenPanelIfShown();
-  if (typeof loadSlackMessages === "function") loadSlackMessages().then(() => { renderHomeCounts(); homeOpenPanelIfShown(); });
-  if (typeof loadFormsList === "function") loadFormsList().then(() => { renderHomeCounts(); homeOpenPanelIfShown(); });
-}
-renderHomeTab();
 
 // Everything above is defined and has had its first render — safe now to
 // apply the logged-in user's role (hides Settings/Geral for colab, flips
