@@ -1643,7 +1643,7 @@
   }
 
   /* --- Home tab: small stat cards up top, click one to expand its detail --- */
-  #home-wrap { width: 100%; max-width: min(94vw, 880px); }
+  #home-wrap { width: 100%; }
   #home-logo-row { display: flex; align-items: center; width: 100%; margin-bottom: 30px; }
 
   #home-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
@@ -1662,7 +1662,7 @@
   }
   .home-scope-pill.active { background: #ffffff; color: var(--text); box-shadow: 0 1px 2px rgba(44, 44, 42, 0.08); }
 
-  #home-cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 4px; }
+  #home-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 4px; }
   @media (max-width: 640px) {
     #home-cards-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -1684,6 +1684,9 @@
   .home-stat-card.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
   .home-stat-count { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
   .home-stat-count.zero { color: var(--text-muted); }
+  #home-due-count { color: #b98900; }
+  #home-overdue-count { color: #a3312a; }
+  #home-forms-count { color: #2e7d32; }
   .home-stat-label { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
 
   #home-detail-panel {
@@ -1718,10 +1721,30 @@
     font-size: 13px;
   }
   .home-task-row.overdue { border-left: 3px solid #a3312a; }
-  .home-task-status-pill { font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
-  .home-task-name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
-  .home-task-due { font-size: 11px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+  .home-task-status-select {
+    border: none;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .home-task-namewrap { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .home-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .home-task-parent { font-size: 11px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-task-assignees { font-size: 11px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+  .home-task-date-input {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    font-size: 12px;
+    color: var(--text);
+    padding: 5px 6px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    width: 128px;
+  }
+  .home-task-date-input:focus { outline: 1px solid var(--border-strong); }
 
   .home-detail-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; font-size: 13px; }
   .home-detail-row-label { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2819,11 +2842,11 @@
     <div id="home-logo-row"></div>
 
     <div id="home-header-row">
-      <h1 id="home-title">What's for <span id="home-scope-label">today</span>?</h1>
       <div id="home-scope-toggle">
         <button class="home-scope-pill active" id="home-scope-today" type="button">Today</button>
         <button class="home-scope-pill" id="home-scope-week" type="button">This week</button>
       </div>
+      <h1 id="home-title">What's for <span id="home-scope-label">Today</span>?</h1>
     </div>
 
     <div id="home-cards-grid">
@@ -2833,7 +2856,7 @@
       </button>
       <button class="home-stat-card" id="home-card-overdue" data-panel="overdue" type="button">
         <span class="home-stat-count" id="home-overdue-count">—</span>
-        <span class="home-stat-label">Tasks overdue</span>
+        <span class="home-stat-label">Late Tasks</span>
       </button>
       <button class="home-stat-card" id="home-card-forms" data-panel="forms" type="button">
         <span class="home-stat-count" id="home-forms-count">—</span>
@@ -11047,41 +11070,82 @@ function homeWeekRange() {
   return { monday: iso(monday), sunday: iso(sunday) };
 }
 
+// Walks the task tree carrying along each node's immediate parent name.
+function walkTasksWithParent(list, parentName, fn) {
+  list.forEach(t => {
+    fn(t, parentName);
+    walkTasksWithParent(t.subtasks, t.name, fn);
+  });
+}
+
 // Two non-overlapping buckets: tasks coming due (within scope, not yet late)
-// and tasks already overdue (any scope) — both exclude Done/Cancelled.
+// and tasks already overdue (any scope) — both exclude Done/Cancelled, and
+// only ever include subtasks (rowType "subtask"), not the parent task rows.
 function homeDueTasks(scope) {
   const today = todayISO();
   const { monday, sunday } = homeWeekRange();
   const result = [];
-  walkAllTasks(tasksData, t => {
+  walkTasksWithParent(tasksData, null, (t, parentName) => {
+    if (t.rowType !== "subtask") return;
     if (!t.endDate || t.endDate < today) return;
     if (t.status === "Done" || t.status === "Cancelled") return;
-    if (scope === "today" ? t.endDate === today : (t.endDate >= monday && t.endDate <= sunday)) result.push(t);
+    if (scope === "today" ? t.endDate === today : (t.endDate >= monday && t.endDate <= sunday)) result.push({ t, parentName });
   });
-  result.sort((a, b) => (a.endDate || "").localeCompare(b.endDate || ""));
+  result.sort((a, b) => (a.t.endDate || "").localeCompare(b.t.endDate || ""));
   return result;
 }
 function homeOverdueTasks() {
   const today = todayISO();
   const result = [];
-  walkAllTasks(tasksData, t => {
+  walkTasksWithParent(tasksData, null, (t, parentName) => {
+    if (t.rowType !== "subtask") return;
     if (!t.endDate || t.endDate >= today) return;
     if (t.status === "Done" || t.status === "Cancelled") return;
-    result.push(t);
+    result.push({ t, parentName });
   });
-  result.sort((a, b) => (a.endDate || "").localeCompare(b.endDate || ""));
+  result.sort((a, b) => (a.t.endDate || "").localeCompare(b.t.endDate || ""));
   return result;
 }
-function homeTaskRowHtml(t, overdue) {
+function homeTaskRowHtml(t, parentName, overdue) {
   const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
-  const dueLabel = overdue ? `Overdue (${formatEntryDate(t.endDate)})` : formatEntryDate(t.endDate);
   const assignees = (t.assignees || []).join(", ");
   return `<div class="home-task-row ${overdue ? "overdue" : ""}">
-    <span class="home-task-status-pill" style="background:${colors.bg};color:${colors.text}">${formsEsc(t.status)}</span>
-    <span class="home-task-name">${formsEsc(t.name || "")}</span>
+    <select class="home-task-status-select" data-id="${t.id}" style="background:${colors.bg};color:${colors.text}">${taskStatusOptionsMarkup(t.status)}</select>
+    <div class="home-task-namewrap">
+      <span class="home-task-name">${formsEsc(t.name || "")}</span>
+      ${parentName ? `<span class="home-task-parent">${formsEsc(parentName)}</span>` : ""}
+    </div>
     ${assignees ? `<span class="home-task-assignees">${formsEsc(assignees)}</span>` : ""}
-    <span class="home-task-due">${formsEsc(dueLabel)}</span>
+    <input type="date" class="home-task-date-input" data-id="${t.id}" value="${t.endDate || ""}" title="Due date">
   </div>`;
+}
+// Wires the inline status/date editors after homePanelBodyHtml() renders
+// them — lets a due-date or status change happen right on the Home tab.
+function wireHomeTaskInlineEditors() {
+  document.querySelectorAll("#home-detail-body .home-task-status-select").forEach(select => {
+    select.addEventListener("change", () => {
+      const t = findTaskById(tasksData, select.dataset.id);
+      if (!t) return;
+      t.status = select.value;
+      saveTasksData();
+      if (typeof renderTasksTable === "function") renderTasksTable();
+      if (typeof renderGoalsGrid === "function") renderGoalsGrid();
+      renderHomeCounts();
+      homeOpenPanelIfShown();
+    });
+  });
+  document.querySelectorAll("#home-detail-body .home-task-date-input").forEach(input => {
+    input.addEventListener("change", () => {
+      const t = findTaskById(tasksData, input.dataset.id);
+      if (!t) return;
+      t.endDate = input.value;
+      saveTasksData();
+      if (typeof renderTasksTable === "function") renderTasksTable();
+      if (typeof renderGoalsGrid === "function") renderGoalsGrid();
+      renderHomeCounts();
+      homeOpenPanelIfShown();
+    });
+  });
 }
 
 function homeUnreadSlackChannels() {
@@ -11125,7 +11189,7 @@ function homeMovedGoals() {
 
 const HOME_PANEL_TITLES = {
   due: "Tasks due",
-  overdue: "Tasks overdue",
+  overdue: "Late Tasks",
   forms: "New form responses",
   goals: "Goals that moved",
   pipelines: "Recent pipeline changes",
@@ -11135,11 +11199,11 @@ const HOME_PANEL_TITLES = {
 function homePanelBodyHtml(panel) {
   if (panel === "due") {
     const items = homeDueTasks(homeScope);
-    return items.length ? items.map(t => homeTaskRowHtml(t, false)).join("") : `<div class="home-detail-empty">Nothing due ${homeScope === "today" ? "today" : "this week"} — all caught up.</div>`;
+    return items.length ? items.map(({ t, parentName }) => homeTaskRowHtml(t, parentName, false)).join("") : `<div class="home-detail-empty">Nothing due ${homeScope === "today" ? "today" : "this week"} — all caught up.</div>`;
   }
   if (panel === "overdue") {
     const items = homeOverdueTasks();
-    return items.length ? items.map(t => homeTaskRowHtml(t, true)).join("") : `<div class="home-detail-empty">No overdue tasks.</div>`;
+    return items.length ? items.map(({ t, parentName }) => homeTaskRowHtml(t, parentName, true)).join("") : `<div class="home-detail-empty">No overdue tasks.</div>`;
   }
   if (panel === "forms") {
     const rows = homeNewFormsByForm();
@@ -11178,6 +11242,7 @@ function homeOpenPanelIfShown() {
   if (!homeOpenPanel) return;
   document.getElementById("home-detail-title").textContent = HOME_PANEL_TITLES[homeOpenPanel];
   document.getElementById("home-detail-body").innerHTML = homePanelBodyHtml(homeOpenPanel);
+  wireHomeTaskInlineEditors();
 }
 
 function homeTogglePanel(panel) {
@@ -11195,7 +11260,7 @@ document.getElementById("home-scope-today").addEventListener("click", () => {
   homeScope = "today";
   document.getElementById("home-scope-today").classList.add("active");
   document.getElementById("home-scope-week").classList.remove("active");
-  document.getElementById("home-scope-label").textContent = "today";
+  document.getElementById("home-scope-label").textContent = "Today";
   renderHomeCounts();
   homeOpenPanelIfShown();
 });
@@ -11203,7 +11268,7 @@ document.getElementById("home-scope-week").addEventListener("click", () => {
   homeScope = "week";
   document.getElementById("home-scope-week").classList.add("active");
   document.getElementById("home-scope-today").classList.remove("active");
-  document.getElementById("home-scope-label").textContent = "this week";
+  document.getElementById("home-scope-label").textContent = "This Week";
   renderHomeCounts();
   homeOpenPanelIfShown();
 });
