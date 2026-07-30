@@ -1093,8 +1093,10 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 16px 20px;
-    cursor: default;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
+  .tasks-stat-chart-card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06); }
   .tasks-stat-chart-card .tasks-stat-card-label { margin-bottom: 12px; }
   #tasks-progress-chart-wrap, #tasks-status-chart-wrap { position: relative; height: 190px; }
   #tasks-progress-chart-empty { color: var(--text-muted); font-size: 12.5px; padding: 40px 0; text-align: center; }
@@ -1102,12 +1104,24 @@
   .tasks-section-title {
     font-size: 12px;
     font-weight: 800;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     color: var(--text-muted);
-    margin: 22px 0 12px;
+    margin: 0 0 16px;
     text-transform: uppercase;
   }
-  .tasks-section-title:first-of-type { margin-top: 4px; }
+
+  #geral-wrap { width: 100%; }
+  #geral-logo-row { display: flex; align-items: center; width: 100%; margin-bottom: 24px; }
+  .geral-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 26px 28px;
+    margin-bottom: 26px;
+  }
+  .geral-section:last-child { margin-bottom: 0; }
+  #geral-section-pm { border-left: 4px solid #5a35c2; }
+  #geral-section-rm { border-left: 4px solid #185fa5; }
 
   #relationship-general-stats {
     display: flex;
@@ -1201,6 +1215,19 @@
   .tasks-stat-modal-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .tasks-stat-modal-pill { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 9px; white-space: nowrap; }
   .tasks-stat-modal-date { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+  .tasks-stat-modal-item .tasks-status-select { flex-shrink: 0; }
+  .tasks-stat-modal-date-input {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    font-size: 11.5px;
+    font-family: inherit;
+    padding: 5px 6px;
+    border-radius: 6px;
+    width: 122px;
+    flex-shrink: 0;
+  }
+  .tasks-stat-modal-date-input:disabled { background: var(--land-default); color: var(--text-muted); cursor: not-allowed; }
   .tasks-stat-modal-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
 
   #tasks-header h2 { margin: 0; font-size: 20px; font-weight: 600; }
@@ -2780,7 +2807,15 @@
 </div>
 
 <div id="nav-rail">
-  <button class="nav-icon-btn active" id="nav-goals" data-tooltip="Goals" type="button">
+  <button class="nav-icon-btn active" id="nav-geral" data-tooltip="Geral" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+    </svg>
+  </button>
+  <button class="nav-icon-btn" id="nav-goals" data-tooltip="Goals" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9"/>
       <circle cx="12" cy="12" r="5"/>
@@ -2846,7 +2881,29 @@
 
 <div id="content-column">
 
-<div id="goals-view" class="content-view">
+<div id="geral-view" class="content-view">
+  <div id="geral-wrap">
+    <div id="geral-logo-row"></div>
+
+    <section class="geral-section" id="geral-section-pm">
+      <h2 class="tasks-section-title">PROJECT MANAGEMENT</h2>
+      <div id="tasks-general-filter-row">
+        <label for="tasks-general-filter">Filtrar por pessoa</label>
+        <select id="tasks-general-filter">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div id="tasks-general-stats"></div>
+    </section>
+
+    <section class="geral-section" id="geral-section-rm">
+      <h2 class="tasks-section-title">RELATIONSHIP MANAGEMENT</h2>
+      <div id="relationship-general-stats"></div>
+    </section>
+  </div>
+</div>
+
+<div id="goals-view" class="content-view hidden">
   <div id="goals-wrap">
     <div id="goals-logo-row"></div>
     <div id="goals-header">
@@ -3032,11 +3089,6 @@
             <circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15.5,14"/>
           </svg>
         </button>
-        <button class="tasks-subnav-btn" id="tasks-nav-geral" data-tooltip="Geral" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="20" x2="4" y2="12"/><line x1="10" y1="20" x2="10" y2="7"/><line x1="16" y1="20" x2="16" y2="4"/>
-          </svg>
-        </button>
       </div>
     </div>
     <div id="tasks-table">
@@ -3067,20 +3119,6 @@
 
     <div id="tasks-late-view" class="hidden">
       <div id="tasks-late-list"></div>
-    </div>
-
-    <div id="tasks-general-view" class="hidden">
-      <div id="tasks-general-filter-row">
-        <label for="tasks-general-filter">Filtrar por pessoa</label>
-        <select id="tasks-general-filter">
-          <option value="">Todos</option>
-        </select>
-      </div>
-      <h2 class="tasks-section-title">PROJECT MANAGEMENT</h2>
-      <div id="tasks-general-stats"></div>
-
-      <h2 class="tasks-section-title">RELATIONSHIP MANAGEMENT</h2>
-      <div id="relationship-general-stats"></div>
     </div>
 
     <div id="tasks-footer">
@@ -3792,7 +3830,6 @@ const USERS_SEED = [
 // access no matter what these say. Declared here, before usersList is
 // first loaded below, since ensureUserDefaults() needs it immediately.
 const COLAB_PERMISSIONS_DEFAULT = {
-  tasksGeral: false,
   tasksCreate: true,
   tasksDelete: false,
   tasksEditDates: false,
@@ -3806,6 +3843,7 @@ const COLAB_PERMISSIONS_DEFAULT = {
   committeeEdit: false,
   tabGoals: true,
   tabTasks: true,
+  tabGeral: true,
   tabMembers: true,
   tabCommittee: true,
   tabMarketing: true,
@@ -3902,6 +3940,7 @@ function applyFedCommitteeLock() {
 // Which nav-rail button each "ver aba X" permission controls. Settings and
 // logout are never configurable — always there for everyone.
 const NAV_TAB_PERMISSIONS = {
+  "nav-geral": "tabGeral",
   "nav-goals": "tabGoals",
   "nav-tasks": "tabTasks",
   "nav-members": "tabMembers",
@@ -3940,22 +3979,17 @@ function applyRolePermissions() {
   const badge = document.getElementById("current-user-badge");
   if (badge && currentUser) badge.textContent = `${currentUser.username} (${currentUser.role})`;
 
-  document.getElementById("tasks-nav-geral").classList.toggle("hidden-by-perm", colab && !colabCan("tasksGeral"));
   document.getElementById("tasks-add-btn").classList.toggle("hidden-by-perm", colab && !colabCan("tasksCreate"));
   document.getElementById("goals-add-btn").classList.toggle("hidden-by-perm", colab && !colabCan("goalsCreate"));
   document.getElementById("tasks-bulk-delete").classList.toggle("hidden-by-perm", colab && !colabCan("tasksDelete"));
   document.getElementById("forms-delete-btn").classList.toggle("hidden-by-perm", colab && !colabCan("formsDeleteForm"));
 
-  // If a colab session somehow lands on Settings or Tasks > Geral (e.g. a
-  // stale view from before logging out/in, or a permission that was just
-  // turned off while they were sitting on that screen), bounce them to a
-  // safe default instead of leaving a blocked screen showing.
+  // If a colab session somehow lands on Settings (e.g. a stale view from
+  // before logging out/in), bounce them to a safe default instead of
+  // leaving a blocked screen showing.
   if (colab) {
     if (!document.getElementById("settings-view").classList.contains("hidden")) {
       document.getElementById("nav-goals").click();
-    }
-    if (tasksViewMode === "geral" && !colabCan("tasksGeral")) {
-      setTasksViewMode("list");
     }
   }
   if (typeof renderTasksTable === "function") renderTasksTable();
@@ -4104,7 +4138,6 @@ if (!restoreSession()) {
 
 // --- Settings tab: user management ---
 const PERMISSION_LABELS = {
-  tasksGeral: "Tasks — ver a aba \"Geral\" (estatísticas)",
   tasksCreate: "Tasks — criar novas tasks/subtasks",
   tasksDelete: "Tasks — excluir tasks",
   tasksEditDates: "Tasks — editar data de início/fim",
@@ -4117,6 +4150,7 @@ const PERMISSION_LABELS = {
   fedBrazilEdit: "Federations — editar dados Brasil (senão, só visualização)",
   committeeEdit: "Committee — editar dados (senão, só visualização)",
   tabGoals: "Abas — ver Goals",
+  tabGeral: "Abas — ver Geral (estatísticas)",
   tabTasks: "Abas — ver Tasks",
   tabMembers: "Abas — ver Federations",
   tabCommittee: "Abas — ver Committee",
@@ -4683,6 +4717,7 @@ window.addEventListener("error", (e) => {
 // Social used to be its own rail button; it's now reached via the
 // Federations/Social switch inside the Members/Committee screen instead.
 const NAV_VIEWS = {
+  "nav-geral": "geral-view",
   "nav-goals": "goals-view",
   "nav-members": "members-view",
   "nav-committee": "members-view",
@@ -4733,6 +4768,9 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     }
     if (btnId === "nav-forms" && typeof loadFormsList === "function") {
       loadFormsList();
+    }
+    if (btnId === "nav-geral" && typeof renderGeralTab === "function") {
+      renderGeralTab();
     }
   });
 });
@@ -6351,7 +6389,7 @@ function getAllOverdueTasks() {
   }
   function walk(items) {
     items.forEach(t => {
-      if (isOverdue(t)) list.push(t);
+      if (t.rowType === "subtask" && isOverdue(t)) list.push(t);
       walk(t.subtasks);
     });
   }
@@ -6401,14 +6439,15 @@ function populateTasksGeneralFilter() {
   sel.value = tasksGeneralFilter;
 }
 
-// Collects every task/subtask matching predicate, honoring the current
-// assignee filter (tasksGeneralFilter) — shared by the stat cards' counts
-// and by the popup that lists what's actually behind each count.
+// Collects every subtask/sub-subtask matching predicate — never a top-level
+// parent task (those are just organizational groupings, not real work items)
+// — honoring the current assignee filter (tasksGeneralFilter). Shared by
+// the stat cards' counts and by the popup that lists what's behind each count.
 function collectGeneralTasks(predicate) {
   const result = [];
   function walk(items) {
     items.forEach(t => {
-      if ((!tasksGeneralFilter || t.assignees.includes(tasksGeneralFilter)) && predicate(t)) result.push(t);
+      if (t.rowType === "subtask" && (!tasksGeneralFilter || t.assignees.includes(tasksGeneralFilter)) && predicate(t)) result.push(t);
       walk(t.subtasks);
     });
   }
@@ -6420,9 +6459,6 @@ function renderTasksGeneralStats() {
   autoSyncLateStatuses();
   const today = todayISO();
   const total = collectGeneralTasks(() => true);
-  const statusCounts = {};
-  TASK_STATUS_OPTIONS.forEach(s => statusCounts[s] = 0);
-  total.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
 
   const done = collectGeneralTasks(t => t.status === "Done");
   const overdue = collectGeneralTasks(t => t.status !== "Done" && t.status !== "Cancelled" && t.endDate && t.endDate < today);
@@ -6469,21 +6505,23 @@ function renderTasksGeneralStats() {
       </button>
     </div>
     <div id="tasks-stat-row-2">
-      <div class="tasks-stat-chart-card">
+      <div class="tasks-stat-chart-card" id="tasks-progress-chart-card" title="Clique para ver as tasks concluídas">
         <div class="tasks-stat-card-label">Progressão de tasks concluídas</div>
         <div id="tasks-progress-chart-wrap"></div>
       </div>
-      <div class="tasks-stat-chart-card">
+      <div class="tasks-stat-chart-card" title="Clique numa barra para ver as tasks daquele status">
         <div class="tasks-stat-card-label">Status no pipeline</div>
         <div id="tasks-status-chart-wrap"></div>
       </div>
     </div>
   `;
+  const sets = { total, done, overdue, upcoming, onHold, withDuration };
   el.querySelectorAll(".tasks-stat-card[data-stat]").forEach(btn => {
-    btn.addEventListener("click", () => openTasksStatModal(btn.dataset.stat, { total, done, overdue, upcoming, onHold, withDuration }));
+    btn.addEventListener("click", () => openTasksStatModal(btn.dataset.stat, sets));
   });
+  document.getElementById("tasks-progress-chart-card").addEventListener("click", () => openTasksStatModal("done", sets));
   renderTasksProgressChart(done);
-  renderTasksStatusChart(statusCounts);
+  renderTasksStatusChart(total);
 }
 
 // Cumulative count of Done tasks by due date (the closest proxy available —
@@ -6520,6 +6558,7 @@ function renderTasksProgressChart(doneTasks) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
+      events: [],
       scales: {
         x: { ticks: { maxTicksLimit: 6, font: { size: 10.5 } }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
@@ -6528,8 +6567,12 @@ function renderTasksProgressChart(doneTasks) {
   });
 }
 
-// Vertical bar chart of how many tasks sit in each pipeline status right now.
-function renderTasksStatusChart(statusCounts) {
+// Vertical bar chart of how many tasks sit in each pipeline status right
+// now — click a bar to see exactly which tasks are in that status.
+function renderTasksStatusChart(total) {
+  const statusCounts = {};
+  TASK_STATUS_OPTIONS.forEach(s => statusCounts[s] = 0);
+  total.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
   const wrap = document.getElementById("tasks-status-chart-wrap");
   wrap.innerHTML = `<canvas id="tasks-status-chart"></canvas>`;
   mktChart("tasks-status-chart", {
@@ -6547,6 +6590,13 @@ function renderTasksStatusChart(statusCounts) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        const status = TASK_STATUS_OPTIONS[elements[0].index];
+        const items = total.filter(t => t.status === status);
+        showGeralModal(`Tasks — ${status}`, items.map(t => tasksStatModalItemHtml(t, false)).join(""));
+      },
+      onHover: (evt, elements) => { evt.native.target.style.cursor = elements.length ? "pointer" : "default"; },
       scales: {
         x: { ticks: { font: { size: 10 } }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
@@ -6572,35 +6622,35 @@ function renderRelationshipStats() {
   const known = rmKnownSlackChannels();
   let totalUnread = 0;
   known.forEach((name, id) => { totalUnread += slackChannelUnreadCount(id); });
-  const activeForms = formsList.filter(f => f.status === "published").length;
+  const activeForms = formsList.filter(f => f.status === "published");
   const newResponses = formsNewResponsesCount();
 
   const el = document.getElementById("relationship-general-stats");
   el.innerHTML = `
     <div id="rm-stat-row-1">
-      <div class="tasks-stat-card" style="cursor:default;">
+      <button class="tasks-stat-card" type="button" data-rmstat="channels">
         <div class="tasks-stat-card-label">Canais ativos no Slack</div>
         <div class="tasks-stat-card-value">${known.size}</div>
-      </div>
-      <div class="tasks-stat-card" style="cursor:default;">
+      </button>
+      <button class="tasks-stat-card" type="button" data-rmstat="unread">
         <div class="tasks-stat-card-label">Mensagens não lidas</div>
         <div class="tasks-stat-card-value" style="color:${totalUnread ? '#185fa5' : 'inherit'}">${totalUnread}</div>
-      </div>
-      <div class="tasks-stat-card" style="cursor:default;">
+      </button>
+      <button class="tasks-stat-card" type="button" data-rmstat="formsactive">
         <div class="tasks-stat-card-label">Forms ativos</div>
-        <div class="tasks-stat-card-value">${activeForms}</div>
-      </div>
-      <div class="tasks-stat-card" style="cursor:default;">
+        <div class="tasks-stat-card-value">${activeForms.length}</div>
+      </button>
+      <button class="tasks-stat-card" type="button" data-rmstat="newresponses">
         <div class="tasks-stat-card-label">Respostas não vistas</div>
         <div class="tasks-stat-card-value" style="color:${newResponses ? '#2e7d32' : 'inherit'}">${newResponses}</div>
-      </div>
+      </button>
     </div>
     <div id="rm-stat-row-2">
       <div class="tasks-stat-chart-card">
         <div class="tasks-stat-card-label">Atividade por canal (Slack)</div>
         <div id="rm-channel-chart-wrap"></div>
       </div>
-      <div class="tasks-stat-chart-card">
+      <div class="tasks-stat-chart-card" id="rm-pipeline-chart-card" title="Clique para ver as movimentações registradas">
         <div class="rm-chart-header">
           <div class="tasks-stat-card-label">Progressão dos pipelines</div>
           <select id="rm-pipeline-select">
@@ -6614,19 +6664,26 @@ function renderRelationshipStats() {
       </div>
     </div>
   `;
+  el.querySelectorAll(".tasks-stat-card[data-rmstat]").forEach(btn => {
+    btn.addEventListener("click", () => openRmModal(btn.dataset.rmstat, known, activeForms));
+  });
   const select = document.getElementById("rm-pipeline-select");
   select.value = rmPipelineFilter;
-  select.addEventListener("change", () => {
+  select.addEventListener("change", (e) => {
+    e.stopPropagation();
     rmPipelineFilter = select.value;
     renderRmPipelineChart();
   });
+  select.addEventListener("click", (e) => e.stopPropagation());
+  document.getElementById("rm-pipeline-chart-card").addEventListener("click", openRmPipelineLogModal);
   renderRmChannelChart(known);
   renderRmPipelineChart();
 }
 
 // Message count per channel, from whatever's currently loaded (the Slack
 // tab keeps the 300 most recent messages across all channels) — a recency-
-// weighted read of activity, not an all-time total.
+// weighted read of activity, not an all-time total. Click a bar to preview
+// that channel's most recent loaded messages.
 function renderRmChannelChart(known) {
   const wrap = document.getElementById("rm-channel-chart-wrap");
   const counts = {};
@@ -6655,6 +6712,12 @@ function renderRmChannelChart(known) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        const [name] = entries[elements[0].index];
+        openRmChannelActivityModal(name, known);
+      },
+      onHover: (evt, elements) => { evt.native.target.style.cursor = elements.length ? "pointer" : "default"; },
       scales: {
         x: { ticks: { font: { size: 10 } }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
@@ -6698,6 +6761,7 @@ function renderRmPipelineChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
+      events: [],
       scales: {
         x: { ticks: { maxTicksLimit: 6, font: { size: 10.5 } }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
@@ -6706,6 +6770,61 @@ function renderRmPipelineChart() {
   });
 }
 
+// --- Shared modal (used by every clickable card/chart on this page) ---
+function showGeralModal(title, bodyHtml) {
+  document.getElementById("tasks-stat-modal-title").textContent = title;
+  document.getElementById("tasks-stat-modal-body").innerHTML = (bodyHtml && bodyHtml.trim())
+    ? bodyHtml
+    : `<div class="tasks-stat-modal-empty">Nada por aqui.</div>`;
+  document.getElementById("tasks-stat-modal-backdrop").classList.remove("hidden");
+}
+function closeTasksStatModal() {
+  document.getElementById("tasks-stat-modal-backdrop").classList.add("hidden");
+}
+document.getElementById("tasks-stat-modal-close").addEventListener("click", closeTasksStatModal);
+
+// Edits made inside any task popup (status/date) — delegated once on the
+// (persistent) modal body, so it keeps working across every re-render of
+// its rows. Same permission rule as the main Tasks table: status is always
+// editable, date only if the user has the tasksEditDates permission.
+document.getElementById("tasks-stat-modal-body").addEventListener("change", (e) => {
+  const el = e.target;
+  if (el.classList.contains("tasks-status-select")) {
+    const t = findTaskById(tasksData, el.dataset.id);
+    if (!t) return;
+    t.status = el.value;
+    saveTasksData();
+    const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
+    el.style.background = colors.bg;
+    el.style.color = colors.text;
+    if (typeof renderTasksTable === "function") renderTasksTable();
+    if (typeof renderGoalsGrid === "function") renderGoalsGrid();
+    if (typeof renderGeralTab === "function") renderGeralTab(); // refresh the cards/charts behind the modal
+  } else if (el.classList.contains("tasks-stat-modal-date-input")) {
+    if (!colabCan("tasksEditDates")) return; // belt-and-suspenders — the input is disabled for these users anyway
+    const t = findTaskById(tasksData, el.dataset.id);
+    if (!t) return;
+    t.endDate = el.value;
+    saveTasksData();
+    if (typeof renderTasksTable === "function") renderTasksTable();
+    if (typeof renderGoalsGrid === "function") renderGoalsGrid();
+    if (typeof renderGeralTab === "function") renderGeralTab();
+  }
+});
+
+// Generic label/value row for non-task modal content (Slack channels, forms,
+// pipeline log entries) — same visual language as tasksStatModalItemHtml.
+function simpleModalRowHtml(label, value, sub) {
+  return `<div class="tasks-stat-modal-item">
+    <div>
+      <div class="tasks-stat-modal-name">${label}</div>
+      ${sub ? `<div class="tasks-stat-modal-meta">${sub}</div>` : ""}
+    </div>
+    <div class="tasks-stat-modal-right">
+      ${value ? `<span class="tasks-stat-modal-date">${value}</span>` : ""}
+    </div>
+  </div>`;
+}
 
 const TASKS_STAT_MODAL_TITLES = {
   total: "Total de tasks",
@@ -6720,9 +6839,10 @@ function tasksStatModalItemHtml(t, showDuration) {
   const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
   const parentName = findParentTaskName(t.id);
   const assignees = (t.assignees || []).join(", ");
+  const canDates = colabCan("tasksEditDates");
   const durationLabel = showDuration && t.startDate && t.endDate
     ? Math.round((new Date(t.endDate) - new Date(t.startDate)) / 86400000) + "d"
-    : (t.endDate ? formatEntryDate(t.endDate) : "");
+    : "";
   return `<div class="tasks-stat-modal-item">
     <div>
       ${parentName ? `<div class="tasks-stat-modal-parent">↳ ${parentName}</div>` : ""}
@@ -6730,7 +6850,8 @@ function tasksStatModalItemHtml(t, showDuration) {
       ${assignees ? `<div class="tasks-stat-modal-meta">${assignees}</div>` : ""}
     </div>
     <div class="tasks-stat-modal-right">
-      <span class="tasks-stat-modal-pill" style="background:${colors.bg};color:${colors.text}">${t.status}</span>
+      <select class="tasks-status-select" data-id="${t.id}" style="background:${colors.bg};color:${colors.text}">${taskStatusOptionsMarkup(t.status)}</select>
+      <input type="date" class="tasks-stat-modal-date-input" data-id="${t.id}" value="${t.endDate || ""}" title="Data final" ${canDates ? "" : "disabled"}>
       ${durationLabel ? `<span class="tasks-stat-modal-date">${durationLabel}</span>` : ""}
     </div>
   </div>`;
@@ -6743,17 +6864,65 @@ function openTasksStatModal(stat, sets) {
     : stat === "upcoming" ? sets.upcoming
     : stat === "onhold" ? sets.onHold
     : sets.withDuration;
-  document.getElementById("tasks-stat-modal-title").textContent = TASKS_STAT_MODAL_TITLES[stat] || "";
-  const body = document.getElementById("tasks-stat-modal-body");
-  body.innerHTML = items.length
-    ? items.map(t => tasksStatModalItemHtml(t, stat === "duration")).join("")
-    : `<div class="tasks-stat-modal-empty">Nada por aqui.</div>`;
-  document.getElementById("tasks-stat-modal-backdrop").classList.remove("hidden");
+  showGeralModal(TASKS_STAT_MODAL_TITLES[stat] || "", items.map(t => tasksStatModalItemHtml(t, stat === "duration")).join(""));
 }
-function closeTasksStatModal() {
-  document.getElementById("tasks-stat-modal-backdrop").classList.add("hidden");
+
+// Relationship Management cards' popups.
+function openRmModal(kind, known, activeForms) {
+  if (kind === "channels") {
+    const names = Array.from(known.values()).sort((a, b) => a.localeCompare(b));
+    showGeralModal("Canais ativos no Slack", names.map(name => simpleModalRowHtml("#" + name)).join(""));
+  } else if (kind === "unread") {
+    const list = Array.from(known.entries())
+      .map(([id, name]) => ({ name, count: slackChannelUnreadCount(id) }))
+      .filter(c => c.count > 0)
+      .sort((a, b) => b.count - a.count);
+    showGeralModal("Mensagens não lidas", list.map(c => simpleModalRowHtml("#" + c.name, c.count + " não lidas")).join(""));
+  } else if (kind === "formsactive") {
+    showGeralModal("Forms ativos", activeForms.map(f => simpleModalRowHtml(f.title || "Untitled", (formsResponseCounts[f.id] || 0) + " respostas")).join(""));
+  } else if (kind === "newresponses") {
+    const rows = homeNewFormsSummary();
+    showGeralModal("Respostas não vistas", rows.map(r => simpleModalRowHtml(r.name, r.count + " novas")).join(""));
+  }
 }
-document.getElementById("tasks-stat-modal-close").addEventListener("click", closeTasksStatModal);
+
+// Per-form breakdown of unseen responses (mirrors formsNewResponsesCount's total).
+function homeNewFormsSummary() {
+  const lastSeen = formsGetLastSeen();
+  const byForm = {};
+  formsResponseRows.forEach(r => {
+    const seen = lastSeen[r.form_id] || 0;
+    if (new Date(r.submitted_at).getTime() > seen) byForm[r.form_id] = (byForm[r.form_id] || 0) + 1;
+  });
+  return Object.keys(byForm)
+    .map(fid => ({ name: (formsList.find(f => f.id === fid) || {}).title || "Untitled form", count: byForm[fid] }))
+    .sort((a, b) => b.count - a.count);
+}
+
+// A channel bar's popup: its most recently loaded messages.
+function openRmChannelActivityModal(channelName, known) {
+  const recent = slackMessages
+    .filter(m => (known.get(m.channel) || m.channel) === channelName)
+    .sort((a, b) => parseFloat(b.ts) - parseFloat(a.ts))
+    .slice(0, 20);
+  const rows = recent.map(m => simpleModalRowHtml(
+    m.user_name || m.user_id || "Alguém",
+    slackFormatTime(m.ts),
+    slackFormatPreviewText((m.text || "").slice(0, 140))
+  )).join("");
+  showGeralModal(`#${channelName} — mensagens recentes`, rows);
+}
+
+// The pipeline card's popup: the raw logged transitions for the selected pipeline.
+function openRmPipelineLogModal() {
+  const entries = pipelineActivityLog.filter(e => e.pipeline === rmPipelineFilter);
+  const rows = entries.map(e => {
+    const dir = pipelineChangeDirection(e);
+    const arrow = dir === "up" ? "↑" : dir === "down" ? "↓" : "•";
+    return simpleModalRowHtml(e.entity, `${arrow} ${e.oldVal} → ${e.newVal}`, new Date(e.at).toLocaleString("pt-BR"));
+  }).join("");
+  showGeralModal(`Progressão — ${rmPipelineFilter}`, rows);
+}
 document.getElementById("tasks-stat-modal-backdrop").addEventListener("click", (e) => {
   if (e.target.id === "tasks-stat-modal-backdrop") closeTasksStatModal();
 });
@@ -6777,15 +6946,15 @@ const EMAIL_DIGEST_LABELS = { "Late": "Atrasadas", "Not Started": "Não iniciada
 function buildDigestForPerson(personName) {
   const today = todayISO();
   const grouped = { "Late": [], "Not Started": [], "In Progress": [] };
-  function walk(items, parentName, depth) {
+  function walk(items, parentName) {
     items.forEach(t => {
-      if (depth > 0 && grouped[t.status] && t.assignees.includes(personName) && t.startDate && t.startDate <= today) {
+      if (t.rowType === "subtask" && grouped[t.status] && t.assignees.includes(personName) && t.startDate && t.startDate <= today) {
         grouped[t.status].push({ id: t.id, name: t.name, status: t.status, parent: parentName, startDate: t.startDate, endDate: t.endDate });
       }
-      walk(t.subtasks, t.name, depth + 1);
+      walk(t.subtasks, t.name);
     });
   }
-  walk(tasksData, null, 0);
+  walk(tasksData, null);
   return grouped;
 }
 
@@ -6798,15 +6967,15 @@ function tomorrowISODash() {
 function buildDueTomorrowForPerson(personName) {
   const tomorrow = tomorrowISODash();
   const out = [];
-  function walk(items, parentName, depth) {
+  function walk(items, parentName) {
     items.forEach(t => {
-      if (depth > 0 && t.assignees.includes(personName) && t.endDate === tomorrow && !DONE_LIKE_STATUSES.includes(t.status)) {
+      if (t.rowType === "subtask" && t.assignees.includes(personName) && t.endDate === tomorrow && !DONE_LIKE_STATUSES.includes(t.status)) {
         out.push({ id: t.id, name: t.name, status: t.status, parent: parentName, startDate: t.startDate, endDate: t.endDate });
       }
-      walk(t.subtasks, t.name, depth + 1);
+      walk(t.subtasks, t.name);
     });
   }
-  walk(tasksData, null, 0);
+  walk(tasksData, null);
   return out;
 }
 
@@ -6958,7 +7127,7 @@ function renderDigestTasksModal(personName) {
       t.status = select.value;
       saveTasksData();
       if (typeof renderTasksTable === "function") renderTasksTable();
-      if (typeof renderTasksGeneralStats === "function" && !document.getElementById("tasks-general-view").classList.contains("hidden")) renderTasksGeneralStats();
+      if (typeof renderTasksGeneralStats === "function" && !document.getElementById("geral-view").classList.contains("hidden")) renderTasksGeneralStats();
       renderDigestTasksModal(personName); // re-render so the item drops off if it's no longer pending
     });
   });
@@ -6989,24 +7158,25 @@ function setTasksViewMode(mode) {
   tasksViewMode = mode;
   document.getElementById("tasks-nav-list").classList.toggle("active", mode === "list");
   document.getElementById("tasks-nav-late").classList.toggle("active", mode === "late");
-  document.getElementById("tasks-nav-geral").classList.toggle("active", mode === "geral");
   document.getElementById("tasks-table").classList.toggle("hidden", mode !== "list");
   document.getElementById("tasks-late-view").classList.toggle("hidden", mode !== "late");
-  document.getElementById("tasks-general-view").classList.toggle("hidden", mode !== "geral");
   document.getElementById("tasks-footer").style.display = mode === "list" ? "flex" : "none";
   if (mode === "late") renderTasksLateView();
-  if (mode === "geral") {
-    populateTasksGeneralFilter();
-    renderTasksGeneralStats();
-    renderRelationshipStats();
-    if (typeof loadSlackMessages === "function") loadSlackMessages().then(renderRelationshipStats);
-    if (typeof loadFormsList === "function") loadFormsList().then(renderRelationshipStats);
-  }
 }
 
 document.getElementById("tasks-nav-list").addEventListener("click", () => setTasksViewMode("list"));
 document.getElementById("tasks-nav-late").addEventListener("click", () => setTasksViewMode("late"));
-document.getElementById("tasks-nav-geral").addEventListener("click", () => setTasksViewMode("geral"));
+
+// Renders the standalone Geral tab (Project Management + Relationship
+// Management) — called on nav click and once on initial page load, since
+// Geral is now the dashboard's default landing tab.
+function renderGeralTab() {
+  populateTasksGeneralFilter();
+  renderTasksGeneralStats();
+  renderRelationshipStats();
+  if (typeof loadSlackMessages === "function") loadSlackMessages().then(renderRelationshipStats);
+  if (typeof loadFormsList === "function") loadFormsList().then(renderRelationshipStats);
+}
 
 // Cloning the existing logo node avoids duplicating its large base64 source.
 const tasksLogoRow = document.getElementById("tasks-logo-row");
@@ -7016,6 +7186,14 @@ tasksLogoClone.style.height = "44px";
 tasksLogoClone.style.width = "auto";
 tasksLogoClone.style.display = "block";
 tasksLogoRow.prepend(tasksLogoClone);
+
+const geralLogoRow = document.getElementById("geral-logo-row");
+const geralLogoClone = document.getElementById("logo").cloneNode(true);
+geralLogoClone.removeAttribute("id");
+geralLogoClone.style.height = "44px";
+geralLogoClone.style.width = "auto";
+geralLogoClone.style.display = "block";
+geralLogoRow.appendChild(geralLogoClone);
 
 const settingsLogoRow = document.getElementById("settings-logo-row");
 const settingsLogoClone = document.getElementById("logo").cloneNode(true);
@@ -11312,6 +11490,8 @@ formsLogoClone.style.height = "44px";
 formsLogoClone.style.width = "auto";
 formsLogoClone.style.display = "block";
 formsLogoRow.prepend(formsLogoClone);
+
+renderGeralTab();
 
 // Everything above is defined and has had its first render — safe now to
 // apply the logged-in user's role (hides Settings/Geral for colab, flips
