@@ -1641,6 +1641,64 @@
     max-width: min(96vw, 1900px);
     margin-bottom: 20px;
   }
+
+  /* --- Home tab ("What's for today / this week?") --- */
+  #home-wrap { width: 100%; max-width: min(96vw, 1100px); }
+  #home-logo-row { display: flex; align-items: center; width: 100%; margin-bottom: 28px; }
+  #home-heading { font-size: 26px; font-weight: 700; color: var(--text); margin-bottom: 20px; letter-spacing: -0.01em; }
+  #home-heading span { color: var(--text-muted); }
+  .home-scope-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 4px;
+    transition: color 0.15s ease, text-decoration-color 0.15s ease;
+  }
+  .home-scope-btn:hover { color: var(--text); }
+  .home-scope-btn.active { color: var(--accent); text-decoration-color: var(--accent); }
+
+  #home-tasks-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; min-height: 40px; }
+  .home-task-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13.5px;
+  }
+  .home-task-row.overdue { border-left: 3px solid #a3312a; }
+  .home-task-status-pill { font-size: 10.5px; font-weight: 700; border-radius: 5px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+  .home-task-name { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .home-task-due { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+  .home-task-assignees { font-size: 11.5px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+  #home-tasks-empty { color: var(--text-muted); font-size: 13.5px; padding: 14px 2px; }
+
+  #home-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+  .home-summary-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .home-summary-card:hover { border-color: var(--border-strong); box-shadow: 0 2px 10px rgba(44, 44, 42, 0.06); }
+  .home-summary-card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+  .home-summary-card-title { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+  .home-summary-card-count { font-size: 24px; font-weight: 800; color: var(--text); }
+  .home-summary-card-body { display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; color: var(--text-muted); min-height: 18px; }
+  .home-summary-card-body .home-row-up { color: #173404; }
+  .home-summary-card-body .home-row-down { color: #791f1f; }
+  .home-summary-empty { color: var(--text-muted); font-size: 12.5px; }
   #view-switch-row { display: flex; align-items: center; gap: 10px; font-size: 14px; }
   #view-switch-row span { color: var(--text-muted); }
   #view-switch-row span.active { color: var(--text); font-weight: 500; }
@@ -2652,7 +2710,14 @@
 </div>
 
 <div id="nav-rail">
-  <button class="nav-icon-btn active" id="nav-goals" data-tooltip="Goals" type="button">
+  <button class="nav-icon-btn active" id="nav-home" data-tooltip="Home" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18h6"/>
+      <path d="M10 22h4"/>
+      <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2.3v1h6v-1c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/>
+    </svg>
+  </button>
+  <button class="nav-icon-btn" id="nav-goals" data-tooltip="Goals" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9"/>
       <circle cx="12" cy="12" r="5"/>
@@ -2718,7 +2783,54 @@
 
 <div id="content-column">
 
-<div id="goals-view" class="content-view">
+<div id="home-view" class="content-view">
+  <div id="home-wrap">
+    <div id="home-logo-row"></div>
+
+    <div id="home-heading">
+      <span>What's for</span>
+      <button class="home-scope-btn active" id="home-scope-today" type="button">today</button>
+      <span>/</span>
+      <button class="home-scope-btn" id="home-scope-week" type="button">this week</button>
+      <span>?</span>
+    </div>
+
+    <div id="home-tasks-list"></div>
+
+    <div id="home-summary-grid">
+      <div class="home-summary-card" id="home-card-slack">
+        <div class="home-summary-card-head">
+          <span class="home-summary-card-title">Slack</span>
+          <span class="home-summary-card-count" id="home-slack-count">—</span>
+        </div>
+        <div class="home-summary-card-body" id="home-slack-body"></div>
+      </div>
+      <div class="home-summary-card" id="home-card-forms">
+        <div class="home-summary-card-head">
+          <span class="home-summary-card-title">Forms</span>
+          <span class="home-summary-card-count" id="home-forms-count">—</span>
+        </div>
+        <div class="home-summary-card-body" id="home-forms-body"></div>
+      </div>
+      <div class="home-summary-card" id="home-card-goals">
+        <div class="home-summary-card-head">
+          <span class="home-summary-card-title">Goals</span>
+          <span class="home-summary-card-count" id="home-goals-count">—</span>
+        </div>
+        <div class="home-summary-card-body" id="home-goals-body"></div>
+      </div>
+      <div class="home-summary-card" id="home-card-pipelines">
+        <div class="home-summary-card-head">
+          <span class="home-summary-card-title">Pipelines</span>
+          <span class="home-summary-card-count" id="home-pipelines-count">—</span>
+        </div>
+        <div class="home-summary-card-body" id="home-pipelines-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="goals-view" class="content-view hidden">
   <div id="goals-wrap">
     <div id="goals-logo-row"></div>
     <div id="goals-header">
@@ -3350,6 +3462,47 @@ const COMMITTEE_STATUS_COLORS = {
   "Negotiation": { fill: "#534ab7", badgeBg: "#eeedfe", badgeText: "#26215c" },
   "Closed":      { fill: "#639922", badgeBg: "#eaf3de", badgeText: "#173404" }
 };
+
+// --- Pipeline activity log: a lightweight record of status changes across
+// every pipeline (Federations countries/states, Committee countries/states,
+// Affiliations, Brazil's 3-pipeline system), so the Home tab can show
+// "what moved recently" without re-deriving it from raw data each time.
+// Starts empty and only grows from here forward — it can't reconstruct
+// history from before this existed.
+const PIPELINE_LOG_STORAGE_KEY = "wpf_pipeline_activity_log";
+let pipelineActivityLog = [];
+try {
+  pipelineActivityLog = JSON.parse(localStorage.getItem(PIPELINE_LOG_STORAGE_KEY) || "[]");
+} catch (e) { pipelineActivityLog = []; }
+function logPipelineChange(pipeline, entity, field, oldVal, newVal) {
+  if (oldVal === newVal || oldVal === undefined || newVal === undefined) return;
+  pipelineActivityLog.unshift({
+    id: "plog-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+    pipeline, entity, field, oldVal, newVal,
+    at: new Date().toISOString()
+  });
+  if (pipelineActivityLog.length > 200) pipelineActivityLog.length = 200; // rolling cap
+  try { localStorage.setItem(PIPELINE_LOG_STORAGE_KEY, JSON.stringify(pipelineActivityLog)); } catch (e) { /* best effort */ }
+}
+// Whether newVal is "forward" (up) or "backward" (down) relative to oldVal,
+// based on that field's own option ordering — e.g. Committee's
+// Not Started → Needed → ... → Closed is a forward progression.
+function pipelineChangeDirection(entry) {
+  const optionsByField = {
+    status_Federations: STATUS_OPTIONS,
+    status_Committee: COMMITTEE_STATUS_OPTIONS,
+    status_Affiliations: AFFILIATIONS_STATUS_OPTIONS,
+    cnpj_Brazil: BRAZIL_CNPJ_OPTIONS,
+    social_Brazil: BRAZIL_SOCIAL_OPTIONS,
+    payment_Brazil: BRAZIL_PAYMENT_OPTIONS
+  };
+  const options = optionsByField[`${entry.field}_${entry.pipeline}`];
+  if (!options) return "changed";
+  const oldIdx = options.indexOf(entry.oldVal);
+  const newIdx = options.indexOf(entry.newVal);
+  if (oldIdx === -1 || newIdx === -1) return "changed";
+  return newIdx > oldIdx ? "up" : "down";
+}
 
 const COMMITTEE_STORAGE_KEY = "wpf_committee_data";
 let committeeCountryData = {};
@@ -4185,7 +4338,12 @@ function getCommitteeRecord(name) {
 }
 
 function setCommitteeRecord(name, patch) {
-  committeeCountryData[name] = Object.assign(getCommitteeRecord(name), patch);
+  const rec = getCommitteeRecord(name);
+  const oldStatus = rec.status;
+  committeeCountryData[name] = Object.assign(rec, patch);
+  if (patch.status !== undefined && patch.status !== oldStatus) {
+    logPipelineChange("Committee", name, "status", oldStatus, patch.status);
+  }
   saveCommitteeData();
 }
 
@@ -4197,7 +4355,12 @@ function getAffiliationsRecord(name) {
 }
 
 function setAffiliationsRecord(name, patch) {
-  affiliationsCountryData[name] = Object.assign(getAffiliationsRecord(name), patch);
+  const rec = getAffiliationsRecord(name);
+  const oldStatus = rec.status;
+  affiliationsCountryData[name] = Object.assign(rec, patch);
+  if (patch.status !== undefined && patch.status !== oldStatus) {
+    logPipelineChange("Affiliations", name, "status", oldStatus, patch.status);
+  }
   saveAffiliationsData();
 }
 function saveAffiliationsData() {
@@ -4274,7 +4437,12 @@ function getStateRecord(country, stateName) {
 
 function setStateRecord(country, stateName, patch) {
   if (!stateData[country]) stateData[country] = {};
-  stateData[country][stateName] = Object.assign(getStateRecord(country, stateName), patch);
+  const rec = getStateRecord(country, stateName);
+  const oldStatus = rec.status;
+  stateData[country][stateName] = Object.assign(rec, patch);
+  if (patch.status !== undefined && patch.status !== oldStatus) {
+    logPipelineChange("Federations", `${stateName}, ${country}`, "status", oldStatus, patch.status);
+  }
   saveStateData();
 }
 
@@ -4306,7 +4474,12 @@ function getCommitteeStateRecord(country, stateName) {
 
 function setCommitteeStateRecord(country, stateName, patch) {
   if (!committeeStateData[country]) committeeStateData[country] = {};
-  committeeStateData[country][stateName] = Object.assign(getCommitteeStateRecord(country, stateName), patch);
+  const rec = getCommitteeStateRecord(country, stateName);
+  const oldStatus = rec.status;
+  committeeStateData[country][stateName] = Object.assign(rec, patch);
+  if (patch.status !== undefined && patch.status !== oldStatus) {
+    logPipelineChange("Committee", `${stateName}, ${country}`, "status", oldStatus, patch.status);
+  }
   saveCommitteeStateData();
 }
 
@@ -4371,7 +4544,14 @@ function getBrazilStateRecord(stateName) {
 }
 
 function setBrazilStateRecord(stateName, patch) {
-  brazilStateData[stateName] = Object.assign(getBrazilStateRecord(stateName), patch);
+  const rec = getBrazilStateRecord(stateName);
+  const before = { cnpj: rec.cnpj, social: rec.social, payment: rec.payment };
+  brazilStateData[stateName] = Object.assign(rec, patch);
+  ["cnpj", "social", "payment"].forEach(field => {
+    if (patch[field] !== undefined && patch[field] !== before[field]) {
+      logPipelineChange("Brazil", `${stateName} (Brazil)`, field, before[field], patch[field]);
+    }
+  });
   saveBrazilStateData();
 }
 
@@ -4448,7 +4628,12 @@ function getRecord(name) {
 }
 
 function setRecord(name, patch) {
-  countryData[name] = Object.assign(getRecord(name), patch);
+  const rec = getRecord(name);
+  const oldStatus = rec.status;
+  countryData[name] = Object.assign(rec, patch);
+  if (patch.status !== undefined && patch.status !== oldStatus) {
+    logPipelineChange("Federations", name, "status", oldStatus, patch.status);
+  }
   saveData();
 }
 
@@ -4468,6 +4653,7 @@ window.addEventListener("error", (e) => {
 // Social used to be its own rail button; it's now reached via the
 // Federations/Social switch inside the Members/Committee screen instead.
 const NAV_VIEWS = {
+  "nav-home": "home-view",
   "nav-goals": "goals-view",
   "nav-members": "members-view",
   "nav-committee": "members-view",
@@ -4518,6 +4704,9 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     }
     if (btnId === "nav-forms" && typeof loadFormsList === "function") {
       loadFormsList();
+    }
+    if (btnId === "nav-home" && typeof renderHomeTab === "function") {
+      renderHomeTab();
     }
   });
 });
@@ -10233,10 +10422,30 @@ const FORM_CHOICE_TYPES = ["multiple_choice", "checkbox"];
 let formsList = [];
 let formsCurrentBuilder = null; // { id, title, description, questions, status } while editing
 let formsResponseCounts = {};
+let formsResponseRows = []; // lightweight {form_id, submitted_at} list — feeds the Home tab's "new responses" count
 let formsActiveId = null; // id of the form currently open on the right (builder or responses), for highlighting its card
 let formsResponsesData = []; // raw response rows for whichever form is open in the responses table
 let formsResponsesForm = null; // the form object (title/questions) for the currently open responses table
 let formsResponsesFilters = {}; // per-column filter values, keyed by question id (or "__submitted" for the date column)
+
+// Last-seen-per-form tracking (same pattern as Slack's per-channel last seen)
+// so the Home tab can say "N new responses" instead of just a running total.
+const FORMS_LAST_SEEN_KEY = "wpf_forms_last_seen";
+function formsGetLastSeen() {
+  try { return JSON.parse(localStorage.getItem(FORMS_LAST_SEEN_KEY) || "{}"); } catch (e) { return {}; }
+}
+function formsSetLastSeen(formId, whenMs) {
+  const map = formsGetLastSeen();
+  map[formId] = whenMs;
+  localStorage.setItem(FORMS_LAST_SEEN_KEY, JSON.stringify(map));
+}
+function formsNewResponsesCount() {
+  const lastSeen = formsGetLastSeen();
+  return formsResponseRows.filter(r => {
+    const seen = lastSeen[r.form_id] || 0;
+    return new Date(r.submitted_at).getTime() > seen;
+  }).length;
+}
 
 function formsShowMode(mode) {
   document.getElementById("forms-empty-mode").classList.toggle("hidden", mode !== "empty");
@@ -10264,12 +10473,14 @@ async function loadFormsList() {
 
 async function loadFormResponseCounts() {
   formsResponseCounts = {};
+  formsResponseRows = [];
   try {
-    const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?select=form_id`, {
+    const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?select=form_id,submitted_at`, {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
     });
     if (!res.ok) return;
     const rows = await res.json();
+    formsResponseRows = rows;
     rows.forEach(r => { formsResponseCounts[r.form_id] = (formsResponseCounts[r.form_id] || 0) + 1; });
   } catch (err) {
     console.warn("Forms: failed to load response counts:", err);
@@ -10714,6 +10925,7 @@ async function openFormResponses(id) {
   if (!form) return;
   closeResponseDetail();
   formsActiveId = id;
+  formsSetLastSeen(id, Date.now());
   renderFormsGrid();
   document.getElementById("forms-responses-title").textContent = form.title || "Untitled";
   formsResponsesForm = form;
@@ -10776,6 +10988,175 @@ formsLogoClone.style.height = "44px";
 formsLogoClone.style.width = "auto";
 formsLogoClone.style.display = "block";
 formsLogoRow.prepend(formsLogoClone);
+
+// --- Home tab ("What's for today / this week?") ---
+const homeLogoRow = document.getElementById("home-logo-row");
+const homeLogoClone = document.getElementById("logo").cloneNode(true);
+homeLogoClone.removeAttribute("id");
+homeLogoClone.style.height = "44px";
+homeLogoClone.style.width = "auto";
+homeLogoClone.style.display = "block";
+homeLogoRow.appendChild(homeLogoClone);
+
+let homeScope = "today"; // "today" | "week"
+
+// Monday–Sunday range for "this week", in the same YYYY-MM-DD shape as endDate.
+function homeWeekRange() {
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun..6=Sat
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const iso = d => d.toISOString().slice(0, 10);
+  return { monday: iso(monday), sunday: iso(sunday) };
+}
+
+// Not-done tasks due today (or already overdue), or due this week (or overdue).
+function homeTasksForScope(scope) {
+  const today = todayISO();
+  const { monday, sunday } = homeWeekRange();
+  const result = [];
+  walkAllTasks(tasksData, t => {
+    if (!t.endDate) return;
+    if (t.status === "Done" || t.status === "Cancelled") return;
+    const overdue = t.endDate < today;
+    if (scope === "today") {
+      if (t.endDate === today || overdue) result.push(t);
+    } else if (overdue || (t.endDate >= monday && t.endDate <= sunday)) {
+      result.push(t);
+    }
+  });
+  result.sort((a, b) => (a.endDate || "").localeCompare(b.endDate || ""));
+  return result;
+}
+
+function renderHomeTasksList() {
+  const el = document.getElementById("home-tasks-list");
+  const items = homeTasksForScope(homeScope);
+  if (!items.length) {
+    el.innerHTML = `<div id="home-tasks-empty">Nothing due ${homeScope === "today" ? "today" : "this week"} — all caught up.</div>`;
+    return;
+  }
+  const today = todayISO();
+  el.innerHTML = items.map(t => {
+    const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
+    const overdue = t.endDate && t.endDate < today;
+    const dueLabel = overdue ? `Overdue (${formatEntryDate(t.endDate)})` : formatEntryDate(t.endDate);
+    const assignees = (t.assignees || []).join(", ");
+    return `<div class="home-task-row ${overdue ? "overdue" : ""}">
+      <span class="home-task-status-pill" style="background:${colors.bg};color:${colors.text}">${formsEsc(t.status)}</span>
+      <span class="home-task-name">${formsEsc(t.name || "")}</span>
+      ${assignees ? `<span class="home-task-assignees">${formsEsc(assignees)}</span>` : ""}
+      <span class="home-task-due">${formsEsc(dueLabel)}</span>
+    </div>`;
+  }).join("");
+}
+document.getElementById("home-scope-today").addEventListener("click", () => {
+  homeScope = "today";
+  document.getElementById("home-scope-today").classList.add("active");
+  document.getElementById("home-scope-week").classList.remove("active");
+  renderHomeTasksList();
+});
+document.getElementById("home-scope-week").addEventListener("click", () => {
+  homeScope = "week";
+  document.getElementById("home-scope-week").classList.add("active");
+  document.getElementById("home-scope-today").classList.remove("active");
+  renderHomeTasksList();
+});
+
+function renderHomeSlackCard() {
+  const known = new Map();
+  slackAllChannels.forEach(c => known.set(c.id, c.name));
+  slackMessages.forEach(m => { if (!known.has(m.channel)) known.set(m.channel, m.channel); });
+  const withUnread = Array.from(known.entries())
+    .map(([id, name]) => ({ name, count: slackChannelUnreadCount(id) }))
+    .filter(c => c.count > 0)
+    .sort((a, b) => b.count - a.count);
+  const total = withUnread.reduce((sum, c) => sum + c.count, 0);
+  document.getElementById("home-slack-count").textContent = total;
+  const body = document.getElementById("home-slack-body");
+  body.innerHTML = total
+    ? withUnread.slice(0, 4).map(c => `<div>#${formsEsc(c.name)} — ${c.count} new</div>`).join("")
+    : `<span class="home-summary-empty">No new messages.</span>`;
+}
+
+function renderHomeFormsCard() {
+  const total = formsNewResponsesCount();
+  document.getElementById("home-forms-count").textContent = total;
+  const body = document.getElementById("home-forms-body");
+  if (!total) {
+    body.innerHTML = `<span class="home-summary-empty">No new responses.</span>`;
+    return;
+  }
+  const lastSeen = formsGetLastSeen();
+  const byForm = {};
+  formsResponseRows.forEach(r => {
+    const seen = lastSeen[r.form_id] || 0;
+    if (new Date(r.submitted_at).getTime() > seen) byForm[r.form_id] = (byForm[r.form_id] || 0) + 1;
+  });
+  const rows = Object.keys(byForm)
+    .map(fid => ({ name: (formsList.find(f => f.id === fid) || {}).title || "Untitled form", count: byForm[fid] }))
+    .sort((a, b) => b.count - a.count);
+  body.innerHTML = rows.slice(0, 4).map(r => `<div>${formsEsc(r.name)} — ${r.count} new</div>`).join("");
+}
+
+// Goals whose latest entry moved from the one before it — reuses the same
+// latestEntry/prevEntry/displayedValueThrough logic the Goals tab's own
+// trend arrows are built from, so this is a real read of the same data.
+function renderHomeGoalsCard() {
+  const moved = goalsData.map(g => {
+    const latest = latestEntry(g);
+    const prev = prevEntry(g);
+    if (!latest || !prev) return null;
+    const val = displayedValueThrough(g, latest);
+    const prevVal = displayedValueThrough(g, prev);
+    if (Math.abs(val - prevVal) < 1e-9) return null;
+    const isUp = val > prevVal;
+    const isGood = (g.direction === "down") ? !isUp : isUp;
+    return { name: g.name, isUp, isGood, latestDate: latest.date };
+  }).filter(Boolean).sort((a, b) => (b.latestDate || "").localeCompare(a.latestDate || ""));
+  document.getElementById("home-goals-count").textContent = moved.length;
+  const body = document.getElementById("home-goals-body");
+  body.innerHTML = moved.length
+    ? moved.slice(0, 4).map(m => `<div class="${m.isGood ? "home-row-up" : "home-row-down"}">${m.isUp ? "↑" : "↓"} ${formsEsc(m.name)}</div>`).join("")
+    : `<span class="home-summary-empty">No recent movement.</span>`;
+}
+
+// Committee/Federations/Affiliations/Brazil pipeline movements — sourced
+// from pipelineActivityLog, which only records changes made after that
+// logging was added (see logPipelineChange), so this starts empty.
+function renderHomePipelinesCard() {
+  document.getElementById("home-pipelines-count").textContent = pipelineActivityLog.length;
+  const body = document.getElementById("home-pipelines-body");
+  if (!pipelineActivityLog.length) {
+    body.innerHTML = `<span class="home-summary-empty">No changes logged yet.</span>`;
+    return;
+  }
+  body.innerHTML = pipelineActivityLog.slice(0, 4).map(entry => {
+    const dir = pipelineChangeDirection(entry);
+    const arrow = dir === "up" ? "↑" : dir === "down" ? "↓" : "•";
+    const cls = dir === "up" ? "home-row-up" : dir === "down" ? "home-row-down" : "";
+    return `<div class="${cls}">${arrow} ${formsEsc(entry.entity)} → ${formsEsc(entry.newVal)}</div>`;
+  }).join("");
+}
+
+document.getElementById("home-card-slack").addEventListener("click", () => document.getElementById("nav-slack").click());
+document.getElementById("home-card-forms").addEventListener("click", () => document.getElementById("nav-forms").click());
+document.getElementById("home-card-goals").addEventListener("click", () => document.getElementById("nav-goals").click());
+document.getElementById("home-card-pipelines").addEventListener("click", () => document.getElementById("nav-members").click());
+
+function renderHomeTab() {
+  renderHomeTasksList();
+  renderHomeSlackCard();
+  renderHomeFormsCard();
+  renderHomeGoalsCard();
+  renderHomePipelinesCard();
+  if (typeof loadSlackMessages === "function") loadSlackMessages().then(renderHomeSlackCard);
+  if (typeof loadFormsList === "function") loadFormsList().then(renderHomeFormsCard);
+}
+renderHomeTab();
 
 // Everything above is defined and has had its first render — safe now to
 // apply the logged-in user's role (hides Settings/Geral for colab, flips
