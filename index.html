@@ -1055,11 +1055,16 @@
     align-items: stretch;
   }
   #tasks-stat-row-1 .tasks-stat-card, #tasks-stat-row-2 .tasks-stat-card { flex: 1 1 0; min-width: 0; }
-  #tasks-stat-chart-card { flex: 2 1 0; min-width: 0; }
-  @media (max-width: 820px) {
-    #tasks-stat-row-1, #tasks-stat-row-2 { flex-wrap: wrap; }
-    #tasks-stat-row-1 .tasks-stat-card, #tasks-stat-row-2 .tasks-stat-card { flex: 1 1 200px; }
-    #tasks-stat-chart-card { flex: 1 1 100%; }
+  #tasks-stat-row-1 .tasks-stat-card { padding: 14px 14px; }
+  #tasks-stat-row-1 .tasks-stat-card-value { font-size: 24px; }
+  .tasks-stat-chart-card { flex: 1 1 0; min-width: 0; }
+  @media (max-width: 900px) {
+    #tasks-stat-row-1 { flex-wrap: wrap; }
+    #tasks-stat-row-1 .tasks-stat-card { flex: 1 1 150px; }
+  }
+  @media (max-width: 720px) {
+    #tasks-stat-row-2 { flex-wrap: wrap; }
+    .tasks-stat-chart-card { flex: 1 1 100%; }
   }
   .tasks-stat-card {
     background: #ffffff;
@@ -1083,16 +1088,61 @@
   }
   .tasks-stat-card-value { font-size: 30px; font-weight: 700; color: var(--text); }
   .tasks-stat-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-  #tasks-stat-chart-card {
+  .tasks-stat-chart-card {
     background: #ffffff;
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 16px 20px;
     cursor: default;
   }
-  #tasks-stat-chart-card .tasks-stat-card-label { margin-bottom: 12px; }
-  #tasks-progress-chart-wrap { position: relative; height: 170px; }
+  .tasks-stat-chart-card .tasks-stat-card-label { margin-bottom: 12px; }
+  #tasks-progress-chart-wrap, #tasks-status-chart-wrap { position: relative; height: 190px; }
   #tasks-progress-chart-empty { color: var(--text-muted); font-size: 12.5px; padding: 40px 0; text-align: center; }
+
+  .tasks-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 22px 0 12px;
+    text-transform: uppercase;
+  }
+  .tasks-section-title:first-of-type { margin-top: 4px; }
+
+  #relationship-general-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  #rm-stat-row-1, #rm-stat-row-2 {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+  #rm-stat-row-1 .tasks-stat-card, #rm-stat-row-2 .tasks-stat-chart-card { flex: 1 1 0; min-width: 0; }
+  @media (max-width: 900px) {
+    #rm-stat-row-1 { flex-wrap: wrap; }
+    #rm-stat-row-1 .tasks-stat-card { flex: 1 1 200px; }
+  }
+  @media (max-width: 720px) {
+    #rm-stat-row-2 { flex-wrap: wrap; }
+    #rm-stat-row-2 .tasks-stat-chart-card { flex: 1 1 100%; }
+  }
+  #rm-channel-chart-wrap, #rm-pipeline-chart-wrap { position: relative; height: 190px; }
+  .rm-chart-empty { color: var(--text-muted); font-size: 12.5px; padding: 40px 0; text-align: center; }
+  .rm-chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+  .rm-chart-header .tasks-stat-card-label { margin-bottom: 0; }
+  #rm-pipeline-select {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    border-radius: 7px;
+    padding: 5px 9px;
+    font-size: 11.5px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
 
   #tasks-stat-modal-backdrop {
     position: fixed;
@@ -3026,7 +3076,11 @@
           <option value="">Todos</option>
         </select>
       </div>
+      <h2 class="tasks-section-title">PROJECT MANAGEMENT</h2>
       <div id="tasks-general-stats"></div>
+
+      <h2 class="tasks-section-title">RELATIONSHIP MANAGEMENT</h2>
+      <div id="relationship-general-stats"></div>
     </div>
 
     <div id="tasks-footer">
@@ -6366,6 +6420,9 @@ function renderTasksGeneralStats() {
   autoSyncLateStatuses();
   const today = todayISO();
   const total = collectGeneralTasks(() => true);
+  const statusCounts = {};
+  TASK_STATUS_OPTIONS.forEach(s => statusCounts[s] = 0);
+  total.forEach(t => { statusCounts[t.status] = (statusCounts[t.status] || 0) + 1; });
 
   const done = collectGeneralTasks(t => t.status === "Done");
   const overdue = collectGeneralTasks(t => t.status !== "Done" && t.status !== "Cancelled" && t.endDate && t.endDate < today);
@@ -6385,6 +6442,16 @@ function renderTasksGeneralStats() {
         <div class="tasks-stat-card-value">${total.length}</div>
         <div class="tasks-stat-card-sub">Contando subtasks e sub-subtasks</div>
       </button>
+      <button class="tasks-stat-card" type="button" data-stat="done">
+        <div class="tasks-stat-card-label">Concluídas</div>
+        <div class="tasks-stat-card-value">${pctDone}%</div>
+        <div class="tasks-stat-card-sub">${done.length} de ${total.length} tasks</div>
+      </button>
+      <button class="tasks-stat-card" type="button" data-stat="duration">
+        <div class="tasks-stat-card-label">Duração média</div>
+        <div class="tasks-stat-card-value">${avgDuration !== null ? avgDuration + "d" : "—"}</div>
+        <div class="tasks-stat-card-sub">Início ao fim</div>
+      </button>
       <button class="tasks-stat-card" type="button" data-stat="overdue">
         <div class="tasks-stat-card-label">Em atraso</div>
         <div class="tasks-stat-card-value" style="color:${overdue.length ? '#e24b4a' : 'inherit'}">${overdue.length}</div>
@@ -6398,30 +6465,25 @@ function renderTasksGeneralStats() {
       <button class="tasks-stat-card" type="button" data-stat="onhold">
         <div class="tasks-stat-card-label">On Hold</div>
         <div class="tasks-stat-card-value" style="color:${TASK_STATUS_COLORS["On Hold"].text}">${onHold.length}</div>
-        <div class="tasks-stat-card-sub">Pausadas no momento</div>
+        <div class="tasks-stat-card-sub">Pausadas</div>
       </button>
     </div>
     <div id="tasks-stat-row-2">
-      <div id="tasks-stat-chart-card">
+      <div class="tasks-stat-chart-card">
         <div class="tasks-stat-card-label">Progressão de tasks concluídas</div>
         <div id="tasks-progress-chart-wrap"></div>
       </div>
-      <button class="tasks-stat-card" type="button" data-stat="duration">
-        <div class="tasks-stat-card-label">Duração média</div>
-        <div class="tasks-stat-card-value">${avgDuration !== null ? avgDuration + "d" : "—"}</div>
-        <div class="tasks-stat-card-sub">Entre início e fim, quando ambos preenchidos</div>
-      </button>
-      <button class="tasks-stat-card" type="button" data-stat="done">
-        <div class="tasks-stat-card-label">Concluídas</div>
-        <div class="tasks-stat-card-value">${pctDone}%</div>
-        <div class="tasks-stat-card-sub">${done.length} de ${total.length} tasks</div>
-      </button>
+      <div class="tasks-stat-chart-card">
+        <div class="tasks-stat-card-label">Status no pipeline</div>
+        <div id="tasks-status-chart-wrap"></div>
+      </div>
     </div>
   `;
   el.querySelectorAll(".tasks-stat-card[data-stat]").forEach(btn => {
     btn.addEventListener("click", () => openTasksStatModal(btn.dataset.stat, { total, done, overdue, upcoming, onHold, withDuration }));
   });
   renderTasksProgressChart(done);
+  renderTasksStatusChart(statusCounts);
 }
 
 // Cumulative count of Done tasks by due date (the closest proxy available —
@@ -6465,6 +6527,185 @@ function renderTasksProgressChart(doneTasks) {
     }
   });
 }
+
+// Vertical bar chart of how many tasks sit in each pipeline status right now.
+function renderTasksStatusChart(statusCounts) {
+  const wrap = document.getElementById("tasks-status-chart-wrap");
+  wrap.innerHTML = `<canvas id="tasks-status-chart"></canvas>`;
+  mktChart("tasks-status-chart", {
+    type: "bar",
+    data: {
+      labels: TASK_STATUS_OPTIONS,
+      datasets: [{
+        data: TASK_STATUS_OPTIONS.map(s => statusCounts[s] || 0),
+        backgroundColor: TASK_STATUS_OPTIONS.map(s => TASK_STATUS_COLORS[s].text),
+        borderRadius: 4,
+        maxBarThickness: 40
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
+      }
+    }
+  });
+}
+
+// --- Relationship Management section (Slack + Forms + pipeline movement) ---
+let rmPipelineFilter = "Federations";
+
+// Every channel the bot knows about, merging the Worker's channel list with
+// any channel id only seen so far in loaded messages — same merge Slack's
+// own channel grid uses, so the count matches what that tab shows.
+function rmKnownSlackChannels() {
+  const known = new Map();
+  slackAllChannels.forEach(c => known.set(c.id, c.name));
+  slackMessages.forEach(m => { if (!known.has(m.channel)) known.set(m.channel, m.channel); });
+  return known;
+}
+
+function renderRelationshipStats() {
+  const known = rmKnownSlackChannels();
+  let totalUnread = 0;
+  known.forEach((name, id) => { totalUnread += slackChannelUnreadCount(id); });
+  const activeForms = formsList.filter(f => f.status === "published").length;
+  const newResponses = formsNewResponsesCount();
+
+  const el = document.getElementById("relationship-general-stats");
+  el.innerHTML = `
+    <div id="rm-stat-row-1">
+      <div class="tasks-stat-card" style="cursor:default;">
+        <div class="tasks-stat-card-label">Canais ativos no Slack</div>
+        <div class="tasks-stat-card-value">${known.size}</div>
+      </div>
+      <div class="tasks-stat-card" style="cursor:default;">
+        <div class="tasks-stat-card-label">Mensagens não lidas</div>
+        <div class="tasks-stat-card-value" style="color:${totalUnread ? '#185fa5' : 'inherit'}">${totalUnread}</div>
+      </div>
+      <div class="tasks-stat-card" style="cursor:default;">
+        <div class="tasks-stat-card-label">Forms ativos</div>
+        <div class="tasks-stat-card-value">${activeForms}</div>
+      </div>
+      <div class="tasks-stat-card" style="cursor:default;">
+        <div class="tasks-stat-card-label">Respostas não vistas</div>
+        <div class="tasks-stat-card-value" style="color:${newResponses ? '#2e7d32' : 'inherit'}">${newResponses}</div>
+      </div>
+    </div>
+    <div id="rm-stat-row-2">
+      <div class="tasks-stat-chart-card">
+        <div class="tasks-stat-card-label">Atividade por canal (Slack)</div>
+        <div id="rm-channel-chart-wrap"></div>
+      </div>
+      <div class="tasks-stat-chart-card">
+        <div class="rm-chart-header">
+          <div class="tasks-stat-card-label">Progressão dos pipelines</div>
+          <select id="rm-pipeline-select">
+            <option value="Federations">Federations</option>
+            <option value="Committee">Ladies</option>
+            <option value="Affiliations">Affiliations</option>
+            <option value="Social">Social</option>
+          </select>
+        </div>
+        <div id="rm-pipeline-chart-wrap"></div>
+      </div>
+    </div>
+  `;
+  const select = document.getElementById("rm-pipeline-select");
+  select.value = rmPipelineFilter;
+  select.addEventListener("change", () => {
+    rmPipelineFilter = select.value;
+    renderRmPipelineChart();
+  });
+  renderRmChannelChart(known);
+  renderRmPipelineChart();
+}
+
+// Message count per channel, from whatever's currently loaded (the Slack
+// tab keeps the 300 most recent messages across all channels) — a recency-
+// weighted read of activity, not an all-time total.
+function renderRmChannelChart(known) {
+  const wrap = document.getElementById("rm-channel-chart-wrap");
+  const counts = {};
+  slackMessages.forEach(m => {
+    const name = known.get(m.channel) || m.channel;
+    counts[name] = (counts[name] || 0) + 1;
+  });
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  if (!entries.length) {
+    wrap.innerHTML = `<div class="rm-chart-empty">Nenhuma mensagem carregada ainda.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<canvas id="rm-channel-chart"></canvas>`;
+  mktChart("rm-channel-chart", {
+    type: "bar",
+    data: {
+      labels: entries.map(([name]) => "#" + name),
+      datasets: [{
+        data: entries.map(([, c]) => c),
+        backgroundColor: "#5a35c2",
+        borderRadius: 4,
+        maxBarThickness: 40
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
+      }
+    }
+  });
+}
+
+// Cumulative count of forward (stage-advancing) status changes logged for
+// the selected pipeline, by date — sourced from pipelineActivityLog, which
+// only records changes made after that logging was added, so a pipeline
+// with no edits yet since then will show empty rather than fabricated history.
+function renderRmPipelineChart() {
+  const wrap = document.getElementById("rm-pipeline-chart-wrap");
+  const entries = pipelineActivityLog.filter(e => e.pipeline === rmPipelineFilter && pipelineChangeDirection(e) === "up");
+  if (!entries.length) {
+    wrap.innerHTML = `<div class="rm-chart-empty">Sem movimentações registradas ainda para esse pipeline.</div>`;
+    return;
+  }
+  const byDate = {};
+  entries.forEach(e => { const d = e.at.slice(0, 10); byDate[d] = (byDate[d] || 0) + 1; });
+  const dates = Object.keys(byDate).sort();
+  let running = 0;
+  const cumulative = dates.map(d => { running += byDate[d]; return running; });
+  wrap.innerHTML = `<canvas id="rm-pipeline-chart"></canvas>`;
+  mktChart("rm-pipeline-chart", {
+    type: "line",
+    data: {
+      labels: dates.map(formatEntryDate),
+      datasets: [{
+        data: cumulative,
+        borderColor: "#185fa5",
+        backgroundColor: "rgba(24,95,165,0.08)",
+        fill: true,
+        tension: 0.25,
+        pointRadius: 2.5,
+        pointBackgroundColor: "#185fa5"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 6, font: { size: 10.5 } }, grid: { display: false } },
+        y: { beginAtZero: true, ticks: { precision: 0, font: { size: 10.5 } } }
+      }
+    }
+  });
+}
+
 
 const TASKS_STAT_MODAL_TITLES = {
   total: "Total de tasks",
@@ -6754,7 +6995,13 @@ function setTasksViewMode(mode) {
   document.getElementById("tasks-general-view").classList.toggle("hidden", mode !== "geral");
   document.getElementById("tasks-footer").style.display = mode === "list" ? "flex" : "none";
   if (mode === "late") renderTasksLateView();
-  if (mode === "geral") { populateTasksGeneralFilter(); renderTasksGeneralStats(); }
+  if (mode === "geral") {
+    populateTasksGeneralFilter();
+    renderTasksGeneralStats();
+    renderRelationshipStats();
+    if (typeof loadSlackMessages === "function") loadSlackMessages().then(renderRelationshipStats);
+    if (typeof loadFormsList === "function") loadFormsList().then(renderRelationshipStats);
+  }
 }
 
 document.getElementById("tasks-nav-list").addEventListener("click", () => setTasksViewMode("list"));
