@@ -1197,118 +1197,6 @@
   }
   #tasks-stat-modal-close:hover { background: var(--land-default); color: var(--text); }
   #tasks-stat-modal-body { padding: 16px 18px 20px; overflow-y: auto; }
-
-  #task-comments-modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-  }
-  #task-comments-modal-backdrop.hidden { display: none; }
-  #task-comments-modal {
-    background: #ffffff;
-    border-radius: 12px;
-    width: 560px;
-    max-width: 92vw;
-    max-height: 84vh;
-    min-height: 380px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-  }
-  #task-comments-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 18px;
-    border-bottom: 1px solid var(--border);
-    gap: 12px;
-  }
-  #task-comments-modal-header h3 { margin: 0; font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #task-comments-modal-close {
-    background: transparent;
-    border: none;
-    font-size: 15px;
-    color: var(--text-muted);
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 4px;
-    flex-shrink: 0;
-  }
-  #task-comments-modal-close:hover { background: var(--land-default); color: var(--text); }
-  #task-comments-modal-body {
-    padding: 16px 18px;
-    overflow-y: auto;
-    flex: 1 1 auto;
-    min-height: 220px;
-    max-height: 50vh;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .tc-empty { color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px 0; }
-
-  .tc-block { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-  .tc-block-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
-  .tc-block-meta { font-size: 11px; color: var(--text-muted); }
-  .tc-block-delete { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 12px; padding: 2px 6px; border-radius: 5px; flex-shrink: 0; }
-  .tc-block-delete:hover { background: #fcebeb; color: #a3312a; }
-  .tc-text-body { font-size: 13.5px; color: var(--text); white-space: pre-wrap; word-break: break-word; }
-
-  .tc-checklist-title { font-size: 13.5px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-  .tc-checklist-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
-  .tc-checklist-item input[type="checkbox"] { flex-shrink: 0; accent-color: var(--accent); width: 15px; height: 15px; }
-  .tc-checklist-item-text { font-size: 13px; color: var(--text); flex: 1 1 0; }
-  .tc-checklist-item.done .tc-checklist-item-text { color: var(--text-muted); text-decoration: line-through; }
-  .tc-checklist-item-delete { border: none; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 2px 5px; border-radius: 4px; flex-shrink: 0; opacity: 0.5; }
-  .tc-checklist-item-delete:hover { opacity: 1; background: #fcebeb; color: #a3312a; }
-  .tc-checklist-add-row { display: flex; gap: 6px; margin-top: 6px; }
-  .tc-checklist-add-row input {
-    flex: 1 1 0;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 9px;
-    font-size: 12.5px;
-    font-family: inherit;
-  }
-  .tc-checklist-add-row button {
-    border: 1px solid var(--border);
-    background: #ffffff;
-    border-radius: 6px;
-    padding: 6px 11px;
-    font-size: 12px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .tc-checklist-add-row button:hover { background: var(--land-default); }
-
-  #task-comments-composer { border-top: 1px solid var(--border); padding: 14px 18px 16px; flex-shrink: 0; }
-  #tc-text-input {
-    width: 100%;
-    min-height: 60px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 9px 11px;
-    font-size: 13.5px;
-    font-family: inherit;
-    resize: vertical;
-    margin-bottom: 8px;
-  }
-  #task-comments-composer-actions { display: flex; gap: 8px; }
-  #tc-add-text-btn, #tc-add-checklist-btn {
-    border: 1px solid var(--border);
-    background: #ffffff;
-    color: var(--text);
-    border-radius: 7px;
-    padding: 7px 13px;
-    font-size: 12.5px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  #tc-add-text-btn:hover, #tc-add-checklist-btn:hover { background: var(--land-default); }
   .tasks-stat-modal-item {
     display: flex;
     align-items: center;
@@ -1496,37 +1384,6 @@
   }
   .tasks-name-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
   .tasks-name-top { font-weight: 700; }
-  .tasks-comments-btn {
-    position: relative;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 1;
-    padding: 4px 5px;
-    border-radius: 6px;
-    flex-shrink: 0;
-    opacity: 0.28;
-    transition: opacity 0.15s ease, background 0.15s ease;
-  }
-  .tasks-comments-btn:hover { opacity: 0.75; background: var(--land-default); }
-  .tasks-comments-btn.has-comments { opacity: 1; background: #eef2fb; }
-  .tasks-comments-btn.has-comments:hover { background: #e2e8f7; }
-  .tasks-comments-count {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background: var(--accent);
-    color: #ffffff;
-    font-size: 9px;
-    font-weight: 700;
-    border-radius: 8px;
-    min-width: 13px;
-    height: 13px;
-    line-height: 13px;
-    text-align: center;
-    padding: 0 2px;
-  }
   .tasks-status-select {
     border: none;
     border-radius: 6px;
@@ -1749,6 +1606,34 @@
   }
   .goals-pause-btn:hover { background: var(--land-default); color: var(--text); }
   .goals-card.paused { filter: grayscale(1); opacity: 0.65; }
+
+  .goals-card.goals-card-reached { background: #1a7a3c; border-color: #1a7a3c; }
+  .goals-card.goals-card-reached .goals-card-top { background: rgba(255,255,255,0.35) !important; }
+  .goals-card.goals-card-reached .goals-card-cat,
+  .goals-card.goals-card-reached .goals-health-badge,
+  .goals-card.goals-card-reached .goals-card-name,
+  .goals-card.goals-card-reached .goals-kpi-value,
+  .goals-card.goals-card-reached .goals-kpi-target,
+  .goals-card.goals-card-reached .goals-kpi-unit,
+  .goals-card.goals-card-reached .goals-updated,
+  .goals-card.goals-card-reached .goals-edit-btn,
+  .goals-card.goals-card-reached .goals-pause-btn {
+    color: #ffffff !important;
+  }
+  .goals-card.goals-card-reached .goals-edit-btn:hover,
+  .goals-card.goals-card-reached .goals-pause-btn:hover {
+    background: rgba(255,255,255,0.18);
+  }
+  .goals-card.goals-card-reached .goals-reached-badge {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #ffffff;
+    background: rgba(255,255,255,0.2);
+    padding: 3px 8px;
+    border-radius: 5px;
+  }
   .goals-pause-badge {
     display: inline-block;
     margin-top: 8px;
@@ -3618,23 +3503,6 @@
   </div>
 </div>
 
-<div id="task-comments-modal-backdrop" class="hidden">
-  <div id="task-comments-modal">
-    <div id="task-comments-modal-header">
-      <h3 id="task-comments-modal-title"></h3>
-      <button id="task-comments-modal-close" type="button">✕</button>
-    </div>
-    <div id="task-comments-modal-body"></div>
-    <div id="task-comments-composer">
-      <textarea id="tc-text-input" placeholder="Escreva um comentário..."></textarea>
-      <div id="task-comments-composer-actions">
-        <button id="tc-add-text-btn" type="button">+ Comentário</button>
-        <button id="tc-add-checklist-btn" type="button">+ Checklist</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 
 <div id="goals-expand-modal-backdrop" class="hidden">
   <div id="goals-expand-modal">
@@ -5109,6 +4977,18 @@ function displayedValueThrough(g, entry) {
     .reduce((sum, e) => sum + parseBRNumber(e.value), 0);
 }
 
+// Whether the goal's latest value has reached its target — accounts for
+// direction, since a "down is better" KPI (e.g. spend) reaches its target
+// by going AT OR BELOW it, not above.
+function isGoalTargetReached(g) {
+  const latest = latestEntry(g);
+  if (!latest) return false;
+  const target = parseBRNumber(latest.target);
+  if (!target) return false;
+  const value = displayedValueThrough(g, latest);
+  return g.direction === "down" ? value <= target : value >= target;
+}
+
 function formatEntryDate(dateStr) {
   if (!dateStr) return "";
   const [y, m, d] = dateStr.split("-");
@@ -5322,6 +5202,7 @@ function goalsCardViewMarkup(g) {
   const prevVal = prev ? displayedValueThrough(g, prev) : latestVal;
   const displayedValue = g.cumulative ? formatBRNumber(latestVal, g) : latest.value;
   const paused = isGoalPaused(g);
+  const reached = isGoalTargetReached(g);
   const pauseLabel = g.pausedUntil ? `Pausado até ${formatEntryDate(g.pausedUntil)}` : "Pausado";
   const healthColor = GOALS_HEALTH_COLORS[g.health] || GOALS_HEALTH_COLORS["Indo bem"];
   return `
@@ -5347,7 +5228,9 @@ function goalsCardViewMarkup(g) {
       <div class="goals-kpi-unit">${latest.unit}</div>
       ${paused
         ? `<span class="goals-pause-badge">⏸ ${pauseLabel}</span>`
-        : `<div class="goals-updated">Última atualização: ${formatEntryDate(latest.date)}</div>`}
+        : reached
+          ? `<span class="goals-reached-badge">✅ Meta atingida</span>`
+          : `<div class="goals-updated">Última atualização: ${formatEntryDate(latest.date)}</div>`}
     </div>
   `;
 }
@@ -5610,7 +5493,7 @@ function renderGoalsGrid() {
 
   const items = goalsActiveCat === "Geral" ? goalsData : goalsData.filter(g => g.cat === goalsActiveCat);
   goalsGridEl.innerHTML = items.map(g => `
-    <div class="goals-card ${isGoalPaused(g) && g.id !== goalsEditingId ? "paused" : ""} ${g.id === goalsEditingId ? "goals-card-editing" : ""}" data-id="${g.id}" ${g.id === goalsEditingId ? "" : 'draggable="true"'}>
+    <div class="goals-card ${isGoalPaused(g) && g.id !== goalsEditingId ? "paused" : ""} ${g.id === goalsEditingId ? "goals-card-editing" : ""} ${(g.id !== goalsEditingId && isGoalTargetReached(g)) ? "goals-card-reached" : ""}" data-id="${g.id}" ${g.id === goalsEditingId ? "" : 'draggable="true"'}>
       ${g.id === goalsEditingId ? goalsCardEditMarkup(g) : goalsCardViewMarkup(g)}
     </div>
   `).join("");
@@ -5887,7 +5770,6 @@ function ensureTaskDefaults(t, depth) {
   }
   delete t.assignee;
   if (t.kpiLink === undefined) t.kpiLink = "";
-  if (!Array.isArray(t.comments)) t.comments = []; // { id, type: "text"|"checklist", text, title, items:[{id,text,done}], author, at }
   // "rowType" is the explicit task/subtask classification the user picks per
   // row (drives whether the row gets a status color). For data saved before
   // this existed, default it from nesting depth so existing boards look the
@@ -6106,9 +5988,6 @@ function renderTaskRow(t, depth) {
         <button class="tasks-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
         <input class="tasks-name-input ${depth === 0 ? "tasks-name-top" : ""}" data-id="${t.id}" data-field="name" value="${t.name}">
         <span class="tasks-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
-        <button class="tasks-comments-btn ${t.comments.length ? "has-comments" : ""}" data-id="${t.id}" type="button" title="${t.comments.length ? t.comments.length + " comentário(s)" : "Adicionar comentário"}">
-          💬${t.comments.length ? `<span class="tasks-comments-count">${t.comments.length}</span>` : ""}
-        </button>
       </div>
       <div class="tasks-col-status">
         <select class="tasks-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}">${taskStatusOptionsMarkup(t.status)}</select>
@@ -6167,12 +6046,6 @@ function renderTasksTable() {
       const id = btn.dataset.id;
       if (tasksExpanded.has(id)) tasksExpanded.delete(id); else tasksExpanded.add(id);
       renderTasksTable();
-    });
-  });
-  body.querySelectorAll(".tasks-comments-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openTaskCommentsModal(btn.dataset.id);
     });
   });
   // Ctrl/Cmd+click any row (or use its checkbox) to add it to the selection
@@ -6410,160 +6283,6 @@ function renderTasksTable() {
   wireFillHandles(body);
   updateTasksBulkBar();
 }
-
-// --- Per-task comments (free text + checklists) ---
-let tcCurrentTaskId = null;
-
-function openTaskCommentsModal(taskId) {
-  const t = findTaskById(tasksData, taskId);
-  if (!t) return;
-  tcCurrentTaskId = taskId;
-  document.getElementById("task-comments-modal-title").textContent = t.name || "Task";
-  document.getElementById("tc-text-input").value = "";
-  renderTaskCommentsModalBody();
-  document.getElementById("task-comments-modal-backdrop").classList.remove("hidden");
-}
-function closeTaskCommentsModal() {
-  document.getElementById("task-comments-modal-backdrop").classList.add("hidden");
-  tcCurrentTaskId = null;
-}
-document.getElementById("task-comments-modal-close").addEventListener("click", closeTaskCommentsModal);
-document.getElementById("task-comments-modal-backdrop").addEventListener("click", (e) => {
-  if (e.target.id === "task-comments-modal-backdrop") closeTaskCommentsModal();
-});
-
-function tcRenderBlock(comment) {
-  const when = comment.at ? new Date(comment.at).toLocaleString("pt-BR") : "";
-  const who = comment.author || "—";
-  if (comment.type === "text") {
-    return `<div class="tc-block" data-cid="${comment.id}">
-      <div class="tc-block-head">
-        <span class="tc-block-meta">${formsEsc(who)} · ${formsEsc(when)}</span>
-        <button class="tc-block-delete" data-cid="${comment.id}" title="Excluir">🗑</button>
-      </div>
-      <div class="tc-text-body">${formsEsc(comment.text)}</div>
-    </div>`;
-  }
-  const doneCount = comment.items.filter(i => i.done).length;
-  return `<div class="tc-block" data-cid="${comment.id}">
-    <div class="tc-block-head">
-      <span class="tc-block-meta">${formsEsc(who)} · ${formsEsc(when)} · ${doneCount}/${comment.items.length}</span>
-      <button class="tc-block-delete" data-cid="${comment.id}" title="Excluir checklist">🗑</button>
-    </div>
-    <input class="tc-checklist-title-input" data-cid="${comment.id}" value="${formsEscAttr(comment.title || "Checklist")}">
-    <div class="tc-checklist-items">
-      ${comment.items.map(item => `
-        <div class="tc-checklist-item ${item.done ? "done" : ""}">
-          <input type="checkbox" class="tc-checklist-checkbox" data-cid="${comment.id}" data-iid="${item.id}" ${item.done ? "checked" : ""}>
-          <span class="tc-checklist-item-text">${formsEsc(item.text)}</span>
-          <button class="tc-checklist-item-delete" data-cid="${comment.id}" data-iid="${item.id}" title="Excluir item">✕</button>
-        </div>
-      `).join("")}
-    </div>
-    <div class="tc-checklist-add-row">
-      <input type="text" class="tc-checklist-new-item" data-cid="${comment.id}" placeholder="Novo item...">
-      <button class="tc-checklist-add-item-btn" data-cid="${comment.id}" type="button">+ Item</button>
-    </div>
-  </div>`;
-}
-
-function renderTaskCommentsModalBody() {
-  const t = findTaskById(tasksData, tcCurrentTaskId);
-  const body = document.getElementById("task-comments-modal-body");
-  if (!t) { body.innerHTML = ""; return; }
-  body.innerHTML = t.comments.length
-    ? t.comments.map(c => tcRenderBlock(c)).join("")
-    : `<div class="tc-empty">Nenhum comentário ainda.</div>`;
-}
-
-function tcSaveAndRefresh() {
-  saveTasksData();
-  renderTaskCommentsModalBody();
-  if (typeof renderTasksTable === "function") renderTasksTable();
-}
-
-document.getElementById("tc-add-text-btn").addEventListener("click", () => {
-  const input = document.getElementById("tc-text-input");
-  const text = input.value.trim();
-  if (!text) return;
-  const t = findTaskById(tasksData, tcCurrentTaskId);
-  if (!t) return;
-  t.comments.push({
-    id: "cmt-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-    type: "text",
-    text,
-    author: currentUser ? currentUser.username : "—",
-    at: new Date().toISOString()
-  });
-  input.value = "";
-  tcSaveAndRefresh();
-});
-
-document.getElementById("tc-add-checklist-btn").addEventListener("click", () => {
-  const t = findTaskById(tasksData, tcCurrentTaskId);
-  if (!t) return;
-  t.comments.push({
-    id: "cmt-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-    type: "checklist",
-    title: "Checklist",
-    items: [],
-    author: currentUser ? currentUser.username : "—",
-    at: new Date().toISOString()
-  });
-  tcSaveAndRefresh();
-});
-
-document.getElementById("task-comments-modal-body").addEventListener("click", (e) => {
-  const t = findTaskById(tasksData, tcCurrentTaskId);
-  if (!t) return;
-  const delBlockBtn = e.target.closest(".tc-block-delete");
-  if (delBlockBtn) {
-    t.comments = t.comments.filter(c => c.id !== delBlockBtn.dataset.cid);
-    tcSaveAndRefresh();
-    return;
-  }
-  const delItemBtn = e.target.closest(".tc-checklist-item-delete");
-  if (delItemBtn) {
-    const c = t.comments.find(c => c.id === delItemBtn.dataset.cid);
-    if (c) c.items = c.items.filter(i => i.id !== delItemBtn.dataset.iid);
-    tcSaveAndRefresh();
-    return;
-  }
-  const addItemBtn = e.target.closest(".tc-checklist-add-item-btn");
-  if (addItemBtn) {
-    const cid = addItemBtn.dataset.cid;
-    const inputEl = document.querySelector(`.tc-checklist-new-item[data-cid="${cid}"]`);
-    const text = inputEl ? inputEl.value.trim() : "";
-    if (!text) return;
-    const c = t.comments.find(c => c.id === cid);
-    if (c) c.items.push({ id: "item-" + Date.now() + "-" + Math.random().toString(36).slice(2, 5), text, done: false });
-    tcSaveAndRefresh();
-    return;
-  }
-});
-
-document.getElementById("task-comments-modal-body").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && e.target.classList.contains("tc-checklist-new-item")) {
-    e.preventDefault();
-    const btn = document.querySelector(`.tc-checklist-add-item-btn[data-cid="${e.target.dataset.cid}"]`);
-    if (btn) btn.click();
-  }
-});
-
-document.getElementById("task-comments-modal-body").addEventListener("change", (e) => {
-  const t = findTaskById(tasksData, tcCurrentTaskId);
-  if (!t) return;
-  if (e.target.classList.contains("tc-checklist-checkbox")) {
-    const c = t.comments.find(c => c.id === e.target.dataset.cid);
-    const item = c && c.items.find(i => i.id === e.target.dataset.iid);
-    if (item) item.done = e.target.checked;
-    tcSaveAndRefresh();
-  } else if (e.target.classList.contains("tc-checklist-title-input")) {
-    const c = t.comments.find(c => c.id === e.target.dataset.cid);
-    if (c) c.title = e.target.value;
-    tcSaveAndRefresh();
-  }
-});
 
 // --- Fill handle: click a cell (name/status/dates/kpi) to select it, then
 // drag the little square at its corner up or down to copy that one value
