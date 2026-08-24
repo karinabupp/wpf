@@ -1242,10 +1242,10 @@
     cursor: pointer;
   }
   #tasks-add-btn:hover { background: var(--land-default); }
-  #tasks-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  #tasks-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks-row {
     display: grid;
-    grid-template-columns: 30px 1fr 150px 130px 130px 200px 240px 158px;
+    grid-template-columns: 30px minmax(220px, 1fr) 150px 130px 130px 200px 240px 158px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -1360,7 +1360,7 @@
     min-height: 42px;
   }
   .tasks-row > div { padding: 0 16px; }
-  .tasks-col-name { display: flex; align-items: center; gap: 8px; overflow: hidden; }
+  .tasks-col-name { display: flex; align-items: center; gap: 8px; overflow: visible; min-width: 0; }
   .tasks-toggle {
     background: transparent;
     border: none;
@@ -1381,7 +1381,31 @@
     width: 100%;
     padding: 8px 4px;
     border-radius: 4px;
+    font-family: inherit;
+    line-height: 1.35;
+    resize: none;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: block;
+    /* Collapsed to a single line so every row keeps the same height.
+       JS sets an explicit height when the field is expanded. */
+    height: 2.35em;
   }
+  .tasks-name-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-start; gap: 2px; }
+  .tasks-name-expand {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 9px;
+    line-height: 1;
+    padding: 6px 3px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-self: center;
+  }
+  .tasks-name-expand:hover { background: var(--land-default); color: var(--text); }
   .tasks-name-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
   .tasks-name-top { font-weight: 700; }
   .tasks-status-select {
@@ -1423,7 +1447,7 @@
     width: 100%;
     margin-top: 4px;
   }
-  .tasks-assignee-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .tasks-assignee-chips { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
   .tasks-assignee-chip {
     display: inline-flex;
     align-items: center;
@@ -1435,6 +1459,9 @@
     font-size: 12px;
     color: var(--text);
     white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .tasks-assignee-remove {
     background: transparent;
@@ -1456,6 +1483,8 @@
     color: var(--text-muted);
     cursor: pointer;
     line-height: 1;
+    flex-shrink: 0;
+    padding: 0;
   }
   .tasks-assignee-add-btn:hover { background: var(--land-default); color: var(--text); }
   .tasks-assignee-summary { cursor: pointer; font-weight: 600; }
@@ -1484,17 +1513,18 @@
     width: 100%;
     cursor: pointer;
   }
-  .tasks-col-actions { display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
+  .tasks-col-actions { display: flex; align-items: center; gap: 2px; justify-content: flex-end; min-width: 0; }
   .tasks-type-select {
     border: 1px solid var(--border);
     background: #ffffff;
     border-radius: 6px;
-    padding: 6px 6px;
+    padding: 6px 4px;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-muted);
     cursor: pointer;
-    flex-shrink: 0;
+    flex: 1 1 auto;
+    min-width: 0;
   }
   .tasks-action-btn {
     background: transparent;
@@ -1502,9 +1532,10 @@
     color: var(--text-muted);
     font-size: 15px;
     cursor: pointer;
-    padding: 5px 7px;
+    padding: 5px 5px;
     border-radius: 4px;
     line-height: 1;
+    flex-shrink: 0;
   }
   .tasks-action-btn:hover { background: var(--land-default); color: var(--text); }
   .tasks-delete-confirm-row {
@@ -2794,6 +2825,34 @@
   body.committee-locked-panel #state-save-btn,
   body.fed-brazil-locked #brazil-save-btn {
     display: none !important;
+  }
+  /* ══════════════════════════════════════════════════════════
+     Tasks table density. The full-size layout above is tuned for
+     a big external monitor. On a normal laptop/desktop screen it
+     doesn't fit, so these tiers progressively tighten the fixed
+     columns, row height and font sizes — which also means more
+     tasks visible at once without scrolling.
+     ══════════════════════════════════════════════════════════ */
+  @media (max-width: 1650px) {
+    .tasks-row { grid-template-columns: 28px minmax(190px, 1fr) 126px 142px 142px 162px 162px 140px; min-height: 46px; }
+    .tasks-row > div { padding: 0 9px; }
+    .tasks-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
+    .tasks-status-select { font-size: 12px; padding: 5px 6px; }
+    .tasks-date-input { font-size: 12.5px; padding: 6px 2px; }
+    .tasks-kpi-select, .tasks-type-select { font-size: 11.5px; padding: 5px 6px; }
+    .tasks-assignee-chip { font-size: 11px; padding: 2px 5px 2px 8px; }
+    .tasks-head-row { min-height: 36px; }
+  }
+  @media (max-width: 1380px) {
+    .tasks-row { grid-template-columns: 26px minmax(160px, 1fr) 116px 136px 136px 140px 140px 124px; min-height: 42px; }
+    .tasks-row > div { padding: 0 7px; }
+    .tasks-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
+    .tasks-status-select { font-size: 11.5px; padding: 4px 5px; }
+    .tasks-date-input { font-size: 12px; padding: 5px 1px; }
+    .tasks-kpi-select, .tasks-type-select { font-size: 11px; padding: 4px 4px; }
+    .tasks-assignee-chip { font-size: 10.5px; padding: 2px 4px 2px 7px; }
+    .tasks-assignee-add-btn { width: 19px; height: 19px; font-size: 12px; }
+    .tasks-head-row { font-size: 10px; min-height: 32px; }
   }
 </style>
 
@@ -5986,7 +6045,7 @@ function renderTaskRow(t, depth) {
       <div class="tasks-col-name" style="padding-left:${16 + depth * 26}px">
         ${isSub ? `<span class="tasks-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
         <button class="tasks-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-        <input class="tasks-name-input ${depth === 0 ? "tasks-name-top" : ""}" data-id="${t.id}" data-field="name" value="${t.name}">
+        <span class="tasks-name-wrap"><textarea rows="1" class="tasks-name-input ${depth === 0 ? "tasks-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks-name-expand" type="button" title="Ver nome completo">▼</button></span>
         <span class="tasks-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
       </div>
       <div class="tasks-col-status">
@@ -6132,6 +6191,37 @@ function renderTasksTable() {
     });
   });
   body.querySelectorAll(".tasks-name-input").forEach(input => {
+    const wrap = input.closest(".tasks-name-wrap");
+    const btn = wrap ? wrap.querySelector(".tasks-name-expand") : null;
+    // Expanded shows the whole name; collapsed is one line so rows stay
+    // uniform. Heights are measured at click/focus time — never at render
+    // time, since the Tasks tab may still be hidden then (a hidden element
+    // reports scrollHeight 0, which is what broke this before).
+    const expand = () => {
+      input.style.height = "auto";
+      input.style.height = input.scrollHeight + "px";
+      if (btn) { btn.textContent = "\u25B2"; btn.title = "Recolher"; }
+    };
+    const collapse = () => {
+      input.style.height = "";
+      if (btn) { btn.textContent = "\u25BC"; btn.title = "Ver nome completo"; }
+    };
+    const isExpanded = () => !!input.style.height;
+    input.addEventListener("focus", expand);
+    input.addEventListener("blur", collapse);
+    input.addEventListener("input", () => { if (isExpanded()) expand(); });
+    if (btn) {
+      // mousedown, not click: the field's own blur would otherwise collapse
+      // it again before a click could land.
+      btn.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (isExpanded()) collapse(); else expand();
+      });
+    }
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); input.blur(); } // names are single-line; Enter commits instead of adding a newline
+    });
     input.addEventListener("paste", (e) => {
       const text = (e.clipboardData || window.clipboardData).getData("text");
       const rawLines = text.split(/\r\n|\r|\n/).filter(l => l.trim().length > 0);
