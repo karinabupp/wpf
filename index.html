@@ -2940,7 +2940,7 @@
   #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
   .tasks2-kpi-row {
     display: grid;
-    grid-template-columns: minmax(200px, 1fr) 150px 118px 170px 160px 160px 56px;
+    grid-template-columns: minmax(180px, 1fr) 130px 100px 158px 150px 130px 130px 56px;
     align-items: center;
     min-height: 50px;
     border-bottom: 1px solid var(--border);
@@ -2968,6 +2968,9 @@
   }
   .tasks2-kpi-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
   .tasks2-kpi-name { font-weight: 600; }
+  .tasks2-fonte-select { cursor: pointer; color: var(--text-muted); font-size: 12.5px; }
+  /* KPI Atual vindo do Marketing: so leitura, marcado como calculado. */
+  .tasks2-kpi-input.is-auto { color: var(--text-muted); cursor: default; font-style: italic; }
   /* Direcao: a seta e o que se le, com o <select> nativo transparente por
      cima — mesmo padrao do seletor de categoria na guia List. */
   .tasks2-dir-picker {
@@ -3002,7 +3005,7 @@
   #tasks2-kpi-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
   #tasks2-kpi-add-btn { background: var(--text); border: none; color: #ffffff; border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
   @media (max-width: 1380px) {
-    .tasks2-kpi-row { grid-template-columns: minmax(160px, 1fr) 124px 100px 148px 138px 138px 50px; min-height: 44px; }
+    .tasks2-kpi-row { grid-template-columns: minmax(150px, 1fr) 110px 86px 138px 132px 116px 116px 50px; min-height: 44px; }
     .tasks2-kpi-row > div { padding: 0 9px; }
     .tasks2-kpi-input { font-size: 13px; }
   }
@@ -4082,6 +4085,7 @@
           <div>Nome do KPI</div>
           <div>Unidade</div>
           <div>Direção</div>
+          <div>Fonte</div>
           <div>Data de início</div>
           <div>Meta KPI</div>
           <div>KPI Atual</div>
@@ -13191,6 +13195,7 @@ applyRolePermissions();
 
   function renderTasksTable() {
     ensureKpisSeeded(); // a coluna KPI le kpisData; sem isso a 1a pintura vem vazia
+    syncKpisFromMarketing(); // e o valor pode ter mudado desde o ultimo render
     autoSyncLateStatuses();
     syncObjetivoStatuses();
     const body = document.getElementById("tasks2-table-body");
@@ -13732,7 +13737,7 @@ applyRolePermissions();
     // velhos — a List so era redesenhada quando alguma task mudava.
     if (mode === "list") renderTasksTable();
     if (mode === "late") renderTasksLateView();
-    if (mode === "kpi") { ensureKpisSeeded(); backfillKpiUnits(); renderKpiTable(); }
+    if (mode === "kpi") { ensureKpisSeeded(); backfillKpiUnits(); ligarKpisDeMarketingUmaVez(); renderKpiTable(); }
   }
 
   document.getElementById("tasks2-nav-list").addEventListener("click", () => setTasksViewMode("list"));
@@ -13765,6 +13770,74 @@ applyRolePermissions();
   // ══════════════════════════════════════════════════════════════════════
   const KPIS_STORAGE_KEY = "wpf_tasks2_kpis";
 
+  // ── KPI Atual puxado do Marketing ─────────────────────────────────────
+  // O Marketing ja busca cinco planilhas do Google Sheets, guarda snapshot em
+  // localStorage e recarrega a cada 5 min. Reaproveitamos o MESMO numero
+  // consolidado que a aba Marketing mostra na caixa do menu lateral, em vez
+  // de inventar outra conta — se um dia a regra de la mudar, esta muda junto.
+  //
+  // Decisao de Karina: so o KPI Atual vem daqui. A Meta segue manual, pra nao
+  // sobrescrever alvo definido por ela que difere do da planilha.
+  const MKT_KPI_SOURCES = {
+    social:       { label: "Marketing · Social Media", decimais: 0,
+                    calc: () => {
+                      const rows = (typeof mktData !== "undefined" && mktData && mktData.igDaily) || [];
+                      if (!rows.length) return null;
+                      const dataKey = mktFindKey(rows[0], ["Data"]);
+                      const segKey = mktFindKey(rows[0], ["Seguidores"]);
+                      const ord = rows.slice().sort((a, b) => (a[dataKey] < b[dataKey] ? -1 : 1));
+                      return mktParseNum(ord[ord.length - 1][segKey]); // ultimo dia = seguidores de hoje
+                    } },
+    website:      { label: "Marketing · Website", decimais: 0,
+                    calc: () => {
+                      const rows = (typeof mktData !== "undefined" && mktData && mktData.websiteData) || [];
+                      if (!rows.length) return null;
+                      const key = mktFindKey(rows[0], ["Atingido"]);
+                      const meses = rows.filter(r => MKT_PT_MONTHS[(r.Mes || "").trim()] !== undefined);
+                      return meses.reduce((soma, r) => soma + (mktParseNum(key ? r[key] : r.Atingido) || 0), 0);
+                    } },
+    "ads-clicks": { label: "Marketing · Campanhas (cliques)", decimais: 0,
+                    calc: () => somaReal("adsClicks", ["Cliques"]) },
+    "ads-budget": { label: "Marketing · Budget (R$)", decimais: 2,
+                    calc: () => somaReal("adsBudget", ["Spend"]) },
+    "ads-cpc":    { label: "Marketing · CPC", decimais: 2,
+                    calc: () => {
+                      const vals = seriesReal("adsCpc", ["CPC"]).filter(v => v !== null && v > 0);
+                      if (!vals.length) return null;
+                      return vals.reduce((a, b) => a + b, 0) / vals.length; // media do ano ate agora
+                    } }
+  };
+
+  function seriesReal(chave, candidatos) {
+    const rows = (typeof mktData !== "undefined" && mktData && mktData[chave]) || [];
+    if (!rows.length || typeof mktBuildMetaVsRealChart !== "function") return [];
+    return mktBuildMetaVsRealChart(rows, candidatos).realData;
+  }
+  function somaReal(chave, candidatos) {
+    const vals = seriesReal(chave, candidatos);
+    if (!vals.length) return null;
+    return vals.reduce((soma, v) => soma + (v || 0), 0);
+  }
+
+  // Recalcula o KPI Atual dos que tem fonte. Grava em k.current pra tudo que
+  // le o KPI (inclusive a coluna KPI da guia List) continuar funcionando sem
+  // saber de onde o numero veio.
+  function syncKpisFromMarketing() {
+    let mudou = false;
+    kpisData.forEach(k => {
+      const fonte = MKT_KPI_SOURCES[k.source];
+      if (!fonte) return;
+      let valor = null;
+      try { valor = fonte.calc(); } catch (e) { valor = null; }
+      if (valor === null || valor === undefined || isNaN(valor)) return; // sem dado: mantem o ultimo
+      const txt = typeof mktFormatBigNumber === "function"
+        ? mktFormatBigNumber(valor, fonte.decimais)
+        : String(valor);
+      if (k.current !== txt) { k.current = txt; mudou = true; }
+    });
+    if (mudou) saveKpisData();
+  }
+
   function ensureKpiDefaults(k) {
     return {
       id: k.id || ("kpi2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7)),
@@ -13774,6 +13847,9 @@ applyRolePermissions();
       // menor, melhor (custo, CPC). Default "up", que era o comportamento
       // unico antes desta coluna existir.
       direction: k.direction === "down" ? "down" : "up",
+      // "" = digitado a mao. Senao, a chave de uma metrica do Marketing
+      // (MKT_VIEWS): so o KPI Atual vem de la; a Meta segue manual.
+      source: MKT_KPI_SOURCES[k.source] ? k.source : "",
       startDate: k.startDate || "",
       target: k.target === undefined || k.target === null ? "" : String(k.target),
       current: k.current === undefined || k.current === null ? "" : String(k.current)
@@ -13816,6 +13892,32 @@ applyRolePermissions();
 
   function ensureKpisSeeded() { if (!kpisSeeded) seedKpisFromReal(); }
 
+  // Liga os cinco KPIs de Marketing a sua fonte, UMA VEZ so. Roda uma vez e
+  // marca no localStorage: sem isso, um KPI que Karina devolvesse pra
+  // "Manual" seria religado sozinho na proxima abertura da guia.
+  // Os nomes sao casados por apelido porque ja foram editados a mao — "Site
+  // WPF" virou "WPF Website", "Budget AdWords" virou "AdWords R$".
+  const MKT_KPI_APELIDOS = {
+    social: ["social media"],
+    website: ["wpf website", "site wpf", "website"],
+    "ads-clicks": ["campanhas adwords", "adwords campaigns", "campanhas"],
+    "ads-budget": ["adwords r$", "adwords rs", "budget adwords", "adwords budget"],
+    "ads-cpc": ["cpc adwords", "adwords cpc", "cpc"]
+  };
+  const MKT_LIGACAO_KEY = "wpf_tasks2_kpis_mkt_ligados";
+  function ligarKpisDeMarketingUmaVez() {
+    if (localStorage.getItem(MKT_LIGACAO_KEY)) return;
+    const normal = txt => String(txt || "").trim().toLowerCase();
+    kpisData.forEach(k => {
+      if (k.source) return;
+      const nome = normal(k.name);
+      const achou = Object.keys(MKT_KPI_APELIDOS).find(f => MKT_KPI_APELIDOS[f].includes(nome));
+      if (achou) k.source = achou;
+    });
+    localStorage.setItem(MKT_LIGACAO_KEY, "1");
+    saveKpisData();
+  }
+
   // A coluna Unidade nasceu depois da guia, entao as linhas ja semeadas estao
   // sem ela. Isto preenche a partir do KPI real correspondente (o id semeado
   // e "kpi2-" + id do goal) e SO onde o campo esta vazio — assim nada que
@@ -13839,6 +13941,7 @@ applyRolePermissions();
   function findKpiById(id) { return kpisData.find(k => k.id === id) || null; }
 
   function renderKpiTable() {
+    syncKpisFromMarketing();
     const body = document.getElementById("tasks2-kpi-body");
     if (!body) return;
     if (!kpisData.length) {
@@ -13859,9 +13962,16 @@ applyRolePermissions();
             </select>
           </span>
         </div>
+        <div>
+          <select class="tasks2-kpi-input tasks2-fonte-select" data-id="${k.id}" data-field="source" title="De onde vem o KPI Atual">
+            <option value="" ${!k.source ? "selected" : ""}>Manual</option>
+            ${Object.keys(MKT_KPI_SOURCES).map(f =>
+              `<option value="${f}" ${k.source === f ? "selected" : ""}>${MKT_KPI_SOURCES[f].label}</option>`).join("")}
+          </select>
+        </div>
         <div><input type="date" class="tasks2-kpi-input" data-id="${k.id}" data-field="startDate" value="${esc(k.startDate)}"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="target" value="${esc(k.target)}" placeholder="Meta"></div>
-        <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual"></div>
+        <div><input type="text" class="tasks2-kpi-input ${k.source ? "is-auto" : ""}" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual" ${k.source ? `readonly title="Vem de ${esc(MKT_KPI_SOURCES[k.source].label)} — para editar à mão, mude a Fonte para Manual"` : ""}></div>
         <div class="tasks2-kpi-col-actions">
           <button class="tasks2-kpi-del" data-id="${k.id}" type="button" title="Excluir KPI">\uD83D\uDDD1</button>
         </div>
@@ -13877,6 +13987,7 @@ applyRolePermissions();
         // A direcao e mostrada por uma seta ao lado do <select>, entao a
         // linha precisa ser redesenhada pra seta acompanhar a escolha.
         if (input.dataset.field === "direction") renderKpiTable();
+        if (input.dataset.field === "source") { syncKpisFromMarketing(); renderKpiTable(); }
       });
     });
     body.querySelectorAll(".tasks2-kpi-del").forEach(btn => {
