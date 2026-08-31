@@ -2885,11 +2885,8 @@
     pointer-events: none;
   }
   .tasks2-type-icon svg { width: 16px; height: 16px; display: block; stroke-width: 2.1; }
-  /* Ideia e um ponto de interrogacao. Letra le muito melhor que pictograma a
-     16px, entao aqui o contorno funciona — e o conjunto volta a ser todo de
-     contorno, sem o glifo cheio que a lampada precisava. Traco um pouco mais
-     grosso pra a forma da letra ter presenca. */
-  .tasks2-type-icon[data-type="ideia"] svg { stroke-width: 2.4; }
+  /* Projeto usa uma maleta de contorno, no traco padrao das outras — nao
+     precisa do reforco que a forma de letra do "?" pedia. */
   .tasks2-type-picker .tasks2-type-select {
     position: absolute;
     inset: 0;
@@ -12409,15 +12406,17 @@ applyRolePermissions();
 (getRealTasks => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
-  // objetivo era "task", rotina era "subtask", e ideia/entregável são novas.
+  // objetivo era "task", rotina era "subtask", e projeto/entregável são novas.
+  // "projeto" nasceu chamada "ideia" e foi renomeada — ver a migração em
+  // ensureTaskDefaults, que ainda converte o valor antigo.
   // A categoria é independente do nível de aninhamento — dá pra ter uma
-  // ideia dentro de um objetivo ou um entregável na raiz.
+  // projeto dentro de um objetivo ou um entregável na raiz.
   // Icones em SVG inline, no mesmo estilo do resto do dashboard: traco
   // currentColor, 24x24, ponta e junta arredondadas. Como sao currentColor,
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    ideia:      { label: "Ideia",      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.6a3.6 3.6 0 1 1 4.9 3.35c-.85.35-1.4 1.15-1.4 2.1v.75"/><circle cx="12" cy="19.1" r="1.25" fill="currentColor" stroke="none"/></svg>` },
+    projeto:    { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
     rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
@@ -12439,7 +12438,7 @@ applyRolePermissions();
     "Approved":     "#1e8a3c"
   };
 
-  // Objetivo, ideia e entregavel assumem a cor do proprio status. Rotina
+  // Objetivo, projeto e entregavel assumem a cor do proprio status. Rotina
   // fica neutra: a linha dela inteira ja e pintada com o status no fundo,
   // repetir no icone so poluiria.
   function typeIconColor(t) {
@@ -12455,7 +12454,7 @@ applyRolePermissions();
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
-  const TASK_TYPE_ORDER = ["objetivo", "ideia", "entregavel", "rotina"];
+  const TASK_TYPE_ORDER = ["objetivo", "projeto", "entregavel", "rotina"];
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
     return TASK_TYPE_ORDER.map(k =>
@@ -12475,7 +12474,7 @@ applyRolePermissions();
     // mesmo tom de On Hold — nao se confundem porque objetivo nunca mostra
     // On Hold (nao esta no vocabulario dele).
     "Attention":    { bg: "#fdf3d6", text: "#7a5b06" },
-    // Vocabulario de ideia. Reaproveitam o azul/vermelho/verde da paleta em
+    // Vocabulario de projeto. Reaproveitam o azul/vermelho/verde da paleta em
     // vez de inventar tons novos.
     "In Analysis":  { bg: "#e6f1fb", text: "#0c447c" },
     "Not Approved": { bg: "#fcebeb", text: "#791f1f" },
@@ -12484,11 +12483,11 @@ applyRolePermissions();
 
   // Cada categoria tem seu proprio vocabulario de status.
   //  - objetivo  : CALCULADO a partir do que esta abaixo, nunca editavel
-  //  - ideia     : aprovacao, nao progresso
+  //  - projeto   : aprovacao, nao progresso
   //  - entregavel/rotina : os seis status de sempre
   const STATUS_BY_TYPE = {
     objetivo:   ["Not Started", "In Progress", "Attention", "Done"],
-    ideia:      ["In Analysis", "Not Approved", "Approved"],
+    projeto:    ["In Analysis", "Not Approved", "Approved"],
     entregavel: TASK_STATUS_OPTIONS,
     rotina:     TASK_STATUS_OPTIONS
   };
@@ -12501,11 +12500,11 @@ applyRolePermissions();
   // nasce, quando os dados sao carregados e quando a categoria muda.
   function coerceStatus(t) {
     if (statusAllowed(t, t.status)) return;
-    t.status = t.rowType === "ideia" ? "In Analysis" : "Not Started";
+    t.status = t.rowType === "projeto" ? "In Analysis" : "Not Started";
   }
 
   // Rollup do objetivo. Le TODA a subarvore, mas conta so entregavel e
-  // rotina: sao as unicas categorias cujo status fala de progresso. Ideia
+  // rotina: sao as unicas categorias cujo status fala de progresso. Projeto
   // usa vocabulario de aprovacao e fica de fora; objetivo aninhado nao e
   // contado diretamente porque ele proprio ja e um reflexo do que tem
   // abaixo dele — o que importa sao as folhas de trabalho.
@@ -12532,7 +12531,7 @@ applyRolePermissions();
     (function walk(items) {
       items.forEach(t => {
         // Encaixa o status no vocabulario da categoria antes do rollup, senao
-        // um dado antigo (ideia em "On Hold", por exemplo) sobreviveria.
+        // um dado antigo (projeto em "On Hold", por exemplo) sobreviveria.
         const antes = t.status;
         coerceStatus(t);
         if (t.status !== antes) changed = true;
@@ -12652,6 +12651,7 @@ applyRolePermissions();
     // "Recarregar do original", que traz dados ainda com task/subtask).
     if (t.rowType === "task") t.rowType = "objetivo";
     if (t.rowType === "subtask") t.rowType = "rotina";
+    if (t.rowType === "ideia") t.rowType = "projeto"; // renomeada depois de ja existir dado salvo
     if (!TASK_TYPES[t.rowType]) t.rowType = depth > 0 ? "rotina" : "objetivo";
     // O status NAO e encaixado aqui de proposito. Se fosse, um valor invalido
     // vindo do localStorage seria corrigido em memoria antes de
@@ -12754,7 +12754,7 @@ applyRolePermissions();
         // already Late — to "Late" once its due date passes, no matter what
         // status it was in (Not Started, In Progress, On Hold, etc).
         // So entregavel e rotina tem "Late" no vocabulario. Objetivo recebe
-      // "Attention" pelo rollup e ideia nao tem nocao de atraso.
+      // "Attention" pelo rollup e projeto nao tem nocao de atraso.
       const podeAtrasar = t.rowType === "entregavel" || t.rowType === "rotina";
       if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
           t.status = "Late";
@@ -13417,7 +13417,7 @@ applyRolePermissions();
   }
 
   // Cadeia de ancestrais de uma linha, do mais externo pro mais interno.
-  // A view Late usa isso pra sempre apontar dentro de qual ideia e de qual
+  // A view Late usa isso pra sempre apontar dentro de qual projeto e de qual
   // entregável a rotina atrasada está — o pai imediato sozinho não bastava,
   // já que a categoria não depende do nível de aninhamento.
   function findAncestorChain(id) {
@@ -13435,10 +13435,10 @@ applyRolePermissions();
 
   function lateContextMarkup(id, fallbackParentName) {
     const context = findAncestorChain(id)
-      .filter(a => a.rowType === "ideia" || a.rowType === "entregavel")
+      .filter(a => a.rowType === "projeto" || a.rowType === "entregavel")
       .map(a => `<span class="tasks2-late-crumb"><span class="tasks2-type-icon" data-type="${a.rowType}" style="color:${typeIconColor(a)}">${TASK_TYPES[a.rowType].icon}</span>${a.name}</span>`);
     if (context.length) return `<div class="tasks2-late-parent">${context.join("")}</div>`;
-    // Sem ideia nem entregável acima: cai no pai imediato, que é o que a
+    // Sem projeto nem entregável acima: cai no pai imediato, que é o que a
     // view mostrava antes, pra não perder contexto nenhum.
     return fallbackParentName ? `<div class="tasks2-late-parent">↳ ${fallbackParentName}</div>` : "";
   }
