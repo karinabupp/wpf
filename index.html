@@ -2863,6 +2863,22 @@
      Tasks original. Ver o bloco JS "TASKS 2" no fim do <script>.
      ══════════════════════════════════════════════════════════ */
   body.role-colab #nav-tasks2 { display: none !important; }
+  /* Com quatro categorias o rotulo mais longo e "📦 Entregável"; sem isto o
+     select nativo corta o texto no estado fechado. A coluna de acoes foi
+     alargada nas tres definicoes de grid do rascunho e a coluna de nome,
+     que e flexivel, absorve a diferenca. */
+  .tasks2-type-select { min-width: 0; flex: 1 1 auto; }
+
+  .tasks2-type-icon {
+    flex: 0 0 auto;
+    font-size: 13px;
+    line-height: 1;
+    cursor: default;
+    user-select: none;
+  }
+  .tasks2-late-parent { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+  .tasks2-late-crumb { white-space: nowrap; }
+
   #tasks2-draft-badge {
     display: inline-flex;
     align-items: center;
@@ -3130,7 +3146,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(220px, 1fr) 150px 130px 130px 200px 240px 158px;
+    grid-template-columns: 30px minmax(220px, 1fr) 150px 130px 130px 200px 240px 196px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3460,7 +3476,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(190px, 1fr) 126px 142px 142px 162px 162px 140px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(190px, 1fr) 126px 142px 142px 162px 162px 182px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3470,7 +3486,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(160px, 1fr) 116px 136px 136px 140px 140px 124px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(160px, 1fr) 116px 136px 136px 140px 140px 168px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -3896,7 +3912,7 @@
     </div>
 
     <div id="tasks2-footer">
-      <button id="tasks2-add-btn" type="button">+ Nova task</button>
+      <button id="tasks2-add-btn" type="button">+ Novo objetivo</button>
       <button id="tasks2-reset-btn" type="button">↺ Recarregar do original</button>
     </div>
   </div>
@@ -12350,6 +12366,23 @@ applyRolePermissions();
 // ══════════════════════════════════════════════════════════════════════════
 (getRealTasks => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
+  // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
+  // objetivo era "task", rotina era "subtask", e ideia/entregável são novas.
+  // A categoria é independente do nível de aninhamento — dá pra ter uma
+  // ideia dentro de um objetivo ou um entregável na raiz.
+  const TASK_TYPES = {
+    objetivo:   { label: "Objetivo",   icon: "🎯" },
+    ideia:      { label: "Ideia",      icon: "💡" },
+    entregavel: { label: "Entregável", icon: "📦" },
+    rotina:     { label: "Rotina",     icon: "🔁" }
+  };
+  const TASK_TYPE_ORDER = ["objetivo", "ideia", "entregavel", "rotina"];
+  function taskTypeOptionsMarkup(selected) {
+    return TASK_TYPE_ORDER.map(k =>
+      `<option value="${k}" ${selected === k ? "selected" : ""}>${TASK_TYPES[k].icon} ${TASK_TYPES[k].label}</option>`
+    ).join("");
+  }
+
   const TASK_STATUS_OPTIONS = ["Not Started", "In Progress", "Late", "Done", "On Hold", "Cancelled"];
   const TASK_STATUS_COLORS = {
     "Not Started":  { bg: "#f1efe8", text: "#444441" },
@@ -12460,7 +12493,11 @@ applyRolePermissions();
     // row (drives whether the row gets a status color). For data saved before
     // this existed, default it from nesting depth so existing boards look the
     // same as before.
-    if (t.rowType !== "task" && t.rowType !== "subtask") t.rowType = depth > 0 ? "subtask" : "task";
+    // Migração das categorias antigas. Roda em TODA cópia (inclusive no
+    // "Recarregar do original", que traz dados ainda com task/subtask).
+    if (t.rowType === "task") t.rowType = "objetivo";
+    if (t.rowType === "subtask") t.rowType = "rotina";
+    if (!TASK_TYPES[t.rowType]) t.rowType = depth > 0 ? "rotina" : "objetivo";
     t.subtasks.forEach(sub => ensureTaskDefaults(sub, depth + 1));
     return t;
   }
@@ -12684,8 +12721,11 @@ applyRolePermissions();
     const expanded = tasksExpanded.has(t.id);
     const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     const isSub = depth > 0; // structural: nested under another row (drag/select stay tied to this)
-    const isSubtaskType = t.rowType === "subtask"; // explicit classification chosen via the row's Task/Subtask selector
-    const rowStyle = isSubtaskType ? ` style="background:${colors.bg}"` : "";
+    // Só rotina ganha a cor do status no fundo — mesma regra que valia pra
+    // subtask antes das quatro categorias.
+    const isRotina = t.rowType === "rotina";
+    const rowStyle = isRotina ? ` style="background:${colors.bg}"` : "";
+    const type = TASK_TYPES[t.rowType] || TASK_TYPES.objetivo;
     const selected = tasksSelectedIds.has(t.id);
     const canDates = colabCan("tasksEditDates");
     const canAssignee = colabCan("tasksEditAssignee");
@@ -12700,7 +12740,7 @@ applyRolePermissions();
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
           ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
           <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-type-icon" title="${type.label}">${type.icon}</span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
@@ -12726,11 +12766,8 @@ applyRolePermissions();
           ${canKpi ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="kpiLink" title="Arraste para copiar o KPI para as linhas ao lado"></span>` : ""}
         </div>
         <div class="tasks2-col-actions">
-          <select class="tasks2-type-select" data-id="${t.id}" title="Task ou subtask? Subtasks ganham a cor do status">
-            <option value="task" ${t.rowType === "task" ? "selected" : ""}>Task</option>
-            <option value="subtask" ${t.rowType === "subtask" ? "selected" : ""}>Subtask</option>
-          </select>
-          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar subtask">+</button>` : ""}
+          <select class="tasks2-type-select" data-id="${t.id}" title="Categoria: ${type.label}. Só rotina ganha a cor do status.">${taskTypeOptionsMarkup(t.rowType)}</select>
+          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar rotina dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
       </div>
@@ -12738,7 +12775,7 @@ applyRolePermissions();
     if (tasksConfirmDeleteId === t.id && canDelete) {
       html += `
         <div class="tasks2-delete-confirm-row" style="padding-left:${16 + depth * 26}px">
-          <span>Excluir "${t.name}"${hasChildren ? " e todas as subtasks dela" : ""}?</span>
+          <span>Excluir "${t.name}"${hasChildren ? " e tudo que está dentro dela" : ""}?</span>
           <button class="tasks2-delete-yes" data-id="${t.id}" type="button">Sim, excluir</button>
           <button class="tasks2-delete-no" type="button">Cancelar</button>
         </div>
@@ -12996,7 +13033,7 @@ applyRolePermissions();
         const parent = findTaskById(tasksData, btn.dataset.id);
         if (!parent) return;
         const newId = "task-" + Date.now();
-        parent.subtasks.push({ id: newId, name: "Nova subtask", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "subtask", subtasks: [] });
+        parent.subtasks.push({ id: newId, name: "Nova rotina", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "rotina", subtasks: [] });
         tasksExpanded.add(parent.id);
         saveTasksData();
         renderTasksTable();
@@ -13141,7 +13178,7 @@ applyRolePermissions();
 
   document.getElementById("tasks2-add-btn").addEventListener("click", () => {
     const newId = "task-" + Date.now();
-    tasksData.push({ id: newId, name: "Nova task", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "task", subtasks: [] });
+    tasksData.push({ id: newId, name: "Novo objetivo", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "objetivo", subtasks: [] });
     saveTasksData();
     renderTasksTable();
   });
@@ -13173,12 +13210,39 @@ applyRolePermissions();
     }
     function walk(items) {
       items.forEach(t => {
-        if (t.rowType === "subtask" && isOverdue(t)) list.push(t);
+        if (t.rowType === "rotina" && isOverdue(t)) list.push(t);
         walk(t.subtasks);
       });
     }
     walk(tasksData);
     return list.sort((a, b) => (a.endDate < b.endDate ? -1 : 1));
+  }
+
+  // Cadeia de ancestrais de uma linha, do mais externo pro mais interno.
+  // A view Late usa isso pra sempre apontar dentro de qual ideia e de qual
+  // entregável a rotina atrasada está — o pai imediato sozinho não bastava,
+  // já que a categoria não depende do nível de aninhamento.
+  function findAncestorChain(id) {
+    let chain = [];
+    function walk(list, trail) {
+      for (const t of list) {
+        if (t.id === id) { chain = trail.slice(); return true; }
+        if (walk(t.subtasks, trail.concat(t))) return true;
+      }
+      return false;
+    }
+    walk(tasksData, []);
+    return chain;
+  }
+
+  function lateContextMarkup(id, fallbackParentName) {
+    const context = findAncestorChain(id)
+      .filter(a => a.rowType === "ideia" || a.rowType === "entregavel")
+      .map(a => `<span class="tasks2-late-crumb">${TASK_TYPES[a.rowType].icon} ${a.name}</span>`);
+    if (context.length) return `<div class="tasks2-late-parent">${context.join("")}</div>`;
+    // Sem ideia nem entregável acima: cai no pai imediato, que é o que a
+    // view mostrava antes, pra não perder contexto nenhum.
+    return fallbackParentName ? `<div class="tasks2-late-parent">↳ ${fallbackParentName}</div>` : "";
   }
 
   function renderTasksLateView() {
@@ -13192,7 +13256,7 @@ applyRolePermissions();
           return `
             <div class="tasks2-late-item">
               <div class="tasks2-late-info">
-                ${parentName ? `<div class="tasks2-late-parent">↳ ${parentName}</div>` : ""}
+                ${lateContextMarkup(t.id, parentName)}
                 <div class="tasks2-late-name">${t.name}</div>
                 <div class="tasks2-late-meta">Venceu em ${formatEntryDate(t.endDate)}${t.assignees.length ? " · " + t.assignees.join(", ") : ""}${goalName ? " · KPI: " + goalName : ""}</div>
               </div>
