@@ -3350,6 +3350,8 @@
 
   }
   .tasks2-name-expand:hover { background: var(--land-default); color: var(--text); }
+  /* Escondida sem sair do fluxo — ver refreshNameExpandButtons(). */
+  .tasks2-name-expand.is-hidden { visibility: hidden; pointer-events: none; }
   .tasks2-name-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
   .tasks2-name-top { font-weight: 700; }
   .tasks2-status-select {
@@ -12902,7 +12904,7 @@ applyRolePermissions();
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
           ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
           <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
@@ -13065,7 +13067,10 @@ applyRolePermissions();
       const isExpanded = () => !!input.style.height;
       input.addEventListener("focus", expand);
       input.addEventListener("blur", collapse);
-      input.addEventListener("input", () => { if (isExpanded()) expand(); });
+      input.addEventListener("input", () => {
+        if (isExpanded()) expand();
+        refreshNameExpandButtons(); // o nome pode ter passado a caber, ou deixado de caber
+      });
       if (btn) {
         // mousedown, not click: the field's own blur would otherwise collapse
         // it again before a click could land.
@@ -13226,6 +13231,30 @@ applyRolePermissions();
     });
     wireFillHandles(body);
     updateTasksBulkBar();
+    refreshNameExpandButtons();
+  }
+
+  // A setinha de "ver nome completo" so aparece quando o nome realmente nao
+  // cabe na linha. Fica com visibility:hidden em vez de display:none de
+  // proposito: escondendo sem tirar do fluxo, a largura do campo nao muda
+  // quando a setinha some, e a medida de transbordo nao fica oscilando entre
+  // "cabe" e "nao cabe" a cada re-medicao.
+  //
+  // A medida so vale com a aba VISIVEL: um elemento escondido reporta
+  // scrollHeight 0. Por isso isto tambem roda ao abrir a aba, e nao so no
+  // render — que pode acontecer com a aba fechada.
+  function refreshNameExpandButtons() {
+    const body = document.getElementById("tasks2-table-body");
+    if (!body || !body.offsetParent) return;
+    body.querySelectorAll(".tasks2-name-input").forEach(input => {
+      const wrap = input.closest(".tasks2-name-wrap");
+      const btn = wrap && wrap.querySelector(".tasks2-name-expand");
+      if (!btn) return;
+      // Expandido: a setinha tem que ficar pra dar como recolher de volta.
+      const expandido = !!input.style.height;
+      const transborda = input.scrollHeight > input.clientHeight + 1;
+      btn.classList.toggle("is-hidden", !expandido && !transborda);
+    });
   }
 
   // --- Fill handle: click a cell (name/status/dates/kpi) to select it, then
@@ -13479,6 +13508,16 @@ applyRolePermissions();
     ensureSeeded();
     setTasksViewMode("list");
     renderTasksTable();
+    // De novo aqui: no render acima a aba pode ainda nao estar visivel, e
+    // sem visibilidade a medida de transbordo da 0.
+    refreshNameExpandButtons();
+  });
+
+  // As colunas sao fluidas, entao mudar a largura da janela muda o que cabe.
+  let tasks2ResizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(tasks2ResizeTimer);
+    tasks2ResizeTimer = setTimeout(refreshNameExpandButtons, 150);
   });
 
   // Reset em dois cliques: refaz a cópia do original do zero.
