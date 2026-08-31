@@ -2888,6 +2888,53 @@
   /* Projeto usa uma maleta de contorno, no traco padrao das outras — nao
      precisa do reforco que a forma de letra do "?" pedia. */
 
+  /* ── Coluna KPI da tabela de tasks ────────────────────────────────
+     Mesmo padrao do seletor de categoria: rotulo visivel com um <select>
+     nativo transparente por cima, pra o clique abrir a lista sem precisar
+     de menu proprio. A cor vem inline, do estado do KPI. */
+  .tasks2-kpi-picker {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    padding: 3px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tasks2-kpi-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
+  .tasks2-kpi-picker.is-herdado { opacity: 0.62; }
+  .tasks2-kpi-picker .tasks2-kpi-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .tasks2-kpi-picker .tasks2-kpi-nums {
+    font-size: 12px;
+    font-weight: 700;
+    color: inherit;
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .tasks2-kpi-vazio { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .tasks2-kpi-picker .tasks2-kpi-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   /* ── Guia KPI: tabela propria, mais simples que a de tasks — quatro
      campos, sem arvore, sem selecao em massa e sem arrastar. ───────── */
   #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
@@ -3229,7 +3276,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(220px, 1fr) 150px 130px 130px 200px 240px 158px;
+    grid-template-columns: 30px minmax(220px, 1fr) 230px 150px 130px 130px 200px 158px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3561,7 +3608,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(190px, 1fr) 126px 142px 142px 162px 162px 140px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(190px, 1fr) 186px 126px 142px 142px 162px 140px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3571,7 +3618,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(160px, 1fr) 116px 136px 136px 140px 140px 124px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(160px, 1fr) 164px 116px 136px 136px 140px 124px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -3988,11 +4035,11 @@
       <div class="tasks2-row tasks2-head-row">
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-name">Nome</div>
+        <div class="tasks2-col-kpi">KPI</div>
         <div class="tasks2-col-status">Status</div>
         <div class="tasks2-col-date">Início</div>
         <div class="tasks2-col-date">Fim</div>
         <div class="tasks2-col-assignee">Responsável</div>
-        <div class="tasks2-col-kpi">KPI associado</div>
         <div class="tasks2-col-actions"></div>
       </div>
       <div id="tasks2-table-body"></div>
@@ -12604,6 +12651,14 @@ applyRolePermissions();
         const antes = t.status;
         coerceStatus(t);
         if (t.status !== antes) changed = true;
+        // kpiLink apontava pro id do goal; a guia KPI semeia com "kpi2-" +
+        // esse id. Fica aqui, e nao no ensureTaskDefaults, pelo mesmo motivo
+        // do coerceStatus: corrigido no load, o sync nao veria mudanca e nao
+        // salvaria — tela certa, dado gravado velho.
+        if (t.kpiLink && t.kpiLink.indexOf("kpi2-") !== 0) {
+          t.kpiLink = "kpi2-" + t.kpiLink;
+          changed = true;
+        }
         walk(t.subtasks); // de baixo pra cima: os filhos primeiro
         if (t.rowType === "objetivo") {
           const s = computeObjetivoStatus(t);
@@ -12949,7 +13004,82 @@ applyRolePermissions();
     return (list || TASK_STATUS_OPTIONS).map(s => `<option value="${s}" ${s === selected ? "selected" : ""}>${s}</option>`).join("");
   }
 
-  function renderTaskRow(t, depth) {
+  // ── KPI na tabela de tasks ────────────────────────────────────────────
+  // A coluna "KPI associado" (que listava goalsData) foi substituida por
+  // esta, que le a guia KPI do proprio rascunho. O vinculo continua sendo
+  // t.kpiLink, mas agora aponta pra um id de kpisData.
+
+  // Numeros dos KPIs vem digitados em formato brasileiro e ambiguo: "23.260"
+  // e vinte e tres mil, "4.95" e quatro virgula noventa e cinco. A regra que
+  // resolve os dois: se depois do ultimo separador vierem exatamente 3
+  // digitos, ele era separador de milhar; senao, era decimal.
+  function parseKpiNumber(v) {
+    if (v === null || v === undefined) return NaN;
+    let txt = String(v).trim().replace(/[^0-9.,-]/g, "");
+    if (!txt) return NaN;
+    const temPonto = txt.includes("."), temVirgula = txt.includes(",");
+    if (temPonto && temVirgula) {
+      // O ultimo separador que aparece e o decimal.
+      txt = txt.lastIndexOf(",") > txt.lastIndexOf(".")
+        ? txt.replace(/\./g, "").replace(",", ".")
+        : txt.replace(/,/g, "");
+    } else if (temVirgula) {
+      txt = txt.replace(/\./g, "").replace(",", ".");
+    } else if (temPonto) {
+      const depois = txt.slice(txt.lastIndexOf(".") + 1);
+      if (depois.length === 3 && txt.split(".").every((p, i) => i === 0 || p.length === 3)) {
+        txt = txt.replace(/\./g, ""); // milhar
+      }
+    }
+    const num = parseFloat(txt);
+    return isNaN(num) ? NaN : num;
+  }
+
+  // Verde / amarelo / vermelho a partir de atual sobre meta.
+  //
+  // ATENCAO, duas simplificacoes assumidas aqui:
+  //  1. "atrasado" deveria ser uma nocao de TEMPO, mas o KPI so tem data de
+  //     inicio — sem data-alvo nao da pra saber quanto ja devia ter andado.
+  //     Entao amarelo aqui significa "a caminho", nao "atrasado no prazo".
+  //  2. Assume-se que MAIOR E MELHOR. Isso esta errado pra KPI de custo, tipo
+  //     "CPC AdWords" (4.68 contra meta 5.16 e bom, e aqui sai vermelho).
+  const KPI_STATE_COLORS = { bom: "#1e8a3c", atencao: "#a8760a", ruim: "#cf2b2b" };
+  function kpiState(k) {
+    const atual = parseKpiNumber(k.current), meta = parseKpiNumber(k.target);
+    if (isNaN(atual) || isNaN(meta) || meta === 0) return null; // sem como julgar
+    const razao = atual / meta;
+    if (razao >= 1) return "bom";
+    if (razao >= 0.5) return "atencao";
+    return "ruim";
+  }
+
+  function kpiCellMarkup(t, depth, inheritedKpi, canKpi) {
+    const efetivo = t.kpiLink || inheritedKpi || "";
+    const k = efetivo ? findKpiById(efetivo) : null;
+    const herdado = !t.kpiLink && !!inheritedKpi;
+    const estado = k ? kpiState(k) : null;
+    const cor = estado ? KPI_STATE_COLORS[estado] : "var(--text-muted)";
+    const numeros = k && (k.current !== "" || k.target !== "") ? `${k.current || "—"}/${k.target || "—"}` : "";
+    const rotulo = k
+      ? `<span class="tasks2-kpi-name">${k.name || "(sem nome)"}</span><span class="tasks2-kpi-nums">${numeros}</span>`
+      : `<span class="tasks2-kpi-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
+    const dica = k
+      ? `${k.name}${k.unit ? " (" + k.unit + ")" : ""}: ${k.current || "—"} de ${k.target || "—"}${herdado ? " — herdado da linha acima" : ""}`
+      : (depth === 0 ? "Escolher KPI" : "Deixe em branco para herdar o KPI da linha acima");
+    const opcoes = kpisData.map(x =>
+      `<option value="${x.id}" ${x.id === t.kpiLink ? "selected" : ""}>${x.name || "(sem nome)"}</option>`).join("");
+    return `<span class="tasks2-kpi-picker ${herdado ? "is-herdado" : ""}" style="color:${cor}" title="${String(dica).replace(/"/g, "&quot;")}">
+        ${rotulo}
+        <select class="tasks2-kpi-select" data-id="${t.id}" aria-label="KPI da linha" ${canKpi ? "" : "disabled"}>
+          <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
+          ${opcoes}
+        </select>
+      </span>
+      ${canKpi ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="kpiLink" title="Arraste para copiar o KPI para as linhas ao lado"></span>` : ""}`;
+  }
+
+  function renderTaskRow(t, depth, inheritedKpi) {
+    inheritedKpi = inheritedKpi || "";
     const hasChildren = t.subtasks.length > 0;
     const expanded = tasksExpanded.has(t.id);
     const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
@@ -12976,6 +13106,9 @@ applyRolePermissions();
           <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
+        <div class="tasks2-col-kpi">
+          ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
+        </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
           ? `<span class="tasks2-status-static" style="background:${colors.bg}; color:${colors.text}" title="Status automático: vem do que está abaixo deste objetivo">${t.status}</span>`
@@ -12993,13 +13126,6 @@ applyRolePermissions();
         <div class="tasks2-col-assignee">
           ${assigneeCellMarkup(t, !canAssignee)}
         </div>
-        <div class="tasks2-col-kpi">
-          <select class="tasks2-kpi-select" data-id="${t.id}" title="${depth === 0 ? "" : "Deixe em branco para herdar o KPI da task acima"}" ${canKpi ? "" : "disabled"}>
-            <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
-            ${goalsData.map(g => `<option value="${g.id}" ${g.id === t.kpiLink ? "selected" : ""}>${g.name}</option>`).join("")}
-          </select>
-          ${canKpi ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="kpiLink" title="Arraste para copiar o KPI para as linhas ao lado"></span>` : ""}
-        </div>
         <div class="tasks2-col-actions">
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar rotina dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
@@ -13016,12 +13142,13 @@ applyRolePermissions();
       `;
     }
     if (hasChildren && expanded) {
-      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1); });
+      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi); });
     }
     return html;
   }
 
   function renderTasksTable() {
+    ensureKpisSeeded(); // a coluna KPI le kpisData; sem isso a 1a pintura vem vazia
     autoSyncLateStatuses();
     syncObjetivoStatuses();
     const body = document.getElementById("tasks2-table-body");
@@ -13255,6 +13382,10 @@ applyRolePermissions();
         if (!t) return;
         t.kpiLink = select.value;
         saveTasksData();
+        // O <select> e invisivel; quem mostra o KPI e o rotulo colorido ao
+        // lado, entao a linha precisa ser redesenhada (e os filhos junto,
+        // que podem estar herdando este valor).
+        renderTasksTable();
       });
     });
     body.querySelectorAll(".tasks2-type-select").forEach(select => {
@@ -13459,8 +13590,8 @@ applyRolePermissions();
       list.forEach(t => {
         const effectiveKpi = t.kpiLink || inheritedKpi;
         if (t.id === taskId) {
-          const g = goalsData.find(x => x.id === effectiveKpi);
-          found = g ? g.name : null;
+          const k = findKpiById(effectiveKpi);
+          found = k ? k.name : null;
         }
         walk(t.subtasks, effectiveKpi);
       });
