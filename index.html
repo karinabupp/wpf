@@ -2940,7 +2940,7 @@
   #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
   .tasks2-kpi-row {
     display: grid;
-    grid-template-columns: minmax(200px, 1fr) 150px 170px 160px 160px 56px;
+    grid-template-columns: minmax(200px, 1fr) 150px 118px 170px 160px 160px 56px;
     align-items: center;
     min-height: 50px;
     border-bottom: 1px solid var(--border);
@@ -2968,6 +2968,33 @@
   }
   .tasks2-kpi-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
   .tasks2-kpi-name { font-weight: 600; }
+  /* Direcao: a seta e o que se le, com o <select> nativo transparente por
+     cima — mesmo padrao do seletor de categoria na guia List. */
+  .tasks2-dir-picker {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tasks2-dir-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
+  .tasks2-dir-seta { font-size: 16px; line-height: 1; font-weight: 700; color: var(--text); pointer-events: none; }
+  .tasks2-dir-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
   .tasks2-kpi-col-actions { display: flex; justify-content: flex-end; }
   .tasks2-kpi-del { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 5px 6px; border-radius: 4px; }
   .tasks2-kpi-del:hover { background: var(--land-default); color: #e24b4a; }
@@ -2975,7 +3002,7 @@
   #tasks2-kpi-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
   #tasks2-kpi-add-btn { background: var(--text); border: none; color: #ffffff; border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
   @media (max-width: 1380px) {
-    .tasks2-kpi-row { grid-template-columns: minmax(160px, 1fr) 124px 148px 138px 138px 50px; min-height: 44px; }
+    .tasks2-kpi-row { grid-template-columns: minmax(160px, 1fr) 124px 100px 148px 138px 138px 50px; min-height: 44px; }
     .tasks2-kpi-row > div { padding: 0 9px; }
     .tasks2-kpi-input { font-size: 13px; }
   }
@@ -4054,6 +4081,7 @@
         <div class="tasks2-kpi-row tasks2-kpi-head-row">
           <div>Nome do KPI</div>
           <div>Unidade</div>
+          <div>Direção</div>
           <div>Data de início</div>
           <div>Meta KPI</div>
           <div>KPI Atual</div>
@@ -13044,15 +13072,24 @@ applyRolePermissions();
   //  1. "atrasado" deveria ser uma nocao de TEMPO, mas o KPI so tem data de
   //     inicio — sem data-alvo nao da pra saber quanto ja devia ter andado.
   //     Entao amarelo aqui significa "a caminho", nao "atrasado no prazo".
-  //  2. Assume-se que MAIOR E MELHOR. Isso esta errado pra KPI de custo:
-  //     um CPC bem abaixo da meta e otimo e sai vermelho aqui.
+  //  2. (RESOLVIDO) A direcao agora vem do proprio KPI, coluna "Direção" na
+  //     guia KPI. Em "down" (quanto menor, melhor) o quociente e invertido:
+  //     meta/atual em vez de atual/meta. Assim um CPC de 4.36 contra meta
+  //     5.16 da 118% e pinta verde, em vez do vermelho de antes.
   const KPI_LIMITE_BOM = 0.70;
   const KPI_LIMITE_ATENCAO = 0.30;
   const KPI_STATE_COLORS = { bom: "#1e8a3c", atencao: "#a8760a", ruim: "#cf2b2b" };
   function kpiState(k) {
     const atual = parseKpiNumber(k.current), meta = parseKpiNumber(k.target);
-    if (isNaN(atual) || isNaN(meta) || meta === 0) return null; // sem como julgar
-    const razao = atual / meta;
+    if (isNaN(atual) || isNaN(meta)) return null; // sem como julgar
+    const paraBaixo = k.direction === "down";
+    // Em "down" o alvo e ficar ABAIXO da meta, entao o que mede desempenho e
+    // meta/atual. Atual zero num KPI de custo e o melhor caso possivel.
+    if (paraBaixo && atual === 0) return "bom";
+    if (paraBaixo ? atual === 0 : meta === 0) return null;
+    if (!paraBaixo && meta === 0) return null;
+    const razao = paraBaixo ? meta / atual : atual / meta;
+    if (!isFinite(razao)) return null;
     if (razao >= KPI_LIMITE_BOM) return "bom";
     if (razao >= KPI_LIMITE_ATENCAO) return "atencao";
     return "ruim";
@@ -13733,6 +13770,10 @@ applyRolePermissions();
       id: k.id || ("kpi2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7)),
       name: k.name || "",
       unit: k.unit || "",
+      // "up" = quanto maior, melhor (contagens, seguidores). "down" = quanto
+      // menor, melhor (custo, CPC). Default "up", que era o comportamento
+      // unico antes desta coluna existir.
+      direction: k.direction === "down" ? "down" : "up",
       startDate: k.startDate || "",
       target: k.target === undefined || k.target === null ? "" : String(k.target),
       current: k.current === undefined || k.current === null ? "" : String(k.current)
@@ -13809,6 +13850,15 @@ applyRolePermissions();
       <div class="tasks2-kpi-row" data-id="${k.id}">
         <div><input type="text" class="tasks2-kpi-input tasks2-kpi-name" data-id="${k.id}" data-field="name" value="${esc(k.name)}" placeholder="Nome do KPI"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="unit" value="${esc(k.unit)}" placeholder="Unidade"></div>
+        <div>
+          <span class="tasks2-dir-picker" title="${k.direction === "down" ? "Quanto menor, melhor" : "Quanto maior, melhor"}">
+            <span class="tasks2-dir-seta">${k.direction === "down" ? "\u2193" : "\u2191"}</span>
+            <select class="tasks2-kpi-input tasks2-dir-select" data-id="${k.id}" data-field="direction" aria-label="Direção do KPI">
+              <option value="up" ${k.direction !== "down" ? "selected" : ""}>↑ Quanto maior, melhor</option>
+              <option value="down" ${k.direction === "down" ? "selected" : ""}>↓ Quanto menor, melhor</option>
+            </select>
+          </span>
+        </div>
         <div><input type="date" class="tasks2-kpi-input" data-id="${k.id}" data-field="startDate" value="${esc(k.startDate)}"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="target" value="${esc(k.target)}" placeholder="Meta"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual"></div>
@@ -13824,6 +13874,9 @@ applyRolePermissions();
         if (!k) return;
         k[input.dataset.field] = input.value;
         saveKpisData();
+        // A direcao e mostrada por uma seta ao lado do <select>, entao a
+        // linha precisa ser redesenhada pra seta acompanhar a escolha.
+        if (input.dataset.field === "direction") renderKpiTable();
       });
     });
     body.querySelectorAll(".tasks2-kpi-del").forEach(btn => {
