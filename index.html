@@ -2885,11 +2885,11 @@
     pointer-events: none;
   }
   .tasks2-type-icon svg { width: 16px; height: 16px; display: block; stroke-width: 2.1; }
-  /* A lampada e a unica PREENCHIDA: em contorno fino ela nao le como lampada
-     a 16px, vira um buraco de fechadura — testado com cinco variantes. Forma
-     cheia resolve, ao custo de destoar das outras tres, que sao de contorno.
-     Vai um pouco menor pra nao pesar mais que as vizinhas. */
-  .tasks2-type-icon[data-type="ideia"] svg { width: 15px; height: 15px; }
+  /* Ideia e um ponto de interrogacao. Letra le muito melhor que pictograma a
+     16px, entao aqui o contorno funciona — e o conjunto volta a ser todo de
+     contorno, sem o glifo cheio que a lampada precisava. Traco um pouco mais
+     grosso pra a forma da letra ter presenca. */
+  .tasks2-type-icon[data-type="ideia"] svg { stroke-width: 2.4; }
   .tasks2-type-picker .tasks2-type-select {
     position: absolute;
     inset: 0;
@@ -12415,7 +12415,7 @@ applyRolePermissions();
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    ideia:      { label: "Ideia",      icon: `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 1.8a7.4 7.4 0 0 0-4.3 13.42c.5.36.8.94.8 1.55v.13h7V16.77c0-.6.3-1.19.8-1.55A7.4 7.4 0 0 0 12 1.8Z"/><rect x="8.5" y="18.6" width="7" height="2.1" rx="1.05"/><rect x="10" y="21.6" width="4" height="2" rx="1"/></svg>` },
+    ideia:      { label: "Ideia",      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.6a3.6 3.6 0 1 1 4.9 3.35c-.85.35-1.4 1.15-1.4 2.1v.75"/><circle cx="12" cy="19.1" r="1.25" fill="currentColor" stroke="none"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
     rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
