@@ -13685,6 +13685,10 @@ applyRolePermissions();
     document.getElementById("tasks2-late-view").classList.toggle("hidden", mode !== "late");
     document.getElementById("tasks2-kpi-view").classList.toggle("hidden", mode !== "kpi");
     document.getElementById("tasks2-footer").style.display = mode === "list" ? "flex" : "none";
+    // Redesenhar ao ENTRAR em cada guia. Sem isto, editar um KPI na guia KPI
+    // e voltar pra List deixava a coluna KPI mostrando nome e numeros
+    // velhos — a List so era redesenhada quando alguma task mudava.
+    if (mode === "list") renderTasksTable();
     if (mode === "late") renderTasksLateView();
     if (mode === "kpi") { ensureKpisSeeded(); backfillKpiUnits(); renderKpiTable(); }
   }
@@ -13838,8 +13842,7 @@ applyRolePermissions();
   // antes deste aqui rodar — este só cuida dos dados.
   document.getElementById("nav-tasks2").addEventListener("click", () => {
     ensureSeeded();
-    setTasksViewMode("list");
-    renderTasksTable();
+    setTasksViewMode("list"); // ja redesenha
     // De novo aqui: no render acima a aba pode ainda nao estar visivel, e
     // sem visibilidade a medida de transbordo da 0.
     refreshNameExpandButtons();
@@ -13876,8 +13879,7 @@ applyRolePermissions();
     tasksConfirmDeleteId = null;
     seedFromRealTasks();
     seedKpisFromReal(); // o reset refaz as duas copias: tasks e KPIs
-    setTasksViewMode("list");
-    renderTasksTable();
+    setTasksViewMode("list"); // ja redesenha
   });
 })(() => tasksData, () => goalsData);
 
