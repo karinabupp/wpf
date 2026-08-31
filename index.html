@@ -2940,7 +2940,7 @@
   #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
   .tasks2-kpi-row {
     display: grid;
-    grid-template-columns: minmax(180px, 1fr) 130px 100px 158px 150px 130px 130px 56px;
+    grid-template-columns: minmax(160px, 1fr) 120px 92px 150px 140px 120px 120px 132px 56px;
     align-items: center;
     min-height: 50px;
     border-bottom: 1px solid var(--border);
@@ -2969,6 +2969,12 @@
   .tasks2-kpi-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
   .tasks2-kpi-name { font-weight: 600; }
   .tasks2-fonte-select { cursor: pointer; color: var(--text-muted); font-size: 12.5px; }
+  .tasks2-src-cell { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .tasks2-src-link { font-size: 12.5px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .tasks2-src-link:hover { text-decoration: underline; }
+  .tasks2-src-input { font-size: 12px; min-width: 0; flex: 1 1 auto; }
+  .tasks2-src-seta { flex: 0 0 auto; font-size: 13px; color: var(--accent); text-decoration: none; padding: 0 2px; }
+  .tasks2-src-vazio { font-size: 12px; color: var(--text-muted); }
   /* KPI Atual vindo do Marketing: so leitura, marcado como calculado. */
   .tasks2-kpi-input.is-auto { color: var(--text-muted); cursor: default; font-style: italic; }
   /* Direcao: a seta e o que se le, com o <select> nativo transparente por
@@ -3005,7 +3011,7 @@
   #tasks2-kpi-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
   #tasks2-kpi-add-btn { background: var(--text); border: none; color: #ffffff; border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
   @media (max-width: 1380px) {
-    .tasks2-kpi-row { grid-template-columns: minmax(150px, 1fr) 110px 86px 138px 132px 116px 116px 50px; min-height: 44px; }
+    .tasks2-kpi-row { grid-template-columns: minmax(130px, 1fr) 100px 80px 128px 124px 104px 104px 112px 50px; min-height: 44px; }
     .tasks2-kpi-row > div { padding: 0 9px; }
     .tasks2-kpi-input { font-size: 13px; }
   }
@@ -4089,6 +4095,7 @@
           <div>Data de início</div>
           <div>Meta KPI</div>
           <div>KPI Atual</div>
+          <div>Source</div>
           <div class="tasks2-kpi-col-actions"></div>
         </div>
         <div id="tasks2-kpi-body"></div>
@@ -13779,7 +13786,7 @@ applyRolePermissions();
   // Decisao de Karina: so o KPI Atual vem daqui. A Meta segue manual, pra nao
   // sobrescrever alvo definido por ela que difere do da planilha.
   const MKT_KPI_SOURCES = {
-    social:       { label: "Marketing · Social Media", decimais: 0,
+    social:       { label: "Marketing · Social Media", decimais: 0, mktKey: "igDaily",
                     calc: () => {
                       const rows = (typeof mktData !== "undefined" && mktData && mktData.igDaily) || [];
                       if (!rows.length) return null;
@@ -13788,7 +13795,7 @@ applyRolePermissions();
                       const ord = rows.slice().sort((a, b) => (a[dataKey] < b[dataKey] ? -1 : 1));
                       return mktParseNum(ord[ord.length - 1][segKey]); // ultimo dia = seguidores de hoje
                     } },
-    website:      { label: "Marketing · Website", decimais: 0,
+    website:      { label: "Marketing · Website", decimais: 0, mktKey: "websiteData",
                     calc: () => {
                       const rows = (typeof mktData !== "undefined" && mktData && mktData.websiteData) || [];
                       if (!rows.length) return null;
@@ -13796,17 +13803,33 @@ applyRolePermissions();
                       const meses = rows.filter(r => MKT_PT_MONTHS[(r.Mes || "").trim()] !== undefined);
                       return meses.reduce((soma, r) => soma + (mktParseNum(key ? r[key] : r.Atingido) || 0), 0);
                     } },
-    "ads-clicks": { label: "Marketing · Campanhas (cliques)", decimais: 0,
+    "ads-clicks": { label: "Marketing · Campanhas (cliques)", decimais: 0, mktKey: "adsClicks",
                     calc: () => somaReal("adsClicks", ["Cliques"]) },
-    "ads-budget": { label: "Marketing · Budget (R$)", decimais: 2,
+    "ads-budget": { label: "Marketing · Budget (R$)", decimais: 2, mktKey: "adsBudget",
                     calc: () => somaReal("adsBudget", ["Spend"]) },
-    "ads-cpc":    { label: "Marketing · CPC", decimais: 2,
+    "ads-cpc":    { label: "Marketing · CPC", decimais: 2, mktKey: "adsCpc",
                     calc: () => {
                       const vals = seriesReal("adsCpc", ["CPC"]).filter(v => v !== null && v > 0);
                       if (!vals.length) return null;
                       return vals.reduce((a, b) => a + b, 0) / vals.length; // media do ano ate agora
                     } }
   };
+
+  // Link pra aba exata da planilha de Marketing (cada metrica tem seu gid).
+  function urlDaFonte(k) {
+    const fonte = MKT_KPI_SOURCES[k.source];
+    if (!fonte || typeof MKT_SOURCES === "undefined") return "";
+    const origem = MKT_SOURCES[fonte.mktKey];
+    if (!origem) return "";
+    return `https://docs.google.com/spreadsheets/d/${origem.sheetId}/edit#gid=${origem.gid}`;
+  }
+
+  // So http(s). Sem isto, um "javascript:..." colado no campo viraria um
+  // link executavel no proprio dashboard.
+  function urlSegura(u) {
+    const txt = String(u || "").trim();
+    return /^https?:\/\//i.test(txt) ? txt : "";
+  }
 
   function seriesReal(chave, candidatos) {
     const rows = (typeof mktData !== "undefined" && mktData && mktData[chave]) || [];
@@ -13850,6 +13873,9 @@ applyRolePermissions();
       // "" = digitado a mao. Senao, a chave de uma metrica do Marketing
       // (MKT_VIEWS): so o KPI Atual vem de la; a Meta segue manual.
       source: MKT_KPI_SOURCES[k.source] ? k.source : "",
+      // Link pra origem do numero. Nos KPIs de Marketing e gerado a partir
+      // da planilha; nos manuais, e digitado.
+      sourceUrl: k.sourceUrl || "",
       startDate: k.startDate || "",
       target: k.target === undefined || k.target === null ? "" : String(k.target),
       current: k.current === undefined || k.current === null ? "" : String(k.current)
@@ -13940,6 +13966,20 @@ applyRolePermissions();
   }
   function findKpiById(id) { return kpisData.find(k => k.id === id) || null; }
 
+  // Nos KPIs de Marketing o link e fixo e so-leitura; nos manuais e um campo
+  // pra colar a URL, com uma seta que abre quando ha algo valido.
+  function sourceCellMarkup(k) {
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    if (k.source) {
+      const u = urlDaFonte(k);
+      if (!u) return `<span class="tasks2-src-vazio">—</span>`;
+      return `<a class="tasks2-src-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="Abrir a planilha do Marketing (aba desta métrica)">Planilha ↗</a>`;
+    }
+    const u = urlSegura(k.sourceUrl);
+    return `<input type="url" class="tasks2-kpi-input tasks2-src-input" data-id="${k.id}" data-field="sourceUrl" value="${esc(k.sourceUrl)}" placeholder="https://…" title="Link de onde vem este número">
+      ${u ? `<a class="tasks2-src-seta" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="Abrir">↗</a>` : ""}`;
+  }
+
   function renderKpiTable() {
     syncKpisFromMarketing();
     const body = document.getElementById("tasks2-kpi-body");
@@ -13972,6 +14012,7 @@ applyRolePermissions();
         <div><input type="date" class="tasks2-kpi-input" data-id="${k.id}" data-field="startDate" value="${esc(k.startDate)}"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="target" value="${esc(k.target)}" placeholder="Meta"></div>
         <div><input type="text" class="tasks2-kpi-input ${k.source ? "is-auto" : ""}" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual" ${k.source ? `readonly title="Vem de ${esc(MKT_KPI_SOURCES[k.source].label)} — para editar à mão, mude a Fonte para Manual"` : ""}></div>
+        <div class="tasks2-src-cell">${sourceCellMarkup(k)}</div>
         <div class="tasks2-kpi-col-actions">
           <button class="tasks2-kpi-del" data-id="${k.id}" type="button" title="Excluir KPI">\uD83D\uDDD1</button>
         </div>
@@ -13988,6 +14029,7 @@ applyRolePermissions();
         // linha precisa ser redesenhada pra seta acompanhar a escolha.
         if (input.dataset.field === "direction") renderKpiTable();
         if (input.dataset.field === "source") { syncKpisFromMarketing(); renderKpiTable(); }
+        if (input.dataset.field === "sourceUrl") renderKpiTable(); // a seta aparece/some
       });
     });
     body.querySelectorAll(".tasks2-kpi-del").forEach(btn => {
