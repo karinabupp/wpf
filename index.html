@@ -13035,21 +13035,26 @@ applyRolePermissions();
     return isNaN(num) ? NaN : num;
   }
 
-  // Verde / amarelo / vermelho a partir de atual sobre meta.
+  // Verde / amarelo / vermelho a partir de atual sobre meta. Cortes
+  // definidos por Karina: 70% ou mais verde, de 30% a 69% amarelo, abaixo
+  // de 30% vermelho. Note que bater 70% da meta ja pinta verde — nao e
+  // preciso atingir 100%.
   //
   // ATENCAO, duas simplificacoes assumidas aqui:
   //  1. "atrasado" deveria ser uma nocao de TEMPO, mas o KPI so tem data de
   //     inicio — sem data-alvo nao da pra saber quanto ja devia ter andado.
   //     Entao amarelo aqui significa "a caminho", nao "atrasado no prazo".
-  //  2. Assume-se que MAIOR E MELHOR. Isso esta errado pra KPI de custo, tipo
-  //     "CPC AdWords" (4.68 contra meta 5.16 e bom, e aqui sai vermelho).
+  //  2. Assume-se que MAIOR E MELHOR. Isso esta errado pra KPI de custo:
+  //     um CPC bem abaixo da meta e otimo e sai vermelho aqui.
+  const KPI_LIMITE_BOM = 0.70;
+  const KPI_LIMITE_ATENCAO = 0.30;
   const KPI_STATE_COLORS = { bom: "#1e8a3c", atencao: "#a8760a", ruim: "#cf2b2b" };
   function kpiState(k) {
     const atual = parseKpiNumber(k.current), meta = parseKpiNumber(k.target);
     if (isNaN(atual) || isNaN(meta) || meta === 0) return null; // sem como julgar
     const razao = atual / meta;
-    if (razao >= 1) return "bom";
-    if (razao >= 0.5) return "atencao";
+    if (razao >= KPI_LIMITE_BOM) return "bom";
+    if (razao >= KPI_LIMITE_ATENCAO) return "atencao";
     return "ruim";
   }
 
