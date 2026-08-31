@@ -2893,7 +2893,7 @@
   #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
   .tasks2-kpi-row {
     display: grid;
-    grid-template-columns: minmax(200px, 1fr) 170px 160px 160px 56px;
+    grid-template-columns: minmax(200px, 1fr) 150px 170px 160px 160px 56px;
     align-items: center;
     min-height: 50px;
     border-bottom: 1px solid var(--border);
@@ -2928,7 +2928,7 @@
   #tasks2-kpi-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
   #tasks2-kpi-add-btn { background: var(--text); border: none; color: #ffffff; border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
   @media (max-width: 1380px) {
-    .tasks2-kpi-row { grid-template-columns: minmax(160px, 1fr) 148px 138px 138px 50px; min-height: 44px; }
+    .tasks2-kpi-row { grid-template-columns: minmax(160px, 1fr) 124px 148px 138px 138px 50px; min-height: 44px; }
     .tasks2-kpi-row > div { padding: 0 9px; }
     .tasks2-kpi-input { font-size: 13px; }
   }
@@ -4006,6 +4006,7 @@
       <div id="tasks2-kpi-table">
         <div class="tasks2-kpi-row tasks2-kpi-head-row">
           <div>Nome do KPI</div>
+          <div>Unidade</div>
           <div>Data de início</div>
           <div>Meta KPI</div>
           <div>KPI Atual</div>
@@ -13554,7 +13555,7 @@ applyRolePermissions();
     document.getElementById("tasks2-kpi-view").classList.toggle("hidden", mode !== "kpi");
     document.getElementById("tasks2-footer").style.display = mode === "list" ? "flex" : "none";
     if (mode === "late") renderTasksLateView();
-    if (mode === "kpi") { ensureKpisSeeded(); renderKpiTable(); }
+    if (mode === "kpi") { ensureKpisSeeded(); backfillKpiUnits(); renderKpiTable(); }
   }
 
   document.getElementById("tasks2-nav-list").addEventListener("click", () => setTasksViewMode("list"));
@@ -13591,6 +13592,7 @@ applyRolePermissions();
     return {
       id: k.id || ("kpi2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7)),
       name: k.name || "",
+      unit: k.unit || "",
       startDate: k.startDate || "",
       target: k.target === undefined || k.target === null ? "" : String(k.target),
       current: k.current === undefined || k.current === null ? "" : String(k.current)
@@ -13621,6 +13623,7 @@ applyRolePermissions();
       return ensureKpiDefaults({
         id: "kpi2-" + g.id,
         name: g.name || "",
+        unit: ultima.unit || primeira.unit || "",
         startDate: primeira.date || "",
         target: ultima.target,
         current: ultima.value
@@ -13631,6 +13634,27 @@ applyRolePermissions();
   }
 
   function ensureKpisSeeded() { if (!kpisSeeded) seedKpisFromReal(); }
+
+  // A coluna Unidade nasceu depois da guia, entao as linhas ja semeadas estao
+  // sem ela. Isto preenche a partir do KPI real correspondente (o id semeado
+  // e "kpi2-" + id do goal) e SO onde o campo esta vazio — assim nada que
+  // tenha sido digitado a mao e sobrescrito, e ninguem precisa recorrer ao
+  // "Recarregar do original", que apagaria as outras ediçoes junto.
+  function backfillKpiUnits() {
+    const faltando = kpisData.filter(k => !k.unit && k.id.indexOf("kpi2-") === 0);
+    if (!faltando.length) return;
+    let reais = [];
+    try { reais = getRealGoals() || []; } catch (e) { return; }
+    let mudou = false;
+    faltando.forEach(k => {
+      const g = reais.find(x => "kpi2-" + x.id === k.id);
+      if (!g || !Array.isArray(g.entries) || !g.entries.length) return;
+      const entries = g.entries.slice().sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+      const unidade = entries[entries.length - 1].unit || entries[0].unit || "";
+      if (unidade) { k.unit = unidade; mudou = true; }
+    });
+    if (mudou) saveKpisData();
+  }
   function findKpiById(id) { return kpisData.find(k => k.id === id) || null; }
 
   function renderKpiTable() {
@@ -13644,6 +13668,7 @@ applyRolePermissions();
     body.innerHTML = kpisData.map(k => `
       <div class="tasks2-kpi-row" data-id="${k.id}">
         <div><input type="text" class="tasks2-kpi-input tasks2-kpi-name" data-id="${k.id}" data-field="name" value="${esc(k.name)}" placeholder="Nome do KPI"></div>
+        <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="unit" value="${esc(k.unit)}" placeholder="Unidade"></div>
         <div><input type="date" class="tasks2-kpi-input" data-id="${k.id}" data-field="startDate" value="${esc(k.startDate)}"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="target" value="${esc(k.target)}" placeholder="Meta"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual"></div>
