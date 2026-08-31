@@ -2854,6 +2854,632 @@
     .tasks-assignee-add-btn { width: 19px; height: 19px; font-size: 12px; }
     .tasks-head-row { font-size: 10px; min-height: 32px; }
   }
+
+  /* ══════════════════════════════════════════════════════════
+     TASKS 2 — rascunho isolado da aba Tasks.
+     Cópia integral das regras da aba Tasks com o prefixo trocado
+     de "tasks-" para "tasks2-", para que as duas abas não
+     compartilhem nenhum seletor. Mexer aqui não alcança a aba
+     Tasks original. Ver o bloco JS "TASKS 2" no fim do <script>.
+     ══════════════════════════════════════════════════════════ */
+  body.role-colab #nav-tasks2 { display: none !important; }
+  #tasks2-draft-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px dashed var(--border-strong);
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    background: transparent;
+    white-space: nowrap;
+  }
+  #tasks2-reset-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-muted);
+    border-radius: 7px;
+    padding: 9px 16px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #tasks2-reset-btn:hover { color: var(--text); }
+  #tasks2-reset-btn.confirming { border-color: #e24b4a; color: #e24b4a; }
+  #tasks2-wrap { width: 100%; }
+  #tasks2-logo-row { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 20px; }
+  #tasks2-subnav { display: flex; align-items: center; gap: 6px; }
+  .tasks2-subnav-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+
+  }
+  .tasks2-subnav-btn svg { width: 17px; height: 17px; }
+  .tasks2-subnav-btn:hover { background: var(--land-default); color: var(--text); }
+  .tasks2-subnav-btn.active { background: var(--text); border-color: var(--text); color: #ffffff; }
+  .tasks2-subnav-btn[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 6px;
+    background: #2c2c2a;
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+    z-index: 20;
+
+  }
+  .tasks2-subnav-btn[data-tooltip]:hover::after { opacity: 1; }
+  #tasks2-footer { display: flex; align-items: center; justify-content: flex-end; margin-top: 14px; }
+  #tasks2-late-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tasks2-late-item {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-left: 4px solid #e24b4a;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+
+  }
+  .tasks2-late-info .tasks2-late-parent { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .tasks2-late-info .tasks2-late-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .tasks2-late-info .tasks2-late-meta { font-size: 12px; color: #791f1f; margin-top: 3px; }
+  .tasks2-late-empty { grid-column: 1 / -1; text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px 0; }
+  #tasks2-general-filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  #tasks2-general-filter-row label { font-size: 12.5px; color: var(--text-muted); font-weight: 500; }
+  #tasks2-general-filter {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+
+  }
+  #tasks2-general-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+  }
+  #tasks2-stat-row-1,
+#tasks2-stat-row-2 {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+
+  }
+  #tasks2-stat-row-1 .tasks2-stat-card, #tasks2-stat-row-2 .tasks2-stat-card { flex: 1 1 0; min-width: 0; }
+  #tasks2-stat-row-1 .tasks2-stat-card { padding: 14px 14px; }
+  #tasks2-stat-row-1 .tasks2-stat-card-value { font-size: 24px; }
+  .tasks2-stat-chart-card { flex: 1 1 0; min-width: 0; }
+  @media (max-width: 900px) {
+    #tasks2-stat-row-1 { flex-wrap: wrap; }
+    #tasks2-stat-row-1 .tasks2-stat-card { flex: 1 1 150px; }
+  }
+  @media (max-width: 720px) {
+    #tasks2-stat-row-2 { flex-wrap: wrap; }
+    .tasks2-stat-chart-card { flex: 1 1 100%; }
+  }
+  .tasks2-stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    width: 100%;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  }
+  .tasks2-stat-card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06); }
+  .tasks2-stat-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+
+  }
+  .tasks2-stat-card-value { font-size: 30px; font-weight: 700; color: var(--text); }
+  .tasks2-stat-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+  .tasks2-stat-chart-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  }
+  .tasks2-stat-chart-card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06); }
+  .tasks2-stat-chart-card .tasks2-stat-card-label { margin-bottom: 12px; }
+  #tasks2-progress-chart-wrap, #tasks2-status-chart-wrap { position: relative; height: 190px; }
+  #tasks2-progress-chart-empty { color: var(--text-muted); font-size: 12.5px; padding: 40px 0; text-align: center; }
+  .tasks2-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+    text-transform: uppercase;
+
+  }
+  #rm-stat-row-1 .tasks2-stat-card, #rm-stat-row-2 .tasks2-stat-chart-card { flex: 1 1 0; min-width: 0; }
+  @media (max-width: 900px) {
+    #rm-stat-row-1 .tasks2-stat-card { flex: 1 1 200px; }
+  }
+  @media (max-width: 720px) {
+    #rm-stat-row-2 .tasks2-stat-chart-card { flex: 1 1 100%; }
+  }
+  .rm-chart-header .tasks2-stat-card-label { margin-bottom: 0; }
+  #tasks2-stat-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+
+  }
+  #tasks2-stat-modal-backdrop.hidden { display: none; }
+  #tasks2-stat-modal {
+    background: #ffffff;
+    border-radius: 12px;
+    width: 640px;
+    max-width: 92vw;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+
+  }
+  #tasks2-stat-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border);
+
+  }
+  #tasks2-stat-modal-header h3 { margin: 0; font-size: 15px; font-weight: 600; }
+  #tasks2-stat-modal-close {
+    background: transparent;
+    border: none;
+    font-size: 15px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+
+  }
+  #tasks2-stat-modal-close:hover { background: var(--land-default); color: var(--text); }
+  #tasks2-stat-modal-body { padding: 16px 18px 20px; overflow-y: auto; }
+  .tasks2-stat-modal-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+
+  }
+  .tasks2-stat-modal-item:last-child { margin-bottom: 0; }
+  .tasks2-stat-modal-parent { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .tasks2-stat-modal-name { font-size: 13.5px; color: var(--text); }
+  .tasks2-stat-modal-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .tasks2-stat-modal-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .tasks2-stat-modal-pill { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 4px 9px; white-space: nowrap; }
+  .tasks2-stat-modal-date { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+  .tasks2-stat-modal-item .tasks2-status-select { flex-shrink: 0; }
+  .tasks2-stat-modal-date-input {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    font-size: 11.5px;
+    font-family: inherit;
+    padding: 5px 6px;
+    border-radius: 6px;
+    width: 122px;
+    flex-shrink: 0;
+
+  }
+  .tasks2-stat-modal-date-input:disabled { background: var(--land-default); color: var(--text-muted); cursor: not-allowed; }
+  .tasks2-stat-modal-empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px 0; }
+  #tasks2-header h2 { margin: 0; font-size: 20px; font-weight: 600; }
+  #tasks2-add-btn {
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    cursor: pointer;
+
+  }
+  #tasks2-add-btn:hover { background: var(--land-default); }
+  #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
+  .tasks2-row {
+    display: grid;
+    grid-template-columns: 30px minmax(220px, 1fr) 150px 130px 130px 200px 240px 158px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    min-height: 56px;
+    transition: box-shadow 0.1s ease;
+
+  }
+  .tasks2-row:last-child { border-bottom: none; }
+  .tasks2-col-select { display: flex; align-items: center; justify-content: center; padding: 0 !important; }
+  .tasks2-row-checkbox { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+  #tasks2-bulk-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #eef3fb;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+
+  }
+  #tasks2-bulk-bar.show { display: flex; }
+  #tasks2-bulk-count { font-weight: 600; color: var(--text); }
+  #tasks2-bulk-delete {
+    border: 1px solid #e24b4a;
+    background: #ffffff;
+    color: #e24b4a;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+  }
+  #tasks2-bulk-delete:hover { background: #e24b4a; color: #ffffff; }
+  #tasks2-bulk-clear {
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+
+  }
+  #tasks2-bulk-actions { display: flex; align-items: center; gap: 10px; }
+  #tasks2-bulk-confirm { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  #tasks2-bulk-actions.hidden, #tasks2-bulk-confirm.hidden { display: none; }
+  #tasks2-bulk-confirm-yes {
+    border: 1px solid #e24b4a;
+    background: #e24b4a;
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+
+  }
+  #tasks2-bulk-confirm-no {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    cursor: pointer;
+
+  }
+  .tasks2-drag-handle {
+    flex-shrink: 0;
+    width: 14px;
+    text-align: center;
+    color: var(--text-muted);
+    cursor: grab;
+    opacity: 0;
+    font-size: 13px;
+    line-height: 1;
+    user-select: none;
+
+  }
+  .tasks2-row:hover .tasks2-drag-handle { opacity: 0.55; }
+  .tasks2-drag-handle:hover { opacity: 1 !important; }
+  .tasks2-drag-handle:active { cursor: grabbing; }
+  .tasks2-row-selected { box-shadow: inset 3px 0 0 var(--accent); }
+  .tasks2-col-name, .tasks2-col-status, .tasks2-col-date, .tasks2-col-kpi { position: relative; }
+  .tasks2-fill-handle {
+    display: none;
+    position: absolute;
+    right: 3px;
+    bottom: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border: 1px solid #ffffff;
+    box-shadow: 0 0 0 1px var(--accent);
+    border-radius: 2px;
+    cursor: crosshair;
+    z-index: 5;
+
+  }
+  .tasks2-name-input:focus ~ .tasks2-fill-handle, .tasks2-status-select:focus ~ .tasks2-fill-handle, .tasks2-date-input:focus ~ .tasks2-fill-handle, .tasks2-kpi-select:focus ~ .tasks2-fill-handle, .tasks2-fill-handle.dragging { display: block; }
+  .tasks2-fill-target { box-shadow: inset 0 0 0 2px var(--accent); background: rgba(24,95,165,0.08); }
+  body.tasks2-fill-active { user-select: none; }
+  .tasks2-row-dragging { opacity: 0.4; }
+  .tasks2-row-drop-target { box-shadow: inset 0 0 0 2px var(--accent); }
+  .tasks2-head-row {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg);
+    min-height: 42px;
+
+  }
+  .tasks2-row > div { padding: 0 16px; }
+  .tasks2-col-name { display: flex; align-items: center; gap: 8px; overflow: visible; min-width: 0; }
+  .tasks2-toggle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12px;
+    width: 16px;
+    flex-shrink: 0;
+    padding: 0;
+
+  }
+  .tasks2-toggle.empty { visibility: hidden; }
+  .tasks2-name-input {
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    width: 100%;
+    padding: 8px 4px;
+    border-radius: 4px;
+    font-family: inherit;
+    line-height: 1.35;
+    resize: none;
+    overflow: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: block;
+    /* Collapsed to a single line so every row keeps the same height.
+    JS sets an explicit height when the field is expanded. */
+    height: 2.35em;
+
+  }
+  .tasks2-name-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-start; gap: 2px; }
+  .tasks2-name-expand {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 9px;
+    line-height: 1;
+    padding: 6px 3px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    align-self: center;
+
+  }
+  .tasks2-name-expand:hover { background: var(--land-default); color: var(--text); }
+  .tasks2-name-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
+  .tasks2-name-top { font-weight: 700; }
+  .tasks2-status-select {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+
+  }
+  .tasks2-date-input {
+    border: none;
+    background: transparent;
+    font-size: 13.5px;
+    color: var(--text);
+    width: 100%;
+    padding: 8px 4px;
+    border-radius: 4px;
+
+  }
+  .tasks2-date-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
+  .tasks2-assignee-select {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-size: 13.5px;
+    color: var(--text);
+    width: 100%;
+    cursor: pointer;
+    margin-top: 4px;
+
+  }
+  .tasks2-assignee-new-input {
+    border: 1px solid var(--accent);
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-size: 13.5px;
+    color: var(--text);
+    width: 100%;
+    margin-top: 4px;
+
+  }
+  .tasks2-assignee-chips { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+  .tasks2-assignee-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 6px 3px 10px;
+    font-size: 12px;
+    color: var(--text);
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+  }
+  .tasks2-assignee-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+
+  }
+  .tasks2-assignee-remove:hover { color: #e24b4a; }
+  .tasks2-assignee-add-btn {
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1;
+    flex-shrink: 0;
+    padding: 0;
+
+  }
+  .tasks2-assignee-add-btn:hover { background: var(--land-default); color: var(--text); }
+  .tasks2-assignee-summary { cursor: pointer; font-weight: 600; }
+  .tasks2-assignee-summary:hover { background: var(--land-default); }
+  .tasks2-assignee-collapse {
+    background: transparent;
+    border: 1px dashed var(--border-strong);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+    line-height: 1;
+
+  }
+  .tasks2-assignee-collapse:hover { background: var(--land-default); color: var(--text); }
+  .tasks2-col-assignee-head { display: flex; align-items: center; gap: 6px; }
+  .tasks2-head-row .tasks2-col-assignee { position: relative; }
+  .tasks2-kpi-select {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 7px 8px;
+    font-size: 13px;
+    color: var(--text);
+    width: 100%;
+    cursor: pointer;
+
+  }
+  .tasks2-col-actions { display: flex; align-items: center; gap: 2px; justify-content: flex-end; min-width: 0; }
+  .tasks2-type-select {
+    border: 1px solid var(--border);
+    background: #ffffff;
+    border-radius: 6px;
+    padding: 6px 4px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    flex: 1 1 auto;
+    min-width: 0;
+
+  }
+  .tasks2-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 5px 5px;
+    border-radius: 4px;
+    line-height: 1;
+    flex-shrink: 0;
+
+  }
+  .tasks2-action-btn:hover { background: var(--land-default); color: var(--text); }
+  .tasks2-delete-confirm-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fcebeb;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: #791f1f;
+
+  }
+  .tasks2-delete-confirm-row button {
+    border: none;
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    cursor: pointer;
+    font-weight: 500;
+
+  }
+  .tasks2-delete-yes { background: #e24b4a; color: #fff; }
+  .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
+  @media (max-width: 1650px) {
+    .tasks2-row { grid-template-columns: 28px minmax(190px, 1fr) 126px 142px 142px 162px 162px 140px; min-height: 46px; }
+    .tasks2-row > div { padding: 0 9px; }
+    .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
+    .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
+    .tasks2-date-input { font-size: 12.5px; padding: 6px 2px; }
+    .tasks2-kpi-select, .tasks2-type-select { font-size: 11.5px; padding: 5px 6px; }
+    .tasks2-assignee-chip { font-size: 11px; padding: 2px 5px 2px 8px; }
+    .tasks2-head-row { min-height: 36px; }
+  }
+  @media (max-width: 1380px) {
+    .tasks2-row { grid-template-columns: 26px minmax(160px, 1fr) 116px 136px 136px 140px 140px 124px; min-height: 42px; }
+    .tasks2-row > div { padding: 0 7px; }
+    .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
+    .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
+    .tasks2-date-input { font-size: 12px; padding: 5px 1px; }
+    .tasks2-kpi-select, .tasks2-type-select { font-size: 11px; padding: 4px 4px; }
+    .tasks2-assignee-chip { font-size: 10.5px; padding: 2px 4px 2px 7px; }
+    .tasks2-assignee-add-btn { width: 19px; height: 19px; font-size: 12px; }
+    .tasks2-head-row { font-size: 10px; min-height: 32px; }
+  }
 </style>
 
 </head>
@@ -2912,6 +3538,12 @@
   <button class="nav-icon-btn" id="nav-tasks" data-tooltip="Tasks" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="4,13 9,18 20,6"/>
+    </svg>
+  </button>
+  <button class="nav-icon-btn" id="nav-tasks2" data-tooltip="Tasks 2 (rascunho)" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="4,13 9,18 20,6"/>
+      <polyline points="4,19 7,22 12,16" opacity="0.45"/>
     </svg>
   </button>
   <button class="nav-icon-btn" id="nav-members" data-tooltip="Members" type="button">
@@ -3210,6 +3842,62 @@
 
     <div id="tasks-footer">
       <button id="tasks-add-btn" type="button">+ Nova task</button>
+    </div>
+  </div>
+</div>
+
+<!-- TASKS 2 — rascunho isolado da aba Tasks (ver bloco JS "TASKS 2"). -->
+<div id="tasks2-view" class="content-view hidden">
+  <div id="tasks2-wrap">
+    <div id="tasks2-logo-row">
+      <div id="tasks2-subnav">
+        <button class="tasks2-subnav-btn active" id="tasks2-nav-list" data-tooltip="List" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+        <button class="tasks2-subnav-btn" id="tasks2-nav-late" data-tooltip="Late" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15.5,14"/>
+          </svg>
+        </button>
+      </div>
+      <span id="tasks2-draft-badge">Rascunho · dados isolados</span>
+    </div>
+    <div id="tasks2-table">
+      <div id="tasks2-bulk-bar">
+        <span id="tasks2-bulk-count"></span>
+        <div id="tasks2-bulk-actions">
+          <button id="tasks2-bulk-delete" type="button">Excluir selecionadas</button>
+          <button id="tasks2-bulk-clear" type="button">Cancelar seleção</button>
+        </div>
+        <div id="tasks2-bulk-confirm" class="hidden">
+          <span>Excluir as tasks selecionadas?</span>
+          <button id="tasks2-bulk-confirm-yes" type="button">Sim, excluir</button>
+          <button id="tasks2-bulk-confirm-no" type="button">Cancelar</button>
+        </div>
+      </div>
+      <div class="tasks2-row tasks2-head-row">
+        <div class="tasks2-col-select"></div>
+        <div class="tasks2-col-name">Nome</div>
+        <div class="tasks2-col-status">Status</div>
+        <div class="tasks2-col-date">Início</div>
+        <div class="tasks2-col-date">Fim</div>
+        <div class="tasks2-col-assignee">Responsável</div>
+        <div class="tasks2-col-kpi">KPI associado</div>
+        <div class="tasks2-col-actions"></div>
+      </div>
+      <div id="tasks2-table-body"></div>
+    </div>
+
+    <div id="tasks2-late-view" class="hidden">
+      <div id="tasks2-late-list"></div>
+    </div>
+
+    <div id="tasks2-footer">
+      <button id="tasks2-add-btn" type="button">+ Nova task</button>
+      <button id="tasks2-reset-btn" type="button">↺ Recarregar do original</button>
     </div>
   </div>
 </div>
@@ -4812,6 +5500,7 @@ const NAV_VIEWS = {
   "nav-slack": "slack-view",
   "nav-forms": "forms-view",
   "nav-tasks": "tasks-view",
+  "nav-tasks2": "tasks2-view",
   "nav-settings": "settings-view"
 };
 // Queried here (not inside the async map-load callback further down) so a
@@ -11631,6 +12320,961 @@ renderGeralTab();
 // the CSS lockdown on Federations/Committee, re-renders Tasks/Goals with
 // their field-level restrictions).
 applyRolePermissions();
+
+// ══════════════════════════════════════════════════════════════════════════
+// TASKS 2 — rascunho isolado da aba Tasks
+//
+// Cópia integral da lógica da aba Tasks, para experimentar mudanças sem
+// risco nenhum pro dashboard em produção. Três coisas garantem o
+// isolamento:
+//
+//   1. Tudo roda dentro desta IIFE. Os nomes aqui dentro (tasksData,
+//      renderTasksTable, findTaskById, tasksExpanded, ensureTaskDefaults…)
+//      são cópias locais que SOMBREIAM as globais da aba Tasks original.
+//      Mexer neles aqui não alcança a aba original.
+//   2. saveTasksData() grava só em localStorage["wpf_tasks2_data"] e não
+//      chama scheduleCloudSave() — o rascunho fica fora do payload do
+//      Supabase.
+//   3. Todos os ids/classes de DOM e CSS levam o prefixo "tasks2-", então
+//      nenhum querySelector das duas abas alcança a outra.
+//
+// A IIFE recebe (() => tasksData) como GETTER — não a referência ao array —
+// pra pegar sempre a versão atual das tasks reais mesmo depois de a nuvem
+// sobrescrever. As chamadas cross-tab (renderGoalsGrid) foram removidas da
+// cópia: o rascunho não dispara render de outra aba.
+//
+// Consequências esperadas do isolamento, documentadas em "Prox Passos":
+// renomear/apagar um usuário em Settings não toca o rascunho, e este bloco
+// fica no fim do <script>, então qualquer erro síncrono anterior mata a
+// aba Tasks 2 junto.
+// ══════════════════════════════════════════════════════════════════════════
+(getRealTasks => {
+  // --- Tasks (nested task/subtask/sub-subtask tracker) ---
+  const TASK_STATUS_OPTIONS = ["Not Started", "In Progress", "Late", "Done", "On Hold", "Cancelled"];
+  const TASK_STATUS_COLORS = {
+    "Not Started":  { bg: "#f1efe8", text: "#444441" },
+    "In Progress":  { bg: "#e6f1fb", text: "#0c447c" },
+    "Late":{ bg: "#fcebeb", text: "#791f1f" },
+    "Done":         { bg: "#eaf3de", text: "#173404" },
+    "On Hold":      { bg: "#fdf3d6", text: "#7a5b06" },
+    "Cancelled":    { bg: "#efefec", text: "#6b6a63" }
+  };
+
+  // --- Responsáveis (Tasks assignees) = usersList — no separate list. Any
+  // login account can be assigned to a task; renaming or deleting a user
+  // updates every task that already has them assigned, so nothing is left
+  // stuck on a stale name.
+  function walkAllTasks(list, fn) {
+    list.forEach(t => { fn(t); walkAllTasks(t.subtasks, fn); });
+  }
+
+  function renameAssigneeEverywhere(oldName, newName) {
+    walkAllTasks(tasksData, t => {
+      if (!t.assignees.includes(oldName)) return;
+      t.assignees = t.assignees.map(n => (n === oldName ? newName : n));
+      // dedupe in case they were already also assigned under the new name
+      t.assignees = [...new Set(t.assignees)];
+    });
+    saveTasksData();
+  }
+
+  function removeAssigneeEverywhere(name) {
+    walkAllTasks(tasksData, t => {
+      t.assignees = t.assignees.filter(n => n !== name);
+    });
+    saveTasksData();
+  }
+
+  let tasksAssigneePickerId = null; // id of a task currently showing the "pick an existing name" dropdown
+  let tasksAssigneeExpandedId = null; // id of a task showing all its assignee chips instead of the "Name +N" summary
+
+  function assigneeCellMarkup(t, colab) {
+    const fullChips = t.assignees.map(name => `
+      <span class="tasks2-assignee-chip">${name}${colab ? "" : `<button class="tasks2-assignee-remove" data-id="${t.id}" data-name="${name.replace(/"/g, "&quot;")}" type="button" title="Remover">×</button>`}</span>
+    `).join("");
+
+    if (colab) {
+      // Read-only for colab: just the names, no add/remove/expand controls.
+      return `<div class="tasks2-assignee-chips">${fullChips || `<span class="tasks2-assignee-chip" style="color:var(--text-muted);">—</span>`}</div>`;
+    }
+
+    if (tasksAssigneePickerId === t.id) {
+      const available = usersList.filter(u => !t.assignees.includes(u.username));
+      return `<div class="tasks2-assignee-chips">${fullChips}</div><select class="tasks2-assignee-select" data-id="${t.id}">
+        <option value="">Escolher…</option>
+        ${available.map(u => `<option value="${u.username}">${u.username}</option>`).join("")}
+      </select>`;
+    }
+
+    // 0 or 1 assignee — nothing to collapse, just show it/them directly.
+    if (t.assignees.length <= 1) {
+      return `<div class="tasks2-assignee-chips">${fullChips}<button class="tasks2-assignee-add-btn" data-id="${t.id}" type="button" title="Adicionar responsável">+</button></div>`;
+    }
+
+    // 2+ assignees: collapsed by default (keeps the row from getting tall),
+    // showing "Name +N" with every name in the hover tooltip. Click to expand
+    // and manage individually.
+    if (tasksAssigneeExpandedId === t.id) {
+      return `<div class="tasks2-assignee-chips">${fullChips}
+        <button class="tasks2-assignee-collapse" data-id="${t.id}" type="button" title="Recolher">‹</button>
+        <button class="tasks2-assignee-add-btn" data-id="${t.id}" type="button" title="Adicionar responsável">+</button>
+      </div>`;
+    }
+    const title = t.assignees.join(", ");
+    return `<div class="tasks2-assignee-chips">
+      <span class="tasks2-assignee-chip tasks2-assignee-summary" data-id="${t.id}" title="${title}">${t.assignees[0]} +${t.assignees.length - 1}</span>
+      <button class="tasks2-assignee-add-btn" data-id="${t.id}" type="button" title="Adicionar responsável">+</button>
+    </div>`;
+  }
+
+  const TASKS_STORAGE_KEY = "wpf_tasks2_data";
+  const TASKS_SEED_DATA = [
+    { id: "task-institutional", name: "Institutional", status: "In Progress", startDate: "", endDate: "", assignees: [], kpiLink: "", subtasks: [
+      { id: "task-sub-1", name: "Enviar contrato pra nova federação", status: "Late", startDate: "2026-06-15", endDate: "2026-07-01", assignees: ["Karina Bupp"], kpiLink: "opening-federations", subtasks: [] },
+      { id: "task-sub-2", name: "Confirmar presença dos embaixadores", status: "In Progress", startDate: "2026-06-10", endDate: "2026-06-25", assignees: ["Leonardo Cavarge"], kpiLink: "member-federations", subtasks: [] }
+    ] },
+    { id: "task-marketing", name: "Marketing", status: "In Progress", startDate: "", endDate: "", assignees: [], kpiLink: "", subtasks: [
+      { id: "task-sub-3", name: "Revisar criativos das campanhas AdWords", status: "In Progress", startDate: "2026-06-20", endDate: "2026-07-05", assignees: ["Roberto Lifschitz"], kpiLink: "campanhas-adwords", subtasks: [] },
+      { id: "task-sub-4", name: "Publicar post nas redes sociais", status: "Late", startDate: "2026-06-18", endDate: "2026-06-30", assignees: ["Isabela Castro"], kpiLink: "social-media", subtasks: [] }
+    ] },
+    { id: "task-initiatives", name: "Initiatives", status: "In Progress", startDate: "", endDate: "", assignees: [], kpiLink: "", subtasks: [] },
+    { id: "task-cbth", name: "CBTH", status: "In Progress", startDate: "", endDate: "", assignees: ["Isabela Castro"], kpiLink: "", subtasks: [
+      { id: "task-sub-5", name: "Cobrar pagamento de federação atrasada", status: "In Progress", startDate: "2026-06-22", endDate: "2026-07-08", assignees: ["Karina Bupp"], kpiLink: "cbpe-pagamentos-2026", subtasks: [] }
+    ] }
+  ];
+
+  function ensureTaskDefaults(t, depth) {
+    if (depth === undefined) depth = 0;
+    if (!Array.isArray(t.subtasks)) t.subtasks = [];
+    if (t.status === undefined) t.status = "Not Started";
+    if (t.status === "Late Progress") t.status = "Late"; // migrate old label
+    if (t.startDate === undefined) t.startDate = "";
+    if (t.endDate === undefined) t.endDate = t.date || ""; // migrate old single "date" field
+    delete t.date;
+    if (t.assignees === undefined) {
+      t.assignees = t.assignee ? [t.assignee] : []; // migrate old single-assignee field
+    }
+    delete t.assignee;
+    if (t.kpiLink === undefined) t.kpiLink = "";
+    // "rowType" is the explicit task/subtask classification the user picks per
+    // row (drives whether the row gets a status color). For data saved before
+    // this existed, default it from nesting depth so existing boards look the
+    // same as before.
+    if (t.rowType !== "task" && t.rowType !== "subtask") t.rowType = depth > 0 ? "subtask" : "task";
+    t.subtasks.forEach(sub => ensureTaskDefaults(sub, depth + 1));
+    return t;
+  }
+
+  // O rascunho não usa TASKS_SEED_DATA e não copia nada no load da página: ele
+  // tira uma cópia das tasks reais na PRIMEIRA vez que a aba é aberta, pra
+  // pegar os dados já sincronizados da nuvem em vez do que estava em cache.
+  // Depois disso vive por conta própria, só no localStorage.
+  let tasksData = [];
+  let tasks2Seeded = false;
+  try {
+    const stored = JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY) || "null");
+    if (Array.isArray(stored)) {
+      tasksData = stored.map(t => ensureTaskDefaults(t));
+      tasks2Seeded = true;
+    }
+  } catch (e) {
+    tasksData = [];
+    tasks2Seeded = false;
+  }
+
+  // Cópia profunda das tasks reais. getRealTasks é um getter (não a referência
+  // ao array) justamente pra pegar sempre a versão atual, mesmo depois de a
+  // nuvem sobrescrever tasksData lá fora.
+  function seedFromRealTasks() {
+    let real = [];
+    try { real = JSON.parse(JSON.stringify(getRealTasks() || [])); } catch (e) { real = []; }
+    tasksData = real.map(t => ensureTaskDefaults(t));
+    tasks2Seeded = true;
+    saveTasksData();
+  }
+
+  function ensureSeeded() {
+    if (!tasks2Seeded) seedFromRealTasks();
+  }
+
+  function saveTasksData() {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+    // Sem scheduleCloudSave() de propósito: o rascunho nunca entra no payload
+    // do Supabase. É isso que o mantém longe das tasks reais, do Geral, do
+    // Goals e do Slack.
+  }
+
+  // Responsáveis = usuários now, but tasks from before that change may still
+  // carry assignee names that were typed in under the old system and never
+  // became a login account. Rather than silently orphan them (or lose them
+  // from the assignee picker), each one gets turned into a real colab user
+  // automatically — same as if Adm had created it by hand, provisional
+  // password and all. Runs after both tasksData and usersList are loaded,
+  // and again once cloud data lands, since either can introduce new names.
+  function migrateOrphanAssigneesToUsers() {
+    const known = new Set(usersList.map(u => u.username.toLowerCase()));
+    const found = new Set();
+    function walk(items) {
+      items.forEach(t => {
+        (t.assignees || []).forEach(name => {
+          if (name && !known.has(name.toLowerCase())) found.add(name);
+        });
+        walk(t.subtasks);
+      });
+    }
+    walk(tasksData);
+    if (!found.size) return;
+    found.forEach(name => {
+      usersList.push({
+        username: name,
+        login: name,
+        password: "wpf2026",
+        role: "colab",
+        email: "",
+        permissions: { ...COLAB_PERMISSIONS_DEFAULT },
+        mustChangePassword: true
+      });
+      known.add(name.toLowerCase());
+    });
+    saveUsersList();
+    if (typeof renderSettingsUsersList === "function") renderSettingsUsersList();
+  }
+  // migrateOrphanAssigneesToUsers() NÃO roda no rascunho: ela criaria usuários
+  // de verdade a partir dos responsáveis do rascunho, que é exatamente o tipo
+  // de vazamento que o isolamento existe pra evitar.
+
+  // Any task past its end date automatically flips to "Late" — regardless of
+  // whatever status it was in before — except Done/Cancelled, which are
+  // treated as finished/moot and are left alone. Runs before every render so
+  // the table, Late view and Geral stats always reflect this on their own.
+  function autoSyncLateStatuses() {
+    const today = todayISO();
+    let changed = false;
+    function walk(items) {
+      items.forEach(t => {
+        // Flip any task that isn't finished/moot (Done/Cancelled) — and isn't
+        // already Late — to "Late" once its due date passes, no matter what
+        // status it was in (Not Started, In Progress, On Hold, etc).
+        if (t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
+          t.status = "Late";
+          changed = true;
+        }
+        walk(t.subtasks);
+      });
+    }
+    walk(tasksData);
+    if (changed) saveTasksData();
+  }
+
+  function findTaskById(list, id) {
+    for (const t of list) {
+      if (t.id === id) return t;
+      const found = findTaskById(t.subtasks, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  // Returns { array, index } — the list a task lives in (its parent's
+  // subtasks array, or the top-level tasksData array) and its position in
+  // it. Used by the bulk-paste handler to insert new sibling rows at the
+  // same level/context the paste happened in.
+  function findTaskContainer(list, id) {
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id) return { array: list, index: i };
+      const found = findTaskContainer(list[i].subtasks, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  // Name of the task a given subtask lives under, or null if it's a
+  // top-level task with no parent — used to show "belongs to: X" wherever
+  // an overdue subtask is listed on its own, out of its normal tree context.
+  function findParentTaskName(id) {
+    function walk(list, parentName) {
+      for (const t of list) {
+        if (t.id === id) return { found: true, parentName };
+        const result = walk(t.subtasks, t.name);
+        if (result) return result;
+      }
+      return null;
+    }
+    const result = walk(tasksData, null);
+    return result ? result.parentName : null;
+  }
+
+  // True if `descendantId` lives anywhere inside `ancestorTask`'s subtree —
+  // used to stop a drag-and-drop from nesting a task inside its own child.
+  function isDescendantOf(ancestorTask, descendantId) {
+    return !!findTaskById(ancestorTask.subtasks, descendantId);
+  }
+
+  // --- Parsing helpers for pasting rows copied out of Notion's table view ---
+  // Notion copies a selection of rows as one line of text per row, with
+  // columns separated by tabs (Name<TAB>Status<TAB>Date<TAB>Assignee), dates
+  // written like "April 28, 2026" or as a range "February 9, 2026 → February
+  // 13, 2026", and multiple people in one cell joined by commas.
+  function parseNotionDate(str) {
+    if (!str) return "";
+    const d = new Date(str.trim());
+    return isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  }
+
+  function parseNotionDateRange(str) {
+    if (!str || !str.trim()) return { start: undefined, end: undefined };
+    const parts = str.split("→").map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 2) return { start: parseNotionDate(parts[0]), end: parseNotionDate(parts[1]) };
+    return { start: "", end: parseNotionDate(parts[0] || "") };
+  }
+
+  function parseNotionStatus(str) {
+    if (!str || !str.trim()) return null;
+    const norm = str.trim().toLowerCase();
+    return TASK_STATUS_OPTIONS.find(s => s.toLowerCase() === norm) || null;
+  }
+
+  function parseNotionAssignees(str) {
+    if (!str || !str.trim()) return undefined;
+    const names = str.split(",").map(s => s.trim()).filter(Boolean);
+    // Responsáveis are user accounts now — a pasted name only sticks if it
+    // matches an existing username; anything else is silently dropped since
+    // there's no more "create a new name on the fly" shortcut.
+    return names
+      .map(n => (usersList.find(u => u.username.toLowerCase() === n.toLowerCase()) || {}).username)
+      .filter(Boolean);
+  }
+
+  // One line of pasted text -> a partial task object. A line with no tabs is
+  // just a name (keeps the simple "paste a plain list of names" case working).
+  function parseNotionPasteLine(line) {
+    const cols = line.split("\t");
+    if (cols.length === 1) return { name: cols[0].trim() };
+    const [nameCol, statusCol, dateCol, assigneeCol] = cols;
+    const range = parseNotionDateRange(dateCol);
+    return {
+      name: (nameCol || "").trim(),
+      status: parseNotionStatus(statusCol),
+      startDate: range.start,
+      endDate: range.end,
+      assignees: parseNotionAssignees(assigneeCol)
+    };
+  }
+
+  function deleteTaskById(list, id) {
+    const idx = list.findIndex(t => t.id === id);
+    if (idx !== -1) { list.splice(idx, 1); return true; }
+    for (const t of list) {
+      if (deleteTaskById(t.subtasks, id)) return true;
+    }
+    return false;
+  }
+
+  let tasksExpanded = new Set(); // collapsed by default — nothing auto-expands on load
+  let tasksConfirmDeleteId = null;
+  let tasksSelectedIds = new Set(); // subtasks currently checked for bulk drag/move
+  let tasksDragIds = []; // ids actually being dragged in the current drag gesture
+
+  function taskStatusOptionsMarkup(selected) {
+    return TASK_STATUS_OPTIONS.map(s => `<option value="${s}" ${s === selected ? "selected" : ""}>${s}</option>`).join("");
+  }
+
+  function renderTaskRow(t, depth) {
+    const hasChildren = t.subtasks.length > 0;
+    const expanded = tasksExpanded.has(t.id);
+    const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
+    const isSub = depth > 0; // structural: nested under another row (drag/select stay tied to this)
+    const isSubtaskType = t.rowType === "subtask"; // explicit classification chosen via the row's Task/Subtask selector
+    const rowStyle = isSubtaskType ? ` style="background:${colors.bg}"` : "";
+    const selected = tasksSelectedIds.has(t.id);
+    const canDates = colabCan("tasksEditDates");
+    const canAssignee = colabCan("tasksEditAssignee");
+    const canKpi = colabCan("tasksEditKpi");
+    const canDelete = colabCan("tasksDelete");
+    const canCreate = colabCan("tasksCreate");
+    let html = `
+      <div class="tasks2-row ${selected ? "tasks2-row-selected" : ""}" data-id="${t.id}"${rowStyle}>
+        <div class="tasks2-col-select">
+          <input type="checkbox" class="tasks2-row-checkbox" data-id="${t.id}" ${selected ? "checked" : ""}>
+        </div>
+        <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
+          ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
+          <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
+          <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
+        </div>
+        <div class="tasks2-col-status">
+          <select class="tasks2-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}">${taskStatusOptionsMarkup(t.status)}</select>
+          <span class="tasks2-fill-handle" data-id="${t.id}" data-field="status" title="Arraste para copiar o status para as linhas ao lado"></span>
+        </div>
+        <div class="tasks2-col-date">
+          <input type="date" class="tasks2-date-input" data-id="${t.id}" data-field="startDate" value="${t.startDate}" title="Data de início" ${canDates ? "" : "disabled"}>
+          ${canDates ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="startDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
+        </div>
+        <div class="tasks2-col-date">
+          <input type="date" class="tasks2-date-input" data-id="${t.id}" data-field="endDate" value="${t.endDate}" title="Data final" ${canDates ? "" : "disabled"}>
+          ${canDates ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="endDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
+        </div>
+        <div class="tasks2-col-assignee">
+          ${assigneeCellMarkup(t, !canAssignee)}
+        </div>
+        <div class="tasks2-col-kpi">
+          <select class="tasks2-kpi-select" data-id="${t.id}" title="${depth === 0 ? "" : "Deixe em branco para herdar o KPI da task acima"}" ${canKpi ? "" : "disabled"}>
+            <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
+            ${goalsData.map(g => `<option value="${g.id}" ${g.id === t.kpiLink ? "selected" : ""}>${g.name}</option>`).join("")}
+          </select>
+          ${canKpi ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="kpiLink" title="Arraste para copiar o KPI para as linhas ao lado"></span>` : ""}
+        </div>
+        <div class="tasks2-col-actions">
+          <select class="tasks2-type-select" data-id="${t.id}" title="Task ou subtask? Subtasks ganham a cor do status">
+            <option value="task" ${t.rowType === "task" ? "selected" : ""}>Task</option>
+            <option value="subtask" ${t.rowType === "subtask" ? "selected" : ""}>Subtask</option>
+          </select>
+          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar subtask">+</button>` : ""}
+          ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
+        </div>
+      </div>
+    `;
+    if (tasksConfirmDeleteId === t.id && canDelete) {
+      html += `
+        <div class="tasks2-delete-confirm-row" style="padding-left:${16 + depth * 26}px">
+          <span>Excluir "${t.name}"${hasChildren ? " e todas as subtasks dela" : ""}?</span>
+          <button class="tasks2-delete-yes" data-id="${t.id}" type="button">Sim, excluir</button>
+          <button class="tasks2-delete-no" type="button">Cancelar</button>
+        </div>
+      `;
+    }
+    if (hasChildren && expanded) {
+      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1); });
+    }
+    return html;
+  }
+
+  function renderTasksTable() {
+    autoSyncLateStatuses();
+    const body = document.getElementById("tasks2-table-body");
+    body.innerHTML = tasksData.map(t => renderTaskRow(t, 0)).join("");
+
+    body.querySelectorAll(".tasks2-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        if (tasksExpanded.has(id)) tasksExpanded.delete(id); else tasksExpanded.add(id);
+        renderTasksTable();
+      });
+    });
+    // Ctrl/Cmd+click any row (or use its checkbox) to add it to the selection
+    // — for bulk delete, and for subtasks also for dragging several at once.
+    // Clicking without a modifier key just interacts with whatever field you
+    // clicked normally.
+    body.querySelectorAll(".tasks2-row").forEach(row => {
+      row.addEventListener("click", (e) => {
+        if (e.target.classList.contains("tasks2-row-checkbox")) return; // handled by its own listener
+        if (!(e.ctrlKey || e.metaKey)) return;
+        const id = row.dataset.id;
+        e.preventDefault();
+        if (tasksSelectedIds.has(id)) tasksSelectedIds.delete(id); else tasksSelectedIds.add(id);
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-row-checkbox").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const id = cb.dataset.id;
+        if (cb.checked) tasksSelectedIds.add(id); else tasksSelectedIds.delete(id);
+        renderTasksTable();
+      });
+    });
+    // Drag-and-drop: grab a subtask by the small handle that appears on
+    // hover (like Notion's drag handle) and drop it onto any row — a
+    // top-level task or another subtask — to move it there as a child of
+    // whatever you dropped it on. If several *subtasks* are Ctrl/Cmd- or
+    // checkbox-selected and you drag one of them, all the selected ones
+    // move together (top-level tasks in the selection are left out of the
+    // drag itself — they're selected only for bulk delete).
+    body.querySelectorAll(".tasks2-drag-handle").forEach(handle => {
+      handle.addEventListener("dragstart", (e) => {
+        const id = handle.dataset.id;
+        if (tasksSelectedIds.has(id) && tasksSelectedIds.size > 1) {
+          tasksDragIds = [...tasksSelectedIds].filter(sid => {
+            const c = findTaskContainer(tasksData, sid);
+            return c && c.array !== tasksData;
+          });
+        } else {
+          tasksDragIds = [id];
+        }
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", id);
+        const row = handle.closest(".tasks2-row");
+        if (row) {
+          e.dataTransfer.setDragImage(row, 20, 20);
+          row.classList.add("tasks2-row-dragging");
+        }
+      });
+      handle.addEventListener("dragend", () => {
+        const row = handle.closest(".tasks2-row");
+        if (row) row.classList.remove("tasks2-row-dragging");
+        document.querySelectorAll(".tasks2-row-drop-target").forEach(r => r.classList.remove("tasks2-row-drop-target"));
+      });
+    });
+    body.querySelectorAll(".tasks2-row").forEach(row => {
+      row.addEventListener("dragover", (e) => {
+        if (!tasksDragIds.length) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        row.classList.add("tasks2-row-drop-target");
+      });
+      row.addEventListener("dragleave", () => row.classList.remove("tasks2-row-drop-target"));
+      row.addEventListener("drop", (e) => {
+        e.preventDefault();
+        row.classList.remove("tasks2-row-drop-target");
+        const targetId = row.dataset.id;
+        const target = findTaskById(tasksData, targetId);
+        if (!target || !tasksDragIds.length) return;
+        if (tasksDragIds.includes(targetId)) { tasksDragIds = []; return; } // can't drop onto itself
+
+        tasksDragIds.forEach(dragId => {
+          if (isDescendantOf(findTaskById(tasksData, dragId) || { subtasks: [] }, targetId)) return; // would create a loop
+          const container = findTaskContainer(tasksData, dragId);
+          if (!container) return;
+          const [moved] = container.array.splice(container.index, 1);
+          target.subtasks.push(moved);
+        });
+        tasksExpanded.add(targetId);
+        tasksSelectedIds.clear();
+        tasksDragIds = [];
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-name-input").forEach(input => {
+      const wrap = input.closest(".tasks2-name-wrap");
+      const btn = wrap ? wrap.querySelector(".tasks2-name-expand") : null;
+      // Expanded shows the whole name; collapsed is one line so rows stay
+      // uniform. Heights are measured at click/focus time — never at render
+      // time, since the Tasks tab may still be hidden then (a hidden element
+      // reports scrollHeight 0, which is what broke this before).
+      const expand = () => {
+        input.style.height = "auto";
+        input.style.height = input.scrollHeight + "px";
+        if (btn) { btn.textContent = "\u25B2"; btn.title = "Recolher"; }
+      };
+      const collapse = () => {
+        input.style.height = "";
+        if (btn) { btn.textContent = "\u25BC"; btn.title = "Ver nome completo"; }
+      };
+      const isExpanded = () => !!input.style.height;
+      input.addEventListener("focus", expand);
+      input.addEventListener("blur", collapse);
+      input.addEventListener("input", () => { if (isExpanded()) expand(); });
+      if (btn) {
+        // mousedown, not click: the field's own blur would otherwise collapse
+        // it again before a click could land.
+        btn.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (isExpanded()) collapse(); else expand();
+        });
+      }
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); input.blur(); } // names are single-line; Enter commits instead of adding a newline
+      });
+      input.addEventListener("paste", (e) => {
+        const text = (e.clipboardData || window.clipboardData).getData("text");
+        const rawLines = text.split(/\r\n|\r|\n/).filter(l => l.trim().length > 0);
+        if (rawLines.length === 0) return;
+        if (rawLines.length === 1 && !rawLines[0].includes("\t")) return; // one plain name — let the normal paste happen
+
+        e.preventDefault();
+        const container = findTaskContainer(tasksData, input.dataset.id);
+        if (!container) return;
+        const { array, index } = container;
+        const current = array[index];
+        const rows = rawLines.map(parseNotionPasteLine);
+
+        // First pasted row fills the task you pasted into (name, and status/
+        // dates/assignees too if that row had them); every other row becomes
+        // a new sibling task right after it, in that same list — so pasting
+        // into a subtask's name creates new subtasks right there, just like
+        // rows expanding in Notion/Sheets. Multiple values in the "assignee"
+        // column (comma-separated, as Notion exports multi-person cells) all
+        // get added, and any new names are added to the shared list too.
+        const first = rows[0];
+        if (first.name) current.name = first.name;
+        if (first.status) current.status = first.status;
+        if (first.startDate !== undefined) current.startDate = first.startDate;
+        if (first.endDate !== undefined) current.endDate = first.endDate;
+        if (first.assignees) current.assignees = first.assignees;
+
+        const newTasks = rows.slice(1).map((row, i) => ({
+          id: `task-${Date.now()}-${i}`,
+          name: row.name || "Nova task",
+          status: row.status || "Not Started",
+          startDate: row.startDate || "",
+          endDate: row.endDate || "",
+          assignees: row.assignees || [],
+          kpiLink: "",
+          rowType: current.rowType,
+          subtasks: []
+        }));
+        array.splice(index + 1, 0, ...newTasks);
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-name-input, .tasks2-date-input").forEach(input => {
+      input.addEventListener("change", () => {
+        const t = findTaskById(tasksData, input.dataset.id);
+        if (!t) return;
+        t[input.dataset.field] = input.value.trim();
+        saveTasksData();
+      });
+    });
+    body.querySelectorAll(".tasks2-assignee-add-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        tasksAssigneePickerId = btn.dataset.id;
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-assignee-summary").forEach(el => {
+      el.addEventListener("click", () => {
+        tasksAssigneeExpandedId = el.dataset.id;
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-assignee-collapse").forEach(btn => {
+      btn.addEventListener("click", () => {
+        tasksAssigneeExpandedId = null;
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-assignee-remove").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const t = findTaskById(tasksData, btn.dataset.id);
+        if (!t) return;
+        t.assignees = t.assignees.filter(n => n !== btn.dataset.name);
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-assignee-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        if (select.value && !t.assignees.includes(select.value)) t.assignees.push(select.value);
+        tasksAssigneePickerId = null;
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-status-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        t.status = select.value;
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-kpi-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        t.kpiLink = select.value;
+        saveTasksData();
+      });
+    });
+    body.querySelectorAll(".tasks2-type-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        t.rowType = select.value;
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll('.tasks2-action-btn[data-action="add"]').forEach(btn => {
+      btn.addEventListener("click", () => {
+        const parent = findTaskById(tasksData, btn.dataset.id);
+        if (!parent) return;
+        const newId = "task-" + Date.now();
+        parent.subtasks.push({ id: newId, name: "Nova subtask", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "subtask", subtasks: [] });
+        tasksExpanded.add(parent.id);
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll('.tasks2-action-btn[data-action="delete"]').forEach(btn => {
+      btn.addEventListener("click", () => {
+        tasksConfirmDeleteId = btn.dataset.id;
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-delete-yes").forEach(btn => {
+      btn.addEventListener("click", () => {
+        deleteTaskById(tasksData, btn.dataset.id);
+        tasksConfirmDeleteId = null;
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-delete-no").forEach(btn => {
+      btn.addEventListener("click", () => {
+        tasksConfirmDeleteId = null;
+        renderTasksTable();
+      });
+    });
+    wireFillHandles(body);
+    updateTasksBulkBar();
+  }
+
+  // --- Fill handle: click a cell (name/status/dates/kpi) to select it, then
+  // drag the little square at its corner up or down to copy that one value
+  // onto every row the drag passes over — like a spreadsheet's autofill.
+  let tasksFill = null; // { field, value, startIndex, ids } while a drag is in progress
+
+  function tasksFlatRowIds() {
+    return [...document.querySelectorAll("#tasks2-table-body .tasks2-row")].map(el => el.dataset.id);
+  }
+
+  function tasksClearFillPreview() {
+    document.querySelectorAll(".tasks2-fill-target").forEach(el => el.classList.remove("tasks2-fill-target"));
+  }
+
+  // startDate and endDate both live inside a ".tasks2-col-date" wrapper, so we
+  // find the cell via the specific input rather than the class alone.
+  function tasksFindFieldCell(rowEl, field) {
+    const input = rowEl.querySelector(`[data-field="${field}"]`);
+    return input ? input.closest(".tasks2-row > div") : null;
+  }
+
+  function wireFillHandles(body) {
+    body.querySelectorAll(".tasks2-fill-handle").forEach(handle => {
+      handle.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ids = tasksFlatRowIds();
+        const startIndex = ids.indexOf(handle.dataset.id);
+        const t = findTaskById(tasksData, handle.dataset.id);
+        if (startIndex === -1 || !t) return;
+        tasksFill = { field: handle.dataset.field, value: t[handle.dataset.field], startIndex, ids };
+        handle.classList.add("dragging");
+        document.body.classList.add("tasks2-fill-active");
+      });
+    });
+  }
+
+  document.addEventListener("mousemove", (e) => {
+    if (!tasksFill) return;
+    tasksClearFillPreview();
+    const rowEl = document.elementFromPoint(e.clientX, e.clientY)?.closest(".tasks2-row");
+    if (!rowEl) return;
+    const targetIndex = tasksFill.ids.indexOf(rowEl.dataset.id);
+    if (targetIndex === -1) return;
+    const [from, to] = targetIndex > tasksFill.startIndex
+      ? [tasksFill.startIndex + 1, targetIndex]
+      : [targetIndex, tasksFill.startIndex - 1];
+    if (from > to) return;
+    const rows = [...document.querySelectorAll("#tasks2-table-body .tasks2-row")];
+    for (let i = from; i <= to; i++) {
+      const cell = tasksFindFieldCell(rows[i], tasksFill.field);
+      if (cell) cell.classList.add("tasks2-fill-target");
+    }
+  });
+
+  document.addEventListener("mouseup", (e) => {
+    if (!tasksFill) return;
+    const { field, value, startIndex, ids } = tasksFill;
+    const rowEl = document.elementFromPoint(e.clientX, e.clientY)?.closest(".tasks2-row");
+    tasksClearFillPreview();
+    document.querySelectorAll(".tasks2-fill-handle.dragging").forEach(h => h.classList.remove("dragging"));
+    document.body.classList.remove("tasks2-fill-active");
+    tasksFill = null;
+    if (!rowEl) return;
+    const targetIndex = ids.indexOf(rowEl.dataset.id);
+    if (targetIndex === -1 || targetIndex === startIndex) return;
+    const [from, to] = targetIndex > startIndex ? [startIndex + 1, targetIndex] : [targetIndex, startIndex - 1];
+    if (from > to) return;
+    for (let i = from; i <= to; i++) {
+      const t = findTaskById(tasksData, ids[i]);
+      if (t) t[field] = value;
+    }
+    saveTasksData();
+    renderTasksTable();
+  });
+
+  // --- Bulk select / delete bar ---
+  let tasksBulkConfirming = false;
+
+  function updateTasksBulkBar() {
+    const bar = document.getElementById("tasks2-bulk-bar");
+    const count = tasksSelectedIds.size;
+    if (count === 0) {
+      bar.classList.remove("show");
+      tasksBulkConfirming = false;
+      return;
+    }
+    bar.classList.add("show");
+    document.getElementById("tasks2-bulk-count").textContent = `${count} selecionada${count > 1 ? "s" : ""}`;
+    document.getElementById("tasks2-bulk-actions").classList.toggle("hidden", tasksBulkConfirming);
+    document.getElementById("tasks2-bulk-confirm").classList.toggle("hidden", !tasksBulkConfirming);
+  }
+
+  document.getElementById("tasks2-bulk-delete").addEventListener("click", () => {
+    tasksBulkConfirming = true;
+    updateTasksBulkBar();
+  });
+  document.getElementById("tasks2-bulk-confirm-no").addEventListener("click", () => {
+    tasksBulkConfirming = false;
+    updateTasksBulkBar();
+  });
+  document.getElementById("tasks2-bulk-confirm-yes").addEventListener("click", () => {
+    [...tasksSelectedIds].forEach(id => deleteTaskById(tasksData, id));
+    tasksSelectedIds.clear();
+    tasksBulkConfirming = false;
+    saveTasksData();
+    renderTasksTable();
+  });
+  document.getElementById("tasks2-bulk-clear").addEventListener("click", () => {
+    tasksSelectedIds.clear();
+    tasksBulkConfirming = false;
+    renderTasksTable();
+  });
+
+  document.getElementById("tasks2-add-btn").addEventListener("click", () => {
+    const newId = "task-" + Date.now();
+    tasksData.push({ id: newId, name: "Nova task", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "task", subtasks: [] });
+    saveTasksData();
+    renderTasksTable();
+  });
+
+  // --- Tasks subnav: List / Late / Geral ---
+  let tasksViewMode = "list";
+
+  function findGoalNameForTaskId(taskId) {
+    let found = null;
+    function walk(list, inheritedKpi) {
+      list.forEach(t => {
+        const effectiveKpi = t.kpiLink || inheritedKpi;
+        if (t.id === taskId) {
+          const g = goalsData.find(x => x.id === effectiveKpi);
+          found = g ? g.name : null;
+        }
+        walk(t.subtasks, effectiveKpi);
+      });
+    }
+    walk(tasksData, "");
+    return found;
+  }
+
+  function getAllOverdueTasks() {
+    const today = todayISO();
+    const list = [];
+    function isOverdue(t) {
+      return t.status !== "Done" && t.status !== "Cancelled" && t.endDate && t.endDate < today;
+    }
+    function walk(items) {
+      items.forEach(t => {
+        if (t.rowType === "subtask" && isOverdue(t)) list.push(t);
+        walk(t.subtasks);
+      });
+    }
+    walk(tasksData);
+    return list.sort((a, b) => (a.endDate < b.endDate ? -1 : 1));
+  }
+
+  function renderTasksLateView() {
+    autoSyncLateStatuses();
+    const tasks = getAllOverdueTasks();
+    const el = document.getElementById("tasks2-late-list");
+    el.innerHTML = tasks.length
+      ? tasks.map(t => {
+          const goalName = findGoalNameForTaskId(t.id);
+          const parentName = findParentTaskName(t.id);
+          return `
+            <div class="tasks2-late-item">
+              <div class="tasks2-late-info">
+                ${parentName ? `<div class="tasks2-late-parent">↳ ${parentName}</div>` : ""}
+                <div class="tasks2-late-name">${t.name}</div>
+                <div class="tasks2-late-meta">Venceu em ${formatEntryDate(t.endDate)}${t.assignees.length ? " · " + t.assignees.join(", ") : ""}${goalName ? " · KPI: " + goalName : ""}</div>
+              </div>
+              <select class="overdue-task-status" data-id="${t.id}">${taskStatusOptionsMarkup(t.status)}</select>
+            </div>
+          `;
+        }).join("")
+      : `<div class="tasks2-late-empty">Nenhuma task atrasada. 🎉</div>`;
+    el.querySelectorAll(".overdue-task-status").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        t.status = select.value;
+        saveTasksData();
+        renderTasksLateView();
+      });
+    });
+  }
+
+
+  function setTasksViewMode(mode) {
+    tasksViewMode = mode;
+    document.getElementById("tasks2-nav-list").classList.toggle("active", mode === "list");
+    document.getElementById("tasks2-nav-late").classList.toggle("active", mode === "late");
+    document.getElementById("tasks2-table").classList.toggle("hidden", mode !== "list");
+    document.getElementById("tasks2-late-view").classList.toggle("hidden", mode !== "late");
+    document.getElementById("tasks2-footer").style.display = mode === "list" ? "flex" : "none";
+    if (mode === "late") renderTasksLateView();
+  }
+
+  document.getElementById("tasks2-nav-list").addEventListener("click", () => setTasksViewMode("list"));
+  document.getElementById("tasks2-nav-late").addEventListener("click", () => setTasksViewMode("late"));
+
+
+  // Cloning the existing logo node avoids duplicating its large base64 source.
+  const tasksLogoRow = document.getElementById("tasks2-logo-row");
+  const tasksLogoClone = document.getElementById("logo").cloneNode(true);
+  tasksLogoClone.removeAttribute("id");
+  tasksLogoClone.style.height = "44px";
+  tasksLogoClone.style.width = "auto";
+  tasksLogoClone.style.display = "block";
+  tasksLogoRow.prepend(tasksLogoClone);
+
+
+  // ─── Wiring próprio do rascunho ───────────────────────────────────────
+  // A cópia só acontece na primeira abertura da aba (não no load), e o
+  // render inicial vem junto. O listener do NAV_VIEWS já trocou a view
+  // antes deste aqui rodar — este só cuida dos dados.
+  document.getElementById("nav-tasks2").addEventListener("click", () => {
+    ensureSeeded();
+    setTasksViewMode("list");
+    renderTasksTable();
+  });
+
+  // Reset em dois cliques: refaz a cópia do original do zero.
+  let tasks2ResetArmed = false;
+  const tasks2ResetBtn = document.getElementById("tasks2-reset-btn");
+  tasks2ResetBtn.addEventListener("click", () => {
+    if (!tasks2ResetArmed) {
+      tasks2ResetArmed = true;
+      tasks2ResetBtn.classList.add("confirming");
+      tasks2ResetBtn.textContent = "Confirmar: apagar o rascunho?";
+      setTimeout(() => {
+        if (!tasks2ResetArmed) return;
+        tasks2ResetArmed = false;
+        tasks2ResetBtn.classList.remove("confirming");
+        tasks2ResetBtn.textContent = "↺ Recarregar do original";
+      }, 5000);
+      return;
+    }
+    tasks2ResetArmed = false;
+    tasks2ResetBtn.classList.remove("confirming");
+    tasks2ResetBtn.textContent = "↺ Recarregar do original";
+    tasksExpanded.clear();
+    tasksSelectedIds.clear();
+    tasksConfirmDeleteId = null;
+    seedFromRealTasks();
+    setTasksViewMode("list");
+    renderTasksTable();
+  });
+})(() => tasksData);
+
 </script>
 
 </body>
