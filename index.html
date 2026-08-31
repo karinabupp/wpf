@@ -2872,10 +2872,11 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     border-radius: 6px;
-    padding: 2px;
+    padding: 3px;
   }
-  .tasks2-type-picker:hover { background: var(--land-default); }
+  .tasks2-type-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
   .tasks2-type-icon {
     display: inline-flex;
     align-items: center;
@@ -2883,7 +2884,7 @@
     user-select: none;
     pointer-events: none;
   }
-  .tasks2-type-icon svg { width: 15px; height: 15px; display: block; }
+  .tasks2-type-icon svg { width: 16px; height: 16px; display: block; stroke-width: 2.1; }
   .tasks2-type-picker .tasks2-type-select {
     position: absolute;
     inset: 0;
@@ -12414,13 +12415,38 @@ applyRolePermissions();
     rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
 
-  // Cor do icone. Objetivo, ideia e entregavel assumem a cor do proprio
-  // status. Rotina fica na cor normal do texto: a linha dela inteira ja e
-  // pintada com o status no fundo, entao o icone repetir isso so poluiria.
+  // Paleta PROPRIA dos icones. As cores de TASK_STATUS_COLORS.text sao
+  // escuras de proposito, pra ler sobre os fundos pastel das pilulas — num
+  // traco fino sobre branco elas viram quase preto e a cor some. Estas sao
+  // saturadas, pensadas pra um traco de 2px em cima de branco.
+  const STATUS_ICON_COLORS = {
+    "Not Started":  "#84847a",
+    "In Progress":  "#1668c4",
+    "Late":         "#cf2b2b",
+    "Done":         "#1e8a3c",
+    "On Hold":      "#c28800",
+    "Cancelled":    "#9a9a92",
+    "Attention":    "#d9a400",
+    "In Analysis":  "#1668c4",
+    "Not Approved": "#cf2b2b",
+    "Approved":     "#1e8a3c"
+  };
+
+  // Objetivo, ideia e entregavel assumem a cor do proprio status. Rotina
+  // fica neutra: a linha dela inteira ja e pintada com o status no fundo,
+  // repetir no icone so poluiria.
   function typeIconColor(t) {
     if (t.rowType === "rotina") return "var(--text)";
+    return STATUS_ICON_COLORS[t.status] || STATUS_ICON_COLORS["Not Started"];
+  }
+
+  // Fundo do chip do icone: o mesmo pastel da pilula de status. Dar area a
+  // cor e o que torna ela obvia — traco fino sozinho nao resolve. Rotina
+  // nao ganha chip, senao brigaria com a cor da propria linha.
+  function typeIconChip(t) {
+    if (t.rowType === "rotina") return "transparent";
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
-    return c.text;
+    return c.bg;
   }
   const TASK_TYPE_ORDER = ["objetivo", "ideia", "entregavel", "rotina"];
   function taskTypeOptionsMarkup(selected) {
@@ -12871,7 +12897,7 @@ applyRolePermissions();
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
           ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
           <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-type-picker" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
