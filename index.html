@@ -12390,8 +12390,82 @@ applyRolePermissions();
     "Late":{ bg: "#fcebeb", text: "#791f1f" },
     "Done":         { bg: "#eaf3de", text: "#173404" },
     "On Hold":      { bg: "#fdf3d6", text: "#7a5b06" },
-    "Cancelled":    { bg: "#efefec", text: "#6b6a63" }
+    "Cancelled":    { bg: "#efefec", text: "#6b6a63" },
+    // Novo: status calculado de objetivo quando ha algo Late abaixo. Ambar,
+    // pra nao se confundir com o amarelo de On Hold nem com o vermelho de Late.
+    "Attention":    { bg: "#fdeada", text: "#8a4106" },
+    // Vocabulario de ideia. Reaproveitam o azul/vermelho/verde da paleta em
+    // vez de inventar tons novos.
+    "In Analysis":  { bg: "#e6f1fb", text: "#0c447c" },
+    "Not Approved": { bg: "#fcebeb", text: "#791f1f" },
+    "Approved":     { bg: "#eaf3de", text: "#173404" }
   };
+
+  // Cada categoria tem seu proprio vocabulario de status.
+  //  - objetivo  : CALCULADO a partir do que esta abaixo, nunca editavel
+  //  - ideia     : aprovacao, nao progresso
+  //  - entregavel/rotina : os seis status de sempre
+  const STATUS_BY_TYPE = {
+    objetivo:   ["Not Started", "In Progress", "Attention", "Done"],
+    ideia:      ["In Analysis", "Not Approved", "Approved"],
+    entregavel: TASK_STATUS_OPTIONS,
+    rotina:     TASK_STATUS_OPTIONS
+  };
+  const statusesFor = t => STATUS_BY_TYPE[t.rowType] || TASK_STATUS_OPTIONS;
+  const statusAllowed = (t, s) => statusesFor(t).includes(s);
+  // O status de objetivo sai do rollup, entao o select fica desabilitado.
+  const statusIsAuto = t => t.rowType === "objetivo";
+
+  // Encaixa o status no vocabulario da categoria. Chamado quando a linha
+  // nasce, quando os dados sao carregados e quando a categoria muda.
+  function coerceStatus(t) {
+    if (statusAllowed(t, t.status)) return;
+    t.status = t.rowType === "ideia" ? "In Analysis" : "Not Started";
+  }
+
+  // Rollup do objetivo. Le TODA a subarvore, mas conta so entregavel e
+  // rotina: sao as unicas categorias cujo status fala de progresso. Ideia
+  // usa vocabulario de aprovacao e fica de fora; objetivo aninhado nao e
+  // contado diretamente porque ele proprio ja e um reflexo do que tem
+  // abaixo dele — o que importa sao as folhas de trabalho.
+  function computeObjetivoStatus(t) {
+    const considered = [];
+    (function walk(items) {
+      items.forEach(x => {
+        if (x.rowType === "entregavel" || x.rowType === "rotina") considered.push(x);
+        walk(x.subtasks);
+      });
+    })(t.subtasks);
+    const live = considered.filter(x => x.status !== "Cancelled");
+    if (!live.length) return "Not Started";
+    if (live.some(x => x.status === "Late")) return "Attention";
+    if (live.every(x => x.status === "Done")) return "Done";
+    if (live.every(x => x.status === "Not Started")) return "Not Started";
+    return "In Progress";
+  }
+
+  // Reaplica o rollup em todo objetivo da arvore. Roda antes de cada render,
+  // junto com o autoSync de Late, pra tabela e view Late sempre baterem.
+  function syncObjetivoStatuses() {
+    let changed = false;
+    (function walk(items) {
+      items.forEach(t => {
+        // Encaixa o status no vocabulario da categoria antes do rollup, senao
+        // um dado antigo (ideia em "On Hold", por exemplo) sobreviveria.
+        const antes = t.status;
+        coerceStatus(t);
+        if (t.status !== antes) changed = true;
+        walk(t.subtasks); // de baixo pra cima: os filhos primeiro
+        if (t.rowType === "objetivo") {
+          const s = computeObjetivoStatus(t);
+          if (t.status !== s) { t.status = s; changed = true; }
+        }
+      });
+    })(tasksData);
+    // Persistir aqui e o que faz o dado no localStorage bater com a tela.
+    if (changed) saveTasksData();
+    return changed;
+  }
 
   // --- Responsáveis (Tasks assignees) = usersList — no separate list. Any
   // login account can be assigned to a task; renaming or deleting a user
@@ -12498,6 +12572,12 @@ applyRolePermissions();
     if (t.rowType === "task") t.rowType = "objetivo";
     if (t.rowType === "subtask") t.rowType = "rotina";
     if (!TASK_TYPES[t.rowType]) t.rowType = depth > 0 ? "rotina" : "objetivo";
+    // O status NAO e encaixado aqui de proposito. Se fosse, um valor invalido
+    // vindo do localStorage seria corrigido em memoria antes de
+    // syncObjetivoStatuses() rodar, o sync nao veria mudanca nenhuma e nao
+    // salvaria — a tela ficaria certa e o dado gravado ficaria velho. A
+    // normalizacao acontece num lugar so: syncObjetivoStatuses(), que roda
+    // antes de cada render e persiste o que mudou.
     t.subtasks.forEach(sub => ensureTaskDefaults(sub, depth + 1));
     return t;
   }
@@ -12592,7 +12672,10 @@ applyRolePermissions();
         // Flip any task that isn't finished/moot (Done/Cancelled) — and isn't
         // already Late — to "Late" once its due date passes, no matter what
         // status it was in (Not Started, In Progress, On Hold, etc).
-        if (t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
+        // So entregavel e rotina tem "Late" no vocabulario. Objetivo recebe
+      // "Attention" pelo rollup e ideia nao tem nocao de atraso.
+      const podeAtrasar = t.rowType === "entregavel" || t.rowType === "rotina";
+      if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
           t.status = "Late";
           changed = true;
         }
@@ -12712,8 +12795,8 @@ applyRolePermissions();
   let tasksSelectedIds = new Set(); // subtasks currently checked for bulk drag/move
   let tasksDragIds = []; // ids actually being dragged in the current drag gesture
 
-  function taskStatusOptionsMarkup(selected) {
-    return TASK_STATUS_OPTIONS.map(s => `<option value="${s}" ${s === selected ? "selected" : ""}>${s}</option>`).join("");
+  function taskStatusOptionsMarkup(selected, list) {
+    return (list || TASK_STATUS_OPTIONS).map(s => `<option value="${s}" ${s === selected ? "selected" : ""}>${s}</option>`).join("");
   }
 
   function renderTaskRow(t, depth) {
@@ -12744,7 +12827,7 @@ applyRolePermissions();
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
-          <select class="tasks2-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}">${taskStatusOptionsMarkup(t.status)}</select>
+          <select class="tasks2-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}" ${statusIsAuto(t) ? `disabled title="Status automatico: vem do que esta abaixo deste objetivo"` : ""}>${taskStatusOptionsMarkup(t.status, statusesFor(t))}</select>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="status" title="Arraste para copiar o status para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-date">
@@ -12789,6 +12872,7 @@ applyRolePermissions();
 
   function renderTasksTable() {
     autoSyncLateStatuses();
+    syncObjetivoStatuses();
     const body = document.getElementById("tasks2-table-body");
     body.innerHTML = tasksData.map(t => renderTaskRow(t, 0)).join("");
 
@@ -13024,6 +13108,7 @@ applyRolePermissions();
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
         t.rowType = select.value;
+        coerceStatus(t);
         saveTasksData();
         renderTasksTable();
       });
@@ -13132,7 +13217,11 @@ applyRolePermissions();
     if (from > to) return;
     for (let i = from; i <= to; i++) {
       const t = findTaskById(tasksData, ids[i]);
-      if (t) t[field] = value;
+      if (!t) continue;
+      // Arrastar status por cima de categorias diferentes nao pode gravar um
+      // valor fora do vocabulario da linha — nem sobrescrever o automatico.
+      if (field === "status" && (statusIsAuto(t) || !statusAllowed(t, value))) continue;
+      t[field] = value;
     }
     saveTasksData();
     renderTasksTable();
@@ -13247,6 +13336,7 @@ applyRolePermissions();
 
   function renderTasksLateView() {
     autoSyncLateStatuses();
+    syncObjetivoStatuses();
     const tasks = getAllOverdueTasks();
     const el = document.getElementById("tasks2-late-list");
     el.innerHTML = tasks.length
@@ -13260,7 +13350,7 @@ applyRolePermissions();
                 <div class="tasks2-late-name">${t.name}</div>
                 <div class="tasks2-late-meta">Venceu em ${formatEntryDate(t.endDate)}${t.assignees.length ? " · " + t.assignees.join(", ") : ""}${goalName ? " · KPI: " + goalName : ""}</div>
               </div>
-              <select class="overdue-task-status" data-id="${t.id}">${taskStatusOptionsMarkup(t.status)}</select>
+              <select class="overdue-task-status" data-id="${t.id}">${taskStatusOptionsMarkup(t.status, statusesFor(t))}</select>
             </div>
           `;
         }).join("")
