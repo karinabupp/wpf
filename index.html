@@ -2887,6 +2887,52 @@
   .tasks2-type-icon svg { width: 16px; height: 16px; display: block; stroke-width: 2.1; }
   /* Projeto usa uma maleta de contorno, no traco padrao das outras — nao
      precisa do reforco que a forma de letra do "?" pedia. */
+
+  /* ── Guia KPI: tabela propria, mais simples que a de tasks — quatro
+     campos, sem arvore, sem selecao em massa e sem arrastar. ───────── */
+  #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
+  .tasks2-kpi-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 1fr) 170px 160px 160px 56px;
+    align-items: center;
+    min-height: 50px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tasks2-kpi-row:last-child { border-bottom: none; }
+  .tasks2-kpi-row > div { padding: 0 14px; min-width: 0; }
+  .tasks2-kpi-head-row {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--land-default);
+    min-height: 40px;
+  }
+  .tasks2-kpi-input {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    width: 100%;
+    padding: 8px 4px;
+    border-radius: 4px;
+  }
+  .tasks2-kpi-input:focus { background: var(--bg); outline: 1px solid var(--border-strong); }
+  .tasks2-kpi-name { font-weight: 600; }
+  .tasks2-kpi-col-actions { display: flex; justify-content: flex-end; }
+  .tasks2-kpi-del { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 5px 6px; border-radius: 4px; }
+  .tasks2-kpi-del:hover { background: var(--land-default); color: #e24b4a; }
+  .tasks2-kpi-empty { padding: 26px 14px; font-size: 13px; color: var(--text-muted); text-align: center; }
+  #tasks2-kpi-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+  #tasks2-kpi-add-btn { background: var(--text); border: none; color: #ffffff; border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer; }
+  @media (max-width: 1380px) {
+    .tasks2-kpi-row { grid-template-columns: minmax(160px, 1fr) 148px 138px 138px 50px; min-height: 44px; }
+    .tasks2-kpi-row > div { padding: 0 9px; }
+    .tasks2-kpi-input { font-size: 13px; }
+  }
+
   .tasks2-type-picker .tasks2-type-select {
     position: absolute;
     inset: 0;
@@ -3917,6 +3963,12 @@
             <circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15.5,14"/>
           </svg>
         </button>
+        <button class="tasks2-subnav-btn" id="tasks2-nav-kpi" data-tooltip="KPI" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 20.5h18"/><rect x="4.5" y="12" width="4" height="6.5" rx="1"/>
+            <rect x="10" y="7.5" width="4" height="11" rx="1"/><rect x="15.5" y="4" width="4" height="14.5" rx="1"/>
+          </svg>
+        </button>
       </div>
       <span id="tasks2-draft-badge">Rascunho · dados isolados</span>
     </div>
@@ -3948,6 +4000,22 @@
 
     <div id="tasks2-late-view" class="hidden">
       <div id="tasks2-late-list"></div>
+    </div>
+
+    <div id="tasks2-kpi-view" class="hidden">
+      <div id="tasks2-kpi-table">
+        <div class="tasks2-kpi-row tasks2-kpi-head-row">
+          <div>Nome do KPI</div>
+          <div>Data de início</div>
+          <div>Meta KPI</div>
+          <div>KPI Atual</div>
+          <div class="tasks2-kpi-col-actions"></div>
+        </div>
+        <div id="tasks2-kpi-body"></div>
+      </div>
+      <div id="tasks2-kpi-footer">
+        <button id="tasks2-kpi-add-btn" type="button">+ Novo KPI</button>
+      </div>
     </div>
 
     <div id="tasks2-footer">
@@ -12403,7 +12471,7 @@ applyRolePermissions();
 // fica no fim do <script>, então qualquer erro síncrono anterior mata a
 // aba Tasks 2 junto.
 // ══════════════════════════════════════════════════════════════════════════
-(getRealTasks => {
+((getRealTasks, getRealGoals) => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
   // objetivo era "task", rotina era "subtask", e projeto/entregável são novas.
@@ -13480,14 +13548,18 @@ applyRolePermissions();
     tasksViewMode = mode;
     document.getElementById("tasks2-nav-list").classList.toggle("active", mode === "list");
     document.getElementById("tasks2-nav-late").classList.toggle("active", mode === "late");
+    document.getElementById("tasks2-nav-kpi").classList.toggle("active", mode === "kpi");
     document.getElementById("tasks2-table").classList.toggle("hidden", mode !== "list");
     document.getElementById("tasks2-late-view").classList.toggle("hidden", mode !== "late");
+    document.getElementById("tasks2-kpi-view").classList.toggle("hidden", mode !== "kpi");
     document.getElementById("tasks2-footer").style.display = mode === "list" ? "flex" : "none";
     if (mode === "late") renderTasksLateView();
+    if (mode === "kpi") { ensureKpisSeeded(); renderKpiTable(); }
   }
 
   document.getElementById("tasks2-nav-list").addEventListener("click", () => setTasksViewMode("list"));
   document.getElementById("tasks2-nav-late").addEventListener("click", () => setTasksViewMode("late"));
+  document.getElementById("tasks2-nav-kpi").addEventListener("click", () => setTasksViewMode("kpi"));
 
 
   // Cloning the existing logo node avoids duplicating its large base64 source.
@@ -13499,6 +13571,110 @@ applyRolePermissions();
   tasksLogoClone.style.display = "block";
   tasksLogoRow.prepend(tasksLogoClone);
 
+
+  // ══════════════════════════════════════════════════════════════════════
+  // Guia KPI
+  //
+  // Lista propria do rascunho, com armazenamento separado
+  // ("wpf_tasks2_kpis") e SEM scheduleCloudSave() — mesma regra de
+  // isolamento das tasks. Nao escreve em goalsData: os KPIs reais da aba
+  // Goals ficam intactos por definicao.
+  //
+  // Na primeira abertura a lista e semeada a partir dos KPIs reais, do mesmo
+  // jeito que a tabela de tasks: cada goal vira uma linha, achatando o
+  // historico de entries em quatro campos — a entrada mais ANTIGA da a data
+  // de inicio, e a mais RECENTE da a meta e o valor atual.
+  // ══════════════════════════════════════════════════════════════════════
+  const KPIS_STORAGE_KEY = "wpf_tasks2_kpis";
+
+  function ensureKpiDefaults(k) {
+    return {
+      id: k.id || ("kpi2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7)),
+      name: k.name || "",
+      startDate: k.startDate || "",
+      target: k.target === undefined || k.target === null ? "" : String(k.target),
+      current: k.current === undefined || k.current === null ? "" : String(k.current)
+    };
+  }
+
+  let kpisData = [];
+  let kpisSeeded = false;
+  try {
+    const guardado = JSON.parse(localStorage.getItem(KPIS_STORAGE_KEY) || "null");
+    if (Array.isArray(guardado)) { kpisData = guardado.map(ensureKpiDefaults); kpisSeeded = true; }
+  } catch (e) { kpisData = []; kpisSeeded = false; }
+
+  function saveKpisData() {
+    localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
+    // Sem scheduleCloudSave(), igual ao saveTasksData() do rascunho.
+  }
+
+  function seedKpisFromReal() {
+    let reais = [];
+    try { reais = JSON.parse(JSON.stringify(getRealGoals() || [])); } catch (e) { reais = []; }
+    kpisData = reais.map(g => {
+      const entries = Array.isArray(g.entries) ? g.entries.slice() : [];
+      // Ordena por data pra nao depender da ordem em que foram gravadas.
+      entries.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+      const primeira = entries[0] || {};
+      const ultima = entries[entries.length - 1] || {};
+      return ensureKpiDefaults({
+        id: "kpi2-" + g.id,
+        name: g.name || "",
+        startDate: primeira.date || "",
+        target: ultima.target,
+        current: ultima.value
+      });
+    });
+    kpisSeeded = true;
+    saveKpisData();
+  }
+
+  function ensureKpisSeeded() { if (!kpisSeeded) seedKpisFromReal(); }
+  function findKpiById(id) { return kpisData.find(k => k.id === id) || null; }
+
+  function renderKpiTable() {
+    const body = document.getElementById("tasks2-kpi-body");
+    if (!body) return;
+    if (!kpisData.length) {
+      body.innerHTML = `<div class="tasks2-kpi-empty">Nenhum KPI ainda. Use "+ Novo KPI" para come\u00e7ar.</div>`;
+      return;
+    }
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    body.innerHTML = kpisData.map(k => `
+      <div class="tasks2-kpi-row" data-id="${k.id}">
+        <div><input type="text" class="tasks2-kpi-input tasks2-kpi-name" data-id="${k.id}" data-field="name" value="${esc(k.name)}" placeholder="Nome do KPI"></div>
+        <div><input type="date" class="tasks2-kpi-input" data-id="${k.id}" data-field="startDate" value="${esc(k.startDate)}"></div>
+        <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="target" value="${esc(k.target)}" placeholder="Meta"></div>
+        <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual"></div>
+        <div class="tasks2-kpi-col-actions">
+          <button class="tasks2-kpi-del" data-id="${k.id}" type="button" title="Excluir KPI">\uD83D\uDDD1</button>
+        </div>
+      </div>
+    `).join("");
+
+    body.querySelectorAll(".tasks2-kpi-input").forEach(input => {
+      input.addEventListener("change", () => {
+        const k = findKpiById(input.dataset.id);
+        if (!k) return;
+        k[input.dataset.field] = input.value;
+        saveKpisData();
+      });
+    });
+    body.querySelectorAll(".tasks2-kpi-del").forEach(btn => {
+      btn.addEventListener("click", () => {
+        kpisData = kpisData.filter(k => k.id !== btn.dataset.id);
+        saveKpisData();
+        renderKpiTable();
+      });
+    });
+  }
+
+  document.getElementById("tasks2-kpi-add-btn").addEventListener("click", () => {
+    kpisData.push(ensureKpiDefaults({ name: "Novo KPI" }));
+    saveKpisData();
+    renderKpiTable();
+  });
 
   // ─── Wiring próprio do rascunho ───────────────────────────────────────
   // A cópia só acontece na primeira abertura da aba (não no load), e o
@@ -13543,10 +13719,11 @@ applyRolePermissions();
     tasksSelectedIds.clear();
     tasksConfirmDeleteId = null;
     seedFromRealTasks();
+    seedKpisFromReal(); // o reset refaz as duas copias: tasks e KPIs
     setTasksViewMode("list");
     renderTasksTable();
   });
-})(() => tasksData);
+})(() => tasksData, () => goalsData);
 
 </script>
 
