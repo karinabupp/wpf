@@ -2971,6 +2971,7 @@
   .tasks2-fonte-select { cursor: pointer; color: var(--text-muted); font-size: 12.5px; }
   .tasks2-src-cell { display: flex; align-items: center; gap: 4px; min-width: 0; }
   .tasks2-src-link { font-size: 12.5px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  button.tasks2-src-aba { background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; }
   .tasks2-src-link:hover { text-decoration: underline; }
   .tasks2-src-input { font-size: 12px; min-width: 0; flex: 1 1 auto; }
   .tasks2-src-seta { flex: 0 0 auto; font-size: 13px; color: var(--accent); text-decoration: none; padding: 0 2px; }
@@ -12558,7 +12559,7 @@ applyRolePermissions();
 // fica no fim do <script>, então qualquer erro síncrono anterior mata a
 // aba Tasks 2 junto.
 // ══════════════════════════════════════════════════════════════════════════
-((getRealTasks, getRealGoals) => {
+((getRealTasks, getRealGoals, getRealFeds) => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
   // objetivo era "task", rotina era "subtask", e projeto/entregável são novas.
@@ -13202,7 +13203,7 @@ applyRolePermissions();
 
   function renderTasksTable() {
     ensureKpisSeeded(); // a coluna KPI le kpisData; sem isso a 1a pintura vem vazia
-    syncKpisFromMarketing(); // e o valor pode ter mudado desde o ultimo render
+    syncKpisDasFontes(); // e o valor pode ter mudado desde o ultimo render
     autoSyncLateStatuses();
     syncObjetivoStatuses();
     const body = document.getElementById("tasks2-table-body");
@@ -13744,7 +13745,7 @@ applyRolePermissions();
     // velhos — a List so era redesenhada quando alguma task mudava.
     if (mode === "list") renderTasksTable();
     if (mode === "late") renderTasksLateView();
-    if (mode === "kpi") { ensureKpisSeeded(); backfillKpiUnits(); ligarKpisDeMarketingUmaVez(); renderKpiTable(); }
+    if (mode === "kpi") { ensureKpisSeeded(); backfillKpiUnits(); ligarKpisAsFontesUmaVez(); renderKpiTable(); }
   }
 
   document.getElementById("tasks2-nav-list").addEventListener("click", () => setTasksViewMode("list"));
@@ -13785,7 +13786,7 @@ applyRolePermissions();
   //
   // Decisao de Karina: so o KPI Atual vem daqui. A Meta segue manual, pra nao
   // sobrescrever alvo definido por ela que difere do da planilha.
-  const MKT_KPI_SOURCES = {
+  const KPI_SOURCES = {
     social:       { label: "Marketing · Social Media", decimais: 0, mktKey: "igDaily",
                     calc: () => {
                       const rows = (typeof mktData !== "undefined" && mktData && mktData.igDaily) || [];
@@ -13807,6 +13808,19 @@ applyRolePermissions();
                     calc: () => somaReal("adsClicks", ["Cliques"]) },
     "ads-budget": { label: "Marketing · Budget (R$)", decimais: 2, mktKey: "adsBudget",
                     calc: () => somaReal("adsBudget", ["Spend"]) },
+    // ── Members (aba de federacoes) ──────────────────────────────────
+    // Conta em cima de getRealFeds(): paises sem registro proprio contam
+    // como "Not Started", entao nao entram em nenhuma destas contas — o
+    // resultado bate com a legenda do mapa sem depender do mapa ter
+    // carregado.
+    "fed-member":   { label: "Members · Federações membro", decimais: 0, aba: "nav-members",
+                      calc: () => contaFeds(r => r.status === "Member") },
+    "fed-opening":  { label: "Members · Em abertura", decimais: 0, aba: "nav-members",
+                      calc: () => contaFeds(r => r.status === "Opening") },
+    "fed-champs":   { label: "Members · Campeonatos nacionais", decimais: 0, aba: "nav-members",
+                      calc: () => contaFeds(r => r.checklist && r.checklist.nationalChampion) },
+    "fed-digital":  { label: "Members · Presença digital ativa", decimais: 0, aba: "nav-members",
+                      calc: () => contaFeds(r => r.checklist && r.checklist.activeMedia) },
     "ads-cpc":    { label: "Marketing · CPC", decimais: 2, mktKey: "adsCpc",
                     calc: () => {
                       const vals = seriesReal("adsCpc", ["CPC"]).filter(v => v !== null && v > 0);
@@ -13817,7 +13831,7 @@ applyRolePermissions();
 
   // Link pra aba exata da planilha de Marketing (cada metrica tem seu gid).
   function urlDaFonte(k) {
-    const fonte = MKT_KPI_SOURCES[k.source];
+    const fonte = KPI_SOURCES[k.source];
     if (!fonte || typeof MKT_SOURCES === "undefined") return "";
     const origem = MKT_SOURCES[fonte.mktKey];
     if (!origem) return "";
@@ -13829,6 +13843,15 @@ applyRolePermissions();
   function urlSegura(u) {
     const txt = String(u || "").trim();
     return /^https?:\/\//i.test(txt) ? txt : "";
+  }
+
+  function contaFeds(criterio) {
+    let regs = null;
+    try { regs = getRealFeds(); } catch (e) { return null; }
+    if (!regs || typeof regs !== "object") return null;
+    const vals = Object.keys(regs).map(k => regs[k]).filter(Boolean);
+    if (!vals.length) return null; // sem dado: melhor manter o ultimo valor
+    return vals.filter(r => { try { return !!criterio(r); } catch (e) { return false; } }).length;
   }
 
   function seriesReal(chave, candidatos) {
@@ -13845,10 +13868,10 @@ applyRolePermissions();
   // Recalcula o KPI Atual dos que tem fonte. Grava em k.current pra tudo que
   // le o KPI (inclusive a coluna KPI da guia List) continuar funcionando sem
   // saber de onde o numero veio.
-  function syncKpisFromMarketing() {
+  function syncKpisDasFontes() {
     let mudou = false;
     kpisData.forEach(k => {
-      const fonte = MKT_KPI_SOURCES[k.source];
+      const fonte = KPI_SOURCES[k.source];
       if (!fonte) return;
       let valor = null;
       try { valor = fonte.calc(); } catch (e) { valor = null; }
@@ -13872,7 +13895,7 @@ applyRolePermissions();
       direction: k.direction === "down" ? "down" : "up",
       // "" = digitado a mao. Senao, a chave de uma metrica do Marketing
       // (MKT_VIEWS): so o KPI Atual vem de la; a Meta segue manual.
-      source: MKT_KPI_SOURCES[k.source] ? k.source : "",
+      source: KPI_SOURCES[k.source] ? k.source : "",
       // Link pra origem do numero. Nos KPIs de Marketing e gerado a partir
       // da planilha; nos manuais, e digitado.
       sourceUrl: k.sourceUrl || "",
@@ -13923,24 +13946,28 @@ applyRolePermissions();
   // "Manual" seria religado sozinho na proxima abertura da guia.
   // Os nomes sao casados por apelido porque ja foram editados a mao — "Site
   // WPF" virou "WPF Website", "Budget AdWords" virou "AdWords R$".
-  const MKT_KPI_APELIDOS = {
+  const KPI_APELIDOS = {
     social: ["social media"],
     website: ["wpf website", "site wpf", "website"],
     "ads-clicks": ["campanhas adwords", "adwords campaigns", "campanhas"],
     "ads-budget": ["adwords r$", "adwords rs", "budget adwords", "adwords budget"],
-    "ads-cpc": ["cpc adwords", "adwords cpc", "cpc"]
+    "ads-cpc": ["cpc adwords", "adwords cpc", "cpc"],
+    "fed-member": ["member federations", "member-federations", "federacoes membro", "federações membro"],
+    "fed-opening": ["opening federations", "federacoes em abertura"],
+    "fed-champs": ["national championships", "campeonatos nacionais"],
+    "fed-digital": ["digital presence", "presenca digital", "presença digital"]
   };
-  const MKT_LIGACAO_KEY = "wpf_tasks2_kpis_mkt_ligados";
-  function ligarKpisDeMarketingUmaVez() {
-    if (localStorage.getItem(MKT_LIGACAO_KEY)) return;
+  const LIGACAO_KEY = "wpf_tasks2_kpis_mkt_ligados";
+  function ligarKpisAsFontesUmaVez() {
+    if (localStorage.getItem(LIGACAO_KEY)) return;
     const normal = txt => String(txt || "").trim().toLowerCase();
     kpisData.forEach(k => {
       if (k.source) return;
       const nome = normal(k.name);
-      const achou = Object.keys(MKT_KPI_APELIDOS).find(f => MKT_KPI_APELIDOS[f].includes(nome));
+      const achou = Object.keys(KPI_APELIDOS).find(f => KPI_APELIDOS[f].includes(nome));
       if (achou) k.source = achou;
     });
-    localStorage.setItem(MKT_LIGACAO_KEY, "1");
+    localStorage.setItem(LIGACAO_KEY, "1");
     saveKpisData();
   }
 
@@ -13971,6 +13998,11 @@ applyRolePermissions();
   function sourceCellMarkup(k) {
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
     if (k.source) {
+      const fonte = KPI_SOURCES[k.source];
+      if (fonte && fonte.aba) {
+        // Fonte interna: nao ha URL, o dado mora em outra aba do dashboard.
+        return `<button type="button" class="tasks2-src-link tasks2-src-aba" data-aba="${esc(fonte.aba)}" title="Ir para a aba onde este número é contado">Members ↗</button>`;
+      }
       const u = urlDaFonte(k);
       if (!u) return `<span class="tasks2-src-vazio">—</span>`;
       return `<a class="tasks2-src-link" href="${esc(u)}" target="_blank" rel="noopener noreferrer" title="Abrir a planilha do Marketing (aba desta métrica)">Planilha ↗</a>`;
@@ -13981,7 +14013,7 @@ applyRolePermissions();
   }
 
   function renderKpiTable() {
-    syncKpisFromMarketing();
+    syncKpisDasFontes();
     const body = document.getElementById("tasks2-kpi-body");
     if (!body) return;
     if (!kpisData.length) {
@@ -14005,13 +14037,13 @@ applyRolePermissions();
         <div>
           <select class="tasks2-kpi-input tasks2-fonte-select" data-id="${k.id}" data-field="source" title="De onde vem o KPI Atual">
             <option value="" ${!k.source ? "selected" : ""}>Manual</option>
-            ${Object.keys(MKT_KPI_SOURCES).map(f =>
-              `<option value="${f}" ${k.source === f ? "selected" : ""}>${MKT_KPI_SOURCES[f].label}</option>`).join("")}
+            ${Object.keys(KPI_SOURCES).map(f =>
+              `<option value="${f}" ${k.source === f ? "selected" : ""}>${KPI_SOURCES[f].label}</option>`).join("")}
           </select>
         </div>
         <div><input type="date" class="tasks2-kpi-input" data-id="${k.id}" data-field="startDate" value="${esc(k.startDate)}"></div>
         <div><input type="text" class="tasks2-kpi-input" data-id="${k.id}" data-field="target" value="${esc(k.target)}" placeholder="Meta"></div>
-        <div><input type="text" class="tasks2-kpi-input ${k.source ? "is-auto" : ""}" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual" ${k.source ? `readonly title="Vem de ${esc(MKT_KPI_SOURCES[k.source].label)} — para editar à mão, mude a Fonte para Manual"` : ""}></div>
+        <div><input type="text" class="tasks2-kpi-input ${k.source ? "is-auto" : ""}" data-id="${k.id}" data-field="current" value="${esc(k.current)}" placeholder="Atual" ${k.source ? `readonly title="Vem de ${esc(KPI_SOURCES[k.source].label)} — para editar à mão, mude a Fonte para Manual"` : ""}></div>
         <div class="tasks2-src-cell">${sourceCellMarkup(k)}</div>
         <div class="tasks2-kpi-col-actions">
           <button class="tasks2-kpi-del" data-id="${k.id}" type="button" title="Excluir KPI">\uD83D\uDDD1</button>
@@ -14028,8 +14060,14 @@ applyRolePermissions();
         // A direcao e mostrada por uma seta ao lado do <select>, entao a
         // linha precisa ser redesenhada pra seta acompanhar a escolha.
         if (input.dataset.field === "direction") renderKpiTable();
-        if (input.dataset.field === "source") { syncKpisFromMarketing(); renderKpiTable(); }
+        if (input.dataset.field === "source") { syncKpisDasFontes(); renderKpiTable(); }
         if (input.dataset.field === "sourceUrl") renderKpiTable(); // a seta aparece/some
+      });
+    });
+    body.querySelectorAll(".tasks2-src-aba").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const alvo = document.getElementById(btn.dataset.aba);
+        if (alvo) alvo.click();
       });
     });
     body.querySelectorAll(".tasks2-kpi-del").forEach(btn => {
@@ -14092,7 +14130,7 @@ applyRolePermissions();
     seedKpisFromReal(); // o reset refaz as duas copias: tasks e KPIs
     setTasksViewMode("list"); // ja redesenha
   });
-})(() => tasksData, () => goalsData);
+})(() => tasksData, () => goalsData, () => countryData);
 
 </script>
 
