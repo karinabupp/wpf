@@ -12759,9 +12759,20 @@ applyRolePermissions();
 ((getRealTasks, getRealGoals, getRealFeds, getRealLadies) => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
-  // objetivo era "task", rotina era "subtask", e ideia/entregável são novas.
-  // Esta categoria ja se chamou "projeto" no meio do caminho — ver a
-  // migração em ensureTaskDefaults, que converte o valor antigo.
+  // objetivo era "task" e rotina era "subtask".
+  //
+  // A terceira categoria ja mudou de nome quatro vezes: "ideia" → "projeto"
+  // → "ideia" → e agora, na tela, "Projeto" de novo. Desta vez SO O ROTULO
+  // mudou: a chave continua "ideia" (rowType === "ideia"), porque "projeto"
+  // ja e o nome interno da COLUNA Área (projetoLink, projetosData,
+  // wpf_tasks2_projetos). Reusar a palavra criaria colisao de verdade no
+  // codigo, e nao so um desencontro entre rotulo e chave.
+  //
+  // Resumo de quem ler depois:
+  //   rowType "ideia"  -> aparece como "Projeto" (categoria da linha)
+  //   projetoLink      -> aparece como "Área"    (coluna)
+  //   objetivoLink     -> aparece como "Objetivo" (coluna)
+  //   rowType "objetivo" -> aparece como "Objetivo" (categoria da linha)
   // A categoria é independente do nível de aninhamento — dá pra ter uma
   // ideia dentro de um objetivo ou um entregável na raiz.
   // Icones em SVG inline, no mesmo estilo do resto do dashboard: traco
@@ -12769,7 +12780,7 @@ applyRolePermissions();
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    ideia:      { label: "Ideia",      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
+    ideia:      { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
     rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
