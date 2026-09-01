@@ -2933,8 +2933,10 @@
   /* ── Coluna Área (classes seguem tasks2-proj-*) ───────────────────────────────────────────────
      Mesmo padrao dos outros seletores: o que se le e o chip, com um
      <select> nativo transparente por cima. */
-  .tasks2-col-projeto { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
-  .tasks2-proj-picker {
+  .tasks2-col-projeto,
+  .tasks2-col-objetivo { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
+  .tasks2-proj-picker,
+  .tasks2-obj-picker {
     position: relative;
     display: flex;
     align-items: center;
@@ -2943,8 +2945,10 @@
     border-radius: 6px;
     cursor: pointer;
   }
-  .tasks2-proj-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
-  .tasks2-proj-chip {
+  .tasks2-proj-picker:hover,
+  .tasks2-obj-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
+  .tasks2-proj-chip,
+  .tasks2-obj-chip {
     font-size: 12px;
     font-weight: 600;
     padding: 4px 9px;
@@ -2956,7 +2960,9 @@
   }
   /* Herdado: sem cor, no mesmo cinza discreto do "— herdar —". */
   .tasks2-proj-herdado,
-  .tasks2-proj-vazio {
+  .tasks2-proj-vazio,
+  .tasks2-obj-herdado,
+  .tasks2-obj-vazio {
     font-size: 12px;
     color: var(--text-muted);
     white-space: nowrap;
@@ -2964,7 +2970,8 @@
     text-overflow: ellipsis;
     padding: 4px 5px;
   }
-  .tasks2-proj-select {
+  .tasks2-proj-select,
+  .tasks2-obj-select {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -3485,7 +3492,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(280px, 1fr) 220px 170px 140px 122px 122px 186px 64px;
+    grid-template-columns: 30px minmax(240px, 1fr) 200px 150px 160px 130px 118px 118px 176px 64px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3817,7 +3824,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(240px, 1fr) 178px 150px 120px 132px 132px 152px 60px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(200px, 1fr) 168px 128px 140px 116px 124px 124px 142px 60px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3827,7 +3834,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(200px, 1fr) 156px 132px 110px 126px 126px 132px 56px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(170px, 1fr) 146px 116px 124px 104px 118px 118px 124px 56px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4248,6 +4255,7 @@
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-objetivo"><button type="button" class="tasks2-filtro-btn" data-col="objetivo">Objetivo<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-projeto"><button type="button" class="tasks2-filtro-btn" data-col="projeto">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -13265,19 +13273,19 @@ applyRolePermissions();
   // ══════════════════════════════════════════════════════════════════════
   const filtros = {
     nome: "",
-    kpi: new Set(), projeto: new Set(), status: new Set(), responsavel: new Set(),
+    kpi: new Set(), objetivo: new Set(), projeto: new Set(), status: new Set(), responsavel: new Set(),
     inicioDe: "", inicioAte: "", fimDe: "", fimAte: ""
   };
   const SEM_VALOR = "__sem__"; // "sem KPI" / "sem projeto" / "sem responsável"
 
   function haFiltro() {
-    return !!filtros.nome.trim() || filtros.kpi.size || filtros.projeto.size ||
+    return !!filtros.nome.trim() || filtros.kpi.size || filtros.objetivo.size || filtros.projeto.size ||
       filtros.status.size || filtros.responsavel.size ||
       filtros.inicioDe || filtros.inicioAte || filtros.fimDe || filtros.fimAte;
   }
   function limparFiltros() {
     filtros.nome = "";
-    ["kpi", "projeto", "status", "responsavel"].forEach(k => filtros[k].clear());
+    ["kpi", "objetivo", "projeto", "status", "responsavel"].forEach(k => filtros[k].clear());
     ["inicioDe", "inicioAte", "fimDe", "fimAte"].forEach(k => filtros[k] = "");
   }
 
@@ -13291,12 +13299,13 @@ applyRolePermissions();
 
   // KPI e projeto contam pelo valor EFETIVO: uma linha que herda o KPI do pai
   // aparece ao filtrar por esse KPI, que e o que a tela mostra nela.
-  function linhaCasa(t, kpiEfetivo, projEfetivo) {
+  function linhaCasa(t, kpiEfetivo, projEfetivo, objEfetivo) {
     if (filtros.nome.trim() &&
         String(t.name || "").toLowerCase().indexOf(filtros.nome.trim().toLowerCase()) === -1) return false;
     if (filtros.status.size && !filtros.status.has(t.status)) return false;
     if (filtros.kpi.size && !filtros.kpi.has(kpiEfetivo || SEM_VALOR)) return false;
     if (filtros.projeto.size && !filtros.projeto.has(projEfetivo || SEM_VALOR)) return false;
+    if (filtros.objetivo.size && !filtros.objetivo.has(objEfetivo || SEM_VALOR)) return false;
     if (filtros.responsavel.size) {
       const resp = Array.isArray(t.assignees) ? t.assignees : [];
       const bate = resp.length
@@ -13312,19 +13321,20 @@ applyRolePermissions();
   // Ids visiveis: quem casa, mais ancestrais e descendentes de quem casa.
   function idsVisiveis() {
     const visiveis = new Set();
-    (function walk(items, kpiPai, projPai, ancestrais) {
+    (function walk(items, kpiPai, projPai, objPai, ancestrais) {
       items.forEach(t => {
         const kpiEf = t.kpiLink || kpiPai, projEf = t.projetoLink || projPai;
-        const casa = linhaCasa(t, kpiEf, projEf);
+        const objEf = t.objetivoLink || objPai;
+        const casa = linhaCasa(t, kpiEf, projEf, objEf);
         const trilha = ancestrais.concat(t.id);
         if (casa) trilha.forEach(id => visiveis.add(id)); // ele e os pais
         const antes = visiveis.size;
-        walk(t.subtasks, kpiEf, projEf, trilha);
+        walk(t.subtasks, kpiEf, projEf, objEf, trilha);
         // Se ele proprio casa, os filhos vem junto como detalhe.
         if (casa) (function todos(l) { l.forEach(x => { visiveis.add(x.id); todos(x.subtasks); }); })(t.subtasks);
         if (visiveis.size !== antes) visiveis.add(t.id); // algum descendente casou
       });
-    })(tasksData, "", "", []);
+    })(tasksData, "", "", "", []);
     return visiveis;
   }
 
@@ -13365,6 +13375,40 @@ applyRolePermissions();
   }
   function tomDoProjeto() {
     return PROJETO_CINZA;
+  }
+
+  // ── Coluna Objetivo ───────────────────────────────────────────────────
+  // Lista FIXA de tres, ao contrario de Área, que e editavel. Nao ha
+  // gerenciador nem opcao de criar: se um dia precisar crescer, o caminho e
+  // o mesmo que Área usa (lista propria + painel).
+  //
+  // Cuidado: "Objetivo" tambem e o nome de uma CATEGORIA de linha (o alvo
+  // 🎯). Sao coisas diferentes com o mesmo nome — esta aqui e coluna.
+  const OBJETIVOS = [
+    { id: "autoridade", name: "Autoridade" },
+    { id: "alcance",    name: "Alcance" },
+    { id: "governanca", name: "Governança" }
+  ];
+  const OBJETIVO_CINZA = { bg: "#e8e6dc", text: "#45443e" };
+  function findObjetivoById(id) { return OBJETIVOS.find(x => x.id === id) || null; }
+
+  function objetivoCellMarkup(t, depth, herdado) {
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const efetivo = t.objetivoLink || herdado || "";
+    const o = efetivo ? findObjetivoById(efetivo) : null;
+    const ehHerdado = !t.objetivoLink && !!herdado;
+    const chip = o
+      ? (ehHerdado
+          ? `<span class="tasks2-obj-herdado">${esc(o.name)}</span>`
+          : `<span class="tasks2-obj-chip" style="background:${OBJETIVO_CINZA.bg}; color:${OBJETIVO_CINZA.text}">${esc(o.name)}</span>`)
+      : `<span class="tasks2-obj-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
+    return `<span class="tasks2-obj-picker" title="${o ? esc(o.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher objetivo"}">
+        ${chip}
+        <select class="tasks2-obj-select" data-id="${t.id}" aria-label="Objetivo da linha">
+          <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
+          ${OBJETIVOS.map(x => `<option value="${x.id}" ${x.id === t.objetivoLink ? "selected" : ""}>${esc(x.name)}</option>`).join("")}
+        </select>
+      </span>`;
   }
 
   const NOVO_PROJETO = "__novo__";
@@ -13579,9 +13623,10 @@ applyRolePermissions();
 
   let idsFiltrados = null; // null = sem filtro; Set = so estes ids aparecem
 
-  function renderTaskRow(t, depth, inheritedKpi, inheritedProjeto) {
+  function renderTaskRow(t, depth, inheritedKpi, inheritedProjeto, inheritedObjetivo) {
     inheritedKpi = inheritedKpi || "";
     inheritedProjeto = inheritedProjeto || "";
+    inheritedObjetivo = inheritedObjetivo || "";
     if (idsFiltrados && !idsFiltrados.has(t.id)) return "";
     const hasChildren = t.subtasks.length > 0;
     // Com filtro ativo a arvore vai toda aberta: um resultado dentro de um
@@ -13614,6 +13659,9 @@ applyRolePermissions();
         </div>
         <div class="tasks2-col-kpi">
           ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
+        </div>
+        <div class="tasks2-col-objetivo">
+          ${objetivoCellMarkup(t, depth, inheritedObjetivo)}
         </div>
         <div class="tasks2-col-projeto">
           ${projetoCellMarkup(t, depth, inheritedProjeto)}
@@ -13651,7 +13699,7 @@ applyRolePermissions();
       `;
     }
     if (hasChildren && expanded) {
-      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi, t.projetoLink || inheritedProjeto); });
+      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi, t.projetoLink || inheritedProjeto, t.objetivoLink || inheritedObjetivo); });
     }
     return html;
   }
@@ -13661,6 +13709,7 @@ applyRolePermissions();
   const COLUNAS_FILTRO = {
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
+    objetivo:    { rotulo: "Objetivo",    tipo: "lista" },
     projeto:     { rotulo: "Área",        tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
     inicio:      { rotulo: "Início",      tipo: "data", campos: ["inicioDe", "inicioAte"] },
@@ -13672,6 +13721,8 @@ applyRolePermissions();
     if (col === "status") return TASK_STATUS_OPTIONS.map(s => ({ valor: s, texto: s }));
     if (col === "kpi") return [{ valor: SEM_VALOR, texto: "— sem KPI —" }]
       .concat(kpisData.map(k => ({ valor: k.id, texto: k.name || "(sem nome)" })));
+    if (col === "objetivo") return [{ valor: SEM_VALOR, texto: "— sem objetivo —" }]
+      .concat(OBJETIVOS.map(x => ({ valor: x.id, texto: x.name })));
     if (col === "projeto") return [{ valor: SEM_VALOR, texto: "— sem área —" }]
       .concat(projetosData.map(x => ({ valor: x.id, texto: x.name })));
     if (col === "responsavel") {
@@ -14002,6 +14053,15 @@ applyRolePermissions();
         // lado, entao a linha precisa ser redesenhada (e os filhos junto,
         // que podem estar herdando este valor).
         renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasks2-obj-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        t.objetivoLink = select.value;
+        saveTasksData();
+        renderTasksTable(); // chip e os filhos que herdam precisam redesenhar
       });
     });
     body.querySelectorAll(".tasks2-proj-select").forEach(select => {
