@@ -13123,21 +13123,9 @@ applyRolePermissions();
   // da linha de cima igual ao KPI.
   const PROJETOS_STORAGE_KEY = "wpf_tasks2_projetos";
 
-  // Tons de cinza, do mais claro pro mais escuro, na familia quente que o
-  // resto do dashboard usa. Cada projeto novo pega o proximo da fila;
-  // passando do fim, volta ao inicio. O texto fica escuro em todos os tons
-  // de proposito — a rampa para antes de escurecer a ponto de exigir texto
-  // claro, senao metade dos chips inverteria e a coluna ficaria irregular.
-  const PROJETO_TONS = [
-    { bg: "#f4f2ec", text: "#4a4943" },
-    { bg: "#eceae2", text: "#45443e" },
-    { bg: "#e4e1d7", text: "#403f39" },
-    { bg: "#dcd8cc", text: "#3b3a34" },
-    { bg: "#d4cfc1", text: "#37362f" },
-    { bg: "#ccc6b6", text: "#33322b" },
-    { bg: "#c3bcab", text: "#2f2e27" },
-    { bg: "#bab2a0", text: "#2b2a23" }
-  ];
+  // Um cinza so, igual pra todo projeto. Quem distingue um do outro e o
+  // nome escrito no chip, nao a cor.
+  const PROJETO_CINZA = { bg: "#e8e6dc", text: "#45443e" };
 
   let projetosData = [];
   try {
@@ -13152,15 +13140,14 @@ applyRolePermissions();
   function criarProjeto(nome) {
     const p = {
       id: "proj2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-      name: String(nome || "").trim() || "Novo projeto",
-      tom: projetosData.length % PROJETO_TONS.length
+      name: String(nome || "").trim() || "Novo projeto"
     };
     projetosData.push(p);
     saveProjetosData();
     return p;
   }
-  function tomDoProjeto(p) {
-    return PROJETO_TONS[(p && typeof p.tom === "number" ? p.tom : 0) % PROJETO_TONS.length];
+  function tomDoProjeto() {
+    return PROJETO_CINZA;
   }
 
   const NOVO_PROJETO = "__novo__";
