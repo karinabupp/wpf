@@ -2903,7 +2903,15 @@
     cursor: pointer;
   }
   .tasks2-kpi-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
-  .tasks2-kpi-picker.is-herdado { opacity: 0.62; }
+  /* Herdado usa o cinza do "— herdar —", nao a cor do status. */
+  .tasks2-kpi-herdado {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
   .tasks2-kpi-picker .tasks2-kpi-name {
     font-size: 12.5px;
     font-weight: 600;
@@ -2921,6 +2929,54 @@
     font-variant-numeric: tabular-nums;
   }
   .tasks2-kpi-vazio { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+  /* ── Coluna Projeto ───────────────────────────────────────────────
+     Mesmo padrao dos outros seletores: o que se le e o chip, com um
+     <select> nativo transparente por cima. */
+  .tasks2-col-projeto { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
+  .tasks2-proj-picker {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tasks2-proj-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
+  .tasks2-proj-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  /* Herdado: sem cor, no mesmo cinza discreto do "— herdar —". */
+  .tasks2-proj-herdado,
+  .tasks2-proj-vazio {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 4px 5px;
+  }
+  .tasks2-proj-select {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+  }
   .tasks2-kpi-picker .tasks2-kpi-select {
     position: absolute;
     inset: 0;
@@ -3313,7 +3369,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(220px, 1fr) 230px 150px 130px 130px 200px 158px;
+    grid-template-columns: 30px minmax(200px, 1fr) 220px 170px 140px 122px 122px 186px 150px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3645,7 +3701,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(190px, 1fr) 186px 126px 142px 142px 162px 140px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(170px, 1fr) 178px 150px 120px 132px 132px 152px 132px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3655,7 +3711,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(160px, 1fr) 164px 116px 136px 136px 140px 124px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(140px, 1fr) 156px 132px 110px 126px 126px 132px 116px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4073,6 +4129,7 @@
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-name">Nome</div>
         <div class="tasks2-col-kpi">KPI</div>
+        <div class="tasks2-col-projeto">Projeto</div>
         <div class="tasks2-col-status">Status</div>
         <div class="tasks2-col-date">Início</div>
         <div class="tasks2-col-date">Fim</div>
@@ -12562,17 +12619,17 @@ applyRolePermissions();
 ((getRealTasks, getRealGoals, getRealFeds, getRealLadies) => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
-  // objetivo era "task", rotina era "subtask", e projeto/entregável são novas.
-  // "projeto" nasceu chamada "ideia" e foi renomeada — ver a migração em
-  // ensureTaskDefaults, que ainda converte o valor antigo.
+  // objetivo era "task", rotina era "subtask", e ideia/entregável são novas.
+  // Esta categoria ja se chamou "projeto" no meio do caminho — ver a
+  // migração em ensureTaskDefaults, que converte o valor antigo.
   // A categoria é independente do nível de aninhamento — dá pra ter uma
-  // projeto dentro de um objetivo ou um entregável na raiz.
+  // ideia dentro de um objetivo ou um entregável na raiz.
   // Icones em SVG inline, no mesmo estilo do resto do dashboard: traco
   // currentColor, 24x24, ponta e junta arredondadas. Como sao currentColor,
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    projeto:    { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
+    ideia:      { label: "Ideia",      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
     rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
@@ -12590,7 +12647,7 @@ applyRolePermissions();
     "Cancelled":    "#9a9a92",
   };
 
-  // Objetivo, projeto e entregavel assumem a cor do proprio status. Rotina
+  // Objetivo, ideia e entregavel assumem a cor do proprio status. Rotina
   // fica neutra: a linha dela inteira ja e pintada com o status no fundo,
   // repetir no icone so poluiria.
   function typeIconColor(t) {
@@ -12606,7 +12663,7 @@ applyRolePermissions();
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
-  const TASK_TYPE_ORDER = ["objetivo", "projeto", "entregavel", "rotina"];
+  const TASK_TYPE_ORDER = ["objetivo", "ideia", "entregavel", "rotina"];
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
     return TASK_TYPE_ORDER.map(k =>
@@ -12625,7 +12682,7 @@ applyRolePermissions();
   };
 
   // Cada categoria tem seu proprio vocabulario de status.
-  //  - objetivo e projeto : CALCULADOS do que esta abaixo, nunca editaveis.
+  //  - objetivo e ideia : CALCULADOS do que esta abaixo, nunca editaveis.
   //    Os dois so REPRODUZEM as folhas de trabalho — nao tem estado proprio.
   //    Azul (In Progress) andando, verde (Done) concluido, vermelho (Late)
   //    se ha algo atrasado embaixo.
@@ -12633,33 +12690,33 @@ applyRolePermissions();
   const STATUS_CALCULADO = ["Not Started", "In Progress", "Late", "Done"];
   const STATUS_BY_TYPE = {
     objetivo:   STATUS_CALCULADO,
-    projeto:    STATUS_CALCULADO,
+    ideia:      STATUS_CALCULADO,
     entregavel: TASK_STATUS_OPTIONS,
     rotina:     TASK_STATUS_OPTIONS
   };
   const statusesFor = t => STATUS_BY_TYPE[t.rowType] || TASK_STATUS_OPTIONS;
   const statusAllowed = (t, s) => statusesFor(t).includes(s);
-  // Objetivo e projeto tem status calculado: nada de select.
-  const statusIsAuto = t => t.rowType === "objetivo" || t.rowType === "projeto";
+  // Objetivo e ideia tem status calculado: nada de select.
+  const statusIsAuto = t => t.rowType === "objetivo" || t.rowType === "ideia";
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
   function coerceStatus(t) {
     if (statusAllowed(t, t.status)) return;
-    t.status = "Not Started"; // calculado logo em seguida no caso de objetivo/projeto
+    t.status = "Not Started"; // calculado logo em seguida no caso de objetivo/ideia
   }
 
-  // Rollup de objetivo e projeto: olha so os FILHOS DIRETOS, seja qual for a
+  // Rollup de objetivo e ideia: olha so os FILHOS DIRETOS, seja qual for a
   // categoria deles.
   //
   // Antes isto varria a subarvore inteira contando apenas entregavel e
   // rotina, pra nao contar o mesmo trabalho duas vezes. O efeito colateral
-  // era grave: um projeto VAZIO nao contribuia com nada, entao um objetivo
-  // com um projeto concluido e tres projetos vazios aparecia como Done —
+  // era grave: uma ideia VAZIA nao contribuia com nada, entao um objetivo
+  // com uma ideia concluida e tres ideias vazias aparecia como Done —
   // ignorando os tres que nem comecaram.
   //
   // Olhar um nivel abaixo resolve os dois problemas de uma vez. Nao ha
-  // dupla contagem porque cada nivel le so o seu, e projeto vazio entra na
+  // dupla contagem porque cada nivel le so o seu, e ideia vazia entra na
   // conta como "Not Started" em vez de sumir. Funciona porque
   // syncStatusCalculados percorre de baixo pra cima: quando um pai e
   // calculado, os filhos calculados ja estao prontos.
@@ -12682,14 +12739,19 @@ applyRolePermissions();
     return "In Progress";
   }
 
-  // Reaplica o rollup em todo objetivo e projeto. Roda antes de cada render,
+  // Reaplica o rollup em todo objetivo e ideia. Roda antes de cada render,
   // junto com o autoSync de Late, pra tabela e view Late sempre baterem.
   function syncStatusCalculados() {
     let changed = false;
-    (function walk(items) {
+    (function walk(items, depth) {
       items.forEach(t => {
-        // Encaixa o status no vocabulario da categoria antes do rollup, senao
-        // um dado antigo (projeto em "On Hold", por exemplo) sobreviveria.
+        // Unico lugar que migra E persiste. A profundidade importa: linha
+        // aninhada sem categoria valida vira rotina, nao objetivo. Depois
+        // encaixa o status no vocabulario da categoria, senao um dado antigo
+        // (ideia em "On Hold", por exemplo) sobreviveria.
+        const tipoAntes = t.rowType;
+        migrarRowType(t, depth);
+        if (t.rowType !== tipoAntes) changed = true;
         const antes = t.status;
         coerceStatus(t);
         if (t.status !== antes) changed = true;
@@ -12701,13 +12763,13 @@ applyRolePermissions();
           t.kpiLink = "kpi2-" + t.kpiLink;
           changed = true;
         }
-        walk(t.subtasks); // de baixo pra cima: os filhos primeiro
+        walk(t.subtasks, depth + 1); // de baixo pra cima: os filhos primeiro
         if (statusIsAuto(t)) {
           const s = computeRollupStatus(t);
           if (t.status !== s) { t.status = s; changed = true; }
         }
       });
-    })(tasksData);
+    })(tasksData, 0);
     // Persistir aqui e o que faz o dado no localStorage bater com a tela.
     if (changed) saveTasksData();
     return changed;
@@ -12796,6 +12858,18 @@ applyRolePermissions();
     ] }
   ];
 
+  // Migração das categorias antigas. Roda em TODA cópia (inclusive no
+  // "Recarregar do original", que traz dados ainda com task/subtask). A
+  // categoria mudou de nome duas vezes: nasceu "ideia", virou "projeto", e
+  // voltou a "ideia" quando "Projeto" passou a ser uma COLUNA — dado salvo
+  // em qualquer uma das versoes acaba aqui.
+  function migrarRowType(t, depth) {
+    if (t.rowType === "task") t.rowType = "objetivo";
+    if (t.rowType === "subtask") t.rowType = "rotina";
+    if (t.rowType === "projeto") t.rowType = "ideia";
+    if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "rotina" : "objetivo";
+  }
+
   function ensureTaskDefaults(t, depth) {
     if (depth === undefined) depth = 0;
     if (!Array.isArray(t.subtasks)) t.subtasks = [];
@@ -12813,12 +12887,9 @@ applyRolePermissions();
     // row (drives whether the row gets a status color). For data saved before
     // this existed, default it from nesting depth so existing boards look the
     // same as before.
-    // Migração das categorias antigas. Roda em TODA cópia (inclusive no
-    // "Recarregar do original", que traz dados ainda com task/subtask).
-    if (t.rowType === "task") t.rowType = "objetivo";
-    if (t.rowType === "subtask") t.rowType = "rotina";
-    if (t.rowType === "ideia") t.rowType = "projeto"; // renomeada depois de ja existir dado salvo
-    if (!TASK_TYPES[t.rowType]) t.rowType = depth > 0 ? "rotina" : "objetivo";
+    // migrarRowType NAO e chamado aqui de proposito, pelo mesmo motivo do
+    // coerceStatus: corrigido no load, syncStatusCalculados nao veria
+    // mudanca nenhuma e nao salvaria — tela certa, dado gravado velho.
     // O status NAO e encaixado aqui de proposito. Se fosse, um valor invalido
     // vindo do localStorage seria corrigido em memoria antes de
     // syncStatusCalculados() rodar, o sync nao veria mudanca nenhuma e nao
@@ -12920,7 +12991,7 @@ applyRolePermissions();
         // already Late — to "Late" once its due date passes, no matter what
         // status it was in (Not Started, In Progress, On Hold, etc).
         // So entregavel e rotina viram Late por data propria. Objetivo e
-      // projeto recebem Late pelo rollup, quando ha algo atrasado abaixo.
+      // ideia recebem Late pelo rollup, quando ha algo atrasado abaixo.
       const podeAtrasar = t.rowType === "entregavel" || t.rowType === "rotina";
       if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
           t.status = "Late";
@@ -13046,6 +13117,75 @@ applyRolePermissions();
     return (list || TASK_STATUS_OPTIONS).map(s => `<option value="${s}" ${s === selected ? "selected" : ""}>${s}</option>`).join("");
   }
 
+  // ── Coluna Projeto ────────────────────────────────────────────────────
+  // Lista propria do rascunho ("wpf_tasks2_projetos"), sem scheduleCloudSave,
+  // mesma regra de isolamento de tudo aqui. O vinculo (t.projetoLink) herda
+  // da linha de cima igual ao KPI.
+  const PROJETOS_STORAGE_KEY = "wpf_tasks2_projetos";
+
+  // Tons de roxo, do mais claro pro mais escuro. Cada projeto novo pega o
+  // proximo da fila; passando do fim, volta ao inicio.
+  const PROJETO_TONS = [
+    { bg: "#efedfd", text: "#4b3fa8" },
+    { bg: "#e6e2fb", text: "#3c3489" },
+    { bg: "#ddd7f9", text: "#332b7d" },
+    { bg: "#d2caf6", text: "#2c2570" },
+    { bg: "#c6bcf3", text: "#261f63" },
+    { bg: "#b9adef", text: "#221b58" },
+    { bg: "#ab9dea", text: "#1e1750" },
+    { bg: "#9d8ce5", text: "#1a1447" }
+  ];
+
+  let projetosData = [];
+  try {
+    const guardado = JSON.parse(localStorage.getItem(PROJETOS_STORAGE_KEY) || "null");
+    if (Array.isArray(guardado)) projetosData = guardado.filter(x => x && x.id);
+  } catch (e) { projetosData = []; }
+
+  function saveProjetosData() {
+    localStorage.setItem(PROJETOS_STORAGE_KEY, JSON.stringify(projetosData));
+  }
+  function findProjetoById(id) { return projetosData.find(x => x.id === id) || null; }
+  function criarProjeto(nome) {
+    const p = {
+      id: "proj2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+      name: String(nome || "").trim() || "Novo projeto",
+      tom: projetosData.length % PROJETO_TONS.length
+    };
+    projetosData.push(p);
+    saveProjetosData();
+    return p;
+  }
+  function tomDoProjeto(p) {
+    return PROJETO_TONS[(p && typeof p.tom === "number" ? p.tom : 0) % PROJETO_TONS.length];
+  }
+
+  const NOVO_PROJETO = "__novo__";
+
+  function projetoCellMarkup(t, depth, herdado) {
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const efetivo = t.projetoLink || herdado || "";
+    const p = efetivo ? findProjetoById(efetivo) : null;
+    const ehHerdado = !t.projetoLink && !!herdado;
+    // Herdado nao ganha a cor do projeto: sai no mesmo cinza discreto do
+    // "— herdar —", so que escrito com o nome, que diz bem mais.
+    const chip = p
+      ? (ehHerdado
+          ? `<span class="tasks2-proj-herdado">${esc(p.name)}</span>`
+          : `<span class="tasks2-proj-chip" style="background:${tomDoProjeto(p).bg}; color:${tomDoProjeto(p).text}">${esc(p.name)}</span>`)
+      : `<span class="tasks2-proj-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
+    const opcoes = projetosData.map(x =>
+      `<option value="${x.id}" ${x.id === t.projetoLink ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+    return `<span class="tasks2-proj-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher projeto"}">
+        ${chip}
+        <select class="tasks2-proj-select" data-id="${t.id}" aria-label="Projeto da linha">
+          <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
+          ${opcoes}
+          <option value="${NOVO_PROJETO}">+ Novo projeto…</option>
+        </select>
+      </span>`;
+  }
+
   // ── KPI na tabela de tasks ────────────────────────────────────────────
   // A coluna "KPI associado" (que listava goalsData) foi substituida por
   // esta, que le a guia KPI do proprio rascunho. O vinculo continua sendo
@@ -13116,8 +13256,13 @@ applyRolePermissions();
     const estado = k ? kpiState(k) : null;
     const cor = estado ? KPI_STATE_COLORS[estado] : "var(--text-muted)";
     const numeros = k && (k.current !== "" || k.target !== "") ? `${k.current || "—"}/${k.target || "—"}` : "";
+    // Herdado nao repete a cor do status: sai no mesmo cinza discreto que o
+    // "— herdar —" usava, so que escrito com o nome e os numeros, que dizem
+    // bem mais do que a palavra "herdar".
     const rotulo = k
-      ? `<span class="tasks2-kpi-name">${k.name || "(sem nome)"}</span><span class="tasks2-kpi-nums">${numeros}</span>`
+      ? (herdado
+          ? `<span class="tasks2-kpi-herdado">${k.name || "(sem nome)"}${numeros ? " " + numeros : ""}</span>`
+          : `<span class="tasks2-kpi-name">${k.name || "(sem nome)"}</span><span class="tasks2-kpi-nums">${numeros}</span>`)
       : `<span class="tasks2-kpi-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
     const dica = k
       ? `${k.name}${k.unit ? " (" + k.unit + ")" : ""}: ${k.current || "—"} de ${k.target || "—"}${herdado ? " — herdado da linha acima" : ""}`
@@ -13134,8 +13279,9 @@ applyRolePermissions();
       ${canKpi ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="kpiLink" title="Arraste para copiar o KPI para as linhas ao lado"></span>` : ""}`;
   }
 
-  function renderTaskRow(t, depth, inheritedKpi) {
+  function renderTaskRow(t, depth, inheritedKpi, inheritedProjeto) {
     inheritedKpi = inheritedKpi || "";
+    inheritedProjeto = inheritedProjeto || "";
     const hasChildren = t.subtasks.length > 0;
     const expanded = tasksExpanded.has(t.id);
     const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
@@ -13164,6 +13310,9 @@ applyRolePermissions();
         </div>
         <div class="tasks2-col-kpi">
           ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
+        </div>
+        <div class="tasks2-col-projeto">
+          ${projetoCellMarkup(t, depth, inheritedProjeto)}
         </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
@@ -13198,7 +13347,7 @@ applyRolePermissions();
       `;
     }
     if (hasChildren && expanded) {
-      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi); });
+      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi, t.projetoLink || inheritedProjeto); });
     }
     return html;
   }
@@ -13445,6 +13594,21 @@ applyRolePermissions();
         renderTasksTable();
       });
     });
+    body.querySelectorAll(".tasks2-proj-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        if (select.value === NOVO_PROJETO) {
+          const nome = window.prompt("Nome do novo projeto:");
+          if (!nome || !nome.trim()) { renderTasksTable(); return; } // cancelou: desfaz a escolha
+          t.projetoLink = criarProjeto(nome).id;
+        } else {
+          t.projetoLink = select.value;
+        }
+        saveTasksData();
+        renderTasksTable(); // o chip colorido e os filhos que herdam precisam redesenhar
+      });
+    });
     body.querySelectorAll(".tasks2-type-select").forEach(select => {
       select.addEventListener("change", () => {
         const t = findTaskById(tasksData, select.dataset.id);
@@ -13674,7 +13838,7 @@ applyRolePermissions();
   }
 
   // Cadeia de ancestrais de uma linha, do mais externo pro mais interno.
-  // A view Late usa isso pra sempre apontar dentro de qual projeto e de qual
+  // A view Late usa isso pra sempre apontar dentro de qual ideia e de qual
   // entregável a rotina atrasada está — o pai imediato sozinho não bastava,
   // já que a categoria não depende do nível de aninhamento.
   function findAncestorChain(id) {
@@ -13692,10 +13856,10 @@ applyRolePermissions();
 
   function lateContextMarkup(id, fallbackParentName) {
     const context = findAncestorChain(id)
-      .filter(a => a.rowType === "projeto" || a.rowType === "entregavel")
+      .filter(a => a.rowType === "ideia" || a.rowType === "entregavel")
       .map(a => `<span class="tasks2-late-crumb"><span class="tasks2-type-icon" data-type="${a.rowType}" style="color:${typeIconColor(a)}">${TASK_TYPES[a.rowType].icon}</span>${a.name}</span>`);
     if (context.length) return `<div class="tasks2-late-parent">${context.join("")}</div>`;
-    // Sem projeto nem entregável acima: cai no pai imediato, que é o que a
+    // Sem ideia nem entregável acima: cai no pai imediato, que é o que a
     // view mostrava antes, pra não perder contexto nenhum.
     return fallbackParentName ? `<div class="tasks2-late-parent">↳ ${fallbackParentName}</div>` : "";
   }
