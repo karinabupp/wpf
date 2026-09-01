@@ -12649,22 +12649,34 @@ applyRolePermissions();
     t.status = "Not Started"; // calculado logo em seguida no caso de objetivo/projeto
   }
 
-  // Rollup de objetivo e projeto. Le TODA a subarvore, mas conta so
-  // entregavel e rotina: sao as unicas categorias com estado proprio. Um
-  // objetivo ou projeto aninhado nao e contado diretamente porque ele
-  // mesmo ja e um reflexo do que tem abaixo — contar os dois seria contar
-  // a mesma coisa duas vezes.
+  // Rollup de objetivo e projeto: olha so os FILHOS DIRETOS, seja qual for a
+  // categoria deles.
+  //
+  // Antes isto varria a subarvore inteira contando apenas entregavel e
+  // rotina, pra nao contar o mesmo trabalho duas vezes. O efeito colateral
+  // era grave: um projeto VAZIO nao contribuia com nada, entao um objetivo
+  // com um projeto concluido e tres projetos vazios aparecia como Done —
+  // ignorando os tres que nem comecaram.
+  //
+  // Olhar um nivel abaixo resolve os dois problemas de uma vez. Nao ha
+  // dupla contagem porque cada nivel le so o seu, e projeto vazio entra na
+  // conta como "Not Started" em vez de sumir. Funciona porque
+  // syncStatusCalculados percorre de baixo pra cima: quando um pai e
+  // calculado, os filhos calculados ja estao prontos.
+  // Atraso e a excecao a regra do filho direto: ele sobe de QUALQUER
+  // profundidade. Precisa ser assim porque entregavel tem status proprio,
+  // digitado a mao — uma rotina vencida embaixo dele nao muda o status do
+  // entregavel, e sem esta varredura o atraso morreria ali e nunca chegaria
+  // ao objetivo.
+  function temAtrasoAbaixo(t) {
+    return t.subtasks.some(x =>
+      x.status !== "Cancelled" && (x.status === "Late" || temAtrasoAbaixo(x)));
+  }
+
   function computeRollupStatus(t) {
-    const considered = [];
-    (function walk(items) {
-      items.forEach(x => {
-        if (x.rowType === "entregavel" || x.rowType === "rotina") considered.push(x);
-        walk(x.subtasks);
-      });
-    })(t.subtasks);
-    const live = considered.filter(x => x.status !== "Cancelled");
+    if (temAtrasoAbaixo(t)) return "Late";
+    const live = t.subtasks.filter(x => x.status !== "Cancelled");
     if (!live.length) return "Not Started";
-    if (live.some(x => x.status === "Late")) return "Late";
     if (live.every(x => x.status === "Done")) return "Done";
     if (live.every(x => x.status === "Not Started")) return "Not Started";
     return "In Progress";
