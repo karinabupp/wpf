@@ -2991,6 +2991,84 @@
     appearance: none;
   }
 
+  /* ── Painel "Gerenciar projetos" ──────────────────────────────────
+     z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
+     sessao cair com o painel aberto, o login continua por cima. */
+  #tasks2-projmodal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 27, 24, 0.38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 900;
+  }
+  #tasks2-projmodal-backdrop.hidden { display: none; }
+  #tasks2-projmodal {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: min(520px, 92vw);
+    max-height: 78vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.18);
+  }
+  #tasks2-projmodal-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 14px;
+  }
+  #tasks2-projmodal-fechar {
+    background: none; border: none; cursor: pointer;
+    font-size: 20px; line-height: 1; color: var(--text-muted); padding: 0 4px;
+  }
+  #tasks2-projmodal-lista { overflow-y: auto; padding: 6px 8px; }
+  .tasks2-projmodal-linha {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tasks2-projmodal-linha:last-child { border-bottom: none; }
+  .tasks2-projmodal-nome {
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13.5px;
+    color: var(--text);
+    padding: 7px 8px;
+    border-radius: 6px;
+    width: 100%;
+  }
+  .tasks2-projmodal-nome:hover { border-color: var(--border); }
+  .tasks2-projmodal-nome:focus { outline: none; border-color: var(--border-strong); background: var(--land-default); }
+  .tasks2-projmodal-usos { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+  .tasks2-projmodal-del {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tasks2-projmodal-del:hover { color: #e24b4a; border-color: #e24b4a; }
+  .tasks2-projmodal-del.armado { color: #e24b4a; border-color: #e24b4a; font-weight: 600; }
+  .tasks2-projmodal-vazio { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  #tasks2-projmodal-rodape { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+  #tasks2-projmodal-add {
+    background: var(--text); border: none; color: #fff;
+    border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+
   /* ── Guia KPI: tabela propria, mais simples que a de tasks — quatro
      campos, sem arvore, sem selecao em massa e sem arrastar. ───────── */
   #tasks2-kpi-table { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--bg); }
@@ -4160,6 +4238,19 @@
       </div>
       <div id="tasks2-kpi-footer">
         <button id="tasks2-kpi-add-btn" type="button">+ Novo KPI</button>
+      </div>
+    </div>
+
+    <div id="tasks2-projmodal-backdrop" class="hidden">
+      <div id="tasks2-projmodal">
+        <div id="tasks2-projmodal-topo">
+        <span>Gerenciar projetos</span>
+        <button type="button" id="tasks2-projmodal-fechar" title="Fechar">×</button>
+        </div>
+        <div id="tasks2-projmodal-lista"></div>
+        <div id="tasks2-projmodal-rodape">
+        <button type="button" id="tasks2-projmodal-add">+ Novo projeto</button>
+        </div>
       </div>
     </div>
 
@@ -13151,6 +13242,96 @@ applyRolePermissions();
   }
 
   const NOVO_PROJETO = "__novo__";
+  const GERENCIAR_PROJETOS = "__gerenciar__";
+
+  // Quantas linhas usam cada projeto — mostrado antes de excluir, pra a
+  // exclusao nao ser as cegas.
+  function contarUsosProjeto(id) {
+    let total = 0;
+    (function walk(items) {
+      items.forEach(t => { if (t.projetoLink === id) total++; walk(t.subtasks); });
+    })(tasksData);
+    return total;
+  }
+
+  function renomearProjeto(id, nome) {
+    const p = findProjetoById(id);
+    if (!p) return;
+    const limpo = String(nome || "").trim();
+    if (!limpo) return; // nome vazio mantem o anterior em vez de gravar ""
+    p.name = limpo;
+    saveProjetosData();
+  }
+
+  function excluirProjeto(id) {
+    // Limpa o vinculo antes de remover: linha apontando pra um id que nao
+    // existe mais voltaria a HERDAR da linha de cima sem ninguem pedir.
+    (function walk(items) {
+      items.forEach(t => { if (t.projetoLink === id) t.projetoLink = ""; walk(t.subtasks); });
+    })(tasksData);
+    projetosData = projetosData.filter(x => x.id !== id);
+    saveProjetosData();
+    saveTasksData();
+  }
+
+  let projetoExcluirArmado = null;
+  function desarmarExclusaoProjeto() { projetoExcluirArmado = null; }
+
+  function montarGerenciadorProjetos() {
+    const lista = document.getElementById("tasks2-projmodal-lista");
+    if (!lista) return;
+    if (!projetosData.length) {
+      lista.innerHTML = `<div class="tasks2-projmodal-vazio">Nenhum projeto ainda.</div>`;
+      return;
+    }
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    lista.innerHTML = projetosData.map(p => {
+      const usos = contarUsosProjeto(p.id);
+      const armado = projetoExcluirArmado === p.id;
+      return `<div class="tasks2-projmodal-linha" data-id="${p.id}">
+        <input type="text" class="tasks2-projmodal-nome" data-id="${p.id}" value="${esc(p.name)}">
+        <span class="tasks2-projmodal-usos">${usos ? "em " + usos + (usos === 1 ? " linha" : " linhas") : "sem uso"}</span>
+        <button type="button" class="tasks2-projmodal-del ${armado ? "armado" : ""}" data-id="${p.id}">${armado ? `Excluir? · ${usos} ${usos === 1 ? "linha" : "linhas"}` : "Excluir"}</button>
+      </div>`;
+    }).join("");
+
+    lista.querySelectorAll(".tasks2-projmodal-nome").forEach(inp => {
+      const salvar = () => { renomearProjeto(inp.dataset.id, inp.value); montarGerenciadorProjetos(); };
+      inp.addEventListener("blur", salvar);
+      inp.addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
+        if (e.key === "Escape") { inp.value = (findProjetoById(inp.dataset.id) || {}).name || ""; inp.blur(); }
+      });
+    });
+    lista.querySelectorAll(".tasks2-projmodal-del").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        // Dois cliques, mesmo padrao do "Recarregar do original". De
+        // proposito nao usa window.confirm: caixa nativa trava a pagina.
+        if (projetoExcluirArmado !== id) {
+          projetoExcluirArmado = id;
+          montarGerenciadorProjetos();
+          setTimeout(() => { if (projetoExcluirArmado === id) { desarmarExclusaoProjeto(); montarGerenciadorProjetos(); } }, 5000);
+          return;
+        }
+        desarmarExclusaoProjeto();
+        excluirProjeto(id);
+        montarGerenciadorProjetos();
+      });
+    });
+  }
+
+  function abrirGerenciadorProjetos() {
+    desarmarExclusaoProjeto();
+    document.getElementById("tasks2-projmodal-backdrop").classList.remove("hidden");
+    montarGerenciadorProjetos();
+  }
+  function fecharGerenciadorProjetos() {
+    document.getElementById("tasks2-projmodal-backdrop").classList.add("hidden");
+    desarmarExclusaoProjeto();
+    renderTasksTable(); // nomes e vinculos podem ter mudado
+  }
 
   function projetoCellMarkup(t, depth, herdado) {
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -13172,6 +13353,7 @@ applyRolePermissions();
           <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
           ${opcoes}
           <option value="${NOVO_PROJETO}">+ Novo projeto…</option>
+          ${projetosData.length ? `<option value="${GERENCIAR_PROJETOS}">⚙ Gerenciar projetos…</option>` : ""}
         </select>
       </span>`;
   }
@@ -13588,6 +13770,11 @@ applyRolePermissions();
       select.addEventListener("change", () => {
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
+        if (select.value === GERENCIAR_PROJETOS) {
+          renderTasksTable(); // devolve o select ao valor real antes de abrir
+          abrirGerenciadorProjetos();
+          return;
+        }
         if (select.value === NOVO_PROJETO) {
           const nome = window.prompt("Nome do novo projeto:");
           if (!nome || !nome.trim()) { renderTasksTable(); return; } // cancelou: desfaz a escolha
@@ -14272,6 +14459,23 @@ applyRolePermissions();
       });
     });
   }
+
+  document.getElementById("tasks2-projmodal-fechar").addEventListener("click", fecharGerenciadorProjetos);
+  document.getElementById("tasks2-projmodal-backdrop").addEventListener("click", e => {
+    if (e.target.id === "tasks2-projmodal-backdrop") fecharGerenciadorProjetos();
+    else { desarmarExclusaoProjeto(); montarGerenciadorProjetos(); } // clicar fora do botao desarma
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !document.getElementById("tasks2-projmodal-backdrop").classList.contains("hidden")) {
+      fecharGerenciadorProjetos();
+    }
+  });
+  document.getElementById("tasks2-projmodal-add").addEventListener("click", () => {
+    const nome = window.prompt("Nome do novo projeto:");
+    if (!nome || !nome.trim()) return;
+    criarProjeto(nome);
+    montarGerenciadorProjetos();
+  });
 
   document.getElementById("tasks2-kpi-add-btn").addEventListener("click", () => {
     kpisData.push(ensureKpiDefaults({ name: "Novo KPI" }));
