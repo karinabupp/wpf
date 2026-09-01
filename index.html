@@ -2930,12 +2930,12 @@
   }
   .tasks2-kpi-vazio { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
-  /* ── Coluna Área (classes seguem tasks2-proj-*) ───────────────────────────────────────────────
+  /* ── Coluna Área (classes seguem tasks2-area-*) ───────────────────────────────────────────────
      Mesmo padrao dos outros seletores: o que se le e o chip, com um
      <select> nativo transparente por cima. */
-  .tasks2-col-projeto,
+  .tasks2-col-area,
   .tasks2-col-objetivo { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
-  .tasks2-proj-picker,
+  .tasks2-area-picker,
   .tasks2-obj-picker {
     position: relative;
     display: flex;
@@ -2945,9 +2945,9 @@
     border-radius: 6px;
     cursor: pointer;
   }
-  .tasks2-proj-picker:hover,
+  .tasks2-area-picker:hover,
   .tasks2-obj-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
-  .tasks2-proj-chip,
+  .tasks2-area-chip,
   .tasks2-obj-chip {
     font-size: 12px;
     font-weight: 600;
@@ -2959,8 +2959,8 @@
     max-width: 100%;
   }
   /* Herdado: sem cor, no mesmo cinza discreto do "— herdar —". */
-  .tasks2-proj-herdado,
-  .tasks2-proj-vazio,
+  .tasks2-area-herdado,
+  .tasks2-area-vazio,
   .tasks2-obj-herdado,
   .tasks2-obj-vazio {
     font-size: 12px;
@@ -2970,7 +2970,7 @@
     text-overflow: ellipsis;
     padding: 4px 5px;
   }
-  .tasks2-proj-select,
+  .tasks2-area-select,
   .tasks2-obj-select {
     position: absolute;
     inset: 0;
@@ -3050,10 +3050,10 @@
   }
   .tasks2-filtro-vazio { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--text-muted); }
 
-  /* ── Painel "Gerenciar áreas" (classes seguem tasks2-projmodal-*) ──────────────────────────────────
+  /* ── Painel "Gerenciar áreas" (classes seguem tasks2-areamodal-*) ──────────────────────────────────
      z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
      sessao cair com o painel aberto, o login continua por cima. */
-  #tasks2-projmodal-backdrop {
+  #tasks2-areamodal-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(28, 27, 24, 0.38);
@@ -3062,8 +3062,8 @@
     justify-content: center;
     z-index: 900;
   }
-  #tasks2-projmodal-backdrop.hidden { display: none; }
-  #tasks2-projmodal {
+  #tasks2-areamodal-backdrop.hidden { display: none; }
+  #tasks2-areamodal {
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -3073,7 +3073,7 @@
     flex-direction: column;
     box-shadow: 0 18px 48px rgba(0,0,0,0.18);
   }
-  #tasks2-projmodal-topo {
+  #tasks2-areamodal-topo {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -3082,12 +3082,12 @@
     font-weight: 700;
     font-size: 14px;
   }
-  #tasks2-projmodal-fechar {
+  #tasks2-areamodal-fechar {
     background: none; border: none; cursor: pointer;
     font-size: 20px; line-height: 1; color: var(--text-muted); padding: 0 4px;
   }
-  #tasks2-projmodal-lista { overflow-y: auto; padding: 6px 8px; }
-  .tasks2-projmodal-linha {
+  #tasks2-areamodal-lista { overflow-y: auto; padding: 6px 8px; }
+  .tasks2-areamodal-linha {
     display: grid;
     grid-template-columns: 1fr auto auto;
     align-items: center;
@@ -3095,8 +3095,8 @@
     padding: 6px 8px;
     border-bottom: 1px solid var(--border);
   }
-  .tasks2-projmodal-linha:last-child { border-bottom: none; }
-  .tasks2-projmodal-nome {
+  .tasks2-areamodal-linha:last-child { border-bottom: none; }
+  .tasks2-areamodal-nome {
     border: 1px solid transparent;
     background: transparent;
     font-family: inherit;
@@ -3106,10 +3106,10 @@
     border-radius: 6px;
     width: 100%;
   }
-  .tasks2-projmodal-nome:hover { border-color: var(--border); }
-  .tasks2-projmodal-nome:focus { outline: none; border-color: var(--border-strong); background: var(--land-default); }
-  .tasks2-projmodal-usos { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
-  .tasks2-projmodal-del {
+  .tasks2-areamodal-nome:hover { border-color: var(--border); }
+  .tasks2-areamodal-nome:focus { outline: none; border-color: var(--border-strong); background: var(--land-default); }
+  .tasks2-areamodal-usos { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
+  .tasks2-areamodal-del {
     background: transparent;
     border: 1px solid var(--border);
     color: var(--text-muted);
@@ -3119,11 +3119,11 @@
     cursor: pointer;
     white-space: nowrap;
   }
-  .tasks2-projmodal-del:hover { color: #e24b4a; border-color: #e24b4a; }
-  .tasks2-projmodal-del.armado { color: #e24b4a; border-color: #e24b4a; font-weight: 600; }
-  .tasks2-projmodal-vazio { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
-  #tasks2-projmodal-rodape { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
-  #tasks2-projmodal-add {
+  .tasks2-areamodal-del:hover { color: #e24b4a; border-color: #e24b4a; }
+  .tasks2-areamodal-del.armado { color: #e24b4a; border-color: #e24b4a; font-weight: 600; }
+  .tasks2-areamodal-vazio { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  #tasks2-areamodal-rodape { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+  #tasks2-areamodal-add {
     background: var(--text); border: none; color: #fff;
     border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer;
   }
@@ -4256,7 +4256,7 @@
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-objetivo"><button type="button" class="tasks2-filtro-btn" data-col="objetivo">Objetivo<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-projeto"><button type="button" class="tasks2-filtro-btn" data-col="projeto">Área<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -4290,15 +4290,15 @@
       </div>
     </div>
 
-    <div id="tasks2-projmodal-backdrop" class="hidden">
-      <div id="tasks2-projmodal">
-        <div id="tasks2-projmodal-topo">
+    <div id="tasks2-areamodal-backdrop" class="hidden">
+      <div id="tasks2-areamodal">
+        <div id="tasks2-areamodal-topo">
         <span>Gerenciar áreas</span>
-        <button type="button" id="tasks2-projmodal-fechar" title="Fechar">×</button>
+        <button type="button" id="tasks2-areamodal-fechar" title="Fechar">×</button>
         </div>
-        <div id="tasks2-projmodal-lista"></div>
-        <div id="tasks2-projmodal-rodape">
-        <button type="button" id="tasks2-projmodal-add">+ Nova área</button>
+        <div id="tasks2-areamodal-lista"></div>
+        <div id="tasks2-areamodal-rodape">
+        <button type="button" id="tasks2-areamodal-add">+ Nova área</button>
         </div>
       </div>
     </div>
@@ -12761,26 +12761,25 @@ applyRolePermissions();
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
   // objetivo era "task" e rotina era "subtask".
   //
-  // A terceira categoria ja mudou de nome quatro vezes: "ideia" → "projeto"
-  // → "ideia" → e agora, na tela, "Projeto" de novo. Desta vez SO O ROTULO
-  // mudou: a chave continua "ideia" (rowType === "ideia"), porque "projeto"
-  // ja e o nome interno da COLUNA Área (projetoLink, projetosData,
-  // wpf_tasks2_projetos). Reusar a palavra criaria colisao de verdade no
-  // codigo, e nao so um desencontro entre rotulo e chave.
+  // Os nomes internos foram alinhados aos da tela: o que se le no codigo e o
+  // que aparece no dashboard, sem tradução no meio.
+  //   rowType  "objetivo" | "projeto" | "entregavel" | "rotina"
+  //   areaLink      -> coluna "Área"      (era projetoLink)
+  //   objetivoLink  -> coluna "Objetivo"
   //
-  // Resumo de quem ler depois:
-  //   rowType "ideia"  -> aparece como "Projeto" (categoria da linha)
-  //   projetoLink      -> aparece como "Área"    (coluna)
-  //   objetivoLink     -> aparece como "Objetivo" (coluna)
-  //   rowType "objetivo" -> aparece como "Objetivo" (categoria da linha)
+  // A categoria "projeto" ja se chamou "ideia", e a coluna "Área" ja se
+  // chamou "Projeto" — as conversoes do dado antigo estao em migrarRowType
+  // e em syncStatusCalculados. Se um nome mudar de novo na tela, mudar aqui
+  // junto e acrescentar a conversao: deixar os dois divergirem foi o que
+  // tornou este bloco dificil de ler.
   // A categoria é independente do nível de aninhamento — dá pra ter uma
-  // ideia dentro de um objetivo ou um entregável na raiz.
+  // projeto dentro de um objetivo ou um entregável na raiz.
   // Icones em SVG inline, no mesmo estilo do resto do dashboard: traco
   // currentColor, 24x24, ponta e junta arredondadas. Como sao currentColor,
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    ideia:      { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
+    projeto:    { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
     rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
@@ -12814,7 +12813,7 @@ applyRolePermissions();
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
-  const TASK_TYPE_ORDER = ["objetivo", "ideia", "entregavel", "rotina"];
+  const TASK_TYPE_ORDER = ["objetivo", "projeto", "entregavel", "rotina"];
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
     return TASK_TYPE_ORDER.map(k =>
@@ -12841,14 +12840,14 @@ applyRolePermissions();
   const STATUS_CALCULADO = ["Not Started", "In Progress", "Late", "Done"];
   const STATUS_BY_TYPE = {
     objetivo:   STATUS_CALCULADO,
-    ideia:      STATUS_CALCULADO,
+    projeto:    STATUS_CALCULADO,
     entregavel: TASK_STATUS_OPTIONS,
     rotina:     TASK_STATUS_OPTIONS
   };
   const statusesFor = t => STATUS_BY_TYPE[t.rowType] || TASK_STATUS_OPTIONS;
   const statusAllowed = (t, s) => statusesFor(t).includes(s);
   // Objetivo e ideia tem status calculado: nada de select.
-  const statusIsAuto = t => t.rowType === "objetivo" || t.rowType === "ideia";
+  const statusIsAuto = t => t.rowType === "objetivo" || t.rowType === "projeto";
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
@@ -12906,6 +12905,14 @@ applyRolePermissions();
         const antes = t.status;
         coerceStatus(t);
         if (t.status !== antes) changed = true;
+        // O vinculo da coluna Área nasceu como projetoLink, quando a coluna
+        // se chamava Projeto. Renomeado junto com o resto pra codigo e tela
+        // dizerem a mesma coisa; o valor em si nao muda.
+        if (t.projetoLink !== undefined) {
+          if (!t.areaLink) t.areaLink = t.projetoLink;
+          delete t.projetoLink;
+          changed = true;
+        }
         // kpiLink apontava pro id do goal; a guia KPI semeia com "kpi2-" +
         // esse id. Fica aqui, e nao no ensureTaskDefaults, pelo mesmo motivo
         // do coerceStatus: corrigido no load, o sync nao veria mudanca e nao
@@ -13010,14 +13017,16 @@ applyRolePermissions();
   ];
 
   // Migração das categorias antigas. Roda em TODA cópia (inclusive no
-  // "Recarregar do original", que traz dados ainda com task/subtask). A
-  // categoria mudou de nome duas vezes: nasceu "ideia", virou "projeto", e
-  // voltou a "ideia" quando "Projeto" passou a ser uma COLUNA — dado salvo
-  // em qualquer uma das versoes acaba aqui.
+  // "Recarregar do original", que traz dados ainda com task/subtask).
+  //
+  // A terceira categoria trocou de nome algumas vezes: "ideia" → "projeto"
+  // → "ideia" → "projeto". O nome parou em "projeto", que e como ela
+  // aparece na tela; dado gravado em qualquer versao anterior chega aqui e
+  // sai como "projeto".
   function migrarRowType(t, depth) {
     if (t.rowType === "task") t.rowType = "objetivo";
     if (t.rowType === "subtask") t.rowType = "rotina";
-    if (t.rowType === "projeto") t.rowType = "ideia";
+    if (t.rowType === "ideia") t.rowType = "projeto";
     if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "rotina" : "objetivo";
   }
 
@@ -13284,19 +13293,19 @@ applyRolePermissions();
   // ══════════════════════════════════════════════════════════════════════
   const filtros = {
     nome: "",
-    kpi: new Set(), objetivo: new Set(), projeto: new Set(), status: new Set(), responsavel: new Set(),
+    kpi: new Set(), objetivo: new Set(), area: new Set(), status: new Set(), responsavel: new Set(),
     inicioDe: "", inicioAte: "", fimDe: "", fimAte: ""
   };
   const SEM_VALOR = "__sem__"; // "sem KPI" / "sem projeto" / "sem responsável"
 
   function haFiltro() {
-    return !!filtros.nome.trim() || filtros.kpi.size || filtros.objetivo.size || filtros.projeto.size ||
+    return !!filtros.nome.trim() || filtros.kpi.size || filtros.objetivo.size || filtros.area.size ||
       filtros.status.size || filtros.responsavel.size ||
       filtros.inicioDe || filtros.inicioAte || filtros.fimDe || filtros.fimAte;
   }
   function limparFiltros() {
     filtros.nome = "";
-    ["kpi", "objetivo", "projeto", "status", "responsavel"].forEach(k => filtros[k].clear());
+    ["kpi", "objetivo", "area", "status", "responsavel"].forEach(k => filtros[k].clear());
     ["inicioDe", "inicioAte", "fimDe", "fimAte"].forEach(k => filtros[k] = "");
   }
 
@@ -13310,12 +13319,12 @@ applyRolePermissions();
 
   // KPI e projeto contam pelo valor EFETIVO: uma linha que herda o KPI do pai
   // aparece ao filtrar por esse KPI, que e o que a tela mostra nela.
-  function linhaCasa(t, kpiEfetivo, projEfetivo, objEfetivo) {
+  function linhaCasa(t, kpiEfetivo, areaEfetiva, objEfetivo) {
     if (filtros.nome.trim() &&
         String(t.name || "").toLowerCase().indexOf(filtros.nome.trim().toLowerCase()) === -1) return false;
     if (filtros.status.size && !filtros.status.has(t.status)) return false;
     if (filtros.kpi.size && !filtros.kpi.has(kpiEfetivo || SEM_VALOR)) return false;
-    if (filtros.projeto.size && !filtros.projeto.has(projEfetivo || SEM_VALOR)) return false;
+    if (filtros.area.size && !filtros.area.has(areaEfetiva || SEM_VALOR)) return false;
     if (filtros.objetivo.size && !filtros.objetivo.has(objEfetivo || SEM_VALOR)) return false;
     if (filtros.responsavel.size) {
       const resp = Array.isArray(t.assignees) ? t.assignees : [];
@@ -13332,15 +13341,15 @@ applyRolePermissions();
   // Ids visiveis: quem casa, mais ancestrais e descendentes de quem casa.
   function idsVisiveis() {
     const visiveis = new Set();
-    (function walk(items, kpiPai, projPai, objPai, ancestrais) {
+    (function walk(items, kpiPai, areaPai, objPai, ancestrais) {
       items.forEach(t => {
-        const kpiEf = t.kpiLink || kpiPai, projEf = t.projetoLink || projPai;
+        const kpiEf = t.kpiLink || kpiPai, areaEf = t.areaLink || areaPai;
         const objEf = t.objetivoLink || objPai;
-        const casa = linhaCasa(t, kpiEf, projEf, objEf);
+        const casa = linhaCasa(t, kpiEf, areaEf, objEf);
         const trilha = ancestrais.concat(t.id);
         if (casa) trilha.forEach(id => visiveis.add(id)); // ele e os pais
         const antes = visiveis.size;
-        walk(t.subtasks, kpiEf, projEf, objEf, trilha);
+        walk(t.subtasks, kpiEf, areaEf, objEf, trilha);
         // Se ele proprio casa, os filhos vem junto como detalhe.
         if (casa) (function todos(l) { l.forEach(x => { visiveis.add(x.id); todos(x.subtasks); }); })(t.subtasks);
         if (visiveis.size !== antes) visiveis.add(t.id); // algum descendente casou
@@ -13351,41 +13360,46 @@ applyRolePermissions();
 
   // ── Coluna Área ───────────────────────────────────────────────────────
   // ATENCAO PRA QUEM LER DEPOIS: na tela esta coluna se chama "Área", mas
-  // no codigo e no localStorage tudo continua "projeto" (projetoLink,
-  // projetosData, wpf_tasks2_projetos, tasks2-proj-*). Foi so o rotulo que
+  // no codigo e no localStorage tudo continua "projeto" (areaLink,
+  // areasData, wpf_tasks2_projetos, tasks2-area-*). Foi so o rotulo que
   // mudou; renomear as chaves exigiria migrar dado ja gravado, risco sem
   // ganho pra uma troca de nome.
   // ── Coluna Projeto (na tela: Área) ────────────────────────────────────────────────────
   // Lista propria do rascunho ("wpf_tasks2_projetos"), sem scheduleCloudSave,
-  // mesma regra de isolamento de tudo aqui. O vinculo (t.projetoLink) herda
+  // mesma regra de isolamento de tudo aqui. O vinculo (t.areaLink) herda
   // da linha de cima igual ao KPI.
-  const PROJETOS_STORAGE_KEY = "wpf_tasks2_projetos";
+  const AREAS_STORAGE_KEY = "wpf_tasks2_areas";
+  const AREAS_STORAGE_KEY_ANTIGA = "wpf_tasks2_projetos"; // antes da renomeacao
 
   // Um cinza so, igual pra todo projeto. Quem distingue um do outro e o
   // nome escrito no chip, nao a cor.
-  const PROJETO_CINZA = { bg: "#e8e6dc", text: "#45443e" };
+  const AREA_CINZA = { bg: "#e8e6dc", text: "#45443e" };
 
-  let projetosData = [];
+  let areasData = [];
   try {
-    const guardado = JSON.parse(localStorage.getItem(PROJETOS_STORAGE_KEY) || "null");
-    if (Array.isArray(guardado)) projetosData = guardado.filter(x => x && x.id);
-  } catch (e) { projetosData = []; }
+    // Le a chave nova; se ainda nao existir, aproveita a antiga. A primeira
+    // gravacao ja sai na chave nova, entao a conversao acontece sozinha.
+    const bruto = localStorage.getItem(AREAS_STORAGE_KEY) ||
+                  localStorage.getItem(AREAS_STORAGE_KEY_ANTIGA);
+    const guardado = JSON.parse(bruto || "null");
+    if (Array.isArray(guardado)) areasData = guardado.filter(x => x && x.id);
+  } catch (e) { areasData = []; }
 
-  function saveProjetosData() {
-    localStorage.setItem(PROJETOS_STORAGE_KEY, JSON.stringify(projetosData));
+  function saveAreasData() {
+    localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
   }
-  function findProjetoById(id) { return projetosData.find(x => x.id === id) || null; }
-  function criarProjeto(nome) {
+  function findAreaById(id) { return areasData.find(x => x.id === id) || null; }
+  function criarArea(nome) {
     const p = {
       id: "proj2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
       name: String(nome || "").trim() || "Nova área"
     };
-    projetosData.push(p);
-    saveProjetosData();
+    areasData.push(p);
+    saveAreasData();
     return p;
   }
-  function tomDoProjeto() {
-    return PROJETO_CINZA;
+  function tomDaArea() {
+    return AREA_CINZA;
   }
 
   // ── Coluna Objetivo ───────────────────────────────────────────────────
@@ -13422,119 +13436,119 @@ applyRolePermissions();
       </span>`;
   }
 
-  const NOVO_PROJETO = "__novo__";
-  const GERENCIAR_PROJETOS = "__gerenciar__";
+  const NOVA_AREA = "__novo__";
+  const GERENCIAR_AREAS = "__gerenciar__";
 
   // Quantas linhas usam cada projeto — mostrado antes de excluir, pra a
   // exclusao nao ser as cegas.
-  function contarUsosProjeto(id) {
+  function contarUsosArea(id) {
     let total = 0;
     (function walk(items) {
-      items.forEach(t => { if (t.projetoLink === id) total++; walk(t.subtasks); });
+      items.forEach(t => { if (t.areaLink === id) total++; walk(t.subtasks); });
     })(tasksData);
     return total;
   }
 
-  function renomearProjeto(id, nome) {
-    const p = findProjetoById(id);
+  function renomearArea(id, nome) {
+    const p = findAreaById(id);
     if (!p) return;
     const limpo = String(nome || "").trim();
     if (!limpo) return; // nome vazio mantem o anterior em vez de gravar ""
     p.name = limpo;
-    saveProjetosData();
+    saveAreasData();
   }
 
-  function excluirProjeto(id) {
+  function excluirArea(id) {
     // Limpa o vinculo antes de remover: linha apontando pra um id que nao
     // existe mais voltaria a HERDAR da linha de cima sem ninguem pedir.
     (function walk(items) {
-      items.forEach(t => { if (t.projetoLink === id) t.projetoLink = ""; walk(t.subtasks); });
+      items.forEach(t => { if (t.areaLink === id) t.areaLink = ""; walk(t.subtasks); });
     })(tasksData);
-    projetosData = projetosData.filter(x => x.id !== id);
-    saveProjetosData();
+    areasData = areasData.filter(x => x.id !== id);
+    saveAreasData();
     saveTasksData();
   }
 
-  let projetoExcluirArmado = null;
-  function desarmarExclusaoProjeto() { projetoExcluirArmado = null; }
+  let areaExcluirArmada = null;
+  function desarmarExclusaoArea() { areaExcluirArmada = null; }
 
-  function montarGerenciadorProjetos() {
-    const lista = document.getElementById("tasks2-projmodal-lista");
+  function montarGerenciadorAreas() {
+    const lista = document.getElementById("tasks2-areamodal-lista");
     if (!lista) return;
-    if (!projetosData.length) {
-      lista.innerHTML = `<div class="tasks2-projmodal-vazio">Nenhuma área ainda.</div>`;
+    if (!areasData.length) {
+      lista.innerHTML = `<div class="tasks2-areamodal-vazio">Nenhuma área ainda.</div>`;
       return;
     }
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-    lista.innerHTML = projetosData.map(p => {
-      const usos = contarUsosProjeto(p.id);
-      const armado = projetoExcluirArmado === p.id;
-      return `<div class="tasks2-projmodal-linha" data-id="${p.id}">
-        <input type="text" class="tasks2-projmodal-nome" data-id="${p.id}" value="${esc(p.name)}">
-        <span class="tasks2-projmodal-usos">${usos ? "em " + usos + (usos === 1 ? " linha" : " linhas") : "sem uso"}</span>
-        <button type="button" class="tasks2-projmodal-del ${armado ? "armado" : ""}" data-id="${p.id}">${armado ? `Excluir? · ${usos} ${usos === 1 ? "linha" : "linhas"}` : "Excluir"}</button>
+    lista.innerHTML = areasData.map(p => {
+      const usos = contarUsosArea(p.id);
+      const armado = areaExcluirArmada === p.id;
+      return `<div class="tasks2-areamodal-linha" data-id="${p.id}">
+        <input type="text" class="tasks2-areamodal-nome" data-id="${p.id}" value="${esc(p.name)}">
+        <span class="tasks2-areamodal-usos">${usos ? "em " + usos + (usos === 1 ? " linha" : " linhas") : "sem uso"}</span>
+        <button type="button" class="tasks2-areamodal-del ${armado ? "armado" : ""}" data-id="${p.id}">${armado ? `Excluir? · ${usos} ${usos === 1 ? "linha" : "linhas"}` : "Excluir"}</button>
       </div>`;
     }).join("");
 
-    lista.querySelectorAll(".tasks2-projmodal-nome").forEach(inp => {
-      const salvar = () => { renomearProjeto(inp.dataset.id, inp.value); montarGerenciadorProjetos(); };
+    lista.querySelectorAll(".tasks2-areamodal-nome").forEach(inp => {
+      const salvar = () => { renomearArea(inp.dataset.id, inp.value); montarGerenciadorAreas(); };
       inp.addEventListener("blur", salvar);
       inp.addEventListener("keydown", e => {
         if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
-        if (e.key === "Escape") { inp.value = (findProjetoById(inp.dataset.id) || {}).name || ""; inp.blur(); }
+        if (e.key === "Escape") { inp.value = (findAreaById(inp.dataset.id) || {}).name || ""; inp.blur(); }
       });
     });
-    lista.querySelectorAll(".tasks2-projmodal-del").forEach(btn => {
+    lista.querySelectorAll(".tasks2-areamodal-del").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
         const id = btn.dataset.id;
         // Dois cliques, mesmo padrao do "Recarregar do original". De
         // proposito nao usa window.confirm: caixa nativa trava a pagina.
-        if (projetoExcluirArmado !== id) {
-          projetoExcluirArmado = id;
-          montarGerenciadorProjetos();
-          setTimeout(() => { if (projetoExcluirArmado === id) { desarmarExclusaoProjeto(); montarGerenciadorProjetos(); } }, 5000);
+        if (areaExcluirArmada !== id) {
+          areaExcluirArmada = id;
+          montarGerenciadorAreas();
+          setTimeout(() => { if (areaExcluirArmada === id) { desarmarExclusaoArea(); montarGerenciadorAreas(); } }, 5000);
           return;
         }
-        desarmarExclusaoProjeto();
-        excluirProjeto(id);
-        montarGerenciadorProjetos();
+        desarmarExclusaoArea();
+        excluirArea(id);
+        montarGerenciadorAreas();
       });
     });
   }
 
-  function abrirGerenciadorProjetos() {
-    desarmarExclusaoProjeto();
-    document.getElementById("tasks2-projmodal-backdrop").classList.remove("hidden");
-    montarGerenciadorProjetos();
+  function abrirGerenciadorAreas() {
+    desarmarExclusaoArea();
+    document.getElementById("tasks2-areamodal-backdrop").classList.remove("hidden");
+    montarGerenciadorAreas();
   }
-  function fecharGerenciadorProjetos() {
-    document.getElementById("tasks2-projmodal-backdrop").classList.add("hidden");
-    desarmarExclusaoProjeto();
+  function fecharGerenciadorAreas() {
+    document.getElementById("tasks2-areamodal-backdrop").classList.add("hidden");
+    desarmarExclusaoArea();
     renderTasksTable(); // nomes e vinculos podem ter mudado
   }
 
-  function projetoCellMarkup(t, depth, herdado) {
+  function areaCellMarkup(t, depth, herdado) {
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-    const efetivo = t.projetoLink || herdado || "";
-    const p = efetivo ? findProjetoById(efetivo) : null;
-    const ehHerdado = !t.projetoLink && !!herdado;
+    const efetivo = t.areaLink || herdado || "";
+    const p = efetivo ? findAreaById(efetivo) : null;
+    const ehHerdado = !t.areaLink && !!herdado;
     // Herdado nao ganha a cor do projeto: sai no mesmo cinza discreto do
     // "— herdar —", so que escrito com o nome, que diz bem mais.
     const chip = p
       ? (ehHerdado
-          ? `<span class="tasks2-proj-herdado">${esc(p.name)}</span>`
-          : `<span class="tasks2-proj-chip" style="background:${tomDoProjeto(p).bg}; color:${tomDoProjeto(p).text}">${esc(p.name)}</span>`)
-      : `<span class="tasks2-proj-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
-    const opcoes = projetosData.map(x =>
-      `<option value="${x.id}" ${x.id === t.projetoLink ? "selected" : ""}>${esc(x.name)}</option>`).join("");
-    return `<span class="tasks2-proj-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher área"}">
+          ? `<span class="tasks2-area-herdado">${esc(p.name)}</span>`
+          : `<span class="tasks2-area-chip" style="background:${tomDaArea(p).bg}; color:${tomDaArea(p).text}">${esc(p.name)}</span>`)
+      : `<span class="tasks2-area-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
+    const opcoes = areasData.map(x =>
+      `<option value="${x.id}" ${x.id === t.areaLink ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+    return `<span class="tasks2-area-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher área"}">
         ${chip}
-        <select class="tasks2-proj-select" data-id="${t.id}" aria-label="Projeto da linha">
+        <select class="tasks2-area-select" data-id="${t.id}" aria-label="Projeto da linha">
           <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
           ${opcoes}
-          <option value="${NOVO_PROJETO}">+ Nova área…</option>
-          ${projetosData.length ? `<option value="${GERENCIAR_PROJETOS}">⚙ Gerenciar áreas…</option>` : ""}
+          <option value="${NOVA_AREA}">+ Nova área…</option>
+          ${areasData.length ? `<option value="${GERENCIAR_AREAS}">⚙ Gerenciar áreas…</option>` : ""}
         </select>
       </span>`;
   }
@@ -13634,9 +13648,9 @@ applyRolePermissions();
 
   let idsFiltrados = null; // null = sem filtro; Set = so estes ids aparecem
 
-  function renderTaskRow(t, depth, inheritedKpi, inheritedProjeto, inheritedObjetivo) {
+  function renderTaskRow(t, depth, inheritedKpi, inheritedArea, inheritedObjetivo) {
     inheritedKpi = inheritedKpi || "";
-    inheritedProjeto = inheritedProjeto || "";
+    inheritedArea = inheritedArea || "";
     inheritedObjetivo = inheritedObjetivo || "";
     if (idsFiltrados && !idsFiltrados.has(t.id)) return "";
     const hasChildren = t.subtasks.length > 0;
@@ -13674,8 +13688,8 @@ applyRolePermissions();
         <div class="tasks2-col-objetivo">
           ${objetivoCellMarkup(t, depth, inheritedObjetivo)}
         </div>
-        <div class="tasks2-col-projeto">
-          ${projetoCellMarkup(t, depth, inheritedProjeto)}
+        <div class="tasks2-col-area">
+          ${areaCellMarkup(t, depth, inheritedArea)}
         </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
@@ -13710,7 +13724,7 @@ applyRolePermissions();
       `;
     }
     if (hasChildren && expanded) {
-      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi, t.projetoLink || inheritedProjeto, t.objetivoLink || inheritedObjetivo); });
+      t.subtasks.forEach(sub => { html += renderTaskRow(sub, depth + 1, t.kpiLink || inheritedKpi, t.areaLink || inheritedArea, t.objetivoLink || inheritedObjetivo); });
     }
     return html;
   }
@@ -13721,7 +13735,7 @@ applyRolePermissions();
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
     objetivo:    { rotulo: "Objetivo",    tipo: "lista" },
-    projeto:     { rotulo: "Área",        tipo: "lista" },
+    area:        { rotulo: "Área",        tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
     inicio:      { rotulo: "Início",      tipo: "data", campos: ["inicioDe", "inicioAte"] },
     fim:         { rotulo: "Fim",         tipo: "data", campos: ["fimDe", "fimAte"] },
@@ -13734,8 +13748,8 @@ applyRolePermissions();
       .concat(kpisData.map(k => ({ valor: k.id, texto: k.name || "(sem nome)" })));
     if (col === "objetivo") return [{ valor: SEM_VALOR, texto: "— sem objetivo —" }]
       .concat(OBJETIVOS.map(x => ({ valor: x.id, texto: x.name })));
-    if (col === "projeto") return [{ valor: SEM_VALOR, texto: "— sem área —" }]
-      .concat(projetosData.map(x => ({ valor: x.id, texto: x.name })));
+    if (col === "area") return [{ valor: SEM_VALOR, texto: "— sem área —" }]
+      .concat(areasData.map(x => ({ valor: x.id, texto: x.name })));
     if (col === "responsavel") {
       const nomes = new Set();
       (function walk(items) { items.forEach(t => {
@@ -14075,21 +14089,21 @@ applyRolePermissions();
         renderTasksTable(); // chip e os filhos que herdam precisam redesenhar
       });
     });
-    body.querySelectorAll(".tasks2-proj-select").forEach(select => {
+    body.querySelectorAll(".tasks2-area-select").forEach(select => {
       select.addEventListener("change", () => {
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
-        if (select.value === GERENCIAR_PROJETOS) {
+        if (select.value === GERENCIAR_AREAS) {
           renderTasksTable(); // devolve o select ao valor real antes de abrir
-          abrirGerenciadorProjetos();
+          abrirGerenciadorAreas();
           return;
         }
-        if (select.value === NOVO_PROJETO) {
+        if (select.value === NOVA_AREA) {
           const nome = window.prompt("Nome da nova área:");
           if (!nome || !nome.trim()) { renderTasksTable(); return; } // cancelou: desfaz a escolha
-          t.projetoLink = criarProjeto(nome).id;
+          t.areaLink = criarArea(nome).id;
         } else {
-          t.projetoLink = select.value;
+          t.areaLink = select.value;
         }
         saveTasksData();
         renderTasksTable(); // o chip colorido e os filhos que herdam precisam redesenhar
@@ -14342,7 +14356,7 @@ applyRolePermissions();
 
   function lateContextMarkup(id, fallbackParentName) {
     const context = findAncestorChain(id)
-      .filter(a => a.rowType === "ideia" || a.rowType === "entregavel")
+      .filter(a => a.rowType === "projeto" || a.rowType === "entregavel")
       .map(a => `<span class="tasks2-late-crumb"><span class="tasks2-type-icon" data-type="${a.rowType}" style="color:${typeIconColor(a)}">${TASK_TYPES[a.rowType].icon}</span>${a.name}</span>`);
     if (context.length) return `<div class="tasks2-late-parent">${context.join("")}</div>`;
     // Sem ideia nem entregável acima: cai no pai imediato, que é o que a
@@ -14789,21 +14803,21 @@ applyRolePermissions();
     renderTasksTable();
   });
 
-  document.getElementById("tasks2-projmodal-fechar").addEventListener("click", fecharGerenciadorProjetos);
-  document.getElementById("tasks2-projmodal-backdrop").addEventListener("click", e => {
-    if (e.target.id === "tasks2-projmodal-backdrop") fecharGerenciadorProjetos();
-    else { desarmarExclusaoProjeto(); montarGerenciadorProjetos(); } // clicar fora do botao desarma
+  document.getElementById("tasks2-areamodal-fechar").addEventListener("click", fecharGerenciadorAreas);
+  document.getElementById("tasks2-areamodal-backdrop").addEventListener("click", e => {
+    if (e.target.id === "tasks2-areamodal-backdrop") fecharGerenciadorAreas();
+    else { desarmarExclusaoArea(); montarGerenciadorAreas(); } // clicar fora do botao desarma
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && !document.getElementById("tasks2-projmodal-backdrop").classList.contains("hidden")) {
-      fecharGerenciadorProjetos();
+    if (e.key === "Escape" && !document.getElementById("tasks2-areamodal-backdrop").classList.contains("hidden")) {
+      fecharGerenciadorAreas();
     }
   });
-  document.getElementById("tasks2-projmodal-add").addEventListener("click", () => {
+  document.getElementById("tasks2-areamodal-add").addEventListener("click", () => {
     const nome = window.prompt("Nome da nova área:");
     if (!nome || !nome.trim()) return;
-    criarProjeto(nome);
-    montarGerenciadorProjetos();
+    criarArea(nome);
+    montarGerenciadorAreas();
   });
 
   document.getElementById("tasks2-kpi-add-btn").addEventListener("click", () => {
