@@ -12588,10 +12588,6 @@ applyRolePermissions();
     "Done":         "#1e8a3c",
     "On Hold":      "#c28800",
     "Cancelled":    "#9a9a92",
-    "Attention":    "#d9a400",
-    "In Analysis":  "#1668c4",
-    "Not Approved": "#cf2b2b",
-    "Approved":     "#1e8a3c"
   };
 
   // Objetivo, projeto e entregavel assumem a cor do proprio status. Rotina
@@ -12626,45 +12622,39 @@ applyRolePermissions();
     "Done":         { bg: "#eaf3de", text: "#173404" },
     "On Hold":      { bg: "#fdf3d6", text: "#7a5b06" },
     "Cancelled":    { bg: "#efefec", text: "#6b6a63" },
-    // Status calculado de objetivo quando ha algo Late abaixo. Amarelo, o
-    // mesmo tom de On Hold — nao se confundem porque objetivo nunca mostra
-    // On Hold (nao esta no vocabulario dele).
-    "Attention":    { bg: "#fdf3d6", text: "#7a5b06" },
-    // Vocabulario de projeto. Reaproveitam o azul/vermelho/verde da paleta em
-    // vez de inventar tons novos.
-    "In Analysis":  { bg: "#e6f1fb", text: "#0c447c" },
-    "Not Approved": { bg: "#fcebeb", text: "#791f1f" },
-    "Approved":     { bg: "#eaf3de", text: "#173404" }
   };
 
   // Cada categoria tem seu proprio vocabulario de status.
-  //  - objetivo  : CALCULADO a partir do que esta abaixo, nunca editavel
-  //  - projeto   : aprovacao, nao progresso
+  //  - objetivo e projeto : CALCULADOS do que esta abaixo, nunca editaveis.
+  //    Os dois so REPRODUZEM as folhas de trabalho — nao tem estado proprio.
+  //    Azul (In Progress) andando, verde (Done) concluido, vermelho (Late)
+  //    se ha algo atrasado embaixo.
   //  - entregavel/rotina : os seis status de sempre
+  const STATUS_CALCULADO = ["Not Started", "In Progress", "Late", "Done"];
   const STATUS_BY_TYPE = {
-    objetivo:   ["Not Started", "In Progress", "Attention", "Done"],
-    projeto:    ["In Analysis", "Not Approved", "Approved"],
+    objetivo:   STATUS_CALCULADO,
+    projeto:    STATUS_CALCULADO,
     entregavel: TASK_STATUS_OPTIONS,
     rotina:     TASK_STATUS_OPTIONS
   };
   const statusesFor = t => STATUS_BY_TYPE[t.rowType] || TASK_STATUS_OPTIONS;
   const statusAllowed = (t, s) => statusesFor(t).includes(s);
-  // O status de objetivo sai do rollup, entao o select fica desabilitado.
-  const statusIsAuto = t => t.rowType === "objetivo";
+  // Objetivo e projeto tem status calculado: nada de select.
+  const statusIsAuto = t => t.rowType === "objetivo" || t.rowType === "projeto";
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
   function coerceStatus(t) {
     if (statusAllowed(t, t.status)) return;
-    t.status = t.rowType === "projeto" ? "In Analysis" : "Not Started";
+    t.status = "Not Started"; // calculado logo em seguida no caso de objetivo/projeto
   }
 
-  // Rollup do objetivo. Le TODA a subarvore, mas conta so entregavel e
-  // rotina: sao as unicas categorias cujo status fala de progresso. Projeto
-  // usa vocabulario de aprovacao e fica de fora; objetivo aninhado nao e
-  // contado diretamente porque ele proprio ja e um reflexo do que tem
-  // abaixo dele — o que importa sao as folhas de trabalho.
-  function computeObjetivoStatus(t) {
+  // Rollup de objetivo e projeto. Le TODA a subarvore, mas conta so
+  // entregavel e rotina: sao as unicas categorias com estado proprio. Um
+  // objetivo ou projeto aninhado nao e contado diretamente porque ele
+  // mesmo ja e um reflexo do que tem abaixo — contar os dois seria contar
+  // a mesma coisa duas vezes.
+  function computeRollupStatus(t) {
     const considered = [];
     (function walk(items) {
       items.forEach(x => {
@@ -12674,15 +12664,15 @@ applyRolePermissions();
     })(t.subtasks);
     const live = considered.filter(x => x.status !== "Cancelled");
     if (!live.length) return "Not Started";
-    if (live.some(x => x.status === "Late")) return "Attention";
+    if (live.some(x => x.status === "Late")) return "Late";
     if (live.every(x => x.status === "Done")) return "Done";
     if (live.every(x => x.status === "Not Started")) return "Not Started";
     return "In Progress";
   }
 
-  // Reaplica o rollup em todo objetivo da arvore. Roda antes de cada render,
+  // Reaplica o rollup em todo objetivo e projeto. Roda antes de cada render,
   // junto com o autoSync de Late, pra tabela e view Late sempre baterem.
-  function syncObjetivoStatuses() {
+  function syncStatusCalculados() {
     let changed = false;
     (function walk(items) {
       items.forEach(t => {
@@ -12700,8 +12690,8 @@ applyRolePermissions();
           changed = true;
         }
         walk(t.subtasks); // de baixo pra cima: os filhos primeiro
-        if (t.rowType === "objetivo") {
-          const s = computeObjetivoStatus(t);
+        if (statusIsAuto(t)) {
+          const s = computeRollupStatus(t);
           if (t.status !== s) { t.status = s; changed = true; }
         }
       });
@@ -12819,9 +12809,9 @@ applyRolePermissions();
     if (!TASK_TYPES[t.rowType]) t.rowType = depth > 0 ? "rotina" : "objetivo";
     // O status NAO e encaixado aqui de proposito. Se fosse, um valor invalido
     // vindo do localStorage seria corrigido em memoria antes de
-    // syncObjetivoStatuses() rodar, o sync nao veria mudanca nenhuma e nao
+    // syncStatusCalculados() rodar, o sync nao veria mudanca nenhuma e nao
     // salvaria — a tela ficaria certa e o dado gravado ficaria velho. A
-    // normalizacao acontece num lugar so: syncObjetivoStatuses(), que roda
+    // normalizacao acontece num lugar so: syncStatusCalculados(), que roda
     // antes de cada render e persiste o que mudou.
     t.subtasks.forEach(sub => ensureTaskDefaults(sub, depth + 1));
     return t;
@@ -12917,8 +12907,8 @@ applyRolePermissions();
         // Flip any task that isn't finished/moot (Done/Cancelled) — and isn't
         // already Late — to "Late" once its due date passes, no matter what
         // status it was in (Not Started, In Progress, On Hold, etc).
-        // So entregavel e rotina tem "Late" no vocabulario. Objetivo recebe
-      // "Attention" pelo rollup e projeto nao tem nocao de atraso.
+        // So entregavel e rotina viram Late por data propria. Objetivo e
+      // projeto recebem Late pelo rollup, quando ha algo atrasado abaixo.
       const podeAtrasar = t.rowType === "entregavel" || t.rowType === "rotina";
       if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
           t.status = "Late";
@@ -13205,7 +13195,7 @@ applyRolePermissions();
     ensureKpisSeeded(); // a coluna KPI le kpisData; sem isso a 1a pintura vem vazia
     syncKpisDasFontes(); // e o valor pode ter mudado desde o ultimo render
     autoSyncLateStatuses();
-    syncObjetivoStatuses();
+    syncStatusCalculados();
     const body = document.getElementById("tasks2-table-body");
     body.innerHTML = tasksData.map(t => renderTaskRow(t, 0)).join("");
 
@@ -13700,7 +13690,7 @@ applyRolePermissions();
 
   function renderTasksLateView() {
     autoSyncLateStatuses();
-    syncObjetivoStatuses();
+    syncStatusCalculados();
     const tasks = getAllOverdueTasks();
     const el = document.getElementById("tasks2-late-list");
     el.innerHTML = tasks.length
