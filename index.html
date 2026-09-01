@@ -2991,6 +2991,58 @@
     appearance: none;
   }
 
+  /* ── Filtros por coluna ───────────────────────────────────────────── */
+  .tasks2-filtro-btn {
+    background: none; border: none; padding: 0; margin: 0;
+    font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 3px; max-width: 100%;
+  }
+  .tasks2-filtro-btn:hover { color: var(--text); }
+  .tasks2-filtro-seta { font-size: 9px; opacity: 0.5; }
+  .tasks2-filtro-btn.ativo { color: var(--accent); }
+  .tasks2-filtro-btn.ativo .tasks2-filtro-seta { opacity: 1; }
+  #tasks2-filtro-painel {
+    position: fixed; z-index: 950;
+    background: var(--bg); border: 1px solid var(--border-strong);
+    border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.16);
+    width: 248px; display: flex; flex-direction: column; max-height: 60vh;
+  }
+  .tasks2-filtro-topo {
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--text-muted);
+  }
+  .tasks2-filtro-corpo { padding: 8px 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .tasks2-filtro-corpo input[type=text],
+  .tasks2-filtro-corpo input[type=date] {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 8px; font-family: inherit; font-size: 13px;
+    color: var(--text); background: var(--bg);
+  }
+  .tasks2-filtro-corpo label { font-size: 11.5px; color: var(--text-muted); display: flex; flex-direction: column; gap: 3px; }
+  .tasks2-filtro-item {
+    flex-direction: row !important; align-items: center; gap: 7px !important;
+    font-size: 13px !important; color: var(--text) !important; cursor: pointer; padding: 3px 2px;
+  }
+  .tasks2-filtro-nada { font-size: 12.5px; color: var(--text-muted); padding: 6px 2px; }
+  .tasks2-filtro-rodape { padding: 8px 10px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+  #tasks2-filtro-limpar-col {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 10px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+  }
+  #tasks2-filtro-barra {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-bottom: 10px; padding: 9px 14px;
+    border: 1px solid var(--border); border-radius: 9px;
+    background: var(--land-default); font-size: 12.5px; color: var(--text-muted);
+  }
+  #tasks2-filtro-barra.hidden { display: none; }
+  #tasks2-filtro-limpar {
+    background: none; border: 1px solid var(--border-strong); border-radius: 6px;
+    padding: 5px 11px; font-size: 12px; color: var(--text); cursor: pointer; white-space: nowrap;
+  }
+  .tasks2-filtro-vazio { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--text-muted); }
+
   /* ── Painel "Gerenciar projetos" ──────────────────────────────────
      z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
      sessao cair com o painel aberto, o login continua por cima. */
@@ -4190,6 +4242,10 @@
       </div>
       <span id="tasks2-draft-badge">Rascunho · dados isolados</span>
     </div>
+    <div id="tasks2-filtro-barra" class="hidden">
+      <span>Filtros ativos — a tabela mostra também os pais das linhas encontradas, como contexto.</span>
+      <button type="button" id="tasks2-filtro-limpar">Limpar todos</button>
+    </div>
     <div id="tasks2-table">
       <div id="tasks2-bulk-bar">
         <span id="tasks2-bulk-count"></span>
@@ -4205,13 +4261,13 @@
       </div>
       <div class="tasks2-row tasks2-head-row">
         <div class="tasks2-col-select"></div>
-        <div class="tasks2-col-name">Nome</div>
-        <div class="tasks2-col-kpi">KPI</div>
-        <div class="tasks2-col-projeto">Projeto</div>
-        <div class="tasks2-col-status">Status</div>
-        <div class="tasks2-col-date">Início</div>
-        <div class="tasks2-col-date">Fim</div>
-        <div class="tasks2-col-assignee">Responsável</div>
+        <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-projeto"><button type="button" class="tasks2-filtro-btn" data-col="projeto">Projeto<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-assignee"><button type="button" class="tasks2-filtro-btn" data-col="responsavel">Responsável<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-actions"></div>
       </div>
       <div id="tasks2-table-body"></div>
@@ -13208,6 +13264,85 @@ applyRolePermissions();
     return (list || TASK_STATUS_OPTIONS).map(s => `<option value="${s}" ${s === selected ? "selected" : ""}>${s}</option>`).join("");
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // Filtros por coluna
+  //
+  // A tabela e uma ARVORE, entao filtrar nao e so esconder linha. Uma linha
+  // fica visivel se ela mesma casa, se algum ANCESTRAL casa, ou se algum
+  // DESCENDENTE casa. Assim uma rotina atrasada la no fundo aparece com o
+  // objetivo e a ideia dela em volta, em vez de solta e sem contexto —
+  // decisao de Karina. O efeito colateral aceito e que linhas que nao casam
+  // aparecem, como moldura.
+  //
+  // Enquanto ha filtro ativo a arvore e desenhada TODA aberta: sem isso um
+  // resultado dentro de um galho fechado ficaria escondido justamente pelo
+  // filtro que o encontrou.
+  // ══════════════════════════════════════════════════════════════════════
+  const filtros = {
+    nome: "",
+    kpi: new Set(), projeto: new Set(), status: new Set(), responsavel: new Set(),
+    inicioDe: "", inicioAte: "", fimDe: "", fimAte: ""
+  };
+  const SEM_VALOR = "__sem__"; // "sem KPI" / "sem projeto" / "sem responsável"
+
+  function haFiltro() {
+    return !!filtros.nome.trim() || filtros.kpi.size || filtros.projeto.size ||
+      filtros.status.size || filtros.responsavel.size ||
+      filtros.inicioDe || filtros.inicioAte || filtros.fimDe || filtros.fimAte;
+  }
+  function limparFiltros() {
+    filtros.nome = "";
+    ["kpi", "projeto", "status", "responsavel"].forEach(k => filtros[k].clear());
+    ["inicioDe", "inicioAte", "fimDe", "fimAte"].forEach(k => filtros[k] = "");
+  }
+
+  function dentroDoIntervalo(valor, de, ate) {
+    if (!de && !ate) return true;
+    if (!valor) return false; // sem data nao entra em filtro de data
+    if (de && valor < de) return false;
+    if (ate && valor > ate) return false;
+    return true;
+  }
+
+  // KPI e projeto contam pelo valor EFETIVO: uma linha que herda o KPI do pai
+  // aparece ao filtrar por esse KPI, que e o que a tela mostra nela.
+  function linhaCasa(t, kpiEfetivo, projEfetivo) {
+    if (filtros.nome.trim() &&
+        String(t.name || "").toLowerCase().indexOf(filtros.nome.trim().toLowerCase()) === -1) return false;
+    if (filtros.status.size && !filtros.status.has(t.status)) return false;
+    if (filtros.kpi.size && !filtros.kpi.has(kpiEfetivo || SEM_VALOR)) return false;
+    if (filtros.projeto.size && !filtros.projeto.has(projEfetivo || SEM_VALOR)) return false;
+    if (filtros.responsavel.size) {
+      const resp = Array.isArray(t.assignees) ? t.assignees : [];
+      const bate = resp.length
+        ? resp.some(r => filtros.responsavel.has(r))
+        : filtros.responsavel.has(SEM_VALOR);
+      if (!bate) return false;
+    }
+    if (!dentroDoIntervalo(t.startDate, filtros.inicioDe, filtros.inicioAte)) return false;
+    if (!dentroDoIntervalo(t.endDate, filtros.fimDe, filtros.fimAte)) return false;
+    return true;
+  }
+
+  // Ids visiveis: quem casa, mais ancestrais e descendentes de quem casa.
+  function idsVisiveis() {
+    const visiveis = new Set();
+    (function walk(items, kpiPai, projPai, ancestrais) {
+      items.forEach(t => {
+        const kpiEf = t.kpiLink || kpiPai, projEf = t.projetoLink || projPai;
+        const casa = linhaCasa(t, kpiEf, projEf);
+        const trilha = ancestrais.concat(t.id);
+        if (casa) trilha.forEach(id => visiveis.add(id)); // ele e os pais
+        const antes = visiveis.size;
+        walk(t.subtasks, kpiEf, projEf, trilha);
+        // Se ele proprio casa, os filhos vem junto como detalhe.
+        if (casa) (function todos(l) { l.forEach(x => { visiveis.add(x.id); todos(x.subtasks); }); })(t.subtasks);
+        if (visiveis.size !== antes) visiveis.add(t.id); // algum descendente casou
+      });
+    })(tasksData, "", "", []);
+    return visiveis;
+  }
+
   // ── Coluna Projeto ────────────────────────────────────────────────────
   // Lista propria do rascunho ("wpf_tasks2_projetos"), sem scheduleCloudSave,
   // mesma regra de isolamento de tudo aqui. O vinculo (t.projetoLink) herda
@@ -13451,10 +13586,16 @@ applyRolePermissions();
       ${canKpi ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="kpiLink" title="Arraste para copiar o KPI para as linhas ao lado"></span>` : ""}`;
   }
 
+  let idsFiltrados = null; // null = sem filtro; Set = so estes ids aparecem
+
   function renderTaskRow(t, depth, inheritedKpi, inheritedProjeto) {
     inheritedKpi = inheritedKpi || "";
     inheritedProjeto = inheritedProjeto || "";
+    if (idsFiltrados && !idsFiltrados.has(t.id)) return "";
     const hasChildren = t.subtasks.length > 0;
+    // Com filtro ativo a arvore vai toda aberta: um resultado dentro de um
+    // galho fechado ficaria escondido pelo proprio filtro que o achou.
+    if (idsFiltrados && hasChildren) tasksExpanded.add(t.id);
     const expanded = tasksExpanded.has(t.id);
     const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     const isSub = depth > 0; // structural: nested under another row (drag/select stay tied to this)
@@ -13524,13 +13665,119 @@ applyRolePermissions();
     return html;
   }
 
+  // Cada cabecalho vira botao. O painel e montado sob demanda porque as
+  // opcoes (KPIs, projetos, responsaveis) mudam enquanto se usa a aba.
+  const COLUNAS_FILTRO = {
+    nome:        { rotulo: "Nome",        tipo: "texto" },
+    kpi:         { rotulo: "KPI",         tipo: "lista" },
+    projeto:     { rotulo: "Projeto",     tipo: "lista" },
+    status:      { rotulo: "Status",      tipo: "lista" },
+    inicio:      { rotulo: "Início",      tipo: "data", campos: ["inicioDe", "inicioAte"] },
+    fim:         { rotulo: "Fim",         tipo: "data", campos: ["fimDe", "fimAte"] },
+    responsavel: { rotulo: "Responsável", tipo: "lista" }
+  };
+
+  function opcoesDaColuna(col) {
+    if (col === "status") return TASK_STATUS_OPTIONS.map(s => ({ valor: s, texto: s }));
+    if (col === "kpi") return [{ valor: SEM_VALOR, texto: "— sem KPI —" }]
+      .concat(kpisData.map(k => ({ valor: k.id, texto: k.name || "(sem nome)" })));
+    if (col === "projeto") return [{ valor: SEM_VALOR, texto: "— sem projeto —" }]
+      .concat(projetosData.map(x => ({ valor: x.id, texto: x.name })));
+    if (col === "responsavel") {
+      const nomes = new Set();
+      (function walk(items) { items.forEach(t => {
+        (t.assignees || []).forEach(a => nomes.add(a)); walk(t.subtasks); }); })(tasksData);
+      return [{ valor: SEM_VALOR, texto: "— sem responsável —" }]
+        .concat([...nomes].sort().map(a => ({ valor: a, texto: a })));
+    }
+    return [];
+  }
+
+  function colunaAtiva(col) {
+    if (col === "nome") return !!filtros.nome.trim();
+    if (col === "inicio") return !!(filtros.inicioDe || filtros.inicioAte);
+    if (col === "fim") return !!(filtros.fimDe || filtros.fimAte);
+    return filtros[col] && filtros[col].size > 0;
+  }
+
+  function fecharPainelFiltro() {
+    const el = document.getElementById("tasks2-filtro-painel");
+    if (el) el.remove();
+  }
+
+  function abrirPainelFiltro(col, botao) {
+    fecharPainelFiltro();
+    const def = COLUNAS_FILTRO[col];
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const painel = document.createElement("div");
+    painel.id = "tasks2-filtro-painel";
+    let corpo = "";
+    if (def.tipo === "texto") {
+      corpo = `<input type="text" id="tasks2-filtro-texto" placeholder="Buscar no nome…" value="${esc(filtros.nome)}">`;
+    } else if (def.tipo === "data") {
+      corpo = `<label>De<input type="date" data-campo="${def.campos[0]}" value="${filtros[def.campos[0]]}"></label>
+               <label>Até<input type="date" data-campo="${def.campos[1]}" value="${filtros[def.campos[1]]}"></label>`;
+    } else {
+      const opts = opcoesDaColuna(col);
+      corpo = opts.length
+        ? opts.map(o => `<label class="tasks2-filtro-item"><input type="checkbox" data-valor="${esc(o.valor)}" ${filtros[col].has(o.valor) ? "checked" : ""}> ${esc(o.texto)}</label>`).join("")
+        : `<div class="tasks2-filtro-nada">Nada para filtrar ainda.</div>`;
+    }
+    painel.innerHTML = `<div class="tasks2-filtro-topo">${esc(def.rotulo)}</div>
+      <div class="tasks2-filtro-corpo">${corpo}</div>
+      <div class="tasks2-filtro-rodape"><button type="button" id="tasks2-filtro-limpar-col">Limpar</button></div>`;
+    document.body.appendChild(painel);
+    const r = botao.getBoundingClientRect();
+    painel.style.top = (r.bottom + 4) + "px";
+    // Nao deixa vazar pela direita da janela.
+    painel.style.left = Math.min(r.left, window.innerWidth - painel.offsetWidth - 12) + "px";
+
+    const aplicar = () => { renderTasksTable(); };
+    const campoTexto = painel.querySelector("#tasks2-filtro-texto");
+    if (campoTexto) {
+      campoTexto.addEventListener("input", () => { filtros.nome = campoTexto.value; aplicar(); campoTexto.focus(); });
+      campoTexto.focus();
+    }
+    painel.querySelectorAll("input[type=date]").forEach(inp => {
+      inp.addEventListener("change", () => { filtros[inp.dataset.campo] = inp.value; aplicar(); });
+    });
+    painel.querySelectorAll("input[type=checkbox]").forEach(cb => {
+      cb.addEventListener("change", () => {
+        if (cb.checked) filtros[col].add(cb.dataset.valor); else filtros[col].delete(cb.dataset.valor);
+        aplicar();
+      });
+    });
+    painel.querySelector("#tasks2-filtro-limpar-col").addEventListener("click", () => {
+      if (col === "nome") filtros.nome = "";
+      else if (def.campos) def.campos.forEach(c => filtros[c] = "");
+      else filtros[col].clear();
+      fecharPainelFiltro();
+      renderTasksTable();
+    });
+    painel.addEventListener("click", e => e.stopPropagation());
+  }
+
+  function atualizarChromeFiltros() {
+    Object.keys(COLUNAS_FILTRO).forEach(col => {
+      const btn = document.querySelector(`.tasks2-filtro-btn[data-col="${col}"]`);
+      if (btn) btn.classList.toggle("ativo", colunaAtiva(col));
+    });
+    const barra = document.getElementById("tasks2-filtro-barra");
+    if (barra) barra.classList.toggle("hidden", !haFiltro());
+  }
+
   function renderTasksTable() {
     ensureKpisSeeded(); // a coluna KPI le kpisData; sem isso a 1a pintura vem vazia
     syncKpisDasFontes(); // e o valor pode ter mudado desde o ultimo render
     autoSyncLateStatuses();
     syncStatusCalculados();
     const body = document.getElementById("tasks2-table-body");
+    idsFiltrados = haFiltro() ? idsVisiveis() : null;
     body.innerHTML = tasksData.map(t => renderTaskRow(t, 0)).join("");
+    if (idsFiltrados && !body.innerHTML.trim()) {
+      body.innerHTML = `<div class="tasks2-filtro-vazio">Nenhuma linha bate com os filtros.</div>`;
+    }
+    atualizarChromeFiltros();
 
     body.querySelectorAll(".tasks2-toggle").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -14459,6 +14706,26 @@ applyRolePermissions();
       });
     });
   }
+
+  document.querySelectorAll(".tasks2-filtro-btn").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const jaAberto = document.getElementById("tasks2-filtro-painel");
+      const mesmo = jaAberto && jaAberto.dataset.col === btn.dataset.col;
+      fecharPainelFiltro();
+      if (mesmo) return; // clicar de novo no mesmo cabecalho fecha
+      abrirPainelFiltro(btn.dataset.col, btn);
+      const painel = document.getElementById("tasks2-filtro-painel");
+      if (painel) painel.dataset.col = btn.dataset.col;
+    });
+  });
+  document.addEventListener("click", () => fecharPainelFiltro());
+  document.addEventListener("keydown", e => { if (e.key === "Escape") fecharPainelFiltro(); });
+  document.getElementById("tasks2-filtro-limpar").addEventListener("click", () => {
+    limparFiltros();
+    fecharPainelFiltro();
+    renderTasksTable();
+  });
 
   document.getElementById("tasks2-projmodal-fechar").addEventListener("click", fecharGerenciadorProjetos);
   document.getElementById("tasks2-projmodal-backdrop").addEventListener("click", e => {
