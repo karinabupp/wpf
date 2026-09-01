@@ -2930,7 +2930,7 @@
   }
   .tasks2-kpi-vazio { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
-  /* ── Coluna Projeto ───────────────────────────────────────────────
+  /* ── Coluna Área (classes seguem tasks2-proj-*) ───────────────────────────────────────────────
      Mesmo padrao dos outros seletores: o que se le e o chip, com um
      <select> nativo transparente por cima. */
   .tasks2-col-projeto { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
@@ -3043,7 +3043,7 @@
   }
   .tasks2-filtro-vazio { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--text-muted); }
 
-  /* ── Painel "Gerenciar projetos" ──────────────────────────────────
+  /* ── Painel "Gerenciar áreas" (classes seguem tasks2-projmodal-*) ──────────────────────────────────
      z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
      sessao cair com o painel aberto, o login continua por cima. */
   #tasks2-projmodal-backdrop {
@@ -4248,7 +4248,7 @@
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-projeto"><button type="button" class="tasks2-filtro-btn" data-col="projeto">Projeto<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-projeto"><button type="button" class="tasks2-filtro-btn" data-col="projeto">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -4285,12 +4285,12 @@
     <div id="tasks2-projmodal-backdrop" class="hidden">
       <div id="tasks2-projmodal">
         <div id="tasks2-projmodal-topo">
-        <span>Gerenciar projetos</span>
+        <span>Gerenciar áreas</span>
         <button type="button" id="tasks2-projmodal-fechar" title="Fechar">×</button>
         </div>
         <div id="tasks2-projmodal-lista"></div>
         <div id="tasks2-projmodal-rodape">
-        <button type="button" id="tasks2-projmodal-add">+ Novo projeto</button>
+        <button type="button" id="tasks2-projmodal-add">+ Nova área</button>
         </div>
       </div>
     </div>
@@ -13328,7 +13328,13 @@ applyRolePermissions();
     return visiveis;
   }
 
-  // ── Coluna Projeto ────────────────────────────────────────────────────
+  // ── Coluna Área ───────────────────────────────────────────────────────
+  // ATENCAO PRA QUEM LER DEPOIS: na tela esta coluna se chama "Área", mas
+  // no codigo e no localStorage tudo continua "projeto" (projetoLink,
+  // projetosData, wpf_tasks2_projetos, tasks2-proj-*). Foi so o rotulo que
+  // mudou; renomear as chaves exigiria migrar dado ja gravado, risco sem
+  // ganho pra uma troca de nome.
+  // ── Coluna Projeto (na tela: Área) ────────────────────────────────────────────────────
   // Lista propria do rascunho ("wpf_tasks2_projetos"), sem scheduleCloudSave,
   // mesma regra de isolamento de tudo aqui. O vinculo (t.projetoLink) herda
   // da linha de cima igual ao KPI.
@@ -13351,7 +13357,7 @@ applyRolePermissions();
   function criarProjeto(nome) {
     const p = {
       id: "proj2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-      name: String(nome || "").trim() || "Novo projeto"
+      name: String(nome || "").trim() || "Nova área"
     };
     projetosData.push(p);
     saveProjetosData();
@@ -13401,7 +13407,7 @@ applyRolePermissions();
     const lista = document.getElementById("tasks2-projmodal-lista");
     if (!lista) return;
     if (!projetosData.length) {
-      lista.innerHTML = `<div class="tasks2-projmodal-vazio">Nenhum projeto ainda.</div>`;
+      lista.innerHTML = `<div class="tasks2-projmodal-vazio">Nenhuma área ainda.</div>`;
       return;
     }
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -13467,13 +13473,13 @@ applyRolePermissions();
       : `<span class="tasks2-proj-vazio">${depth === 0 ? "— nenhum —" : "— herdar —"}</span>`;
     const opcoes = projetosData.map(x =>
       `<option value="${x.id}" ${x.id === t.projetoLink ? "selected" : ""}>${esc(x.name)}</option>`).join("");
-    return `<span class="tasks2-proj-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher projeto"}">
+    return `<span class="tasks2-proj-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher área"}">
         ${chip}
         <select class="tasks2-proj-select" data-id="${t.id}" aria-label="Projeto da linha">
           <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
           ${opcoes}
-          <option value="${NOVO_PROJETO}">+ Novo projeto…</option>
-          ${projetosData.length ? `<option value="${GERENCIAR_PROJETOS}">⚙ Gerenciar projetos…</option>` : ""}
+          <option value="${NOVO_PROJETO}">+ Nova área…</option>
+          ${projetosData.length ? `<option value="${GERENCIAR_PROJETOS}">⚙ Gerenciar áreas…</option>` : ""}
         </select>
       </span>`;
   }
@@ -13655,7 +13661,7 @@ applyRolePermissions();
   const COLUNAS_FILTRO = {
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
-    projeto:     { rotulo: "Projeto",     tipo: "lista" },
+    projeto:     { rotulo: "Área",        tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
     inicio:      { rotulo: "Início",      tipo: "data", campos: ["inicioDe", "inicioAte"] },
     fim:         { rotulo: "Fim",         tipo: "data", campos: ["fimDe", "fimAte"] },
@@ -13666,7 +13672,7 @@ applyRolePermissions();
     if (col === "status") return TASK_STATUS_OPTIONS.map(s => ({ valor: s, texto: s }));
     if (col === "kpi") return [{ valor: SEM_VALOR, texto: "— sem KPI —" }]
       .concat(kpisData.map(k => ({ valor: k.id, texto: k.name || "(sem nome)" })));
-    if (col === "projeto") return [{ valor: SEM_VALOR, texto: "— sem projeto —" }]
+    if (col === "projeto") return [{ valor: SEM_VALOR, texto: "— sem área —" }]
       .concat(projetosData.map(x => ({ valor: x.id, texto: x.name })));
     if (col === "responsavel") {
       const nomes = new Set();
@@ -14008,7 +14014,7 @@ applyRolePermissions();
           return;
         }
         if (select.value === NOVO_PROJETO) {
-          const nome = window.prompt("Nome do novo projeto:");
+          const nome = window.prompt("Nome da nova área:");
           if (!nome || !nome.trim()) { renderTasksTable(); return; } // cancelou: desfaz a escolha
           t.projetoLink = criarProjeto(nome).id;
         } else {
@@ -14723,7 +14729,7 @@ applyRolePermissions();
     }
   });
   document.getElementById("tasks2-projmodal-add").addEventListener("click", () => {
-    const nome = window.prompt("Nome do novo projeto:");
+    const nome = window.prompt("Nome da nova área:");
     if (!nome || !nome.trim()) return;
     criarProjeto(nome);
     montarGerenciadorProjetos();
