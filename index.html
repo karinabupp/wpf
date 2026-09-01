@@ -13931,9 +13931,15 @@ applyRolePermissions();
 
   function ensureKpisSeeded() { if (!kpisSeeded) seedKpisFromReal(); }
 
-  // Liga os cinco KPIs de Marketing a sua fonte, UMA VEZ so. Roda uma vez e
-  // marca no localStorage: sem isso, um KPI que Karina devolvesse pra
-  // "Manual" seria religado sozinho na proxima abertura da guia.
+  // Liga cada KPI a sua fonte automaticamente, UMA VEZ POR FONTE.
+  //
+  // A versao anterior guardava so um "ja rodei" e por isso quebrou: quem
+  // abriu a guia quando existiam apenas as fontes de Marketing ficou com a
+  // flag marcada, e as fontes de Members, criadas depois, nunca chegaram a
+  // ser tentadas. Agora o que fica gravado e a LISTA de fontes ja tentadas,
+  // entao fonte nova liga na proxima abertura sem religar as antigas — um
+  // KPI devolvido pra "Manual" continua Manual.
+  //
   // Os nomes sao casados por apelido porque ja foram editados a mao — "Site
   // WPF" virou "WPF Website", "Budget AdWords" virou "AdWords R$".
   const KPI_APELIDOS = {
@@ -13945,19 +13951,41 @@ applyRolePermissions();
     "fed-member": ["member federations", "member-federations", "federacoes membro", "federações membro"],
     "fed-opening": ["opening federations", "federacoes em abertura"],
     "fed-champs": ["national championships", "campeonatos nacionais"],
-    "fed-digital": ["digital presence", "presenca digital", "presença digital"]
+    // So o nome em ingles: existe um KPI separado chamado "Presença Digital"
+    // (meta 23) que NAO e o mesmo que "Digital Presence" (meta 35). Ligar os
+    // dois a mesma fonte estaria errado — quem decide isso e Karina.
+    "fed-digital": ["digital presence"]
   };
-  const LIGACAO_KEY = "wpf_tasks2_kpis_mkt_ligados";
+  const LIGACAO_KEY = "wpf_tasks2_kpis_fontes_ligadas";
+  const LIGACAO_KEY_ANTIGA = "wpf_tasks2_kpis_mkt_ligados"; // flag booleana, versao 1
+  const FONTES_DA_FLAG_ANTIGA = ["social", "website", "ads-clicks", "ads-budget", "ads-cpc"];
+
+  function fontesJaTentadas() {
+    try {
+      const x = JSON.parse(localStorage.getItem(LIGACAO_KEY) || "null");
+      if (Array.isArray(x)) return x;
+    } catch (e) { /* cai no fallback */ }
+    // Quem tinha a flag antiga ja passou pelas fontes de Marketing; sem esta
+    // conversao, um KPI de Marketing devolvido pra "Manual" seria religado.
+    return localStorage.getItem(LIGACAO_KEY_ANTIGA) ? FONTES_DA_FLAG_ANTIGA.slice() : [];
+  }
+
   function ligarKpisAsFontesUmaVez() {
-    if (localStorage.getItem(LIGACAO_KEY)) return;
+    const jaTentadas = fontesJaTentadas();
+    const pendentes = Object.keys(KPI_APELIDOS).filter(f => jaTentadas.indexOf(f) === -1);
+    if (!pendentes.length) return;
     const normal = txt => String(txt || "").trim().toLowerCase();
+    const usadas = {};
+    kpisData.forEach(k => { if (k.source) usadas[k.source] = true; });
     kpisData.forEach(k => {
       if (k.source) return;
       const nome = normal(k.name);
-      const achou = Object.keys(KPI_APELIDOS).find(f => KPI_APELIDOS[f].includes(nome));
-      if (achou) k.source = achou;
+      // Primeiro nome que casar leva a fonte: duas linhas nao podem apontar
+      // pra mesma metrica.
+      const achou = pendentes.find(f => !usadas[f] && KPI_APELIDOS[f].includes(nome));
+      if (achou) { k.source = achou; usadas[achou] = true; }
     });
-    localStorage.setItem(LIGACAO_KEY, "1");
+    localStorage.setItem(LIGACAO_KEY, JSON.stringify(jaTentadas.concat(pendentes)));
     saveKpisData();
   }
 
