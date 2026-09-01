@@ -13123,17 +13123,20 @@ applyRolePermissions();
   // da linha de cima igual ao KPI.
   const PROJETOS_STORAGE_KEY = "wpf_tasks2_projetos";
 
-  // Tons de roxo, do mais claro pro mais escuro. Cada projeto novo pega o
-  // proximo da fila; passando do fim, volta ao inicio.
+  // Tons de cinza, do mais claro pro mais escuro, na familia quente que o
+  // resto do dashboard usa. Cada projeto novo pega o proximo da fila;
+  // passando do fim, volta ao inicio. O texto fica escuro em todos os tons
+  // de proposito — a rampa para antes de escurecer a ponto de exigir texto
+  // claro, senao metade dos chips inverteria e a coluna ficaria irregular.
   const PROJETO_TONS = [
-    { bg: "#efedfd", text: "#4b3fa8" },
-    { bg: "#e6e2fb", text: "#3c3489" },
-    { bg: "#ddd7f9", text: "#332b7d" },
-    { bg: "#d2caf6", text: "#2c2570" },
-    { bg: "#c6bcf3", text: "#261f63" },
-    { bg: "#b9adef", text: "#221b58" },
-    { bg: "#ab9dea", text: "#1e1750" },
-    { bg: "#9d8ce5", text: "#1a1447" }
+    { bg: "#f4f2ec", text: "#4a4943" },
+    { bg: "#eceae2", text: "#45443e" },
+    { bg: "#e4e1d7", text: "#403f39" },
+    { bg: "#dcd8cc", text: "#3b3a34" },
+    { bg: "#d4cfc1", text: "#37362f" },
+    { bg: "#ccc6b6", text: "#33322b" },
+    { bg: "#c3bcab", text: "#2f2e27" },
+    { bg: "#bab2a0", text: "#2b2a23" }
   ];
 
   let projetosData = [];
