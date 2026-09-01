@@ -12559,7 +12559,7 @@ applyRolePermissions();
 // fica no fim do <script>, então qualquer erro síncrono anterior mata a
 // aba Tasks 2 junto.
 // ══════════════════════════════════════════════════════════════════════════
-((getRealTasks, getRealGoals, getRealFeds) => {
+((getRealTasks, getRealGoals, getRealFeds, getRealLadies) => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
   // objetivo era "task", rotina era "subtask", e projeto/entregável são novas.
@@ -13811,6 +13811,13 @@ applyRolePermissions();
                       calc: () => contaFeds(r => r.checklist && r.checklist.nationalChampion) },
     "fed-digital":  { label: "Members · Presença digital ativa", decimais: 0, aba: "nav-members",
                       calc: () => contaFeds(r => r.checklist && r.checklist.activeMedia) },
+    // ── Committee, lado Ladies ───────────────────────────────────────
+    // Conta committeeCountryData, nao affiliationsCountryData: a aba tem
+    // dois conjuntos separados atras do mesmo botao (Ladies / Affiliations)
+    // e o KPI e do lado Ladies. O status interno e "Closed"; a legenda o
+    // exibe como "Closed Events".
+    "ladies-closed": { label: "Committee · Ladies · Closed Events", decimais: 0, aba: "nav-committee",
+                      calc: () => contaRegistros(getRealLadies, r => r.status === "Closed") },
     "ads-cpc":    { label: "Marketing · CPC", decimais: 2, mktKey: "adsCpc",
                     calc: () => {
                       const vals = seriesReal("adsCpc", ["CPC"]).filter(v => v !== null && v > 0);
@@ -13835,14 +13842,15 @@ applyRolePermissions();
     return /^https?:\/\//i.test(txt) ? txt : "";
   }
 
-  function contaFeds(criterio) {
+  function contaRegistros(getter, criterio) {
     let regs = null;
-    try { regs = getRealFeds(); } catch (e) { return null; }
+    try { regs = getter(); } catch (e) { return null; }
     if (!regs || typeof regs !== "object") return null;
     const vals = Object.keys(regs).map(k => regs[k]).filter(Boolean);
     if (!vals.length) return null; // sem dado: melhor manter o ultimo valor
     return vals.filter(r => { try { return !!criterio(r); } catch (e) { return false; } }).length;
   }
+  const contaFeds = criterio => contaRegistros(getRealFeds, criterio);
 
   function seriesReal(chave, candidatos) {
     const rows = (typeof mktData !== "undefined" && mktData && mktData[chave]) || [];
@@ -13954,7 +13962,8 @@ applyRolePermissions();
     // So o nome em ingles: existe um KPI separado chamado "Presença Digital"
     // (meta 23) que NAO e o mesmo que "Digital Presence" (meta 35). Ligar os
     // dois a mesma fonte estaria errado — quem decide isso e Karina.
-    "fed-digital": ["digital presence"]
+    "fed-digital": ["digital presence"],
+    "ladies-closed": ["ladies weekend 2026", "ladies weekend"]
   };
   const LIGACAO_KEY = "wpf_tasks2_kpis_fontes_ligadas";
   const LIGACAO_KEY_ANTIGA = "wpf_tasks2_kpis_mkt_ligados"; // flag booleana, versao 1
@@ -14019,7 +14028,8 @@ applyRolePermissions();
       const fonte = KPI_SOURCES[k.source];
       if (fonte && fonte.aba) {
         // Fonte interna: nao ha URL, o dado mora em outra aba do dashboard.
-        return `<button type="button" class="tasks2-src-link tasks2-src-aba" data-aba="${esc(fonte.aba)}" title="Ir para a aba onde este número é contado">Members ↗</button>`;
+        const nomeAba = fonte.aba === "nav-committee" ? "Committee" : "Members";
+        return `<button type="button" class="tasks2-src-link tasks2-src-aba" data-aba="${esc(fonte.aba)}" title="Ir para a aba onde este número é contado">${nomeAba} ↗</button>`;
       }
       const u = urlDaFonte(k);
       if (!u) return `<span class="tasks2-src-vazio">—</span>`;
@@ -14148,7 +14158,7 @@ applyRolePermissions();
     seedKpisFromReal(); // o reset refaz as duas copias: tasks e KPIs
     setTasksViewMode("list"); // ja redesenha
   });
-})(() => tasksData, () => goalsData, () => countryData);
+})(() => tasksData, () => goalsData, () => countryData, () => committeeCountryData);
 
 </script>
 
