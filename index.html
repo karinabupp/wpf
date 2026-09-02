@@ -12759,11 +12759,11 @@ applyRolePermissions();
 ((getRealTasks, getRealGoals, getRealFeds, getRealLadies) => {
   // --- Tasks (nested task/subtask/sub-subtask tracker) ---
   // As quatro categorias do rascunho. Substituem o antigo par task/subtask:
-  // objetivo era "task" e rotina era "subtask".
+  // objetivo era "task" e tarefa era "subtask".
   //
   // Os nomes internos foram alinhados aos da tela: o que se le no codigo e o
   // que aparece no dashboard, sem tradução no meio.
-  //   rowType  "objetivo" | "projeto" | "entregavel" | "rotina"
+  //   rowType  "objetivo" | "area" | "meta" | "projeto" | "entregavel" | "tarefa"
   //   areaLink      -> coluna "Área"      (era projetoLink)
   //
   // Atencao: "Área" e "Objetivo" nomeiam DUAS coisas cada um — uma categoria
@@ -12785,9 +12785,10 @@ applyRolePermissions();
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
     area:       { label: "Área",       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="3.2" width="7.4" height="7.4" rx="1.6"/><rect x="13.4" y="3.2" width="7.4" height="7.4" rx="1.6"/><rect x="3.2" y="13.4" width="7.4" height="7.4" rx="1.6"/><rect x="13.4" y="13.4" width="7.4" height="7.4" rx="1.6"/></svg>` },
+    meta:       { label: "Meta",       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 21.4V3.2"/><path d="M5.4 4.2h11.9l-2.3 4 2.3 4H5.4"/></svg>` },
     projeto:    { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
-    rotina:     { label: "Rotina",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
+    tarefa:     { label: "Tarefa",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
   };
 
   // Paleta PROPRIA dos icones. As cores de TASK_STATUS_COLORS.text sao
@@ -12807,7 +12808,7 @@ applyRolePermissions();
   // fica neutra: a linha dela inteira ja e pintada com o status no fundo,
   // repetir no icone so poluiria.
   function typeIconColor(t) {
-    if (t.rowType === "rotina") return "var(--text)";
+    if (t.rowType === "tarefa") return "var(--text)";
     return STATUS_ICON_COLORS[t.status] || STATUS_ICON_COLORS["Not Started"];
   }
 
@@ -12815,11 +12816,11 @@ applyRolePermissions();
   // cor e o que torna ela obvia — traco fino sozinho nao resolve. Rotina
   // nao ganha chip, senao brigaria com a cor da propria linha.
   function typeIconChip(t) {
-    if (t.rowType === "rotina") return "transparent";
+    if (t.rowType === "tarefa") return "transparent";
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
-  const TASK_TYPE_ORDER = ["objetivo", "area", "projeto", "entregavel", "rotina"];
+  const TASK_TYPE_ORDER = ["objetivo", "area", "meta", "projeto", "entregavel", "tarefa"];
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
     return TASK_TYPE_ORDER.map(k =>
@@ -12838,25 +12839,27 @@ applyRolePermissions();
   };
 
   // Cada categoria tem seu proprio vocabulario de status.
-  //  - objetivo, area e projeto : CALCULADOS do que esta abaixo, nunca editaveis.
+  //  - objetivo, area, meta e projeto : CALCULADOS do que esta abaixo, nunca editaveis.
   //    Os dois so REPRODUZEM as folhas de trabalho — nao tem estado proprio.
   //    Azul (In Progress) andando, verde (Done) concluido, vermelho (Late)
   //    se ha algo atrasado embaixo.
-  //  - entregavel/rotina : os seis status de sempre
+  //  - entregavel/tarefa : os seis status de sempre
   const STATUS_CALCULADO = ["Not Started", "In Progress", "Late", "Done"];
   const STATUS_BY_TYPE = {
     objetivo:   STATUS_CALCULADO,
     area:       STATUS_CALCULADO,
+    meta:       STATUS_CALCULADO,
     projeto:    STATUS_CALCULADO,
     entregavel: TASK_STATUS_OPTIONS,
-    rotina:     TASK_STATUS_OPTIONS
+    tarefa:     TASK_STATUS_OPTIONS
   };
   const statusesFor = t => STATUS_BY_TYPE[t.rowType] || TASK_STATUS_OPTIONS;
   const statusAllowed = (t, s) => statusesFor(t).includes(s);
-  // Objetivo, área e projeto tem status calculado: nada de select. Os tres
+  // Objetivo, área, meta e projeto tem status calculado: nada de select. Os quatro
   // sao niveis de agrupamento — so reproduzem o que esta abaixo deles.
   const statusIsAuto = t =>
-    t.rowType === "objetivo" || t.rowType === "area" || t.rowType === "projeto";
+    t.rowType === "objetivo" || t.rowType === "area" ||
+    t.rowType === "meta" || t.rowType === "projeto";
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
@@ -12869,7 +12872,7 @@ applyRolePermissions();
   // categoria deles.
   //
   // Antes isto varria a subarvore inteira contando apenas entregavel e
-  // rotina, pra nao contar o mesmo trabalho duas vezes. O efeito colateral
+  // tarefa, pra nao contar o mesmo trabalho duas vezes. O efeito colateral
   // era grave: uma ideia VAZIA nao contribuia com nada, entao um objetivo
   // com uma ideia concluida e tres ideias vazias aparecia como Done —
   // ignorando os tres que nem comecaram.
@@ -12881,7 +12884,7 @@ applyRolePermissions();
   // calculado, os filhos calculados ja estao prontos.
   // Atraso e a excecao a regra do filho direto: ele sobe de QUALQUER
   // profundidade. Precisa ser assim porque entregavel tem status proprio,
-  // digitado a mao — uma rotina vencida embaixo dele nao muda o status do
+  // digitado a mao — uma tarefa vencida embaixo dele nao muda o status do
   // entregavel, e sem esta varredura o atraso morreria ali e nunca chegaria
   // ao objetivo.
   function temAtrasoAbaixo(t) {
@@ -12905,7 +12908,7 @@ applyRolePermissions();
     (function walk(items, depth) {
       items.forEach(t => {
         // Unico lugar que migra E persiste. A profundidade importa: linha
-        // aninhada sem categoria valida vira rotina, nao objetivo. Depois
+        // aninhada sem categoria valida vira tarefa, nao objetivo. Depois
         // encaixa o status no vocabulario da categoria, senao um dado antigo
         // (ideia em "On Hold", por exemplo) sobreviveria.
         const tipoAntes = t.rowType;
@@ -13034,9 +13037,10 @@ applyRolePermissions();
   // sai como "projeto".
   function migrarRowType(t, depth) {
     if (t.rowType === "task") t.rowType = "objetivo";
-    if (t.rowType === "subtask") t.rowType = "rotina";
+    if (t.rowType === "subtask") t.rowType = "tarefa";
     if (t.rowType === "ideia") t.rowType = "projeto";
-    if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "rotina" : "objetivo";
+    if (t.rowType === "rotina") t.rowType = "tarefa"; // renomeada
+    if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "tarefa" : "objetivo";
   }
 
   function ensureTaskDefaults(t, depth) {
@@ -13159,9 +13163,9 @@ applyRolePermissions();
         // Flip any task that isn't finished/moot (Done/Cancelled) — and isn't
         // already Late — to "Late" once its due date passes, no matter what
         // status it was in (Not Started, In Progress, On Hold, etc).
-        // So entregavel e rotina viram Late por data propria. Objetivo e
+        // So entregavel e tarefa viram Late por data propria. Objetivo e
       // ideia recebem Late pelo rollup, quando ha algo atrasado abaixo.
-      const podeAtrasar = t.rowType === "entregavel" || t.rowType === "rotina";
+      const podeAtrasar = t.rowType === "entregavel" || t.rowType === "tarefa";
       if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
           t.status = "Late";
           changed = true;
@@ -13291,7 +13295,7 @@ applyRolePermissions();
   //
   // A tabela e uma ARVORE, entao filtrar nao e so esconder linha. Uma linha
   // fica visivel se ela mesma casa, se algum ANCESTRAL casa, ou se algum
-  // DESCENDENTE casa. Assim uma rotina atrasada la no fundo aparece com o
+  // DESCENDENTE casa. Assim uma tarefa atrasada la no fundo aparece com o
   // objetivo e a ideia dela em volta, em vez de solta e sem contexto —
   // decisao de Karina. O efeito colateral aceito e que linhas que nao casam
   // aparecem, como moldura.
@@ -13669,10 +13673,10 @@ applyRolePermissions();
     const expanded = tasksExpanded.has(t.id);
     const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     const isSub = depth > 0; // structural: nested under another row (drag/select stay tied to this)
-    // Só rotina ganha a cor do status no fundo — mesma regra que valia pra
+    // Só tarefa ganha a cor do status no fundo — mesma regra que valia pra
     // subtask antes das quatro categorias.
-    const isRotina = t.rowType === "rotina";
-    const rowStyle = isRotina ? ` style="background:${colors.bg}"` : "";
+    const isTarefa = t.rowType === "tarefa";
+    const rowStyle = isTarefa ? ` style="background:${colors.bg}"` : "";
     const type = TASK_TYPES[t.rowType] || TASK_TYPES.objetivo;
     const selected = tasksSelectedIds.has(t.id);
     const canDates = colabCan("tasksEditDates");
@@ -13718,7 +13722,7 @@ applyRolePermissions();
           ${assigneeCellMarkup(t, !canAssignee)}
         </div>
         <div class="tasks2-col-actions">
-          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar rotina dentro desta linha">+</button>` : ""}
+          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar tarefa dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
       </div>
@@ -14133,7 +14137,7 @@ applyRolePermissions();
         const parent = findTaskById(tasksData, btn.dataset.id);
         if (!parent) return;
         const newId = "task-" + Date.now();
-        parent.subtasks.push({ id: newId, name: "Nova rotina", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "rotina", subtasks: [] });
+        parent.subtasks.push({ id: newId, name: "Nova tarefa", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "tarefa", subtasks: [] });
         tasksExpanded.add(parent.id);
         saveTasksData();
         renderTasksTable();
@@ -14338,7 +14342,7 @@ applyRolePermissions();
     }
     function walk(items) {
       items.forEach(t => {
-        if (t.rowType === "rotina" && isOverdue(t)) list.push(t);
+        if (t.rowType === "tarefa" && isOverdue(t)) list.push(t);
         walk(t.subtasks);
       });
     }
@@ -14348,7 +14352,7 @@ applyRolePermissions();
 
   // Cadeia de ancestrais de uma linha, do mais externo pro mais interno.
   // A view Late usa isso pra sempre apontar dentro de qual ideia e de qual
-  // entregável a rotina atrasada está — o pai imediato sozinho não bastava,
+  // entregável a tarefa atrasada está — o pai imediato sozinho não bastava,
   // já que a categoria não depende do nível de aninhamento.
   function findAncestorChain(id) {
     let chain = [];
