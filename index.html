@@ -4823,7 +4823,15 @@ const SUPABASE_HEADERS = {
 // Every section stored as its own row in Supabase (federations, tasks,
 // goals, users, etc) — collectAllData()'s shape stays the same in memory,
 // this list is just how it maps onto rows when reading/writing.
-const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations"];
+// tasks2* saem da aba Tasks 2. Ela nasceu isolada, so no localStorage; passou
+// a sincronizar quando Karina pediu que a tela ficasse igual pra quem abrisse.
+const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis"];
+
+// A aba Tasks 2 vive dentro de uma IIFE no fim do script, entao seus dados
+// nao sao alcancaveis daqui. Ela publica esta ponte ao carregar; ate la fica
+// null, e as secoes dela sao OMITIDAS do push (ver pushAllSectionsToCloud).
+// Enviar [] enquanto a ponte nao existe apagaria o dado de todo mundo.
+let tasks2Bridge = null;
 
 let cloudSyncTimer = null;
 
@@ -4870,7 +4878,12 @@ function collectAllData() {
     users: usersList,
     social: socialData,
     socialBR: socialDataBR,
-    affiliations: affiliationsCountryData
+    affiliations: affiliationsCountryData,
+    // undefined (nao []) enquanto a ponte nao existe: undefined e omitido
+    // do push, [] apagaria.
+    tasks2: tasks2Bridge ? tasks2Bridge.getTasks() : undefined,
+    tasks2Areas: tasks2Bridge ? tasks2Bridge.getAreas() : undefined,
+    tasks2Kpis: tasks2Bridge ? tasks2Bridge.getKpis() : undefined
   };
 }
 
@@ -4890,6 +4903,9 @@ function applyAllData(data) {
   if (data.social) socialData = data.social;
   if (data.socialBR) socialDataBR = data.socialBR;
   if (data.affiliations) affiliationsCountryData = data.affiliations;
+  // A Tasks 2 aplica o que e dela por conta propria: os dados vivem dentro
+  // da IIFE e precisam passar pelas migracoes de categoria e status dela.
+  if (tasks2Bridge) tasks2Bridge.apply(data);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(countryData));
   localStorage.setItem(COMMITTEE_STORAGE_KEY, JSON.stringify(committeeCountryData));
   localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(stateData));
@@ -4920,12 +4936,16 @@ function applyAllData(data) {
 // across rows now so no single write can ever hit a size ceiling again.
 async function pushAllSectionsToCloud() {
   const all = collectAllData();
-  const rows = CLOUD_SECTIONS.map(section => ({
-    section,
-    data: all[section] !== undefined ? all[section] : [],
-    revision: all.revision,
-    updated_at: new Date().toISOString()
-  }));
+  // Secao ausente e PULADA, nao enviada como []. Antes um section faltando
+  // virava lista vazia e sobrescrevia o que estava na nuvem.
+  const rows = CLOUD_SECTIONS
+    .filter(section => all[section] !== undefined)
+    .map(section => ({
+      section,
+      data: all[section],
+      revision: all.revision,
+      updated_at: new Date().toISOString()
+    }));
   const res = await fetch(SUPABASE_TABLE_URL, {
     method: "POST",
     headers: { ...SUPABASE_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
@@ -13107,9 +13127,12 @@ applyRolePermissions();
 
   function saveTasksData() {
     localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
-    // Sem scheduleCloudSave() de propósito: o rascunho nunca entra no payload
-    // do Supabase. É isso que o mantém longe das tasks reais, do Geral, do
-    // Goals e do Slack.
+    // A aba nasceu SEM esta chamada de proposito, pra ficar fora do payload
+    // do Supabase. Karina pediu que a tela ficasse igual pra quem abrisse, o
+    // que exige compartilhar — entao agora sincroniza. Consequencia: um erro
+    // aqui alcanca o dado que todo mundo carrega, e o "Recarregar do
+    // original" apaga o rascunho de todos, nao so o deste navegador.
+    scheduleCloudSave();
   }
 
   // Responsáveis = usuários now, but tasks from before that change may still
@@ -13400,6 +13423,7 @@ applyRolePermissions();
 
   function saveAreasData() {
     localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
+    scheduleCloudSave();
   }
   function findAreaById(id) { return areasData.find(x => x.id === id) || null; }
   function criarArea(nome) {
@@ -14601,7 +14625,7 @@ applyRolePermissions();
 
   function saveKpisData() {
     localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
-    // Sem scheduleCloudSave(), igual ao saveTasksData() do rascunho.
+    scheduleCloudSave();
   }
 
   function seedKpisFromReal() {
@@ -14838,6 +14862,37 @@ applyRolePermissions();
     saveKpisData();
     renderKpiTable();
   });
+
+  // ─── Ponte com a nuvem ────────────────────────────────────────────────
+  // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
+  // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as
+  // secoes tasks2* do push, em vez de mandar [] e apagar tudo.
+  tasks2Bridge = {
+    getTasks: () => tasksData,
+    getAreas: () => areasData,
+    getKpis:  () => kpisData,
+    apply: (data) => {
+      if (Array.isArray(data.tasks2)) {
+        tasksData = data.tasks2.map(t => ensureTaskDefaults(t));
+        // Veio da nuvem: nao semear das tasks reais por cima.
+        tasks2Seeded = true;
+        localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
+      }
+      if (Array.isArray(data.tasks2Areas)) {
+        areasData = data.tasks2Areas.filter(x => x && x.id);
+        localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
+      }
+      if (Array.isArray(data.tasks2Kpis)) {
+        kpisData = data.tasks2Kpis.map(ensureKpiDefaults);
+        kpisSeeded = true;
+        localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
+      }
+      // So redesenha se a aba estiver aberta; render com a view escondida
+      // nao mede nada direito (ver refreshNameExpandButtons).
+      const view = document.getElementById("tasks2-view");
+      if (view && !view.classList.contains("hidden")) renderTasksTable();
+    }
+  };
 
   // ─── Wiring próprio do rascunho ───────────────────────────────────────
   // A cópia só acontece na primeira abertura da aba (não no load), e o
