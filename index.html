@@ -5032,6 +5032,13 @@ const USERS_SEED = [
 // of one shared checklist for every colaborador. Adm always has full
 // access no matter what these say. Declared here, before usersList is
 // first loaded below, since ensureUserDefaults() needs it immediately.
+// LIBERADO GERAL — pedido de Karina, "todo mundo ver tudo por agora".
+// Com isto ligado, colabCan() sempre devolve true e o corpo nao recebe a
+// classe role-colab, entao Settings e Tasks 2 tambem aparecem. As permissoes
+// individuais de cada usuario continuam GRAVADAS e intactas: voltar a
+// respeita-las e mudar esta constante pra false, sem reconfigurar ninguem.
+const PERMISSOES_LIBERADAS_PARA_TODOS = true;
+
 const COLAB_PERMISSIONS_DEFAULT = {
   tasksCreate: true,
   tasksDelete: false,
@@ -5090,6 +5097,7 @@ function isAdm() { return !!currentUser && currentUser.role === "adm"; }
 // live from usersList every time, so an Adm edit takes effect immediately
 // without the colab needing to log out and back in.
 function colabCan(key) {
+  if (PERMISSOES_LIBERADAS_PARA_TODOS) return true;
   if (isAdm()) return true;
   if (!currentUser) return false;
   const u = usersList.find(x => x.username === currentUser.username);
@@ -5176,7 +5184,9 @@ function applyTabVisibility() {
 
 function applyRolePermissions() {
   const colab = isColab();
-  document.body.classList.toggle("role-colab", colab); // fixed rules: Settings, assignee/email manager gear — never configurable
+  // Com o liberado geral, ninguem recebe role-colab: as regras fixas de CSS
+  // (Settings, Tasks 2, engrenagem de responsaveis) deixam de esconder.
+  document.body.classList.toggle("role-colab", colab && !PERMISSOES_LIBERADAS_PARA_TODOS);
   applyFedCommitteeLock();
   applyTabVisibility();
   const badge = document.getElementById("current-user-badge");
@@ -13114,6 +13124,7 @@ applyRolePermissions();
   // ao array) justamente pra pegar sempre a versão atual, mesmo depois de a
   // nuvem sobrescrever tasksData lá fora.
   function seedFromRealTasks() {
+    tasks2TemDados = true;
     let real = [];
     try { real = JSON.parse(JSON.stringify(getRealTasks() || [])); } catch (e) { real = []; }
     tasksData = real.map(t => ensureTaskDefaults(t));
@@ -13122,7 +13133,11 @@ applyRolePermissions();
   }
 
   function ensureSeeded() {
-    if (!tasks2Seeded) seedFromRealTasks();
+    // Tambem semeia quando a lista esta VAZIA, nao so quando nunca foi
+    // semeada: sem isso, uma tabela zerada (foi o que a perda acima causou)
+    // ficaria vazia pra sempre, porque o flag ja estava marcado.
+    if (!tasks2Seeded || !tasksData.length) seedFromRealTasks();
+    tasks2TemDados = true;
   }
 
   function saveTasksData() {
@@ -14650,7 +14665,7 @@ applyRolePermissions();
     saveKpisData();
   }
 
-  function ensureKpisSeeded() { if (!kpisSeeded) seedKpisFromReal(); }
+  function ensureKpisSeeded() { if (!kpisSeeded || !kpisData.length) seedKpisFromReal(); }
 
   // Liga cada KPI a sua fonte automaticamente, UMA VEZ POR FONTE.
   //
@@ -14867,22 +14882,35 @@ applyRolePermissions();
   // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
   // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as
   // secoes tasks2* do push, em vez de mandar [] e apagar tudo.
+  // Marca se esta aba ja tem dado de verdade em maos. Enquanto for false, a
+  // ponte devolve undefined e as secoes tasks2* sao OMITIDAS do push.
+  //
+  // Isto existe por causa de uma perda real: a ponte devolvia [] num
+  // navegador que ainda nao tinha aberto a aba (os dados so entram na
+  // memoria quando ela abre). Bastava alguem salvar qualquer outra coisa —
+  // um goal, uma federacao — pra scheduleCloudSave empurrar tasks2: [] e
+  // apagar a tabela de todos. Devolver undefined faz a secao ser pulada.
+  let tasks2TemDados = tasks2Seeded;
+
   tasks2Bridge = {
-    getTasks: () => tasksData,
-    getAreas: () => areasData,
-    getKpis:  () => kpisData,
+    getTasks: () => (tasks2TemDados ? tasksData : undefined),
+    getAreas: () => (tasks2TemDados ? areasData : undefined),
+    getKpis:  () => (tasks2TemDados ? kpisData : undefined),
     apply: (data) => {
-      if (Array.isArray(data.tasks2)) {
+      // Lista vazia vinda da nuvem NAO apaga o que ha aqui. Ou o outro lado
+      // ainda nao tinha carregado a aba, ou e o resquicio da perda acima; nos
+      // dois casos manter o que temos e mais seguro do que zerar.
+      if (Array.isArray(data.tasks2) && data.tasks2.length) {
         tasksData = data.tasks2.map(t => ensureTaskDefaults(t));
-        // Veio da nuvem: nao semear das tasks reais por cima.
         tasks2Seeded = true;
+        tasks2TemDados = true;
         localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
       }
-      if (Array.isArray(data.tasks2Areas)) {
+      if (Array.isArray(data.tasks2Areas) && data.tasks2Areas.length) {
         areasData = data.tasks2Areas.filter(x => x && x.id);
         localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
       }
-      if (Array.isArray(data.tasks2Kpis)) {
+      if (Array.isArray(data.tasks2Kpis) && data.tasks2Kpis.length) {
         kpisData = data.tasks2Kpis.map(ensureKpiDefaults);
         kpisSeeded = true;
         localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
