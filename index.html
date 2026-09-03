@@ -3704,7 +3704,33 @@
     height: 2.35em;
 
   }
-  .tasks2-name-wrap { position: relative; flex: 1 1 auto; min-width: 0; display: flex; align-items: flex-start; gap: 2px; }
+  /* Empilhado: o rotulo da categoria fica ACIMA do campo, entao nao tira
+     largura de escrita do nome. O campo e o botao de expandir continuam
+     lado a lado, na segunda "linha" interna. */
+  .tasks2-name-wrap {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "rotulo rotulo" "campo expandir";
+    align-items: start;
+    column-gap: 2px;
+  }
+  .tasks2-name-wrap > .tasks2-name-input { grid-area: campo; }
+  .tasks2-name-wrap > .tasks2-name-expand { grid-area: expandir; }
+  .tasks2-tipo-rotulo {
+    grid-area: rotulo;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    line-height: 1;
+    padding: 0 0 1px 4px;
+    user-select: none;
+    white-space: nowrap;
+  }
   .tasks2-name-expand {
     background: transparent;
     border: none;
@@ -14014,7 +14040,7 @@ applyRolePermissions();
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
           ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
           <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
