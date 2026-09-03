@@ -3053,6 +3053,39 @@
   /* ── Painel "Gerenciar áreas" (classes seguem tasks2-areamodal-*) ──────────────────────────────────
      z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
      sessao cair com o painel aberto, o login continua por cima. */
+  #backup-bloco {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+  #backup-topo {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  #backup-titulo { font-size: 14px; font-weight: 700; color: var(--text); }
+  #backup-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  #backup-botoes { display: flex; gap: 8px; }
+  #backup-baixar, #backup-restaurar-arquivo {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
+    border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  #backup-lista { max-height: 260px; overflow-y: auto; }
+  .backup-linha {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .backup-linha:last-child { border-bottom: none; }
+  .backup-quando { font-size: 13px; font-weight: 600; color: var(--text); }
+  .backup-resumo { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .backup-restaurar {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
+    border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+  .backup-restaurar.armado { border-color: #e24b4a; color: #e24b4a; font-weight: 600; }
+  .backup-vazio { padding: 20px 16px; font-size: 13px; color: var(--text-muted); text-align: center; }
+
   #tasks2-histmodal-backdrop,
   #tasks2-areamodal-backdrop {
     position: fixed;
@@ -3522,7 +3555,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(300px, 1fr) 210px 132px 152px 152px 178px 64px;
+    grid-template-columns: 30px minmax(300px, 1fr) 132px 210px 152px 152px 178px 64px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3854,7 +3887,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(260px, 1fr) 176px 120px 146px 146px 150px 60px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(260px, 1fr) 120px 176px 146px 146px 150px 60px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3864,7 +3897,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(210px, 1fr) 152px 108px 138px 138px 128px 56px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(210px, 1fr) 108px 152px 138px 138px 128px 56px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4284,8 +4317,8 @@
       <div class="tasks2-row tasks2-head-row">
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-assignee"><button type="button" class="tasks2-filtro-btn" data-col="responsavel">Responsável<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -4357,6 +4390,20 @@
 <div id="settings-view" class="content-view hidden">
   <div id="settings-wrap">
     <div id="settings-logo-row"></div>
+    <div id="backup-bloco">
+      <div id="backup-topo">
+        <div>
+          <div id="backup-titulo">Backup e versões</div>
+          <div id="backup-sub">Cada gravação guarda uma versão do dashboard inteiro. Vale para todas as abas.</div>
+        </div>
+        <div id="backup-botoes">
+          <button type="button" id="backup-baixar">⇩ Baixar backup</button>
+          <button type="button" id="backup-restaurar-arquivo">⇧ Restaurar de arquivo</button>
+          <input type="file" id="backup-arquivo" accept="application/json" style="display:none">
+        </div>
+      </div>
+      <div id="backup-lista"></div>
+    </div>
     <div id="settings-add-row">
       <input type="text" id="settings-new-username" placeholder="Usuário/login (ex: joao)">
       <select id="settings-new-role">
@@ -4869,7 +4916,7 @@ const SUPABASE_HEADERS = {
 // this list is just how it maps onto rows when reading/writing.
 // tasks2* saem da aba Tasks 2. Ela nasceu isolada, so no localStorage; passou
 // a sincronizar quando Karina pediu que a tela ficasse igual pra quem abrisse.
-const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico"];
+const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico", "historicoGeral"];
 
 // A aba Tasks 2 vive dentro de uma IIFE no fim do script, entao seus dados
 // nao sao alcancaveis daqui. Ela publica esta ponte ao carregar; ate la fica
@@ -4930,7 +4977,8 @@ function collectAllData() {
     tasks2Kpis: tasks2Bridge ? tasks2Bridge.getKpis() : undefined,
     // O historico tambem vai pra nuvem: sem isso, so daria pra voltar no
     // tempo do navegador onde a edicao foi feita.
-    tasks2Historico: tasks2Bridge ? tasks2Bridge.getHistorico() : undefined
+    tasks2Historico: tasks2Bridge ? tasks2Bridge.getHistorico() : undefined,
+    historicoGeral: historicoGeral.length ? historicoGeral : undefined
   };
 }
 
@@ -4953,6 +5001,16 @@ function applyAllData(data) {
   // A Tasks 2 aplica o que e dela por conta propria: os dados vivem dentro
   // da IIFE e precisam passar pelas migracoes de categoria e status dela.
   if (tasks2Bridge) tasks2Bridge.apply(data);
+  // Versoes de maquinas diferentes se juntam, nenhuma substitui a outra:
+  // o objetivo aqui e nao perder.
+  if (Array.isArray(data.historicoGeral) && data.historicoGeral.length) {
+    const vistos = {};
+    historicoGeral = historicoGeral.concat(data.historicoGeral)
+      .filter(v => v && v.ts && !vistos[v.ts] && (vistos[v.ts] = true))
+      .sort((a, b) => (a.ts < b.ts ? 1 : -1))
+      .slice(0, HISTORICO_GERAL_MAX);
+    try { localStorage.setItem(HISTORICO_GERAL_KEY, JSON.stringify(historicoGeral)); } catch (e) {}
+  }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(countryData));
   localStorage.setItem(COMMITTEE_STORAGE_KEY, JSON.stringify(committeeCountryData));
   localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(stateData));
@@ -4981,8 +5039,156 @@ function applyAllData(data) {
 // Pushes every section as its own row, upserted in one request — mirrors
 // how collectAllData() used to go up as one JSONBin blob, just spread
 // across rows now so no single write can ever hit a size ceiling again.
+// ══════════════════════════════════════════════════════════════════════════
+// Histórico geral — versoes anteriores de TODAS as secoes
+//
+// A tabela do Supabase guarda uma linha por secao, sem historico: qualquer
+// gravacao errada apaga o que havia. Foi assim que a aba Tasks 2 se perdeu
+// inteira, e o mesmo vale pra federacoes, goals, tasks, usuarios e o resto.
+// Sincronizar nao e o mesmo que nao perder.
+//
+// Antes de cada push guardamos uma versao do payload inteiro. Fica no
+// localStorage E numa secao propria na nuvem, entao da pra voltar no tempo
+// de qualquer maquina — nao so daquela onde a gravacao aconteceu.
+// ══════════════════════════════════════════════════════════════════════════
+const HISTORICO_GERAL_KEY = "wpf_historico_geral";
+const HISTORICO_GERAL_MAX = 10;
+// Secoes cujo esvaziamento e suspeito.
+const SECOES_NUNCA_VAZIAS = ["goals", "tasks", "users", "federations", "tasks2"];
+
+let historicoGeral = [];
+try {
+  const g = JSON.parse(localStorage.getItem(HISTORICO_GERAL_KEY) || "null");
+  if (Array.isArray(g)) historicoGeral = g;
+} catch (e) { historicoGeral = []; }
+
+function tamanhoSecao(v) {
+  if (v === undefined || v === null) return -1; // ausente, nao da pra julgar
+  return Array.isArray(v) ? v.length : Object.keys(v).length;
+}
+
+// Guarda a versao, EXCETO quando alguma secao critica que TINHA conteudo
+// aparece vazia agora. Esse e o retrato de um apagamento, e guarda-lo
+// empurraria as versoes boas pra fora da lista — o mecanismo que transforma
+// um acidente em perda definitiva.
+//
+// A regra olha o que mudou, e nao "esta vazia": dashboard novo tem secoes
+// legitimamente vazias, e recusar por isso nunca guardaria versao nenhuma.
+function versaoUtil(all) {
+  if (!all) return false;
+  const ultimo = historicoGeral[0];
+  if (!ultimo || !ultimo.data) return true; // a primeira versao sempre vale
+  return !SECOES_NUNCA_VAZIAS.some(sec => {
+    const agora = tamanhoSecao(all[sec]);
+    const antes = tamanhoSecao(ultimo.data[sec]);
+    return agora === 0 && antes > 0;
+  });
+}
+
+function registrarVersaoGeral(all) {
+  if (!versaoUtil(all)) return;
+  const retrato = { ts: new Date().toISOString(), data: {} };
+  CLOUD_SECTIONS.forEach(sec => {
+    // O proprio historico nunca entra dentro do historico.
+    if (sec === "historicoGeral") return;
+    if (all[sec] !== undefined) retrato.data[sec] = all[sec];
+  });
+  const ultimo = historicoGeral[0];
+  if (ultimo && JSON.stringify(ultimo.data) === JSON.stringify(retrato.data)) return;
+  try {
+    historicoGeral.unshift(JSON.parse(JSON.stringify(retrato)));
+    historicoGeral = historicoGeral.slice(0, HISTORICO_GERAL_MAX);
+    localStorage.setItem(HISTORICO_GERAL_KEY, JSON.stringify(historicoGeral));
+  } catch (e) {
+    // localStorage cheio: fica com as mais recentes e tenta de novo. Nunca
+    // deixa o historico derrubar a gravacao em si.
+    historicoGeral = historicoGeral.slice(0, 3);
+    try { localStorage.setItem(HISTORICO_GERAL_KEY, JSON.stringify(historicoGeral)); } catch (e2) {}
+  }
+}
+
+function restaurarVersaoGeral(indice) {
+  const v = historicoGeral[indice];
+  if (!v || !v.data) return false;
+  // O estado atual vira versao ANTES da troca: restaurar por engano tem
+  // volta.
+  registrarVersaoGeral(collectAllData());
+  applyAllData(v.data);
+  bumpLocalRevision();
+  scheduleCloudSave();
+  return true;
+}
+
+function baixarBackupGeral() {
+  const pacote = { versao: 1, ts: new Date().toISOString(), data: collectAllData() };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(pacote, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `wpf-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function restaurarBackupArquivo(texto) {
+  let pacote = null;
+  try { pacote = JSON.parse(texto); } catch (e) { return "Arquivo não é um JSON válido."; }
+  const d = pacote && (pacote.data || pacote);
+  if (!d || typeof d !== "object") return "Arquivo não parece um backup do dashboard.";
+  registrarVersaoGeral(collectAllData()); // o estado atual vira versao antes
+  applyAllData(d);
+  bumpLocalRevision();
+  scheduleCloudSave();
+  return null;
+}
+
+// Duas etapas pra restaurar: o primeiro clique so arma. Isto troca o
+// dashboard inteiro pra todo mundo, entao nao pode acontecer por um clique
+// desatento.
+let backupArmado = null;
+
+function montarListaBackup() {
+  const lista = document.getElementById("backup-lista");
+  if (!lista) return;
+  if (!historicoGeral.length) {
+    lista.innerHTML = `<div class="backup-vazio">Nenhuma versão guardada ainda. A partir de agora, cada alteração guarda uma.</div>`;
+    return;
+  }
+  lista.innerHTML = historicoGeral.map((v, i) => {
+    const d = new Date(v.ts);
+    const quando = isNaN(d) ? v.ts : d.toLocaleString("pt-BR");
+    const partes = [];
+    if (v.data.tasks) partes.push(`${v.data.tasks.length} tasks`);
+    if (v.data.goals) partes.push(`${v.data.goals.length} KPIs`);
+    if (v.data.tasks2) partes.push(`${v.data.tasks2.length} linhas na Tasks 2`);
+    if (v.data.federations) partes.push(`${Object.keys(v.data.federations).length} federações`);
+    const armado = backupArmado === i;
+    return `<div class="backup-linha">
+      <div>
+        <div class="backup-quando">${quando}${i === 0 ? " · mais recente" : ""}</div>
+        <div class="backup-resumo">${partes.join(" · ") || "—"}</div>
+      </div>
+      <button type="button" class="backup-restaurar ${armado ? "armado" : ""}" data-i="${i}">${armado ? "Confirmar: troca para todos" : "Restaurar"}</button>
+    </div>`;
+  }).join("");
+  lista.querySelectorAll(".backup-restaurar").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const i = Number(btn.dataset.i);
+      if (backupArmado !== i) {
+        backupArmado = i;
+        montarListaBackup();
+        setTimeout(() => { if (backupArmado === i) { backupArmado = null; montarListaBackup(); } }, 6000);
+        return;
+      }
+      backupArmado = null;
+      restaurarVersaoGeral(i);
+      montarListaBackup();
+    });
+  });
+}
+
 async function pushAllSectionsToCloud() {
   const all = collectAllData();
+  registrarVersaoGeral(all);
   // Secao ausente e PULADA, nao enviada como []. Antes um section faltando
   // virava lista vazia e sobrescrevia o que estava na nuvem.
   const rows = CLOUD_SECTIONS
@@ -5259,6 +5465,27 @@ function applyRolePermissions() {
 // Kicked off immediately (not buried later in the map bootstrap) so the
 // login gate has the best chance of already knowing about accounts/resets
 // made on other devices by the time someone actually clicks "Entrar".
+document.getElementById("nav-settings").addEventListener("click", () => {
+  backupArmado = null;
+  montarListaBackup();
+});
+document.getElementById("backup-baixar").addEventListener("click", baixarBackupGeral);
+document.getElementById("backup-restaurar-arquivo").addEventListener("click", () => {
+  document.getElementById("backup-arquivo").click();
+});
+document.getElementById("backup-arquivo").addEventListener("change", e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    const erro = restaurarBackupArquivo(String(leitor.result));
+    window.alert(erro || "Backup restaurado.");
+    montarListaBackup();
+  };
+  leitor.readAsText(f);
+  e.target.value = "";
+});
+
 const initialCloudLoadPromise = loadFromCloud();
 
 function showLoginGate() {
@@ -13790,14 +14017,14 @@ applyRolePermissions();
           <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
-        <div class="tasks2-col-kpi">
-          ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
-        </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
           ? `<span class="tasks2-status-static" style="background:${colors.bg}; color:${colors.text}" title="Status automático: vem do que está abaixo deste objetivo">${t.status}</span>`
           : `<select class="tasks2-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}">${taskStatusOptionsMarkup(t.status, statusesFor(t))}</select>`}
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="status" title="Arraste para copiar o status para as linhas ao lado"></span>
+        </div>
+        <div class="tasks2-col-kpi">
+          ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
         </div>
         <div class="tasks2-col-date">
           <input type="date" class="tasks2-date-input" data-id="${t.id}" data-field="startDate" value="${t.startDate}" title="Data de início" ${canDates ? "" : "disabled"}>
