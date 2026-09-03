@@ -3522,7 +3522,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(240px, 1fr) 200px 150px 160px 130px 118px 118px 176px 64px;
+    grid-template-columns: 30px minmax(300px, 1fr) 210px 132px 152px 152px 178px 64px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3854,7 +3854,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(200px, 1fr) 168px 128px 140px 116px 124px 124px 142px 60px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(260px, 1fr) 176px 120px 146px 146px 150px 60px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3864,7 +3864,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(170px, 1fr) 146px 116px 124px 104px 118px 118px 124px 56px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(210px, 1fr) 152px 108px 138px 138px 128px 56px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4285,8 +4285,6 @@
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-objetivo"><button type="button" class="tasks2-filtro-btn" data-col="objetivo">Objetivo<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -12899,7 +12897,7 @@ applyRolePermissions();
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
-  const TASK_TYPE_ORDER = ["objetivo", "area", "meta", "projeto", "entregavel", "tarefa"];
+  const TASK_TYPE_ORDER = ["area", "objetivo", "meta", "projeto", "entregavel", "tarefa"];
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
     return TASK_TYPE_ORDER.map(k =>
@@ -13505,6 +13503,13 @@ applyRolePermissions();
     return AREA_CINZA;
   }
 
+  // ATENCAO: as colunas Objetivo e Área foram REMOVIDAS da tabela a pedido
+  // de Karina, mas os dados NAO foram apagados — areaLink, objetivoLink,
+  // areasData e a chave wpf_tasks2_areas continuam gravados e sincronizando.
+  // Depois da perda de dados desta semana, apagar o que nao esta mais na
+  // tela seria o tipo errado de limpeza: devolver as colunas e voltar a
+  // renderizar as celulas, sem recuperar nada. O gerenciador de áreas ficou
+  // sem porta de entrada junto com a coluna.
   // ── Coluna Objetivo ───────────────────────────────────────────────────
   // Lista FIXA de tres, ao contrario de Área, que e editavel. Nao ha
   // gerenciador nem opcao de criar: se um dia precisar crescer, o caminho e
@@ -13788,12 +13793,6 @@ applyRolePermissions();
         <div class="tasks2-col-kpi">
           ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
         </div>
-        <div class="tasks2-col-objetivo">
-          ${objetivoCellMarkup(t, depth, inheritedObjetivo)}
-        </div>
-        <div class="tasks2-col-area">
-          ${areaCellMarkup(t, depth, inheritedArea)}
-        </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
           ? `<span class="tasks2-status-static" style="background:${colors.bg}; color:${colors.text}" title="Status automático: vem do que está abaixo deste objetivo">${t.status}</span>`
@@ -13837,8 +13836,6 @@ applyRolePermissions();
   const COLUNAS_FILTRO = {
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
-    objetivo:    { rotulo: "Objetivo",    tipo: "lista" },
-    area:        { rotulo: "Área",        tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
     inicio:      { rotulo: "Início",      tipo: "data", campos: ["inicioDe", "inicioAte"] },
     fim:         { rotulo: "Fim",         tipo: "data", campos: ["fimDe", "fimAte"] },
