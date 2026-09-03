@@ -3555,7 +3555,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(300px, 1fr) 132px 210px 152px 152px 178px 64px;
+    grid-template-columns: 30px 106px minmax(240px, 1fr) 132px 200px 148px 148px 172px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3728,25 +3728,39 @@
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
-    align-content: center; /* o conteudo fica centrado mesmo com o wrap alto */
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas: "rotulo rotulo" "campo expandir";
-    align-items: start;
-    column-gap: 2px;
+    display: flex;
+    align-items: flex-start;
+    gap: 2px;
   }
-  /* Filho direto da celula, que e alta como a linha: assim a faixa vai de
-     cima a baixo. Dentro da grade do texto ela so chegaria ate onde o texto
-     chega, porque align-content encolhe as fileiras ao conteudo. */
-  .tasks2-col-name > .tasks2-type-picker {
+  /* Coluna Tipo: card pintado com o icone em cima e o nome da categoria
+     embaixo, ocupando a altura toda da linha. */
+  .tasks2-col-tipo {
+    display: flex;
+    align-items: stretch;
     align-self: stretch;
-    border-radius: 0;
-    padding: 0 5px; /* mesma largura de antes; a altura vem do esticar */
+    min-width: 0;
+    padding: 0;
   }
-  .tasks2-name-wrap > .tasks2-name-input { grid-area: campo; }
-  .tasks2-name-wrap > .tasks2-name-expand { grid-area: expandir; }
+  .tasks2-col-tipo > .tasks2-type-picker {
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    border-radius: 0;
+    padding: 6px 4px;
+    min-width: 0;
+  }
+  .tasks2-col-tipo .tasks2-tipo-rotulo {
+    color: inherit; /* acompanha a cor do icone, que vem do status */
+    letter-spacing: 0.03em; /* "ENTREGÁVEL" nao cabe com o espacamento cheio */
+    padding: 0;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .tasks2-tipo-rotulo {
-    grid-area: rotulo;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -3946,7 +3960,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(260px, 1fr) 120px 176px 146px 146px 150px 60px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px 100px minmax(210px, 1fr) 118px 168px 142px 142px 146px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3956,7 +3970,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(210px, 1fr) 108px 152px 138px 138px 128px 56px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px 94px minmax(170px, 1fr) 104px 146px 132px 132px 124px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4375,6 +4389,7 @@
       </div>
       <div class="tasks2-row tasks2-head-row">
         <div class="tasks2-col-select"></div>
+        <div class="tasks2-col-tipo"><button type="button" class="tasks2-filtro-btn" data-col="tipo">Tipo<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -13681,19 +13696,19 @@ applyRolePermissions();
   // ══════════════════════════════════════════════════════════════════════
   const filtros = {
     nome: "",
-    kpi: new Set(), objetivo: new Set(), area: new Set(), status: new Set(), responsavel: new Set(),
+    tipo: new Set(), kpi: new Set(), objetivo: new Set(), area: new Set(), status: new Set(), responsavel: new Set(),
     inicioDe: "", inicioAte: "", fimDe: "", fimAte: ""
   };
   const SEM_VALOR = "__sem__"; // "sem KPI" / "sem projeto" / "sem responsável"
 
   function haFiltro() {
-    return !!filtros.nome.trim() || filtros.kpi.size || filtros.objetivo.size || filtros.area.size ||
+    return !!filtros.nome.trim() || filtros.tipo.size || filtros.kpi.size || filtros.objetivo.size || filtros.area.size ||
       filtros.status.size || filtros.responsavel.size ||
       filtros.inicioDe || filtros.inicioAte || filtros.fimDe || filtros.fimAte;
   }
   function limparFiltros() {
     filtros.nome = "";
-    ["kpi", "objetivo", "area", "status", "responsavel"].forEach(k => filtros[k].clear());
+    ["tipo", "kpi", "objetivo", "area", "status", "responsavel"].forEach(k => filtros[k].clear());
     ["inicioDe", "inicioAte", "fimDe", "fimAte"].forEach(k => filtros[k] = "");
   }
 
@@ -13711,6 +13726,7 @@ applyRolePermissions();
     if (filtros.nome.trim() &&
         String(t.name || "").toLowerCase().indexOf(filtros.nome.trim().toLowerCase()) === -1) return false;
     if (filtros.status.size && !filtros.status.has(t.status)) return false;
+    if (filtros.tipo.size && !filtros.tipo.has(t.rowType)) return false;
     if (filtros.kpi.size && !filtros.kpi.has(kpiEfetivo || SEM_VALOR)) return false;
     if (filtros.area.size && !filtros.area.has(areaEfetiva || SEM_VALOR)) return false;
     if (filtros.objetivo.size && !filtros.objetivo.has(objEfetivo || SEM_VALOR)) return false;
@@ -14073,10 +14089,13 @@ applyRolePermissions();
         <div class="tasks2-col-select">
           <input type="checkbox" class="tasks2-row-checkbox" data-id="${t.id}" ${selected ? "checked" : ""}>
         </div>
+        <div class="tasks2-col-tipo">
+          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
+        </div>
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
           ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
           <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
@@ -14123,6 +14142,7 @@ applyRolePermissions();
   // Cada cabecalho vira botao. O painel e montado sob demanda porque as
   // opcoes (KPIs, projetos, responsaveis) mudam enquanto se usa a aba.
   const COLUNAS_FILTRO = {
+    tipo:        { rotulo: "Tipo",        tipo: "lista" },
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
@@ -14132,6 +14152,7 @@ applyRolePermissions();
   };
 
   function opcoesDaColuna(col) {
+    if (col === "tipo") return TASK_TYPE_ORDER.map(k => ({ valor: k, texto: TASK_TYPES[k].label }));
     if (col === "status") return TASK_STATUS_OPTIONS.map(s => ({ valor: s, texto: s }));
     if (col === "kpi") return [{ valor: SEM_VALOR, texto: "— sem KPI —" }]
       .concat(kpisData.map(k => ({ valor: k.id, texto: k.name || "(sem nome)" })));
