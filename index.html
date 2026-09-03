@@ -3555,7 +3555,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px 106px minmax(240px, 1fr) 132px 200px 148px 148px 172px 60px;
+    grid-template-columns: 30px 124px minmax(230px, 1fr) 132px 196px 146px 146px 168px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3741,15 +3741,18 @@
   }
   .tasks2-col-tipo > .tasks2-type-picker {
     flex: 0 1 auto;
-    flex-direction: column;
+    flex-direction: row;   /* icone e nome lado a lado */
     justify-content: center;
     align-items: center;
-    gap: 2px;
+    gap: 5px;
     border-radius: 8px;    /* cardzinho, como as pilulas de status */
     padding: 5px 6px;
     max-width: 100%;
   }
   .tasks2-col-tipo .tasks2-tipo-rotulo {
+    /* lado a lado, o rotulo cedia espaco e era o card que ficava pequeno;
+       sem encolher, o card cresce ate caber o nome inteiro */
+    flex: 0 0 auto;
     color: inherit; /* acompanha a cor do icone, que vem do status */
     letter-spacing: 0.03em; /* "ENTREGÁVEL" nao cabe com o espacamento cheio */
     padding: 0;
@@ -3959,7 +3962,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px 100px minmax(210px, 1fr) 118px 168px 142px 142px 146px 58px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px 120px minmax(200px, 1fr) 116px 164px 138px 138px 142px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3969,7 +3972,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px 94px minmax(170px, 1fr) 104px 146px 132px 132px 124px 54px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px 114px minmax(160px, 1fr) 102px 142px 128px 128px 120px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
