@@ -4456,9 +4456,7 @@
     </div>
 
     <div id="tasks2-footer">
-      <button id="tasks2-add-btn" type="button">+ Novo objetivo</button>
-      <button id="tasks2-historico-btn" type="button">🕘 Versões anteriores</button>
-      <button id="tasks2-reset-btn" type="button">↺ Recarregar do original</button>
+      <button id="tasks2-add-btn" type="button">+ Novo</button>
     </div>
   </div>
 </div>
@@ -13201,6 +13199,26 @@ applyRolePermissions();
     return c.bg;
   }
   const TASK_TYPE_ORDER = ["area", "objetivo", "meta", "projeto", "entregavel", "tarefa"];
+  // O "+" de uma linha cria o nivel logo abaixo dela na hierarquia:
+  // area → objetivo → meta → projeto → entregavel → tarefa. Sai da propria
+  // TASK_TYPE_ORDER, entao mexer na ordem das categorias ja acerta isto
+  // junto — nao ha uma segunda lista pra manter em dia.
+  function proximoNivel(rowType) {
+    const i = TASK_TYPE_ORDER.indexOf(rowType);
+    if (i === -1) return "tarefa";
+    return TASK_TYPE_ORDER[Math.min(i + 1, TASK_TYPE_ORDER.length - 1)];
+  }
+
+  function novaLinha(rowType) {
+    return {
+      id: "task-" + Date.now(),
+      name: "Nova " + TASK_TYPES[rowType].label.toLowerCase(),
+      status: "Not Started", startDate: "", endDate: "",
+      assignees: [], kpiLink: "", areaLink: "", objetivoLink: "",
+      rowType, subtasks: []
+    };
+  }
+
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
     return TASK_TYPE_ORDER.map(k =>
@@ -14121,7 +14139,7 @@ applyRolePermissions();
           ${assigneeCellMarkup(t, !canAssignee)}
         </div>
         <div class="tasks2-col-actions">
-          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar tarefa dentro desta linha">+</button>` : ""}
+          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
       </div>
@@ -14535,8 +14553,7 @@ applyRolePermissions();
       btn.addEventListener("click", () => {
         const parent = findTaskById(tasksData, btn.dataset.id);
         if (!parent) return;
-        const newId = "task-" + Date.now();
-        parent.subtasks.push({ id: newId, name: "Nova tarefa", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "tarefa", subtasks: [] });
+        parent.subtasks.push(novaLinha(proximoNivel(parent.rowType)));
         tasksExpanded.add(parent.id);
         saveTasksData();
         renderTasksTable();
@@ -14708,8 +14725,8 @@ applyRolePermissions();
   });
 
   document.getElementById("tasks2-add-btn").addEventListener("click", () => {
-    const newId = "task-" + Date.now();
-    tasksData.push({ id: newId, name: "Novo objetivo", status: "Not Started", startDate: "", endDate: "", assignees: [], kpiLink: "", rowType: "objetivo", subtasks: [] });
+    // Na raiz nasce Área, o topo da hierarquia.
+    tasksData.push(novaLinha(TASK_TYPE_ORDER[0]));
     saveTasksData();
     renderTasksTable();
   });
@@ -15216,10 +15233,10 @@ applyRolePermissions();
     renderTasksTable();
   });
 
-  document.getElementById("tasks2-historico-btn").addEventListener("click", () => {
-    document.getElementById("tasks2-histmodal-backdrop").classList.remove("hidden");
-    montarHistorico();
-  });
+  // O botao "Versões anteriores" foi retirado do rodape a pedido de Karina.
+  // O painel e o historico continuam existindo e sendo gravados; quem cobre
+  // recuperacao agora e o bloco "Backup e versões" em Settings, que vale pro
+  // dashboard inteiro. Devolver o botao aqui e uma linha.
   document.getElementById("tasks2-histmodal-fechar").addEventListener("click", () => {
     document.getElementById("tasks2-histmodal-backdrop").classList.add("hidden");
   });
@@ -15467,30 +15484,10 @@ applyRolePermissions();
 
   // Reset em dois cliques: refaz a cópia do original do zero.
   let tasks2ResetArmed = false;
-  const tasks2ResetBtn = document.getElementById("tasks2-reset-btn");
-  tasks2ResetBtn.addEventListener("click", () => {
-    if (!tasks2ResetArmed) {
-      tasks2ResetArmed = true;
-      tasks2ResetBtn.classList.add("confirming");
-      tasks2ResetBtn.textContent = "Confirmar: apagar o rascunho?";
-      setTimeout(() => {
-        if (!tasks2ResetArmed) return;
-        tasks2ResetArmed = false;
-        tasks2ResetBtn.classList.remove("confirming");
-        tasks2ResetBtn.textContent = "↺ Recarregar do original";
-      }, 5000);
-      return;
-    }
-    tasks2ResetArmed = false;
-    tasks2ResetBtn.classList.remove("confirming");
-    tasks2ResetBtn.textContent = "↺ Recarregar do original";
-    tasksExpanded.clear();
-    tasksSelectedIds.clear();
-    tasksConfirmDeleteId = null;
-    seedFromRealTasks();
-    seedKpisFromReal(); // o reset refaz as duas copias: tasks e KPIs
-    setTasksViewMode("list"); // ja redesenha
-  });
+  // "Recarregar do original" foi retirado. Depois que a aba passou a
+  // sincronizar, ele apagava a tabela de TODO MUNDO, e ficava a dois cliques
+  // do "+ Novo". A semeadura automatica (ensureSeeded) continua valendo
+  // quando a tabela esta vazia.
 })(() => tasksData, () => goalsData, () => countryData, () => committeeCountryData);
 
 </script>
