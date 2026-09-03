@@ -13565,6 +13565,15 @@ applyRolePermissions();
   // texto. Remover o chip (×) tira so do array; o texto "@Nome" que ficou
   // no campo continua la, agora so texto solto.
   // ══════════════════════════════════════════════════════════════════════
+  // Recuo da hierarquia: so Projeto, Entregavel e Tarefa avancam com a
+  // profundidade. Objetivo, Área e Meta ficam sempre no recuo minimo — sao
+  // niveis de agrupamento, e Karina nao quer eles empurrando pra direita
+  // conforme a arvore cresce.
+  const CATEGORIAS_COM_RECUO = { projeto: true, entregavel: true, tarefa: true };
+  function nameIndent(t, depth) {
+    return CATEGORIAS_COM_RECUO[t.rowType] ? 16 + depth * 26 : 16;
+  }
+
   function findTaskPath(list, id, trilha) {
     trilha = trilha || [];
     for (const t of list) {
@@ -14320,7 +14329,7 @@ applyRolePermissions();
         <div class="tasks2-col-tipo">
           <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
         </div>
-        <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
+        <div class="tasks2-col-name" style="padding-left:${nameIndent(t, depth)}px">
           <div class="tasks2-name-row">
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
@@ -14357,7 +14366,7 @@ applyRolePermissions();
     `;
     if (tasksConfirmDeleteId === t.id && canDelete) {
       html += `
-        <div class="tasks2-delete-confirm-row" style="padding-left:${16 + depth * 26}px">
+        <div class="tasks2-delete-confirm-row" style="padding-left:${nameIndent(t, depth)}px">
           <span>Excluir "${t.name}"${hasChildren ? " e tudo que está dentro dela" : ""}?</span>
           <button class="tasks2-delete-yes" data-id="${t.id}" type="button">Sim, excluir</button>
           <button class="tasks2-delete-no" type="button">Cancelar</button>
