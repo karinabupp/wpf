@@ -2873,8 +2873,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
-    padding: 3px;
+    border-radius: 7px;
+    padding: 5px;
   }
   .tasks2-type-picker:hover { box-shadow: inset 0 0 0 1px var(--border-strong); }
   .tasks2-type-icon {
@@ -2884,7 +2884,7 @@
     user-select: none;
     pointer-events: none;
   }
-  .tasks2-type-icon svg { width: 16px; height: 16px; display: block; stroke-width: 2.1; }
+  .tasks2-type-icon svg { width: 19px; height: 19px; display: block; stroke-width: 2; }
   /* Projeto usa uma maleta de contorno, no traco padrao das outras — nao
      precisa do reforco que a forma de letra do "?" pedia. */
 
@@ -3707,15 +3707,22 @@
   /* Empilhado: o rotulo da categoria fica ACIMA do campo, entao nao tira
      largura de escrita do nome. O campo e o botao de expandir continuam
      lado a lado, na segunda "linha" interna. */
+  /* O icone entra na MESMA grade do rotulo e do nome, ocupando as duas
+     linhas. Antes ele ficava fora, centralizado na altura do bloco — e
+     acabava alinhado nem com o rotulo nem com o nome, boiando no meio. */
   .tasks2-name-wrap {
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
     display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas: "rotulo rotulo" "campo expandir";
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "icone rotulo rotulo" "icone campo expandir";
     align-items: start;
-    column-gap: 2px;
+    column-gap: 4px;
+  }
+  .tasks2-name-wrap > .tasks2-type-picker {
+    grid-area: icone;
+    align-self: center; /* centrado nas DUAS linhas, nao numa so */
   }
   .tasks2-name-wrap > .tasks2-name-input { grid-area: campo; }
   .tasks2-name-wrap > .tasks2-name-expand { grid-area: expandir; }
@@ -3727,7 +3734,7 @@
     text-transform: uppercase;
     color: var(--text-muted);
     line-height: 1;
-    padding: 0 0 1px 4px;
+    padding: 0 0 2px 1px;
     user-select: none;
     white-space: nowrap;
   }
@@ -14040,7 +14047,7 @@ applyRolePermissions();
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
           ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
           <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-name-wrap"><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
+          <span class="tasks2-name-wrap"><span class="tasks2-type-picker" style="background:${typeIconChip(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}" style="color:${typeIconColor(t)}">${type.icon}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-status">
