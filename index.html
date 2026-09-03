@@ -3673,18 +3673,16 @@
   /* align-self: stretch faz a celula ocupar a altura da linha (a linha
      centraliza as celulas por padrao). Sem isso o fundo do icone so podia
      ir ate onde o texto chegava. */
+  /* Tudo centrado na vertical. A celula chegou a ser esticada quando o card
+     de tipo morava aqui e precisava de altura cheia — isso deixava o nome
+     colado no topo, acima da setinha. */
   .tasks2-col-name {
     display: flex;
-    align-items: stretch;
-    align-self: stretch;
+    align-items: center;
     gap: 8px;
     overflow: visible;
     min-width: 0;
   }
-  /* Estes tres continuam centrados na vertical; so o icone estica. */
-  .tasks2-col-name > .tasks2-drag-handle,
-  .tasks2-col-name > .tasks2-toggle,
-  .tasks2-col-name > .tasks2-fill-handle { align-self: center; }
   .tasks2-toggle {
     background: transparent;
     border: none;
@@ -3729,34 +3727,35 @@
     flex: 1 1 auto;
     min-width: 0;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 2px;
   }
   /* Coluna Tipo: card pintado com o icone em cima e o nome da categoria
      embaixo, ocupando a altura toda da linha. */
   .tasks2-col-tipo {
     display: flex;
-    align-items: stretch;
-    align-self: stretch;
+    align-items: center;   /* card centrado na linha, nao colado nas bordas */
+    justify-content: center;
     min-width: 0;
-    padding: 0;
+    padding: 0 4px;
   }
   .tasks2-col-tipo > .tasks2-type-picker {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 3px;
-    border-radius: 0;
-    padding: 6px 4px;
-    min-width: 0;
+    gap: 2px;
+    border-radius: 8px;    /* cardzinho, como as pilulas de status */
+    padding: 5px 6px;
+    max-width: 100%;
   }
   .tasks2-col-tipo .tasks2-tipo-rotulo {
     color: inherit; /* acompanha a cor do icone, que vem do status */
     letter-spacing: 0.03em; /* "ENTREGÁVEL" nao cabe com o espacamento cheio */
     padding: 0;
     text-align: center;
-    max-width: 100%;
+    /* sem max-width aqui de proposito: com ele, a largura do rotulo dependia
+       da do card e a do card do rotulo, e o texto acabava 2px espremido */
     overflow: hidden;
     text-overflow: ellipsis;
   }
