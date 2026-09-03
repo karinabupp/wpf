@@ -3053,6 +3053,7 @@
   /* ── Painel "Gerenciar áreas" (classes seguem tasks2-areamodal-*) ──────────────────────────────────
      z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
      sessao cair com o painel aberto, o login continua por cima. */
+  #tasks2-histmodal-backdrop,
   #tasks2-areamodal-backdrop {
     position: fixed;
     inset: 0;
@@ -3062,7 +3063,9 @@
     justify-content: center;
     z-index: 900;
   }
+  #tasks2-histmodal-backdrop.hidden,
   #tasks2-areamodal-backdrop.hidden { display: none; }
+  #tasks2-histmodal,
   #tasks2-areamodal {
     background: var(--bg);
     border: 1px solid var(--border);
@@ -3073,6 +3076,7 @@
     flex-direction: column;
     box-shadow: 0 18px 48px rgba(0,0,0,0.18);
   }
+  #tasks2-histmodal-topo,
   #tasks2-areamodal-topo {
     display: flex;
     align-items: center;
@@ -3082,11 +3086,37 @@
     font-weight: 700;
     font-size: 14px;
   }
+  #tasks2-histmodal-fechar,
   #tasks2-areamodal-fechar {
     background: none; border: none; cursor: pointer;
     font-size: 20px; line-height: 1; color: var(--text-muted); padding: 0 4px;
   }
+  #tasks2-histmodal-lista,
   #tasks2-areamodal-lista { overflow-y: auto; padding: 6px 8px; }
+  .tasks2-histmodal-linha {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 8px; border-bottom: 1px solid var(--border);
+  }
+  .tasks2-histmodal-linha:last-child { border-bottom: none; }
+  .tasks2-histmodal-quando { font-size: 13px; font-weight: 600; color: var(--text); }
+  .tasks2-histmodal-resumo { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+  .tasks2-histmodal-restaurar {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
+    border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap;
+  }
+  .tasks2-histmodal-vazio { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  #tasks2-histmodal-rodape {
+    padding: 12px 16px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; gap: 10px;
+  }
+  #tasks2-exportar, #tasks2-importar {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
+    border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer;
+  }
+  #tasks2-historico-btn {
+    background: transparent; border: 1px solid var(--border-strong); color: var(--text-muted);
+    border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer;
+  }
   .tasks2-areamodal-linha {
     display: grid;
     grid-template-columns: 1fr auto auto;
@@ -4303,8 +4333,24 @@
       </div>
     </div>
 
+    <div id="tasks2-histmodal-backdrop" class="hidden">
+      <div id="tasks2-histmodal">
+        <div id="tasks2-histmodal-topo">
+          <span>Versões anteriores</span>
+          <button type="button" id="tasks2-histmodal-fechar" title="Fechar">×</button>
+        </div>
+        <div id="tasks2-histmodal-lista"></div>
+        <div id="tasks2-histmodal-rodape">
+          <button type="button" id="tasks2-exportar">⇩ Baixar cópia</button>
+          <button type="button" id="tasks2-importar">⇧ Restaurar de arquivo</button>
+          <input type="file" id="tasks2-arquivo" accept="application/json" style="display:none">
+        </div>
+      </div>
+    </div>
+
     <div id="tasks2-footer">
       <button id="tasks2-add-btn" type="button">+ Novo objetivo</button>
+      <button id="tasks2-historico-btn" type="button">🕘 Versões anteriores</button>
       <button id="tasks2-reset-btn" type="button">↺ Recarregar do original</button>
     </div>
   </div>
@@ -4825,7 +4871,7 @@ const SUPABASE_HEADERS = {
 // this list is just how it maps onto rows when reading/writing.
 // tasks2* saem da aba Tasks 2. Ela nasceu isolada, so no localStorage; passou
 // a sincronizar quando Karina pediu que a tela ficasse igual pra quem abrisse.
-const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis"];
+const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico"];
 
 // A aba Tasks 2 vive dentro de uma IIFE no fim do script, entao seus dados
 // nao sao alcancaveis daqui. Ela publica esta ponte ao carregar; ate la fica
@@ -4883,7 +4929,10 @@ function collectAllData() {
     // do push, [] apagaria.
     tasks2: tasks2Bridge ? tasks2Bridge.getTasks() : undefined,
     tasks2Areas: tasks2Bridge ? tasks2Bridge.getAreas() : undefined,
-    tasks2Kpis: tasks2Bridge ? tasks2Bridge.getKpis() : undefined
+    tasks2Kpis: tasks2Bridge ? tasks2Bridge.getKpis() : undefined,
+    // O historico tambem vai pra nuvem: sem isso, so daria pra voltar no
+    // tempo do navegador onde a edicao foi feita.
+    tasks2Historico: tasks2Bridge ? tasks2Bridge.getHistorico() : undefined
   };
 }
 
@@ -13147,6 +13196,7 @@ applyRolePermissions();
     // que exige compartilhar — entao agora sincroniza. Consequencia: um erro
     // aqui alcanca o dado que todo mundo carrega, e o "Recarregar do
     // original" apaga o rascunho de todos, nao so o deste navegador.
+    registrarSnapshot(); // guarda a versao anterior antes de propagar
     scheduleCloudSave();
   }
 
@@ -13438,6 +13488,7 @@ applyRolePermissions();
 
   function saveAreasData() {
     localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
+    registrarSnapshot();
     scheduleCloudSave();
   }
   function findAreaById(id) { return areasData.find(x => x.id === id) || null; }
@@ -14640,6 +14691,7 @@ applyRolePermissions();
 
   function saveKpisData() {
     localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
+    registrarSnapshot();
     scheduleCloudSave();
   }
 
@@ -14855,6 +14907,33 @@ applyRolePermissions();
     renderTasksTable();
   });
 
+  document.getElementById("tasks2-historico-btn").addEventListener("click", () => {
+    document.getElementById("tasks2-histmodal-backdrop").classList.remove("hidden");
+    montarHistorico();
+  });
+  document.getElementById("tasks2-histmodal-fechar").addEventListener("click", () => {
+    document.getElementById("tasks2-histmodal-backdrop").classList.add("hidden");
+  });
+  document.getElementById("tasks2-histmodal-backdrop").addEventListener("click", e => {
+    if (e.target.id === "tasks2-histmodal-backdrop") e.target.classList.add("hidden");
+  });
+  document.getElementById("tasks2-exportar").addEventListener("click", exportarTasks2);
+  document.getElementById("tasks2-importar").addEventListener("click", () => {
+    document.getElementById("tasks2-arquivo").click();
+  });
+  document.getElementById("tasks2-arquivo").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      const erro = importarTasks2(String(leitor.result));
+      if (erro) window.alert(erro);
+      else document.getElementById("tasks2-histmodal-backdrop").classList.add("hidden");
+    };
+    leitor.readAsText(f);
+    e.target.value = "";
+  });
+
   document.getElementById("tasks2-areamodal-fechar").addEventListener("click", fecharGerenciadorAreas);
   document.getElementById("tasks2-areamodal-backdrop").addEventListener("click", e => {
     if (e.target.id === "tasks2-areamodal-backdrop") fecharGerenciadorAreas();
@@ -14878,6 +14957,130 @@ applyRolePermissions();
     renderKpiTable();
   });
 
+  // ══════════════════════════════════════════════════════════════════════
+  // Histórico — versoes anteriores da aba
+  //
+  // A tabela do Supabase guarda UMA linha por secao, sem historico: qualquer
+  // gravacao errada apaga o que havia, e foi assim que a aba inteira se
+  // perdeu uma vez. Sincronizar nao e o mesmo que nao perder.
+  //
+  // A cada mudanca guardamos uma versao completa (tasks + areas + kpis), que
+  // tambem vai pra nuvem — entao da pra voltar no tempo de qualquer
+  // navegador, nao so daquele onde a edicao aconteceu.
+  // ══════════════════════════════════════════════════════════════════════
+  const HISTORICO_STORAGE_KEY = "wpf_tasks2_historico";
+  const HISTORICO_MAX = 12;
+
+  let historicoData = [];
+  try {
+    const guardado = JSON.parse(localStorage.getItem(HISTORICO_STORAGE_KEY) || "null");
+    if (Array.isArray(guardado)) historicoData = guardado;
+  } catch (e) { historicoData = []; }
+
+  let registrandoSnapshot = false;
+
+  function registrarSnapshot() {
+    // Reentrancia: registrar chama save, que chamaria registrar de novo.
+    if (registrandoSnapshot) return;
+    // Tabela vazia nunca vira versao. Guardar o vazio so serviria pra
+    // empurrar as versoes boas pra fora da lista — que e exatamente o que
+    // transformaria um acidente em perda definitiva.
+    if (!tasksData.length) return;
+    const ultimo = historicoData[0];
+    if (ultimo &&
+        JSON.stringify(ultimo.tasks) === JSON.stringify(tasksData) &&
+        JSON.stringify(ultimo.areas) === JSON.stringify(areasData) &&
+        JSON.stringify(ultimo.kpis) === JSON.stringify(kpisData)) return;
+    registrandoSnapshot = true;
+    try {
+      historicoData.unshift(JSON.parse(JSON.stringify({
+        ts: new Date().toISOString(), tasks: tasksData, areas: areasData, kpis: kpisData
+      })));
+      historicoData = historicoData.slice(0, HISTORICO_MAX);
+      localStorage.setItem(HISTORICO_STORAGE_KEY, JSON.stringify(historicoData));
+    } catch (e) {
+      // localStorage cheio: fica com as mais recentes e tenta de novo.
+      historicoData = historicoData.slice(0, 4);
+      try { localStorage.setItem(HISTORICO_STORAGE_KEY, JSON.stringify(historicoData)); } catch (e2) {}
+    }
+    registrandoSnapshot = false;
+  }
+
+  function restaurarSnapshot(indice) {
+    const v = historicoData[indice];
+    if (!v) return false;
+    // A versao atual entra no historico ANTES da troca, senao restaurar por
+    // engano viraria uma segunda perda.
+    registrarSnapshot();
+    tasksData = (v.tasks || []).map(t => ensureTaskDefaults(t));
+    areasData = (v.areas || []).filter(x => x && x.id);
+    kpisData = (v.kpis || []).map(ensureKpiDefaults);
+    tasks2Seeded = true; kpisSeeded = true; tasks2TemDados = true;
+    localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
+    localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
+    saveTasksData(); saveAreasData(); saveKpisData();
+    renderTasksTable();
+    return true;
+  }
+
+  function montarHistorico() {
+    const lista = document.getElementById("tasks2-histmodal-lista");
+    if (!lista) return;
+    if (!historicoData.length) {
+      lista.innerHTML = `<div class="tasks2-histmodal-vazio">Nenhuma versão guardada ainda. A partir de agora, cada alteração guarda uma.</div>`;
+      return;
+    }
+    lista.innerHTML = historicoData.map((v, i) => {
+      const d = new Date(v.ts);
+      const quando = isNaN(d) ? v.ts : d.toLocaleString("pt-BR");
+      const linhas = (v.tasks || []).length;
+      const areas = (v.areas || []).length;
+      return `<div class="tasks2-histmodal-linha">
+        <div>
+          <div class="tasks2-histmodal-quando">${quando}${i === 0 ? " · mais recente" : ""}</div>
+          <div class="tasks2-histmodal-resumo">${linhas} linha${linhas === 1 ? "" : "s"} na raiz · ${areas} área${areas === 1 ? "" : "s"}</div>
+        </div>
+        <button type="button" class="tasks2-histmodal-restaurar" data-i="${i}">Restaurar</button>
+      </div>`;
+    }).join("");
+    lista.querySelectorAll(".tasks2-histmodal-restaurar").forEach(btn => {
+      btn.addEventListener("click", () => {
+        // A versao atual e guardada antes da troca (ver restaurarSnapshot),
+        // entao restaurar por engano da pra desfazer.
+        if (restaurarSnapshot(Number(btn.dataset.i))) {
+          document.getElementById("tasks2-histmodal-backdrop").classList.add("hidden");
+        }
+      });
+    });
+  }
+
+  function exportarTasks2() {
+    const pacote = { versao: 1, ts: new Date().toISOString(),
+                     tasks: tasksData, areas: areasData, kpis: kpisData };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(pacote, null, 2)], { type: "application/json" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tasks2-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }
+
+  function importarTasks2(texto) {
+    let pacote = null;
+    try { pacote = JSON.parse(texto); } catch (e) { return "Arquivo não é um JSON válido."; }
+    if (!pacote || !Array.isArray(pacote.tasks)) return "Arquivo não parece uma cópia da Tasks 2.";
+    registrarSnapshot(); // o que existe agora vira versao antes de ser trocado
+    tasksData = pacote.tasks.map(t => ensureTaskDefaults(t));
+    areasData = Array.isArray(pacote.areas) ? pacote.areas.filter(x => x && x.id) : areasData;
+    kpisData = Array.isArray(pacote.kpis) ? pacote.kpis.map(ensureKpiDefaults) : kpisData;
+    tasks2Seeded = true; kpisSeeded = true; tasks2TemDados = true;
+    localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
+    localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
+    saveTasksData(); saveAreasData(); saveKpisData();
+    renderTasksTable();
+    return null;
+  }
+
   // ─── Ponte com a nuvem ────────────────────────────────────────────────
   // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
   // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as
@@ -14896,6 +15099,7 @@ applyRolePermissions();
     getTasks: () => (tasks2TemDados ? tasksData : undefined),
     getAreas: () => (tasks2TemDados ? areasData : undefined),
     getKpis:  () => (tasks2TemDados ? kpisData : undefined),
+    getHistorico: () => (historicoData.length ? historicoData : undefined),
     apply: (data) => {
       // Lista vazia vinda da nuvem NAO apaga o que ha aqui. Ou o outro lado
       // ainda nao tinha carregado a aba, ou e o resquicio da perda acima; nos
@@ -14914,6 +15118,17 @@ applyRolePermissions();
         kpisData = data.tasks2Kpis.map(ensureKpiDefaults);
         kpisSeeded = true;
         localStorage.setItem(KPIS_STORAGE_KEY, JSON.stringify(kpisData));
+      }
+      // Historico: junta o que veio com o que ha aqui, sem descartar nada.
+      // Duas maquinas podem ter versoes diferentes, e o objetivo e nao
+      // perder — entao mescla por data e corta no limite.
+      if (Array.isArray(data.tasks2Historico) && data.tasks2Historico.length) {
+        const vistos = {};
+        historicoData = historicoData.concat(data.tasks2Historico)
+          .filter(v => v && v.ts && !vistos[v.ts] && (vistos[v.ts] = true))
+          .sort((a, b) => (a.ts < b.ts ? 1 : -1))
+          .slice(0, HISTORICO_MAX);
+        try { localStorage.setItem(HISTORICO_STORAGE_KEY, JSON.stringify(historicoData)); } catch (e) {}
       }
       // So redesenha se a aba estiver aberta; render com a view escondida
       // nao mede nada direito (ver refreshNameExpandButtons).
