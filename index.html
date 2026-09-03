@@ -3676,13 +3676,92 @@
   /* Tudo centrado na vertical. A celula chegou a ser esticada quando o card
      de tipo morava aqui e precisava de altura cheia — isso deixava o nome
      colado no topo, acima da setinha. */
+  /* Coluna em duas partes empilhadas: a linha do campo (sempre) e os chips
+     de mencao (so quando existem). Sem mencao, altura e visual identicos a
+     antes — nada muda pra quem nao usa @. */
   .tasks2-col-name {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    overflow: visible;
+    min-width: 0;
+    padding: 6px 0;
+  }
+  .tasks2-name-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    overflow: visible;
     min-width: 0;
   }
+  .tasks2-mentions-chips { display: flex; flex-wrap: wrap; gap: 4px; padding-left: 42px; }
+  .tasks2-mention-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--land-default);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 5px 2px 9px;
+    font-size: 11.5px;
+    color: var(--accent);
+    max-width: 220px;
+    min-width: 0;
+  }
+  .tasks2-mention-jump {
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .tasks2-mention-jump:hover { text-decoration: underline; }
+  .tasks2-mention-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .tasks2-mention-remove:hover { color: #e24b4a; }
+  /* Flash breve ao pular pra uma linha citada, pra ficar claro que chegou. */
+  @keyframes tasks2-flash-kf { from { background: #fdf3d6; } to { background: transparent; } }
+  .tasks2-flash { animation: tasks2-flash-kf 1.5s ease-out; }
+
+  #tasks2-mention-painel {
+    position: fixed;
+    z-index: 950;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16);
+    width: 260px;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 4px;
+  }
+  .tasks2-mention-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    padding: 7px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .tasks2-mention-item:hover { background: var(--land-default); }
+  .tasks2-mention-item-tipo { flex-shrink: 0; width: 15px; height: 15px; color: var(--text-muted); }
+  .tasks2-mention-item-tipo svg { width: 15px; height: 15px; display: block; }
+  .tasks2-mention-item-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tasks2-mention-vazio { padding: 14px 10px; font-size: 12.5px; color: var(--text-muted); text-align: center; }
   .tasks2-toggle {
     background: transparent;
     border: none;
@@ -13457,6 +13536,7 @@ applyRolePermissions();
     }
     delete t.assignee;
     if (t.kpiLink === undefined) t.kpiLink = "";
+    if (!Array.isArray(t.mentions)) t.mentions = [];
     // "rowType" is the explicit task/subtask classification the user picks per
     // row (drives whether the row gets a status color). For data saved before
     // this existed, default it from nesting depth so existing boards look the
@@ -13472,6 +13552,134 @@ applyRolePermissions();
     // antes de cada render e persiste o que mudou.
     t.subtasks.forEach(sub => ensureTaskDefaults(sub, depth + 1));
     return t;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // Menções — @ dentro do nome pra referenciar outra linha
+  //
+  // Guardado como IDS em t.mentions (array), NAO como sintaxe embutida no
+  // texto do nome. O texto do nome recebe "@Nome" como flavor text legivel
+  // ao escolher no menu, mas quem manda e o array: o chip mostrado embaixo
+  // do nome sempre resolve o NOME ATUAL da linha referenciada, entao
+  // renomear o alvo atualiza a mencao em todo lugar sem precisar editar o
+  // texto. Remover o chip (×) tira so do array; o texto "@Nome" que ficou
+  // no campo continua la, agora so texto solto.
+  // ══════════════════════════════════════════════════════════════════════
+  function findTaskPath(list, id, trilha) {
+    trilha = trilha || [];
+    for (const t of list) {
+      if (t.id === id) return trilha.concat(t.id);
+      const achado = findTaskPath(t.subtasks, id, trilha.concat(t.id));
+      if (achado) return achado;
+    }
+    return null;
+  }
+
+  function irParaLinhaMencionada(id) {
+    const trilha = findTaskPath(tasksData, id);
+    if (!trilha) return; // linha foi excluida
+    trilha.slice(0, -1).forEach(ancestralId => tasksExpanded.add(ancestralId));
+    renderTasksTable();
+    const alvo = document.querySelector(`.tasks2-row[data-id="${id}"]`);
+    if (!alvo) return;
+    alvo.scrollIntoView({ block: "center", behavior: "smooth" });
+    alvo.classList.add("tasks2-flash");
+    setTimeout(() => alvo.classList.remove("tasks2-flash"), 1600);
+  }
+
+  let tasksMentionPickerId = null; // id da linha com o menu de @ aberto
+  let tasksMentionQuery = "";      // o que foi digitado depois do @
+
+  function mentionsChipsMarkup(t) {
+    // Defensivo: mais de um lugar cria linha nova sem passar por
+    // ensureTaskDefaults (ex.: colar varias linhas). Sem isto, uma dessas
+    // linhas quebraria o render inteiro por t.mentions vir undefined.
+    const mentions = Array.isArray(t.mentions) ? t.mentions : [];
+    if (!mentions.length) return "";
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const chips = mentions.map(id => {
+      const alvo = findTaskById(tasksData, id);
+      if (!alvo) return ""; // referencia morta: excluida sem querer, some sozinha
+      return `<span class="tasks2-mention-chip" data-id="${t.id}" data-target="${id}">
+        <span class="tasks2-mention-jump" data-target="${id}" title="Ir para esta linha">@${esc(alvo.name || "(sem nome)")}</span>
+        <button class="tasks2-mention-remove" data-id="${t.id}" data-target="${id}" type="button" title="Remover menção">×</button>
+      </span>`;
+    }).join("");
+    return chips ? `<div class="tasks2-mentions-chips">${chips}</div>` : "";
+  }
+
+  function mentionOpcoes(t, query) {
+    const q = query.trim().toLowerCase();
+    const opcoes = [];
+    (function walk(items) {
+      items.forEach(x => {
+        if (x.id !== t.id) opcoes.push(x);
+        walk(x.subtasks);
+      });
+    })(tasksData);
+    const filtradas = q ? opcoes.filter(x => (x.name || "").toLowerCase().includes(q)) : opcoes;
+    return filtradas.slice(0, 8);
+  }
+
+  function fecharMentionPicker() {
+    const el = document.getElementById("tasks2-mention-painel");
+    if (el) el.remove();
+    tasksMentionPickerId = null;
+  }
+
+  function abrirMentionPicker(input) {
+    fecharMentionPicker();
+    const t = findTaskById(tasksData, input.dataset.id);
+    if (!t) return;
+    tasksMentionPickerId = t.id;
+    const opcoes = mentionOpcoes(t, tasksMentionQuery);
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const painel = document.createElement("div");
+    painel.id = "tasks2-mention-painel";
+    painel.innerHTML = opcoes.length
+      ? opcoes.map(o => `<button type="button" class="tasks2-mention-item" data-id="${o.id}">
+          <span class="tasks2-mention-item-tipo">${TASK_TYPES[o.rowType] ? TASK_TYPES[o.rowType].icon : ""}</span>
+          <span class="tasks2-mention-item-nome">${esc(o.name || "(sem nome)")}</span>
+        </button>`).join("")
+      : `<div class="tasks2-mention-vazio">Nada encontrado.</div>`;
+    document.body.appendChild(painel);
+    const r = input.getBoundingClientRect();
+    painel.style.top = (r.bottom + 4) + "px";
+    painel.style.left = Math.min(r.left, window.innerWidth - painel.offsetWidth - 12) + "px";
+    painel.querySelectorAll(".tasks2-mention-item").forEach(btn => {
+      // mousedown, nao click: o blur do textarea (que fecha o menu) dispararia
+      // antes do click e o painel já teria sumido quando o click chegasse.
+      btn.addEventListener("mousedown", e => {
+        e.preventDefault();
+        escolherMention(input, btn.dataset.id);
+      });
+    });
+  }
+
+  function escolherMention(input, targetId) {
+    const t = findTaskById(tasksData, input.dataset.id);
+    const alvo = findTaskById(tasksData, targetId);
+    if (!t || !alvo) return;
+    const cursor = input.selectionStart;
+    const antes = input.value.slice(0, cursor);
+    const depois = input.value.slice(cursor);
+    const arroba = antes.lastIndexOf("@");
+    const nomeAlvo = alvo.name || "(sem nome)";
+    const novoValor = antes.slice(0, arroba) + "@" + nomeAlvo + " " + depois;
+    t.name = novoValor;
+    if (!Array.isArray(t.mentions)) t.mentions = [];
+    if (!t.mentions.includes(targetId)) t.mentions.push(targetId);
+    saveTasksData();
+    fecharMentionPicker();
+    renderTasksTable();
+    // Devolve o foco e o cursor pra logo depois do texto inserido — sem isso
+    // a pessoa perde o lugar onde estava digitando.
+    const novoInput = document.querySelector(`.tasks2-name-input[data-id="${t.id}"]`);
+    if (novoInput) {
+      novoInput.focus();
+      const pos = arroba + nomeAlvo.length + 2;
+      novoInput.setSelectionRange(pos, pos);
+    }
   }
 
   // O rascunho não usa TASKS_SEED_DATA e não copia nada no load da página: ele
@@ -14113,10 +14321,13 @@ applyRolePermissions();
           <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
         </div>
         <div class="tasks2-col-name" style="padding-left:${16 + depth * 26}px">
-          ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
-          <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-          <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
-          <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
+          <div class="tasks2-name-row">
+            ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
+            <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
+            <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
+            <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
+          </div>
+          ${mentionsChipsMarkup(t)}
         </div>
         <div class="tasks2-col-kpi">
           ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
@@ -14388,6 +14599,24 @@ applyRolePermissions();
       input.addEventListener("input", () => {
         if (isExpanded()) expand();
         refreshNameExpandButtons(); // o nome pode ter passado a caber, ou deixado de caber
+        // Deteta @ em digitacao: olha so a "palavra" atual (do ultimo @ ate o
+        // cursor, sem espaco no meio) — assim "email@dominio" sem espaco
+        // depois nao reabre o menu, e um espaco fecha a busca de proposito.
+        const ateCursor = input.value.slice(0, input.selectionStart);
+        const arroba = ateCursor.lastIndexOf("@");
+        const trecho = arroba === -1 ? "" : ateCursor.slice(arroba + 1);
+        if (arroba !== -1 && !/\s/.test(trecho)) {
+          tasksMentionQuery = trecho;
+          abrirMentionPicker(input);
+        } else {
+          fecharMentionPicker();
+        }
+      });
+      input.addEventListener("keydown", e => {
+        if (e.key === "Escape" && tasksMentionPickerId === input.dataset.id) {
+          fecharMentionPicker();
+          e.stopPropagation(); // nao deixa o Escape borbulhar pra outro atalho
+        }
       });
       if (btn) {
         // mousedown, not click: the field's own blur would otherwise collapse
@@ -14436,6 +14665,9 @@ applyRolePermissions();
           endDate: row.endDate || "",
           assignees: row.assignees || [],
           kpiLink: "",
+          areaLink: "",
+          objetivoLink: "",
+          mentions: [],
           rowType: current.rowType,
           subtasks: []
         }));
@@ -14452,6 +14684,19 @@ applyRolePermissions();
         saveTasksData();
       });
     });
+    body.querySelectorAll(".tasks2-mention-jump").forEach(el => {
+      el.addEventListener("click", () => irParaLinhaMencionada(el.dataset.target));
+    });
+    body.querySelectorAll(".tasks2-mention-remove").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const t = findTaskById(tasksData, btn.dataset.id);
+        if (!t) return;
+        t.mentions = (t.mentions || []).filter(id => id !== btn.dataset.target);
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+
     body.querySelectorAll(".tasks2-assignee-add-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         tasksAssigneePickerId = btn.dataset.id;
@@ -15225,7 +15470,10 @@ applyRolePermissions();
       if (painel) painel.dataset.col = btn.dataset.col;
     });
   });
-  document.addEventListener("click", () => fecharPainelFiltro());
+  document.addEventListener("click", e => {
+    fecharPainelFiltro();
+    if (!e.target.closest(".tasks2-name-input") && !e.target.closest("#tasks2-mention-painel")) fecharMentionPicker();
+  });
   document.addEventListener("keydown", e => { if (e.key === "Escape") fecharPainelFiltro(); });
   document.getElementById("tasks2-filtro-limpar").addEventListener("click", () => {
     limparFiltros();
