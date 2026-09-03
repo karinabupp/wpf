@@ -3819,6 +3819,13 @@
 
   }
   .tasks2-assignee-chips { display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+  /* Expandido, a coluna cresce em altura em vez de cortar os nomes. */
+  .tasks2-assignee-chips.is-expandido {
+    flex-wrap: wrap;
+    overflow: visible;
+    row-gap: 4px;
+    padding: 6px 0;
+  }
   .tasks2-assignee-chip {
     display: inline-flex;
     align-items: center;
@@ -13356,7 +13363,10 @@ applyRolePermissions();
     // showing "Name +N" with every name in the hover tooltip. Click to expand
     // and manage individually.
     if (tasksAssigneeExpandedId === t.id) {
-      return `<div class="tasks2-assignee-chips">${fullChips}
+      // "is-expandido" solta o nowrap/overflow: sem isso, do segundo nome em
+      // diante o chip e o × dele saiam da coluna e ficavam inclicaveis — dava
+      // pra expandir, mas nao pra remover ninguem alem do primeiro.
+      return `<div class="tasks2-assignee-chips is-expandido">${fullChips}
         <button class="tasks2-assignee-collapse" data-id="${t.id}" type="button" title="Recolher">‹</button>
         <button class="tasks2-assignee-add-btn" data-id="${t.id}" type="button" title="Adicionar responsável">+</button>
       </div>`;
