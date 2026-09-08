@@ -13034,7 +13034,11 @@ document.getElementById("forms-responses-tbody").addEventListener("click", (e) =
 // Expands one submission into a full read-out of every question + full
 // answer text — the spreadsheet truncates long cells, this doesn't.
 function openResponseDetail(responseId) {
-  const row = formsResponsesData.find(r => r.id === responseId);
+  // Comparado como texto de proposito: o id vem do dataset do HTML (sempre
+  // string), mas na base pode ser numerico. "3" === 3 e falso em JS — o
+  // find() voltava undefined e a funcao saia calada, sem abrir nada e sem
+  // erro nenhum. Foi isso que fazia o clique parecer que nao fazia nada.
+  const row = formsResponsesData.find(r => String(r.id) === String(responseId));
   if (!row || !formsResponsesForm) return;
   const questions = formsResponsesForm.questions || [];
   document.getElementById("forms-response-detail-time").textContent = new Date(row.submitted_at).toLocaleString("en-US");
@@ -13114,7 +13118,7 @@ async function deleteFormResponse(responseId) {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
     });
   } catch (err) { /* best effort */ }
-  formsResponsesData = formsResponsesData.filter(r => r.id !== responseId);
+  formsResponsesData = formsResponsesData.filter(r => String(r.id) !== String(responseId));
   renderFormsResponsesBody();
   await loadFormResponseCounts();
   renderFormsGrid();
