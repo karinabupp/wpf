@@ -3048,7 +3048,7 @@
     background: none; border: 1px solid var(--border-strong); border-radius: 6px;
     padding: 5px 11px; font-size: 12px; color: var(--text); cursor: pointer; white-space: nowrap;
   }
-  .tasks2-filtro-vazio { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  .tasks2-filtro-vazio { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--text-muted); background: #ffffff; border: 1px solid var(--border); border-radius: 12px; }
 
 
   /* ── Guia KPI: tabela propria, mais simples que a de tasks — quatro
@@ -3412,10 +3412,28 @@
 
   }
   #tasks2-add-btn:hover { background: var(--land-default); }
-  #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
+  #tasks2-table { overflow-x: auto; overflow-y: visible; }
+  /* Cabecalho vira uma faixa propria, simples, separada dos cards abaixo —
+     quem carrega o visual de "caixa" agora sao os cards, um por objetivo. */
+  .tasks2-head-row {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+  }
+  #tasks2-table-body { display: flex; flex-direction: column; gap: 14px; }
+  /* Um card por objetivo (cada item da raiz e a arvore inteira dele —
+     meta, projeto, entregavel, tarefa — ficam dentro do mesmo card). */
+  .tasks2-objetivo-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden; /* a ultima linha nao vaza por cima do canto arredondado */
+  }
+  .tasks2-objetivo-card > .tasks2-row:last-child { border-bottom: none; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px 124px 132px minmax(340px, 1fr) 132px 146px 146px 168px 60px;
+    grid-template-columns: 30px 132px minmax(400px, 1fr) 132px 146px 146px 168px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3750,37 +3768,24 @@
     align-items: center;
     gap: 2px;
   }
-  /* Coluna Tipo: card pintado com o icone em cima e o nome da categoria
-     embaixo, ocupando a altura toda da linha. */
-  .tasks2-col-tipo {
-    display: flex;
-    align-items: center;   /* card centrado na linha, nao colado nas bordas */
-    justify-content: center;
-    min-width: 0;
-    padding: 0 4px;
-  }
-  .tasks2-col-tipo > .tasks2-type-picker {
-    flex: 0 1 auto;
+  /* O seletor de categoria (icone + rotulo) voltou a morar dentro da
+     celula do Nome, antes do texto — nao tem mais coluna Tipo propria. */
+  .tasks2-name-row > .tasks2-type-picker {
     flex-direction: row;   /* icone e nome lado a lado */
-    justify-content: center;
     align-items: center;
     gap: 5px;
     border-radius: 8px;    /* cardzinho, como as pilulas de status */
     padding: 5px 6px;
-    max-width: 100%;
   }
-  .tasks2-col-tipo .tasks2-tipo-rotulo {
-    /* lado a lado, o rotulo cedia espaco e era o card que ficava pequeno;
-       sem encolher, o card cresce ate caber o nome inteiro */
+  .tasks2-name-row .tasks2-tipo-rotulo {
     flex: 0 0 auto;
     color: inherit; /* acompanha a cor do icone, que vem do status */
     letter-spacing: 0.03em; /* "ENTREGÁVEL" nao cabe com o espacamento cheio */
     padding: 0;
     text-align: center;
-    /* sem max-width aqui de proposito: com ele, a largura do rotulo dependia
-       da do card e a do card do rotulo, e o texto acabava 2px espremido */
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .tasks2-tipo-rotulo {
     font-size: 9px;
@@ -3982,7 +3987,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px 120px 118px minmax(300px, 1fr) 116px 138px 138px 142px 58px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px 118px minmax(360px, 1fr) 116px 138px 138px 142px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3992,7 +3997,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px 114px 104px minmax(260px, 1fr) 102px 128px 128px 120px 54px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px 104px minmax(310px, 1fr) 102px 128px 128px 120px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4411,7 +4416,6 @@
       </div>
       <div class="tasks2-row tasks2-head-row">
         <div class="tasks2-col-select"></div>
-        <div class="tasks2-col-tipo"><button type="button" class="tasks2-filtro-btn" data-col="tipo">Tipo<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -14368,9 +14372,6 @@ applyRolePermissions();
         <div class="tasks2-col-select">
           <input type="checkbox" class="tasks2-row-checkbox" data-id="${t.id}" ${selected ? "checked" : ""}>
         </div>
-        <div class="tasks2-col-tipo">
-          <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
-        </div>
         <div class="tasks2-col-area">
           ${areaCellMarkup(t, depth, inheritedArea)}
         </div>
@@ -14378,6 +14379,7 @@ applyRolePermissions();
           <div class="tasks2-name-row">
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
+            <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
             <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
             ${metaProgressoMarkup(t)}
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
@@ -14534,7 +14536,14 @@ applyRolePermissions();
     syncStatusCalculados();
     const body = document.getElementById("tasks2-table-body");
     idsFiltrados = haFiltro() ? idsVisiveis() : null;
-    body.innerHTML = tasksData.map(t => renderTaskRow(t, 0)).join("");
+    body.innerHTML = tasksData.map(t => {
+      const html = renderTaskRow(t, 0);
+      // So embrulha em card se sobrou algo pra mostrar. Sem este "if", um
+      // objetivo que o filtro descartou virava um card VAZIO (mas presente
+      // no DOM), e a checagem de "nada bateu" logo abaixo nunca disparava —
+      // a mensagem de filtro vazio parava de aparecer.
+      return html ? `<div class="tasks2-objetivo-card">${html}</div>` : "";
+    }).join("");
     if (idsFiltrados && !body.innerHTML.trim()) {
       body.innerHTML = `<div class="tasks2-filtro-vazio">Nenhuma linha bate com os filtros.</div>`;
     }
