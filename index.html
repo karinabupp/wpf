@@ -3622,6 +3622,75 @@
   .tasks2-mention-item-tipo svg { width: 15px; height: 15px; display: block; }
   .tasks2-mention-item-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tasks2-mention-vazio { padding: 14px 10px; font-size: 12.5px; color: var(--text-muted); text-align: center; }
+
+  /* ── Progresso da Meta (chip abaixo do nome + painel de pontuação) ── */
+  .tasks2-meta-progresso { display: flex; padding-left: 42px; }
+  .tasks2-meta-progresso-btn {
+    background: var(--land-default);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  .tasks2-meta-progresso-btn:hover { border-color: var(--border-strong); }
+  .tasks2-meta-progresso-btn.is-vazio { color: var(--text-muted); font-weight: 500; font-style: italic; }
+  .tasks2-meta-progresso-btn.is-completo { color: #1e8a3c; border-color: #bcdba0; background: #eaf3de; }
+  #tasks2-pontuacao-painel {
+    position: fixed;
+    z-index: 950;
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16);
+    width: 320px;
+    max-height: 340px;
+    display: flex;
+    flex-direction: column;
+  }
+  .tasks2-pontuacao-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .tasks2-pontuacao-topo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #tasks2-pontuacao-fechar {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; line-height: 1; color: var(--text-muted); padding: 0 2px; flex-shrink: 0;
+  }
+  .tasks2-pontuacao-sub { padding: 8px 12px 0; font-size: 11.5px; color: var(--text-muted); }
+  .tasks2-pontuacao-lista { overflow-y: auto; padding: 6px 8px; }
+  .tasks2-pontuacao-linha {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tasks2-pontuacao-linha:last-child { border-bottom: none; }
+  .tasks2-pontuacao-tipo { flex-shrink: 0; width: 15px; height: 15px; color: var(--text-muted); }
+  .tasks2-pontuacao-tipo svg { width: 15px; height: 15px; display: block; }
+  .tasks2-pontuacao-nome {
+    flex: 1 1 auto; min-width: 0; font-size: 13px; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .tasks2-pontuacao-nome.is-done { color: #1e8a3c; }
+  .tasks2-pontuacao-done { flex-shrink: 0; font-size: 12px; color: #1e8a3c; }
+  .tasks2-pontuacao-peso {
+    flex-shrink: 0; width: 48px;
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 4px 5px; font-family: inherit; font-size: 12.5px;
+    color: var(--text); background: var(--bg); text-align: right;
+  }
+  .tasks2-pontuacao-vazio { padding: 18px 12px; font-size: 12.5px; color: var(--text-muted); text-align: center; }
   .tasks2-toggle {
     background: transparent;
     border: none;
@@ -13396,6 +13465,7 @@ applyRolePermissions();
     delete t.assignee;
     if (t.kpiLink === undefined) t.kpiLink = "";
     if (!Array.isArray(t.mentions)) t.mentions = [];
+    if (!Array.isArray(t.pontuacoes)) t.pontuacoes = [];
     // "rowType" is the explicit task/subtask classification the user picks per
     // row (drives whether the row gets a status color). For data saved before
     // this existed, default it from nesting depth so existing boards look the
@@ -13431,6 +13501,67 @@ applyRolePermissions();
   const CATEGORIAS_COM_RECUO = { projeto: true, entregavel: true, tarefa: true };
   function nameIndent(t, depth) {
     return CATEGORIAS_COM_RECUO[t.rowType] ? 16 + depth * 26 : 16;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════
+  // Pontuação de Meta — toda Meta precisa de um número no nome (o alvo), e
+  // a pessoa escolhe quais Projeto/Entregável/Tarefa abaixo dela valem
+  // quantos pontos desse alvo. Quando a linha escolhida vira Done, o ponto
+  // dela conta pra soma da meta.
+  //
+  // A pontuação vive na PROPRIA meta (t.pontuacoes = [{id, peso}]), nao nas
+  // linhas apontadas — a meta e quem decide quanto cada coisa vale pra ela,
+  // entao e ela quem guarda a lista. Mesmo desenho das mencoes (@): um
+  // array de referencias na linha que aponta, resolvido ao vivo no render.
+  // ══════════════════════════════════════════════════════════════════════
+
+  // Primeiro numero que aparece no nome, ja tratando o formato BR ambiguo
+  // (reaproveita parseKpiNumber, que resolve "1.000" vs "1,5"). null se nao
+  // houver nenhum digito no nome.
+  function extrairNumeroDoNome(nome) {
+    const m = String(nome || "").match(/\d[\d.,]*\d|\d/);
+    if (!m) return null;
+    const n = parseKpiNumber(m[0]);
+    return isNaN(n) ? null : n;
+  }
+  function nomeTemNumero(nome) { return extrairNumeroDoNome(nome) !== null; }
+
+  // {atual, alvo} pra uma meta, ou null se o nome dela nao tem numero (meta
+  // antiga, de antes desta funcionalidade — nao trava nada, so nao ha o que
+  // mostrar como fracao ainda).
+  function metaProgresso(t) {
+    const alvo = extrairNumeroDoNome(t.name);
+    if (alvo === null) return null;
+    const pontuacoes = Array.isArray(t.pontuacoes) ? t.pontuacoes : [];
+    let atual = 0;
+    pontuacoes.forEach(p => {
+      const linha = findTaskById(tasksData, p.id);
+      if (linha && linha.status === "Done" && typeof p.peso === "number") atual += p.peso;
+    });
+    return { atual, alvo };
+  }
+
+  // Id da linha e de toda a subarvore dela — usado pra limpar pontuacoes
+  // orfas quando algo e excluido (ver o handler de exclusao mais abaixo).
+  function coletarIdsSubarvore(t) {
+    const ids = [t.id];
+    (function walk(items) { items.forEach(x => { ids.push(x.id); walk(x.subtasks); }); })(t.subtasks);
+    return ids;
+  }
+
+  // Chamado depois de qualquer exclusao. Sem isto, apagar uma linha que
+  // tinha peso numa meta deixaria o ponto contando pra sempre — a meta
+  // mostraria progresso que nao existe mais em lugar nenhum da tabela.
+  function limparPontuacoesOrfas(idsRemovidos) {
+    const removidos = new Set(idsRemovidos);
+    (function walk(items) {
+      items.forEach(x => {
+        if (Array.isArray(x.pontuacoes) && x.pontuacoes.length) {
+          x.pontuacoes = x.pontuacoes.filter(p => !removidos.has(p.id));
+        }
+        walk(x.subtasks);
+      });
+    })(tasksData);
   }
 
   function findTaskPath(list, id, trilha) {
@@ -13548,6 +13679,102 @@ applyRolePermissions();
       const pos = arroba + nomeAlvo.length + 2;
       novoInput.setSelectionRange(pos, pos);
     }
+  }
+
+  // ── Painel "Gerenciar pontuação" ─────────────────────────────────────
+  let tasksPontuacaoMetaId = null; // id da meta com o painel aberto
+
+  // Toda linha Projeto/Entregável/Tarefa dentro da meta, em qualquer
+  // profundidade — nao so filhos diretos. Objetivo/Área/Meta ficam fora:
+  // sao niveis de agrupamento, nao coisas que se marcam Done.
+  function pontuacaoCandidatos(t) {
+    const opcoes = [];
+    (function walk(items) {
+      items.forEach(x => {
+        if (x.rowType === "projeto" || x.rowType === "entregavel" || x.rowType === "tarefa") opcoes.push(x);
+        walk(x.subtasks);
+      });
+    })(t.subtasks);
+    return opcoes;
+  }
+
+  function pesoDeLinha(meta, id) {
+    const entrada = (meta.pontuacoes || []).find(p => p.id === id);
+    return entrada ? entrada.peso : null;
+  }
+
+  function metaProgressoMarkup(t) {
+    if (t.rowType !== "meta") return "";
+    const prog = metaProgresso(t);
+    const texto = prog ? `${prog.atual}/${prog.alvo}` : "— sem número na meta —";
+    const completo = !!(prog && prog.alvo > 0 && prog.atual >= prog.alvo);
+    return `<div class="tasks2-meta-progresso">
+      <button type="button" class="tasks2-meta-progresso-btn ${prog ? "" : "is-vazio"} ${completo ? "is-completo" : ""}" data-id="${t.id}" title="Clique para gerenciar a pontuação desta meta">${texto}</button>
+    </div>`;
+  }
+
+  function fecharPontuacaoPainel() {
+    const el = document.getElementById("tasks2-pontuacao-painel");
+    if (el) el.remove();
+    tasksPontuacaoMetaId = null;
+  }
+
+  function montarPontuacaoPainel() {
+    const meta = findTaskById(tasksData, tasksPontuacaoMetaId);
+    const painel = document.getElementById("tasks2-pontuacao-painel");
+    if (!meta || !painel) return;
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const alvo = extrairNumeroDoNome(meta.name);
+    const candidatos = pontuacaoCandidatos(meta);
+    const cabecalho = `<div class="tasks2-pontuacao-topo">
+        <span>Pontuação — ${esc(meta.name)}</span>
+        <button type="button" id="tasks2-pontuacao-fechar" title="Fechar">×</button>
+      </div>
+      <div class="tasks2-pontuacao-sub">${alvo === null ? "Esta meta ainda não tem um número no nome." : `Alvo: ${alvo}`}</div>`;
+    const corpo = candidatos.length
+      ? candidatos.map(c => {
+          const peso = pesoDeLinha(meta, c.id);
+          return `<div class="tasks2-pontuacao-linha">
+            <span class="tasks2-pontuacao-tipo">${TASK_TYPES[c.rowType] ? TASK_TYPES[c.rowType].icon : ""}</span>
+            <span class="tasks2-pontuacao-nome ${c.status === "Done" ? "is-done" : ""}" title="${esc(c.name)}">${esc(c.name)}</span>
+            ${c.status === "Done" ? `<span class="tasks2-pontuacao-done" title="Concluído">✓</span>` : ""}
+            <input type="number" min="0" step="1" class="tasks2-pontuacao-peso" data-id="${c.id}"
+              placeholder="0" value="${peso === null ? "" : peso}">
+          </div>`;
+        }).join("")
+      : `<div class="tasks2-pontuacao-vazio">Nenhuma linha de Projeto, Entregável ou Tarefa dentro desta meta ainda.</div>`;
+    painel.innerHTML = cabecalho + `<div class="tasks2-pontuacao-lista">${corpo}</div>`;
+    document.getElementById("tasks2-pontuacao-fechar").addEventListener("click", () => {
+      fecharPontuacaoPainel();
+      renderTasksTable();
+    });
+    painel.querySelectorAll(".tasks2-pontuacao-peso").forEach(inp => {
+      inp.addEventListener("change", () => {
+        const v = inp.value.trim();
+        const num = v === "" ? NaN : parseFloat(v);
+        if (!Array.isArray(meta.pontuacoes)) meta.pontuacoes = [];
+        meta.pontuacoes = meta.pontuacoes.filter(p => p.id !== inp.dataset.id);
+        // Zero ou vazio nao vira entrada: e o mesmo que "essa linha nao pontua".
+        if (!isNaN(num) && num > 0) meta.pontuacoes.push({ id: inp.dataset.id, peso: num });
+        saveTasksData();
+        montarPontuacaoPainel(); // redesenha so o painel; a tabela atualiza ao fechar
+      });
+    });
+  }
+
+  function abrirPontuacaoPainel(botao) {
+    fecharPontuacaoPainel();
+    const metaId = botao.dataset.id;
+    const meta = findTaskById(tasksData, metaId);
+    if (!meta) return;
+    tasksPontuacaoMetaId = metaId;
+    const painel = document.createElement("div");
+    painel.id = "tasks2-pontuacao-painel";
+    document.body.appendChild(painel);
+    montarPontuacaoPainel();
+    const r = botao.getBoundingClientRect();
+    painel.style.top = (r.bottom + 4) + "px";
+    painel.style.left = Math.min(r.left, window.innerWidth - painel.offsetWidth - 12) + "px";
   }
 
   // O rascunho não usa TASKS_SEED_DATA e não copia nada no load da página: ele
@@ -14127,6 +14354,7 @@ applyRolePermissions();
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
           </div>
           ${mentionsChipsMarkup(t)}
+          ${metaProgressoMarkup(t)}
         </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
@@ -14477,12 +14705,29 @@ applyRolePermissions();
       input.addEventListener("change", () => {
         const t = findTaskById(tasksData, input.dataset.id);
         if (!t) return;
+        // Toda Meta precisa de um numero no nome (e o alvo da pontuacao).
+        // Bloqueia aqui, no unico lugar que persiste o nome: sem numero, o
+        // texto volta pro que estava antes e nada e gravado.
+        if (input.dataset.field === "name" && t.rowType === "meta" && !nomeTemNumero(input.value)) {
+          input.value = t.name;
+          window.alert('Toda Meta precisa de um número no nome — ex.: "Fechar 10 países no Ladies Weekend". A alteração não foi salva.');
+          return;
+        }
         t[input.dataset.field] = input.value.trim();
         saveTasksData();
       });
     });
     body.querySelectorAll(".tasks2-mention-jump").forEach(el => {
       el.addEventListener("click", () => irParaLinhaMencionada(el.dataset.target));
+    });
+    body.querySelectorAll(".tasks2-meta-progresso-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const jaAberto = tasksPontuacaoMetaId === btn.dataset.id;
+        fecharPontuacaoPainel();
+        if (jaAberto) { renderTasksTable(); return; } // clicar de novo fecha
+        abrirPontuacaoPainel(btn);
+      });
     });
     body.querySelectorAll(".tasks2-mention-remove").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -14574,6 +14819,13 @@ applyRolePermissions();
       select.addEventListener("change", () => {
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
+        // Mesma regra do campo de nome, aplicada aqui tambem: trocar a
+        // categoria pra Meta e outro jeito de a linha acabar sem numero.
+        if (select.value === "meta" && !nomeTemNumero(t.name)) {
+          select.value = t.rowType; // desfaz a troca
+          window.alert('Toda Meta precisa de um número no nome antes de virar Meta. Ajuste o nome primeiro.');
+          return;
+        }
         t.rowType = select.value;
         coerceStatus(t);
         saveTasksData();
@@ -14598,7 +14850,10 @@ applyRolePermissions();
     });
     body.querySelectorAll(".tasks2-delete-yes").forEach(btn => {
       btn.addEventListener("click", () => {
+        const alvo = findTaskById(tasksData, btn.dataset.id);
+        const idsRemovidos = alvo ? coletarIdsSubarvore(alvo) : [btn.dataset.id];
         deleteTaskById(tasksData, btn.dataset.id);
+        limparPontuacoesOrfas(idsRemovidos);
         tasksConfirmDeleteId = null;
         saveTasksData();
         renderTasksTable();
@@ -15259,6 +15514,9 @@ applyRolePermissions();
   document.addEventListener("click", e => {
     fecharPainelFiltro();
     if (!e.target.closest(".tasks2-name-input") && !e.target.closest("#tasks2-mention-painel")) fecharMentionPicker();
+    if (!e.target.closest("#tasks2-pontuacao-painel") && !e.target.closest(".tasks2-meta-progresso-btn")) {
+      if (tasksPontuacaoMetaId) { fecharPontuacaoPainel(); renderTasksTable(); }
+    }
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape") fecharPainelFiltro(); });
   document.getElementById("tasks2-filtro-limpar").addEventListener("click", () => {
