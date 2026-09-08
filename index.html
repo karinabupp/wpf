@@ -3771,12 +3771,17 @@
   /* O seletor de categoria (icone + rotulo) voltou a morar dentro da
      celula do Nome, antes do texto — nao tem mais coluna Tipo propria. */
   .tasks2-name-row > .tasks2-type-picker {
-    flex-direction: row;   /* icone e nome lado a lado */
+    flex-direction: row;
     align-items: center;
-    gap: 5px;
-    border-radius: 8px;    /* cardzinho, como as pilulas de status */
-    padding: 5px 6px;
+    justify-content: center;
+    border-radius: 999px;  /* bolinha, so o icone */
+    padding: 6px;
   }
+  /* So o icone fica visivel na bolinha — o nome da categoria (Objetivo,
+     Meta...) some do visual, mas o texto continua no DOM: e o que os
+     filtros e os testes leem, e o title do proprio botao ainda diz a
+     categoria por extenso ao passar o mouse. */
+  .tasks2-name-row .tasks2-tipo-rotulo { display: none; }
   .tasks2-name-row .tasks2-tipo-rotulo {
     flex: 0 0 auto;
     color: inherit; /* acompanha a cor do icone, que vem do status */
