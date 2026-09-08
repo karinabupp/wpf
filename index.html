@@ -3624,7 +3624,7 @@
   .tasks2-mention-vazio { padding: 14px 10px; font-size: 12.5px; color: var(--text-muted); text-align: center; }
 
   /* ── Progresso da Meta (chip abaixo do nome + painel de pontuação) ── */
-  .tasks2-meta-progresso { display: flex; padding-left: 42px; }
+  .tasks2-meta-progresso { display: flex; flex-shrink: 0; }
   .tasks2-meta-progresso-btn {
     background: var(--land-default);
     border: 1px solid var(--border);
@@ -3634,6 +3634,7 @@
     font-weight: 700;
     color: var(--accent);
     cursor: pointer;
+    white-space: nowrap;
   }
   .tasks2-meta-progresso-btn:hover { border-color: var(--border-strong); }
   .tasks2-meta-progresso-btn.is-vazio { color: var(--text-muted); font-weight: 500; font-style: italic; }
@@ -3666,8 +3667,19 @@
     background: none; border: none; cursor: pointer;
     font-size: 18px; line-height: 1; color: var(--text-muted); padding: 0 2px; flex-shrink: 0;
   }
-  .tasks2-pontuacao-sub { padding: 8px 12px 0; font-size: 11.5px; color: var(--text-muted); }
-  .tasks2-pontuacao-lista { overflow-y: auto; padding: 6px 8px; }
+  #tasks2-pontuacao-busca {
+    margin: 8px 12px 0;
+    width: calc(100% - 24px);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 9px;
+    font-family: inherit;
+    font-size: 12.5px;
+    color: var(--text);
+    background: var(--bg);
+  }
+  #tasks2-pontuacao-busca:focus { outline: none; border-color: var(--border-strong); }
+  .tasks2-pontuacao-lista { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 6px 8px; }
   .tasks2-pontuacao-linha {
     display: flex;
     align-items: center;
@@ -13713,25 +13725,28 @@ applyRolePermissions();
     </div>`;
   }
 
+  let tasksPontuacaoQuery = ""; // texto digitado na busca do painel
+
   function fecharPontuacaoPainel() {
     const el = document.getElementById("tasks2-pontuacao-painel");
     if (el) el.remove();
     tasksPontuacaoMetaId = null;
+    tasksPontuacaoQuery = "";
   }
 
-  function montarPontuacaoPainel() {
+  // Redesenha SO a lista (filtrada pela busca), sem tocar no cabecalho nem
+  // no campo de busca. Se o painel inteiro fosse recriado a cada tecla, o
+  // proprio campo de busca perderia o foco e o cursor a cada letra digitada
+  // — a pessoa precisaria clicar de novo pra cada caractere.
+  function renderizarListaPontuacao() {
     const meta = findTaskById(tasksData, tasksPontuacaoMetaId);
-    const painel = document.getElementById("tasks2-pontuacao-painel");
-    if (!meta || !painel) return;
+    const lista = document.getElementById("tasks2-pontuacao-lista");
+    if (!meta || !lista) return;
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-    const alvo = extrairNumeroDoNome(meta.name);
-    const candidatos = pontuacaoCandidatos(meta);
-    const cabecalho = `<div class="tasks2-pontuacao-topo">
-        <span>Pontuação — ${esc(meta.name)}</span>
-        <button type="button" id="tasks2-pontuacao-fechar" title="Fechar">×</button>
-      </div>
-      <div class="tasks2-pontuacao-sub">${alvo === null ? "Esta meta ainda não tem um número no nome." : `Alvo: ${alvo}`}</div>`;
-    const corpo = candidatos.length
+    const q = tasksPontuacaoQuery.trim().toLowerCase();
+    const candidatos = pontuacaoCandidatos(meta)
+      .filter(c => !q || (c.name || "").toLowerCase().includes(q));
+    lista.innerHTML = candidatos.length
       ? candidatos.map(c => {
           const peso = pesoDeLinha(meta, c.id);
           return `<div class="tasks2-pontuacao-linha">
@@ -13742,13 +13757,8 @@ applyRolePermissions();
               placeholder="0" value="${peso === null ? "" : peso}">
           </div>`;
         }).join("")
-      : `<div class="tasks2-pontuacao-vazio">Nenhuma linha de Projeto, Entregável ou Tarefa dentro desta meta ainda.</div>`;
-    painel.innerHTML = cabecalho + `<div class="tasks2-pontuacao-lista">${corpo}</div>`;
-    document.getElementById("tasks2-pontuacao-fechar").addEventListener("click", () => {
-      fecharPontuacaoPainel();
-      renderTasksTable();
-    });
-    painel.querySelectorAll(".tasks2-pontuacao-peso").forEach(inp => {
+      : `<div class="tasks2-pontuacao-vazio">${q ? "Nada encontrado." : "Nenhuma linha de Projeto, Entregável ou Tarefa dentro desta meta ainda."}</div>`;
+    lista.querySelectorAll(".tasks2-pontuacao-peso").forEach(inp => {
       inp.addEventListener("change", () => {
         const v = inp.value.trim();
         const num = v === "" ? NaN : parseFloat(v);
@@ -13757,7 +13767,7 @@ applyRolePermissions();
         // Zero ou vazio nao vira entrada: e o mesmo que "essa linha nao pontua".
         if (!isNaN(num) && num > 0) meta.pontuacoes.push({ id: inp.dataset.id, peso: num });
         saveTasksData();
-        montarPontuacaoPainel(); // redesenha so o painel; a tabela atualiza ao fechar
+        renderizarListaPontuacao(); // so a lista; o cabecalho e a busca ficam parados
       });
     });
   }
@@ -13768,10 +13778,28 @@ applyRolePermissions();
     const meta = findTaskById(tasksData, metaId);
     if (!meta) return;
     tasksPontuacaoMetaId = metaId;
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const alvo = extrairNumeroDoNome(meta.name);
     const painel = document.createElement("div");
     painel.id = "tasks2-pontuacao-painel";
+    // Cabecalho e busca sao montados UMA VEZ so, aqui na abertura — nao em
+    // toda renderizacao da lista, senao o campo de busca perderia o foco.
+    painel.innerHTML = `<div class="tasks2-pontuacao-topo">
+        <span>${alvo === null ? "Meta ainda sem número no nome" : `Alvo: ${esc(String(alvo))}`}</span>
+        <button type="button" id="tasks2-pontuacao-fechar" title="Fechar">×</button>
+      </div>
+      <input type="text" id="tasks2-pontuacao-busca" placeholder="Buscar projeto, entregável ou tarefa…" autocomplete="off">
+      <div class="tasks2-pontuacao-lista" id="tasks2-pontuacao-lista"></div>`;
     document.body.appendChild(painel);
-    montarPontuacaoPainel();
+    document.getElementById("tasks2-pontuacao-fechar").addEventListener("click", () => {
+      fecharPontuacaoPainel();
+      renderTasksTable();
+    });
+    document.getElementById("tasks2-pontuacao-busca").addEventListener("input", e => {
+      tasksPontuacaoQuery = e.target.value;
+      renderizarListaPontuacao();
+    });
+    renderizarListaPontuacao();
     const r = botao.getBoundingClientRect();
     painel.style.top = (r.bottom + 4) + "px";
     painel.style.left = Math.min(r.left, window.innerWidth - painel.offsetWidth - 12) + "px";
@@ -14351,10 +14379,10 @@ applyRolePermissions();
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
             <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
+            ${metaProgressoMarkup(t)}
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
           </div>
           ${mentionsChipsMarkup(t)}
-          ${metaProgressoMarkup(t)}
         </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
