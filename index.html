@@ -3415,7 +3415,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px 124px 132px minmax(210px, 1fr) 196px 132px 146px 146px 168px 60px;
+    grid-template-columns: 30px 124px 132px minmax(340px, 1fr) 132px 146px 146px 168px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -3901,7 +3901,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px 120px 118px minmax(190px, 1fr) 164px 116px 138px 138px 142px 58px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px 120px 118px minmax(300px, 1fr) 116px 138px 138px 142px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -3911,7 +3911,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px 114px 104px minmax(150px, 1fr) 142px 102px 128px 128px 120px 54px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px 114px 104px minmax(260px, 1fr) 102px 128px 128px 120px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4333,7 +4333,6 @@
         <div class="tasks2-col-tipo"><button type="button" class="tasks2-filtro-btn" data-col="tipo">Tipo<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="inicio">Início<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -14128,9 +14127,6 @@ applyRolePermissions();
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
           </div>
           ${mentionsChipsMarkup(t)}
-        </div>
-        <div class="tasks2-col-kpi">
-          ${kpiCellMarkup(t, depth, inheritedKpi, canKpi)}
         </div>
         <div class="tasks2-col-status">
           ${statusIsAuto(t)
