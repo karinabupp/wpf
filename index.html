@@ -3792,6 +3792,18 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  /* Quantas Meta e Projeto tem dentro de um Objetivo — fica logo antes do
+     campo de nome, so aparece quando o objetivo ja tem algo dentro. */
+  .tasks2-objetivo-resumo {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    background: var(--land-default, #eeece4);
+    border-radius: 20px;
+    padding: 3px 9px;
+  }
   .tasks2-tipo-rotulo {
     font-size: 9px;
     font-weight: 700;
@@ -13734,6 +13746,32 @@ applyRolePermissions();
     </div>`;
   }
 
+  // Quantas Meta e quantos Projeto existem dentro de um Objetivo, em
+  // qualquer profundidade — nao so filhos diretos. Meta normalmente mora
+  // logo abaixo do Objetivo e Projeto logo abaixo da Meta, mas a arvore
+  // permite qualquer arranjo, entao conta a subarvore inteira.
+  function contarMetasEProjetos(t) {
+    let metas = 0, projetos = 0;
+    (function walk(items) {
+      items.forEach(x => {
+        if (x.rowType === "meta") metas++;
+        if (x.rowType === "projeto") projetos++;
+        walk(x.subtasks);
+      });
+    })(t.subtasks);
+    return { metas, projetos };
+  }
+
+  function objetivoResumoMarkup(t) {
+    if (t.rowType !== "objetivo") return "";
+    const { metas, projetos } = contarMetasEProjetos(t);
+    if (!metas && !projetos) return "";
+    const partes = [];
+    if (metas) partes.push(`${metas} meta${metas === 1 ? "" : "s"}`);
+    if (projetos) partes.push(`${projetos} projeto${projetos === 1 ? "" : "s"}`);
+    return `<span class="tasks2-objetivo-resumo" title="Quantas metas e projetos existem dentro deste objetivo">${partes.join(" · ")}</span>`;
+  }
+
   let tasksPontuacaoQuery = ""; // texto digitado na busca do painel
 
   function fecharPontuacaoPainel() {
@@ -14382,6 +14420,7 @@ applyRolePermissions();
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
             <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
+            ${objetivoResumoMarkup(t)}
             <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
             ${metaProgressoMarkup(t)}
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
