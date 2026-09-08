@@ -3050,146 +3050,6 @@
   }
   .tasks2-filtro-vazio { padding: 30px 14px; text-align: center; font-size: 13px; color: var(--text-muted); }
 
-  /* ── Painel "Gerenciar áreas" (classes seguem tasks2-areamodal-*) ──────────────────────────────────
-     z-index abaixo do #login-gate-backdrop (1000) de proposito: se a
-     sessao cair com o painel aberto, o login continua por cima. */
-  #backup-bloco {
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg);
-    margin-bottom: 18px;
-    overflow: hidden;
-  }
-  #backup-topo {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 14px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
-  }
-  #backup-titulo { font-size: 14px; font-weight: 700; color: var(--text); }
-  #backup-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  #backup-botoes { display: flex; gap: 8px; }
-  #backup-baixar, #backup-restaurar-arquivo {
-    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
-    border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer; white-space: nowrap;
-  }
-  #backup-lista { max-height: 260px; overflow-y: auto; }
-  .backup-linha {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 10px 16px; border-bottom: 1px solid var(--border);
-  }
-  .backup-linha:last-child { border-bottom: none; }
-  .backup-quando { font-size: 13px; font-weight: 600; color: var(--text); }
-  .backup-resumo { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
-  .backup-restaurar {
-    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
-    border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap;
-  }
-  .backup-restaurar.armado { border-color: #e24b4a; color: #e24b4a; font-weight: 600; }
-  .backup-vazio { padding: 20px 16px; font-size: 13px; color: var(--text-muted); text-align: center; }
-
-  #tasks2-histmodal-backdrop,
-  #tasks2-areamodal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(28, 27, 24, 0.38);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 900;
-  }
-  #tasks2-histmodal-backdrop.hidden,
-  #tasks2-areamodal-backdrop.hidden { display: none; }
-  #tasks2-histmodal,
-  #tasks2-areamodal {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    width: min(520px, 92vw);
-    max-height: 78vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 18px 48px rgba(0,0,0,0.18);
-  }
-  #tasks2-histmodal-topo,
-  #tasks2-areamodal-topo {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 700;
-    font-size: 14px;
-  }
-  #tasks2-histmodal-fechar,
-  #tasks2-areamodal-fechar {
-    background: none; border: none; cursor: pointer;
-    font-size: 20px; line-height: 1; color: var(--text-muted); padding: 0 4px;
-  }
-  #tasks2-histmodal-lista,
-  #tasks2-areamodal-lista { overflow-y: auto; padding: 6px 8px; }
-  .tasks2-histmodal-linha {
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    padding: 10px 8px; border-bottom: 1px solid var(--border);
-  }
-  .tasks2-histmodal-linha:last-child { border-bottom: none; }
-  .tasks2-histmodal-quando { font-size: 13px; font-weight: 600; color: var(--text); }
-  .tasks2-histmodal-resumo { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
-  .tasks2-histmodal-restaurar {
-    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
-    border-radius: 6px; padding: 6px 12px; font-size: 12px; cursor: pointer; white-space: nowrap;
-  }
-  .tasks2-histmodal-vazio { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
-  #tasks2-histmodal-rodape {
-    padding: 12px 16px; border-top: 1px solid var(--border);
-    display: flex; justify-content: space-between; gap: 10px;
-  }
-  #tasks2-exportar, #tasks2-importar {
-    background: transparent; border: 1px solid var(--border-strong); color: var(--text);
-    border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer;
-  }
-  #tasks2-historico-btn {
-    background: transparent; border: 1px solid var(--border-strong); color: var(--text-muted);
-    border-radius: 7px; padding: 9px 16px; font-size: 13px; cursor: pointer;
-  }
-  .tasks2-areamodal-linha {
-    display: grid;
-    grid-template-columns: 1fr auto auto;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .tasks2-areamodal-linha:last-child { border-bottom: none; }
-  .tasks2-areamodal-nome {
-    border: 1px solid transparent;
-    background: transparent;
-    font-family: inherit;
-    font-size: 13.5px;
-    color: var(--text);
-    padding: 7px 8px;
-    border-radius: 6px;
-    width: 100%;
-  }
-  .tasks2-areamodal-nome:hover { border-color: var(--border); }
-  .tasks2-areamodal-nome:focus { outline: none; border-color: var(--border-strong); background: var(--land-default); }
-  .tasks2-areamodal-usos { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; }
-  .tasks2-areamodal-del {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .tasks2-areamodal-del:hover { color: #e24b4a; border-color: #e24b4a; }
-  .tasks2-areamodal-del.armado { color: #e24b4a; border-color: #e24b4a; font-weight: 600; }
-  .tasks2-areamodal-vazio { padding: 22px 12px; text-align: center; font-size: 13px; color: var(--text-muted); }
-  #tasks2-areamodal-rodape { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
-  #tasks2-areamodal-add {
-    background: var(--text); border: none; color: #fff;
-    border-radius: 7px; padding: 8px 14px; font-size: 13px; cursor: pointer;
-  }
 
   /* ── Guia KPI: tabela propria, mais simples que a de tasks — quatro
      campos, sem arvore, sem selecao em massa e sem arrastar. ───────── */
@@ -3555,7 +3415,7 @@
   #tasks2-table { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; overflow-y: visible; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px 124px minmax(230px, 1fr) 196px 132px 146px 146px 168px 60px;
+    grid-template-columns: 30px 124px 132px minmax(210px, 1fr) 196px 132px 146px 146px 168px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -4041,7 +3901,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px 120px minmax(200px, 1fr) 164px 116px 138px 138px 142px 58px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px 120px 118px minmax(190px, 1fr) 164px 116px 138px 138px 142px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -4051,7 +3911,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px 114px minmax(160px, 1fr) 142px 102px 128px 128px 120px 54px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px 114px 104px minmax(150px, 1fr) 142px 102px 128px 128px 120px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4471,6 +4331,7 @@
       <div class="tasks2-row tasks2-head-row">
         <div class="tasks2-col-select"></div>
         <div class="tasks2-col-tipo"><button type="button" class="tasks2-filtro-btn" data-col="tipo">Tipo<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-name"><button type="button" class="tasks2-filtro-btn" data-col="nome">Nome<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-kpi"><button type="button" class="tasks2-filtro-btn" data-col="kpi">KPI<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-status"><button type="button" class="tasks2-filtro-btn" data-col="status">Status<span class="tasks2-filtro-seta">▾</span></button></div>
@@ -4506,18 +4367,6 @@
       </div>
     </div>
 
-    <div id="tasks2-areamodal-backdrop" class="hidden">
-      <div id="tasks2-areamodal">
-        <div id="tasks2-areamodal-topo">
-        <span>Gerenciar áreas</span>
-        <button type="button" id="tasks2-areamodal-fechar" title="Fechar">×</button>
-        </div>
-        <div id="tasks2-areamodal-lista"></div>
-        <div id="tasks2-areamodal-rodape">
-        <button type="button" id="tasks2-areamodal-add">+ Nova área</button>
-        </div>
-      </div>
-    </div>
 
     <div id="tasks2-histmodal-backdrop" class="hidden">
       <div id="tasks2-histmodal">
@@ -13241,7 +13090,6 @@ applyRolePermissions();
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    area:       { label: "Área",       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="3.2" width="7.4" height="7.4" rx="1.6"/><rect x="13.4" y="3.2" width="7.4" height="7.4" rx="1.6"/><rect x="3.2" y="13.4" width="7.4" height="7.4" rx="1.6"/><rect x="13.4" y="13.4" width="7.4" height="7.4" rx="1.6"/></svg>` },
     meta:       { label: "Meta",       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 21.4V3.2"/><path d="M5.4 4.2h11.9l-2.3 4 2.3 4H5.4"/></svg>` },
     projeto:    { label: "Projeto",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Entregável", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
@@ -13277,9 +13125,9 @@ applyRolePermissions();
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
-  const TASK_TYPE_ORDER = ["area", "objetivo", "meta", "projeto", "entregavel", "tarefa"];
+  const TASK_TYPE_ORDER = ["objetivo", "meta", "projeto", "entregavel", "tarefa"];
   // O "+" de uma linha cria o nivel logo abaixo dela na hierarquia:
-  // area → objetivo → meta → projeto → entregavel → tarefa. Sai da propria
+  // objetivo → meta → projeto → entregavel → tarefa. Sai da propria
   // TASK_TYPE_ORDER, entao mexer na ordem das categorias ja acerta isto
   // junto — nao ha uma segunda lista pra manter em dia.
   function proximoNivel(rowType) {
@@ -13316,7 +13164,7 @@ applyRolePermissions();
   };
 
   // Cada categoria tem seu proprio vocabulario de status.
-  //  - objetivo, area, meta e projeto : CALCULADOS do que esta abaixo, nunca editaveis.
+  //  - objetivo, meta e projeto : CALCULADOS do que esta abaixo, nunca editaveis.
   //    Os dois so REPRODUZEM as folhas de trabalho — nao tem estado proprio.
   //    Azul (In Progress) andando, verde (Done) concluido, vermelho (Late)
   //    se ha algo atrasado embaixo.
@@ -13324,7 +13172,6 @@ applyRolePermissions();
   const STATUS_CALCULADO = ["Not Started", "In Progress", "Late", "Done"];
   const STATUS_BY_TYPE = {
     objetivo:   STATUS_CALCULADO,
-    area:       STATUS_CALCULADO,
     meta:       STATUS_CALCULADO,
     projeto:    STATUS_CALCULADO,
     entregavel: TASK_STATUS_OPTIONS,
@@ -13332,11 +13179,10 @@ applyRolePermissions();
   };
   const statusesFor = t => STATUS_BY_TYPE[t.rowType] || TASK_STATUS_OPTIONS;
   const statusAllowed = (t, s) => statusesFor(t).includes(s);
-  // Objetivo, área, meta e projeto tem status calculado: nada de select. Os quatro
+  // Objetivo, meta e projeto tem status calculado: nada de select. Os tres
   // sao niveis de agrupamento — so reproduzem o que esta abaixo deles.
   const statusIsAuto = t =>
-    t.rowType === "objetivo" || t.rowType === "area" ||
-    t.rowType === "meta" || t.rowType === "projeto";
+    t.rowType === "objetivo" || t.rowType === "meta" || t.rowType === "projeto";
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
@@ -13520,6 +13366,20 @@ applyRolePermissions();
     if (t.rowType === "subtask") t.rowType = "tarefa";
     if (t.rowType === "ideia") t.rowType = "projeto";
     if (t.rowType === "rotina") t.rowType = "tarefa"; // renomeada
+    if (t.rowType === "area") {
+      // "Área" deixou de ser categoria de linha e virou a COLUNA de mesmo
+      // nome. Uma linha do tipo area promove pra objetivo — era o nivel
+      // logo abaixo dela na hierarquia antiga. Se o NOME da linha bate com
+      // uma das 5 áreas fixas (era assim que a categoria era usada na
+      // pratica — linhas literalmente chamadas "Federações", "Marketing"…),
+      // a linha ja nasce com essa área vinculada, sem precisar escolher nada.
+      t.rowType = "objetivo";
+      if (!t.areaLink) {
+        const alvo = normalizarTexto(t.name);
+        const achado = AREAS_FIXAS.find(a => normalizarTexto(a.name) === alvo);
+        if (achado) t.areaLink = achado.id;
+      }
+    }
     if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "tarefa" : "objetivo";
   }
 
@@ -14005,16 +13865,39 @@ applyRolePermissions();
   // areasData, wpf_tasks2_projetos, tasks2-area-*). Foi so o rotulo que
   // mudou; renomear as chaves exigiria migrar dado ja gravado, risco sem
   // ganho pra uma troca de nome.
-  // ── Coluna Projeto (na tela: Área) ────────────────────────────────────────────────────
-  // Lista propria do rascunho ("wpf_tasks2_projetos"), sem scheduleCloudSave,
-  // mesma regra de isolamento de tudo aqui. O vinculo (t.areaLink) herda
-  // da linha de cima igual ao KPI.
+  // ── Coluna Área ────────────────────────────────────────────────────────
+  // Ate aqui Área foi uma lista livre (criar/renomear/excluir pela tela).
+  // Agora e uma lista FIXA de 5 (AREAS_FIXAS, acima): Federações, Comitê,
+  // Institucional, Marketing, Iniciativa. Mantido o mesmo array/chave de
+  // storage por baixo — historico de versoes, backup em arquivo e
+  // sincronizacao com a nuvem ja sabem lidar com "um array de {id,name}" e
+  // continuam funcionando sem tocar em nada disso. A unica mudanca real e
+  // que ninguem mais cria, renomeia ou apaga: o array e semeado com as 5
+  // fixas uma vez, e o seletor da linha so oferece essas 5.
   const AREAS_STORAGE_KEY = "wpf_tasks2_areas";
   const AREAS_STORAGE_KEY_ANTIGA = "wpf_tasks2_projetos"; // antes da renomeacao
 
-  // Um cinza so, igual pra todo projeto. Quem distingue um do outro e o
+  // Um cinza so, igual pra toda área. Quem distingue uma da outra e o
   // nome escrito no chip, nao a cor.
   const AREA_CINZA = { bg: "#e8e6dc", text: "#45443e" };
+
+  // Sem acento/caixa, pra "Federações" bater com "federacoes" ou "FEDERAÇÕES"
+  // na migracao de linhas antigas do tipo area.
+  function normalizarTexto(v) {
+    return String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+  }
+
+  // As 5 áreas fixas. Populam areasData na primeira vez que a aba abre —
+  // ver o bloco logo abaixo de AREAS_STORAGE_KEY. Depois disso o array vive
+  // no localStorage/nuvem como qualquer outro dado do rascunho; nao ha mais
+  // criar/renomear/excluir pela tela, so a lista de 5.
+  const AREAS_FIXAS = [
+    { id: "federacoes",    name: "Federações" },
+    { id: "comite",        name: "Comitê" },
+    { id: "institucional", name: "Institucional" },
+    { id: "marketing",     name: "Marketing" },
+    { id: "iniciativas",   name: "Iniciativa" }
+  ];
 
   let areasData = [];
   try {
@@ -14025,6 +13908,14 @@ applyRolePermissions();
     const guardado = JSON.parse(bruto || "null");
     if (Array.isArray(guardado)) areasData = guardado.filter(x => x && x.id);
   } catch (e) { areasData = []; }
+  // Nada gravado ainda (instalacao nova, ou ninguem tinha aberto esta
+  // coluna quando ela ainda era livre): semeia as 5 fixas de uma vez. So
+  // roda quando o array esta vazio, entao nao sobrescreve nada que ja
+  // exista — inclusive um array antigo criado a mao antes desta mudanca.
+  if (!areasData.length) {
+    areasData = AREAS_FIXAS.map(a => ({ id: a.id, name: a.name }));
+    localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
+  }
 
   function saveAreasData() {
     localStorage.setItem(AREAS_STORAGE_KEY, JSON.stringify(areasData));
@@ -14032,26 +13923,13 @@ applyRolePermissions();
     scheduleCloudSave();
   }
   function findAreaById(id) { return areasData.find(x => x.id === id) || null; }
-  function criarArea(nome) {
-    const p = {
-      id: "proj2-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
-      name: String(nome || "").trim() || "Nova área"
-    };
-    areasData.push(p);
-    saveAreasData();
-    return p;
-  }
   function tomDaArea() {
     return AREA_CINZA;
   }
 
-  // ATENCAO: as colunas Objetivo e Área foram REMOVIDAS da tabela a pedido
-  // de Karina, mas os dados NAO foram apagados — areaLink, objetivoLink,
-  // areasData e a chave wpf_tasks2_areas continuam gravados e sincronizando.
-  // Depois da perda de dados desta semana, apagar o que nao esta mais na
-  // tela seria o tipo errado de limpeza: devolver as colunas e voltar a
-  // renderizar as celulas, sem recuperar nada. O gerenciador de áreas ficou
-  // sem porta de entrada junto com a coluna.
+  // ATENCAO: a coluna Objetivo continua REMOVIDA da tabela (pedido anterior
+  // de Karina). Os dados NAO foram apagados — objetivoLink segue gravado e
+  // sincronizando, so nao tem onde ser editado na tela hoje.
   // ── Coluna Objetivo ───────────────────────────────────────────────────
   // Lista FIXA de tres, ao contrario de Área, que e editavel. Nao ha
   // gerenciador nem opcao de criar: se um dia precisar crescer, o caminho e
@@ -14086,97 +13964,9 @@ applyRolePermissions();
       </span>`;
   }
 
-  const NOVA_AREA = "__novo__";
-  const GERENCIAR_AREAS = "__gerenciar__";
-
-  // Quantas linhas usam cada projeto — mostrado antes de excluir, pra a
-  // exclusao nao ser as cegas.
-  function contarUsosArea(id) {
-    let total = 0;
-    (function walk(items) {
-      items.forEach(t => { if (t.areaLink === id) total++; walk(t.subtasks); });
-    })(tasksData);
-    return total;
-  }
-
-  function renomearArea(id, nome) {
-    const p = findAreaById(id);
-    if (!p) return;
-    const limpo = String(nome || "").trim();
-    if (!limpo) return; // nome vazio mantem o anterior em vez de gravar ""
-    p.name = limpo;
-    saveAreasData();
-  }
-
-  function excluirArea(id) {
-    // Limpa o vinculo antes de remover: linha apontando pra um id que nao
-    // existe mais voltaria a HERDAR da linha de cima sem ninguem pedir.
-    (function walk(items) {
-      items.forEach(t => { if (t.areaLink === id) t.areaLink = ""; walk(t.subtasks); });
-    })(tasksData);
-    areasData = areasData.filter(x => x.id !== id);
-    saveAreasData();
-    saveTasksData();
-  }
-
-  let areaExcluirArmada = null;
-  function desarmarExclusaoArea() { areaExcluirArmada = null; }
-
-  function montarGerenciadorAreas() {
-    const lista = document.getElementById("tasks2-areamodal-lista");
-    if (!lista) return;
-    if (!areasData.length) {
-      lista.innerHTML = `<div class="tasks2-areamodal-vazio">Nenhuma área ainda.</div>`;
-      return;
-    }
-    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
-    lista.innerHTML = areasData.map(p => {
-      const usos = contarUsosArea(p.id);
-      const armado = areaExcluirArmada === p.id;
-      return `<div class="tasks2-areamodal-linha" data-id="${p.id}">
-        <input type="text" class="tasks2-areamodal-nome" data-id="${p.id}" value="${esc(p.name)}">
-        <span class="tasks2-areamodal-usos">${usos ? "em " + usos + (usos === 1 ? " linha" : " linhas") : "sem uso"}</span>
-        <button type="button" class="tasks2-areamodal-del ${armado ? "armado" : ""}" data-id="${p.id}">${armado ? `Excluir? · ${usos} ${usos === 1 ? "linha" : "linhas"}` : "Excluir"}</button>
-      </div>`;
-    }).join("");
-
-    lista.querySelectorAll(".tasks2-areamodal-nome").forEach(inp => {
-      const salvar = () => { renomearArea(inp.dataset.id, inp.value); montarGerenciadorAreas(); };
-      inp.addEventListener("blur", salvar);
-      inp.addEventListener("keydown", e => {
-        if (e.key === "Enter") { e.preventDefault(); inp.blur(); }
-        if (e.key === "Escape") { inp.value = (findAreaById(inp.dataset.id) || {}).name || ""; inp.blur(); }
-      });
-    });
-    lista.querySelectorAll(".tasks2-areamodal-del").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        // Dois cliques, mesmo padrao do "Recarregar do original". De
-        // proposito nao usa window.confirm: caixa nativa trava a pagina.
-        if (areaExcluirArmada !== id) {
-          areaExcluirArmada = id;
-          montarGerenciadorAreas();
-          setTimeout(() => { if (areaExcluirArmada === id) { desarmarExclusaoArea(); montarGerenciadorAreas(); } }, 5000);
-          return;
-        }
-        desarmarExclusaoArea();
-        excluirArea(id);
-        montarGerenciadorAreas();
-      });
-    });
-  }
-
-  function abrirGerenciadorAreas() {
-    desarmarExclusaoArea();
-    document.getElementById("tasks2-areamodal-backdrop").classList.remove("hidden");
-    montarGerenciadorAreas();
-  }
-  function fecharGerenciadorAreas() {
-    document.getElementById("tasks2-areamodal-backdrop").classList.add("hidden");
-    desarmarExclusaoArea();
-    renderTasksTable(); // nomes e vinculos podem ter mudado
-  }
+  // O painel "Gerenciar áreas" (criar/renomear/excluir) foi removido: a
+  // lista virou fixa (AREAS_FIXAS, la em cima). Ficou so o seletor, com as
+  // 5 opcoes de sempre.
 
   function areaCellMarkup(t, depth, herdado) {
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -14194,11 +13984,9 @@ applyRolePermissions();
       `<option value="${x.id}" ${x.id === t.areaLink ? "selected" : ""}>${esc(x.name)}</option>`).join("");
     return `<span class="tasks2-area-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher área"}">
         ${chip}
-        <select class="tasks2-area-select" data-id="${t.id}" aria-label="Projeto da linha">
+        <select class="tasks2-area-select" data-id="${t.id}" aria-label="Área da linha">
           <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
           ${opcoes}
-          <option value="${NOVA_AREA}">+ Nova área…</option>
-          ${areasData.length ? `<option value="${GERENCIAR_AREAS}">⚙ Gerenciar áreas…</option>` : ""}
         </select>
       </span>`;
   }
@@ -14329,6 +14117,9 @@ applyRolePermissions();
         <div class="tasks2-col-tipo">
           <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
         </div>
+        <div class="tasks2-col-area">
+          ${areaCellMarkup(t, depth, inheritedArea)}
+        </div>
         <div class="tasks2-col-name" style="padding-left:${nameIndent(t, depth)}px">
           <div class="tasks2-name-row">
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
@@ -14383,6 +14174,7 @@ applyRolePermissions();
   // opcoes (KPIs, projetos, responsaveis) mudam enquanto se usa a aba.
   const COLUNAS_FILTRO = {
     tipo:        { rotulo: "Tipo",        tipo: "lista" },
+    area:        { rotulo: "Área",        tipo: "lista" },
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
@@ -14777,20 +14569,9 @@ applyRolePermissions();
       select.addEventListener("change", () => {
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
-        if (select.value === GERENCIAR_AREAS) {
-          renderTasksTable(); // devolve o select ao valor real antes de abrir
-          abrirGerenciadorAreas();
-          return;
-        }
-        if (select.value === NOVA_AREA) {
-          const nome = window.prompt("Nome da nova área:");
-          if (!nome || !nome.trim()) { renderTasksTable(); return; } // cancelou: desfaz a escolha
-          t.areaLink = criarArea(nome).id;
-        } else {
-          t.areaLink = select.value;
-        }
+        t.areaLink = select.value;
         saveTasksData();
-        renderTasksTable(); // o chip colorido e os filhos que herdam precisam redesenhar
+        renderTasksTable(); // o chip e os filhos que herdam precisam redesenhar
       });
     });
     body.querySelectorAll(".tasks2-type-select").forEach(select => {
@@ -15517,22 +15298,7 @@ applyRolePermissions();
     e.target.value = "";
   });
 
-  document.getElementById("tasks2-areamodal-fechar").addEventListener("click", fecharGerenciadorAreas);
-  document.getElementById("tasks2-areamodal-backdrop").addEventListener("click", e => {
-    if (e.target.id === "tasks2-areamodal-backdrop") fecharGerenciadorAreas();
-    else { desarmarExclusaoArea(); montarGerenciadorAreas(); } // clicar fora do botao desarma
-  });
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && !document.getElementById("tasks2-areamodal-backdrop").classList.contains("hidden")) {
-      fecharGerenciadorAreas();
-    }
-  });
-  document.getElementById("tasks2-areamodal-add").addEventListener("click", () => {
-    const nome = window.prompt("Nome da nova área:");
-    if (!nome || !nome.trim()) return;
-    criarArea(nome);
-    montarGerenciadorAreas();
-  });
+  // O painel "Gerenciar áreas" foi removido; nao ha mais wiring pra ele.
 
   document.getElementById("tasks2-kpi-add-btn").addEventListener("click", () => {
     kpisData.push(ensureKpiDefaults({ name: "Novo KPI" }));
