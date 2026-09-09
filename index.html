@@ -2268,6 +2268,96 @@
     opacity: 0;
     transition: opacity 0.2s ease;
   }
+
+  /* ── Members 2 — rascunho isolado do mapa, mesmo padrao da Tasks 2:
+     dados proprios (wpf_members2_data), so local por enquanto (sem
+     sincronizar com a nuvem), estrutura reduzida ao essencial que Karina
+     pediu: mapa, clicar num pais, legenda, busca, e um painel simples
+     (status + parceiro). Sem crowns/trading/achievements/afiliacoes, sem
+     drill-down por estado, sem paineis de Brasil/Committee — o mesmo tipo
+     de recorte que a Tasks 2 teve no comeco, pra nao promoter reconstruir
+     o sistema inteiro de uma vez. ──────────────────────────────────── */
+  #members2-badge {
+    display: inline-block;
+    margin: 10px 0 14px;
+    padding: 4px 12px;
+    background: #fdf3d6;
+    border: 1px solid #e8d48a;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #6b5410;
+  }
+  #main2 {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    max-width: min(96vw, 1900px);
+    align-items: flex-start;
+  }
+  #wrap2 {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  #map2 { width: 100%; height: auto; display: block; background: var(--water); border-radius: 8px; }
+  #sidebar2 {
+    flex: 0 0 300px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #panel2 { transition: opacity 0.15s ease; }
+  #panel2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  #panel2-name { font-size: 18px; font-weight: 500; margin: 0; }
+  #panel2-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  #save2-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+  #save2-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  #save2-btn:hover { background: var(--accent-dark); }
+  #save2-confirm {
+    font-size: 13px;
+    color: #0f6e56;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  #footer2 {
+    width: 100%;
+    max-width: min(96vw, 1900px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  #legend2-view h2 { margin: 0 0 4px; font-size: 16px; }
   #save-confirm.show { opacity: 1; }
 
   #footer {
@@ -2881,6 +2971,7 @@
      Tasks original. Ver o bloco JS "TASKS 2" no fim do <script>.
      ══════════════════════════════════════════════════════════ */
   body.role-colab #nav-tasks2 { display: none !important; }
+  body.role-colab #nav-members2 { display: none !important; }
   /* A categoria e trocada no proprio emoji ao lado do nome: um <select>
      nativo transparente fica por cima do icone. Assim o clique abre a lista
      com os rotulos completos, e nao precisa de menu proprio nem de tratar
@@ -4142,6 +4233,12 @@
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
     </svg>
   </button>
+  <button class="nav-icon-btn" id="nav-members2" data-tooltip="Members 2 (rascunho)" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+    </svg>
+  </button>
   <button class="nav-icon-btn" id="nav-committee" data-tooltip="Committee" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="7" r="4.2"/>
@@ -4787,7 +4884,67 @@
 
 </div>
 
+<div id="members2-view" class="content-view hidden">
+
+<div id="header-row2">
+  <span id="members2-badge">Members 2 · rascunho, dados isolados</span>
+</div>
+
+<div id="main2">
+  <div id="wrap2">
+    <svg id="map2" viewBox="0 0 960 500"></svg>
+  </div>
+
+  <div id="sidebar2">
+    <div id="legend2-view" class="side-card">
+      <h2>Federations</h2>
+      <p id="legend2-total"></p>
+      <div class="map-search-bar">
+        <div class="map-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="map2-search-input" class="map-search-input" placeholder="Buscar país..." list="map2-search-list" autocomplete="off">
+          <datalist id="map2-search-list"></datalist>
+          <button type="button" id="map2-search-go" class="map-search-go" aria-label="Buscar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
+          </button>
+        </div>
+        <button type="button" id="map2-search-reset" class="map-search-reset">Ver mundo todo</button>
+        <div id="map2-search-msg" class="map-search-msg"></div>
+      </div>
+      <div id="legend2-rows"></div>
+    </div>
+
+    <div id="panel2" class="side-card closed">
+      <div id="panel2-header">
+        <h2 id="panel2-name"></h2>
+        <button id="panel2-close" type="button" aria-label="Fechar">×</button>
+      </div>
+      <div id="panel2-fields">
+        <div class="field">
+          <label for="panel2-status">Status no pipeline</label>
+          <select id="panel2-status"></select>
+        </div>
+        <div class="field">
+          <label for="panel2-partner">Nome do parceiro</label>
+          <input id="panel2-partner" type="text" placeholder="Nome da pessoa ou entidade">
+        </div>
+        <div id="save2-row">
+          <button id="save2-btn" type="button">Salvar</button>
+          <span id="save2-confirm">Salvo</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer2">
+  <span id="count2">Nenhum país selecionado</span>
+</div>
+
+</div>
+
 <div id="social-view" class="content-view hidden">
+
   <div id="social-wrap">
     <div id="social-logo-row">
       <div id="social-logo-slot"></div>
@@ -6425,6 +6582,7 @@ const NAV_VIEWS = {
   "nav-goals": "goals-view",
   "nav-members": "members-view",
   "nav-committee": "members-view",
+  "nav-members2": "members2-view",
   "nav-marketing": "marketing-view",
   "nav-slack": "slack-view",
   "nav-forms": "forms-view",
@@ -13253,6 +13411,196 @@ renderGeralTab();
 // the CSS lockdown on Federations/Committee, re-renders Tasks/Goals with
 // their field-level restrictions).
 applyRolePermissions();
+
+// ══════════════════════════════════════════════════════════════════════════
+// MEMBERS 2 — rascunho isolado da aba Members
+//
+// Mesmo espirito da Tasks 2: uma copia da experiencia central de Members
+// (mapa, clicar num pais, legenda, busca), com dados PROPRIOS
+// (localStorage "wpf_members2_data") que nunca tocam countryData nem a
+// nuvem. Karina pediu "so o essencial + busca" pra comecar — de proposito
+// SEM: crowns/trading/achievements/badges no mapa, drill-down por estado,
+// paineis de Committee/Brasil, alternancia Federations/Social. So status +
+// parceiro por pais, do mesmo jeito que a Tasks 2 comecou pequena antes de
+// crescer feature por feature ao longo de varias sessoes.
+//
+// Sem sincronizar com a nuvem por enquanto — cada navegador guarda o
+// proprio rascunho, local. Se um dia isso precisar ser visto por mais de
+// uma pessoa, aí sim vale ligar o mesmo tipo de sincronizacao que a
+// Tasks 2 tem hoje.
+// ══════════════════════════════════════════════════════════════════════════
+(function() {
+  const M2_STORAGE_KEY = "wpf_members2_data";
+  let countryData2 = {};
+  try {
+    const guardado = JSON.parse(localStorage.getItem(M2_STORAGE_KEY) || "{}");
+    if (guardado && typeof guardado === "object") countryData2 = guardado;
+  } catch (e) { countryData2 = {}; }
+
+  function saveData2() { localStorage.setItem(M2_STORAGE_KEY, JSON.stringify(countryData2)); }
+
+  function getRecord2(name) {
+    const rec = countryData2[name] || { status: "Not Started", partner: "" };
+    if (rec.partner === undefined) rec.partner = "";
+    return rec;
+  }
+  function setRecord2(name, patch) {
+    countryData2[name] = Object.assign(getRecord2(name), patch);
+    saveData2();
+  }
+  function fillFor2(name) {
+    const rec = getRecord2(name);
+    return (STATUS_COLORS[rec.status] || STATUS_COLORS["Not Started"]).fill;
+  }
+
+  // ── Mapa: svg propria, mas reaproveita a MESMA projecao/geometria do
+  // mundo que a Members original usa — a forma dos paises e dado de
+  // referencia estatico, nao dado da Members2, entao nao ha problema em
+  // buscar de novo (o navegador serve do cache) em vez de compartilhar
+  // o carregamento assincrono da aba original. ──────────────────────────
+  const svg2 = d3.select("#map2");
+  const projection2 = d3.geoNaturalEarth1().scale(170).translate([480, 250]);
+  const path2 = d3.geoPath(projection2);
+  let allCountries2 = [];
+  let activeCountry2 = null, activeFeature2 = null;
+  let highlightHalo2 = null, highlightPath2 = null;
+
+  function renderWorldMap2() {
+    svg2.selectAll("*").remove();
+    highlightHalo2 = svg2.append("path").attr("class", "highlight-halo").attr("d", null);
+    highlightPath2 = svg2.append("path").attr("class", "highlight").attr("d", null);
+    svg2.insert("g", "path.highlight")
+      .attr("id", "countries-layer2")
+      .selectAll("path.country")
+      .data(allCountries2)
+      .join("path")
+      .attr("class", "country")
+      .attr("d", path2)
+      .attr("fill", d => fillFor2(d.properties.name))
+      .attr("data-name", d => d.properties.name)
+      .on("mousemove", (event, d) => {
+        tooltip.textContent = d.properties.name;
+        tooltip.style.left = event.clientX + "px";
+        tooltip.style.top = event.clientY + "px";
+        tooltip.style.opacity = 1;
+      })
+      .on("mouseleave", () => { tooltip.style.opacity = 0; })
+      .on("click", (event, d) => selectCountry2(d.properties.name, d));
+    if (activeCountry2 && activeFeature2) {
+      highlightHalo2.attr("d", path2(activeFeature2)).raise();
+      highlightPath2.attr("d", path2(activeFeature2)).raise();
+    }
+  }
+
+  // ── Painel ──────────────────────────────────────────────────────────
+  const panel2 = document.getElementById("panel2");
+  const panel2Name = document.getElementById("panel2-name");
+  const panel2Status = document.getElementById("panel2-status");
+  const panel2Partner = document.getElementById("panel2-partner");
+  panel2Status.innerHTML = STATUS_OPTIONS.map(s =>
+    `<option value="${s}">${STATUS_DISPLAY_LABELS[s] || s}</option>`).join("");
+
+  function selectCountry2(name, feature) {
+    activeCountry2 = name;
+    activeFeature2 = feature;
+    panel2.classList.remove("closed");
+    panel2Name.textContent = name;
+    const rec = getRecord2(name);
+    panel2Status.value = rec.status;
+    panel2Partner.value = rec.partner;
+    if (highlightHalo2 && highlightPath2) {
+      highlightHalo2.attr("d", path2(feature)).raise();
+      highlightPath2.attr("d", path2(feature)).raise();
+    }
+    document.getElementById("count2").textContent = name;
+  }
+  document.getElementById("panel2-close").addEventListener("click", () => {
+    panel2.classList.add("closed");
+    activeCountry2 = null;
+    activeFeature2 = null;
+    if (highlightHalo2) highlightHalo2.attr("d", null);
+    if (highlightPath2) highlightPath2.attr("d", null);
+    document.getElementById("count2").textContent = "Nenhum país selecionado";
+  });
+  document.getElementById("save2-btn").addEventListener("click", () => {
+    if (!activeCountry2) return;
+    setRecord2(activeCountry2, { status: panel2Status.value, partner: panel2Partner.value.trim() });
+    renderWorldMap2();
+    renderLegend2();
+    const confirmEl = document.getElementById("save2-confirm");
+    confirmEl.style.opacity = 1;
+    setTimeout(() => { confirmEl.style.opacity = 0; }, 1500);
+  });
+
+  // ── Legenda: uma linha por status, com contagem — sem os sub-niveis
+  // expansiveis (Trading/Digital/etc.) que a legenda original tem dentro
+  // de "Member". ────────────────────────────────────────────────────────
+  function renderLegend2() {
+    const rowsEl = document.getElementById("legend2-rows");
+    const totalEl = document.getElementById("legend2-total");
+    const total = allCountries2.length;
+    totalEl.textContent = total ? `${total} países` : "";
+    const counts = {};
+    STATUS_OPTIONS.forEach(s => { counts[s] = 0; });
+    allCountries2.forEach(f => {
+      const st = getRecord2(f.properties.name).status;
+      counts[st] = (counts[st] || 0) + 1;
+    });
+    rowsEl.innerHTML = STATUS_OPTIONS.map(s => {
+      const pct = total ? Math.round((counts[s] / total) * 100) : 0;
+      const color = (STATUS_COLORS[s] || STATUS_COLORS["Not Started"]).fill;
+      return `<div class="legend-row-wrap">
+        <div class="legend-row">
+          <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${STATUS_DISPLAY_LABELS[s] || s}</div>
+          <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} countries</span></div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // ── Busca ───────────────────────────────────────────────────────────
+  function populateSearchList2() {
+    document.getElementById("map2-search-list").innerHTML =
+      allCountries2.map(f => `<option value="${f.properties.name}">`).join("");
+  }
+  function searchGo2() {
+    const input = document.getElementById("map2-search-input");
+    const nome = input.value.trim();
+    const msg = document.getElementById("map2-search-msg");
+    if (!nome) { msg.textContent = ""; return; }
+    const feature = allCountries2.find(f => f.properties.name.toLowerCase() === nome.toLowerCase());
+    if (!feature) { msg.textContent = "País não encontrado."; return; }
+    msg.textContent = "";
+    selectCountry2(feature.properties.name, feature);
+  }
+  document.getElementById("map2-search-go").addEventListener("click", searchGo2);
+  document.getElementById("map2-search-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); searchGo2(); }
+  });
+  document.getElementById("map2-search-reset").addEventListener("click", () => {
+    document.getElementById("map2-search-input").value = "";
+    document.getElementById("map2-search-msg").textContent = "";
+  });
+
+  // ── Carrega a geografia do mundo (busca propria — nao compartilha a
+  // promise da Members original) e faz a primeira pintura. ──────────────
+  d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json").then(world => {
+    allCountries2 = topojson.feature(world, world.objects.countries).features;
+    renderWorldMap2();
+    renderLegend2();
+    populateSearchList2();
+  }).catch(err => {
+    svg2.append("text").attr("x", 480).attr("y", 250).attr("text-anchor", "middle")
+      .attr("fill", "#2c2c2a").text("Não foi possível carregar os dados do mapa.");
+    console.error(err);
+  });
+
+  // Reabrir a aba depois que o mapa ja carregou: garante que o svg fica
+  // com o tamanho certo mesmo tendo ficado com display:none no meio tempo.
+  document.getElementById("nav-members2").addEventListener("click", () => {
+    requestAnimationFrame(() => { if (allCountries2.length) renderWorldMap2(); });
+  });
+})();
 
 // ══════════════════════════════════════════════════════════════════════════
 // TASKS 2 — rascunho isolado da aba Tasks
