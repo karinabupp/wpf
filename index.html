@@ -2446,6 +2446,10 @@
     display: inline-flex; align-items: center; gap: 5px;
   }
   .pl2-funil { color: var(--text-muted); font-size: 9px; }
+  .pl2-tipo-ic {
+    color: var(--text-muted); font-size: 11px; margin-right: 1px;
+    display: inline-block; width: 12px; text-align: center;
+  }
   #planilha2 th.pl2-th-filtrada { background: #eeedfe; }
   #planilha2 th.pl2-th-filtrada .pl2-th-btn { color: #3c3489; }
   #planilha2 th.pl2-th-filtrada .pl2-funil { color: #3c3489; }
@@ -3368,6 +3372,18 @@
     text-overflow: ellipsis;
     padding: 4px 5px;
   }
+  .tasks2-col-pais { display: flex; align-items: center; min-width: 0; padding: 0 4px; }
+  .tasks2-pais-picker { position: relative; display: inline-flex; align-items: center; max-width: 100%; }
+  .tasks2-pais-chip {
+    background: #e8eef6; color: #24405e; border-radius: 20px; padding: 3px 10px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+  }
+  .tasks2-pais-vazio { color: var(--text-muted); font-size: 12px; }
+  .tasks2-pais-select {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer;
+  }
   .tasks2-area-select,
   .tasks2-obj-select {
     position: absolute;
@@ -3831,7 +3847,7 @@
   .tasks2-objetivo-card > .tasks2-row:last-child { border-bottom: none; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(400px, 1fr) 132px 146px 146px 168px 132px 60px;
+    grid-template-columns: 30px minmax(360px, 1fr) 132px 146px 146px 168px 132px 132px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -4429,7 +4445,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(360px, 1fr) 116px 138px 138px 142px 118px 58px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(320px, 1fr) 116px 138px 138px 142px 118px 118px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -4439,7 +4455,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(310px, 1fr) 102px 128px 128px 120px 104px 54px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(280px, 1fr) 102px 128px 128px 120px 104px 104px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -4871,6 +4887,7 @@
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-assignee"><button type="button" class="tasks2-filtro-btn" data-col="responsavel">Responsável<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-pais"><button type="button" class="tasks2-filtro-btn" data-col="pais">País<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-actions"></div>
       </div>
       <div id="tasks2-table-body"></div>
@@ -14222,6 +14239,12 @@ applyRolePermissions();
   // Os ids das colunas que ja vinham prontas sao os mesmos nomes de campo
   // que a versao anterior gravava (nomeFederacao, contatoFed...), entao os
   // dados que ja existiam continuam aparecendo sem precisar converter nada.
+  // Icone de cada tipo, mostrado no cabecalho pra dar pra saber o que a
+  // coluna aceita sem precisar clicar nela.
+  const ICONE_TIPO = {
+    texto: "¶", pessoa: "☺", select: "◉", email: "✉", telefone: "✆",
+    multi: "☰", status: "◈"
+  };
   const TIPOS_COLUNA = {
     texto:    { rotulo: "Texto livre" },
     pessoa:   { rotulo: "Pessoa" },
@@ -14276,14 +14299,12 @@ applyRolePermissions();
     localStorage.setItem(chaveDadosDoBoard(boardId), JSON.stringify(d));
   }
 
-  const COLUNAS_PADRAO = [
-    { id: "nomeFederacao", nome: "Nome federação", tipo: "texto" },
-    { id: "contatoFed",    nome: "Contato fed",    tipo: "email" },
-    { id: "grupoFeminino", nome: "Grupo feminino", tipo: "texto" },
-    { id: "nomeComite",    nome: "Nome comitê",    tipo: "texto" },
-    { id: "contatoComite", nome: "Contato comitê", tipo: "email" },
-    { id: "lwStop26",      nome: "LW stop 26",     tipo: "select", opcoes: ["Sim", "Não"] }
-  ];
+  // A planilha nasce so com o essencial: País, Continente e uma coluna por
+  // pipeline (essas tres vem de fora desta lista). Tudo mais e criado pela
+  // Karina no "+ Coluna" — antes vinham 6 colunas de federacao/comite
+  // prontas, que ela pediu pra tirar. Os dados delas continuam gravados,
+  // entao recriar uma coluna com o mesmo id traz o conteudo de volta.
+  const COLUNAS_PADRAO = [];
 
   let colunas2 = [];
   try {
@@ -14433,6 +14454,20 @@ applyRolePermissions();
   document.addEventListener("click", fecharFiltro2);
   document.addEventListener("keydown", e => { if (e.key === "Escape") fecharFiltro2(); });
 
+  // Luminancia relativa da cor de fundo decide preto ou branco por cima.
+  // O limiar 0.55 e um pouco acima do meio: os tons medios daqui (roxo,
+  // rosa, azul) ficam melhor com texto branco do que com preto.
+  function textoSobre2(hex) {
+    const h = String(hex).replace("#", "");
+    if (h.length !== 6) return "#111111";
+    const c = [0, 2, 4].map(i => {
+      const v = parseInt(h.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    return L > 0.55 ? "#111111" : "#ffffff";
+  }
+
   function esc2(v) {
     return String(v == null ? "" : v)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
@@ -14443,7 +14478,10 @@ applyRolePermissions();
     const d = `data-pais="${esc2(nome)}" data-col="${esc2(col.id)}"`;
     if (col.tipo === "status" || col.tipo === "select") {
       const board = col.tipo === "status" ? boards2.find(b => b.id === col.boardId) : null;
-      const fundo = (board && val) ? `style="background:${corDoStatus2(board, val)}"` : "";
+      // Fundo escuro pede texto branco, fundo claro pede preto — sem isso
+      // "Membro" some dentro do proprio card em varios pipelines.
+      const bg = (board && val) ? corDoStatus2(board, val) : "";
+      const fundo = bg ? `style="background:${bg}; color:${textoSobre2(bg)}"` : "";
       return `<td class="pl2-select"><select class="pl2-input ${val ? "" : "pl2-sem-valor"}" ${d} ${fundo}>
         <option value="">—</option>
         ${opcoesDaColuna(col).map(o => `<option value="${esc2(o)}" ${o === val ? "selected" : ""}>${esc2(o)}</option>`).join("")}
@@ -14481,18 +14519,20 @@ applyRolePermissions();
 
     // Titulo = botao que abre o filtro daquela coluna. Coluna filtrada
     // ganha um funil marcado, pra dar pra ver que ha filtro escondido ali.
-    const th = (colId, rotulo, extra) => {
+    const th = (colId, rotulo, extra, tipo) => {
       const ativo = !!filtros2[colId];
+      const ic = tipo && ICONE_TIPO[tipo]
+        ? `<span class="pl2-tipo-ic" title="${esc2((TIPOS_COLUNA[tipo] || {}).rotulo || tipo)}">${ICONE_TIPO[tipo]}</span>` : "";
       return `<th class="${ativo ? "pl2-th-filtrada" : ""}">
         <button type="button" class="pl2-th-btn" data-col="${esc2(colId)}" title="Filtrar por ${esc2(rotulo)}">
-          <span>${esc2(rotulo)}</span><span class="pl2-funil">${ativo ? "⏷" : "⏷"}</span>
+          ${ic}<span>${esc2(rotulo)}</span><span class="pl2-funil">⏷</span>
         </button>${extra || ""}</th>`;
     };
     cabeca.innerHTML = `<tr>
         ${th("__pais__", "País")}
         ${th("__continente__", "Continente")}
         ${cols.map(c => th(c.id, c.nome, c.tipo === "status" ? "" :
-          `<button type="button" class="pl2-del-col" data-col="${esc2(c.id)}" title="Excluir coluna">×</button>`)).join("")}
+          `<button type="button" class="pl2-del-col" data-col="${esc2(c.id)}" title="Excluir coluna">×</button>`, c.tipo)).join("")}
       </tr>`;
 
     corpo.innerHTML = visiveis.map(nome => {
@@ -14531,7 +14571,12 @@ applyRolePermissions();
         if (col && col.tipo === "status") {
           setStatusDoPais2(col.boardId, pais, sel.value);
           const board = boards2.find(b => b.id === col.boardId);
-          sel.style.background = sel.value ? corDoStatus2(board, sel.value) : "";
+          // Repinta fundo E texto, e tira a classe de "sem valor" — pintar
+          // so o fundo deixava o texto no cinza do vazio em cima da cor.
+          const cor = sel.value ? corDoStatus2(board, sel.value) : "";
+          sel.style.background = cor;
+          sel.style.color = cor ? textoSobre2(cor) : "";
+          sel.classList.toggle("pl2-sem-valor", !sel.value);
           if (col.boardId === activeBoardId2) {
             if (allCountries2.length) renderWorldMap2();
             renderLegend2();
@@ -14734,11 +14779,23 @@ applyRolePermissions();
 
   // ── Carrega a geografia do mundo (busca propria — nao compartilha a
   // promise da Members original) e faz a primeira pintura. ──────────────
+  // Ponte pra Tasks 2: so leitura, so a lista de nomes. A Tasks 2 precisa
+  // dela pro select da coluna País; nao expoe dado de pipeline nenhum.
+  window.membros2Bridge = {
+    paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR"))
+  };
+
   d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json").then(world => {
     allCountries2 = topojson.feature(world, world.objects.countries).features;
     renderWorldMap2();
     renderLegend2();
     populateSearchList2();
+    // A Tasks 2 pode ter desenhado antes do mapa carregar — com a lista
+    // pronta, redesenha pra coluna País aparecer preenchida.
+    if (typeof renderTasksTable === "function" &&
+        !document.getElementById("tasks2-view").classList.contains("hidden")) {
+      try { tasks2Bridge && tasks2Bridge.redesenhar && tasks2Bridge.redesenhar(); } catch (e) {}
+    }
   }).catch(err => {
     svg2.append("text").attr("x", 480).attr("y", 250).attr("text-anchor", "middle")
       .attr("fill", "#2c2c2a").text("Não foi possível carregar os dados do mapa.");
@@ -14858,7 +14915,7 @@ applyRolePermissions();
       id: "task-" + Date.now(),
       name: "Nova " + TASK_TYPES[rowType].label.toLowerCase(),
       status: "Not Started", startDate: "", endDate: "",
-      assignees: [], kpiLink: "", areaLink: "", objetivoLink: "",
+      assignees: [], kpiLink: "", areaLink: "", objetivoLink: "", paisLink: "",
       rowType, subtasks: []
     };
   }
@@ -15118,6 +15175,7 @@ applyRolePermissions();
     }
     delete t.assignee;
     if (t.kpiLink === undefined) t.kpiLink = "";
+    if (t.paisLink === undefined) t.paisLink = "";
     if (!Array.isArray(t.mentions)) t.mentions = [];
     if (!Array.isArray(t.pontuacoes)) t.pontuacoes = [];
     // "rowType" is the explicit task/subtask classification the user picks per
@@ -15816,6 +15874,7 @@ applyRolePermissions();
   // ver o bloco logo abaixo de AREAS_STORAGE_KEY. Depois disso o array vive
   // no localStorage/nuvem como qualquer outro dado do rascunho; nao ha mais
   // criar/renomear/excluir pela tela, so a lista de 5.
+  const AREAS_FIXAS_MARCADOR = true; // (mantido pra nao mexer na ordem abaixo)
   const AREAS_FIXAS = [
     { id: "federacoes",    name: "Federações" },
     { id: "comite",        name: "Comitê" },
@@ -15892,6 +15951,38 @@ applyRolePermissions();
   // O painel "Gerenciar áreas" (criar/renomear/excluir) foi removido: a
   // lista virou fixa (AREAS_FIXAS, la em cima). Ficou so o seletor, com as
   // 5 opcoes de sempre.
+
+  // País da linha: liga uma task/entregavel/projeto a um pais, pra Members 2
+  // conseguir olhar "tem tarefa vencida neste pais?". A lista sai do mesmo
+  // mapa-mundi que a Members 2 usa; se ela ainda nao carregou, cai no que
+  // ja estiver salvo, pra nunca perder o valor gravado.
+  function paisesDisponiveis2() {
+    try {
+      const g = (window.membros2Bridge && window.membros2Bridge.paises()) || [];
+      if (g.length) return g;
+    } catch (e) { /* Members 2 ainda nao subiu */ }
+    const usados = new Set();
+    (function w(l) { l.forEach(x => { if (x.paisLink) usados.add(x.paisLink); w(x.subtasks || []); }); })(tasksData);
+    return [...usados].sort();
+  }
+
+  function paisCellMarkup(t) {
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const atual = t.paisLink || "";
+    const lista = paisesDisponiveis2();
+    // pais salvo que nao esta na lista (mapa nao carregou) nao pode sumir
+    if (atual && !lista.includes(atual)) lista.unshift(atual);
+    const chip = atual
+      ? `<span class="tasks2-pais-chip">${esc(atual)}</span>`
+      : `<span class="tasks2-pais-vazio">— nenhum —</span>`;
+    return `<span class="tasks2-pais-picker" title="${atual ? esc(atual) : "Escolher país"}">
+        ${chip}
+        <select class="tasks2-pais-select" data-id="${t.id}" aria-label="País da linha">
+          <option value="">— nenhum —</option>
+          ${lista.map(x => `<option value="${esc(x)}" ${x === atual ? "selected" : ""}>${esc(x)}</option>`).join("")}
+        </select>
+      </span>`;
+  }
 
   function areaCellMarkup(t, depth, herdado) {
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -16070,6 +16161,9 @@ applyRolePermissions();
         </div>
         <div class="tasks2-col-area">
           ${areaCellMarkup(t, depth, inheritedArea)}
+        </div>
+        <div class="tasks2-col-pais">
+          ${paisCellMarkup(t)}
         </div>
         <div class="tasks2-col-actions">
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
@@ -16509,6 +16603,15 @@ applyRolePermissions();
         t.objetivoLink = select.value;
         saveTasksData();
         renderTasksTable(); // chip e os filhos que herdam precisam redesenhar
+      });
+    });
+    body.querySelectorAll(".tasks2-pais-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        t.paisLink = select.value;
+        saveTasksData();
+        renderTasksTable();
       });
     });
     body.querySelectorAll(".tasks2-area-select").forEach(select => {
