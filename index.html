@@ -13569,20 +13569,25 @@ applyRolePermissions();
     if (!boards2.some(b => b.id === "avisos-gerais")) {
       boards2.unshift({ id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(), cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false });
     }
-    // O Lead dos 3 quadros padrao era um cinza fixo antes; agora e um tom
-    // claro da cor de cada quadro. Quem ja abriu a aba tem o cinza velho
-    // gravado no localStorage — sem esta migracao a mudanca simplesmente
-    // nao apareceria pra quem ja usou. So mexe se ainda estiver no cinza
-    // antigo, pra nao desfazer uma cor que a Karina tenha escolhido.
-    const LEAD_NOVO_POR_QUADRO = { federacoes: PALETA_AZUL.Lead, "comite-fem": PALETA_ROSA.Lead, ladies26: PALETA_ROXA.Lead };
-    // Todo Lead que ja foi padrao em alguma versao anterior — os cinzas
-    // neutros e, depois, os tons bem claros. Se o Lead salvo for um
-    // desses, ele nao foi escolhido a mao e pode migrar.
-    const CINZAS_LEAD_ANTIGOS = ["#e4e2d8", "#f4f3ee", "#dde6f0", "#f7e2ec", "#e6e4f9", "#d0bcc5"];
+    // Os 4 quadros que vem prontos nao tem NENHUMA tela pra editar cor —
+    // o modal so cria quadro novo. Entao a paleta deles e sempre a do
+    // codigo, e a forma certa de atualizar e simplesmente re-sincronizar,
+    // nao tentar adivinhar se a cor salva "parece" antiga.
+    //
+    // A versao anterior disto mantinha uma lista de todas as cores que ja
+    // foram padrao e so migrava se a cor salva estivesse nela. Faltou uma
+    // (#f6e3ec, o primeiro rosa) e o Comitê Fem ficou preso no rosa claro
+    // pra quem tinha aberto a aba naquela versao — enquanto azul e roxo
+    // migraram normal. Sincronizar direto elimina essa classe de bug.
+    const PALETAS_PADRAO = {
+      "avisos-gerais": PALETA_AVISOS,
+      federacoes: PALETA_AZUL,
+      "comite-fem": PALETA_ROSA,
+      ladies26: PALETA_ROXA
+    };
     boards2.forEach(b => {
-      const novo = LEAD_NOVO_POR_QUADRO[b.id];
-      if (!novo || !b.cores || !b.cores.Lead) return;
-      if (CINZAS_LEAD_ANTIGOS.includes(String(b.cores.Lead.fill).toLowerCase())) b.cores.Lead.fill = novo;
+      const paleta = PALETAS_PADRAO[b.id];
+      if (paleta) b.cores = paletaParaObjeto(paleta); // quadro criado a mao nao entra aqui
     });
   }
   function saveBoards2() { localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2)); }
