@@ -13829,12 +13829,13 @@ applyRolePermissions();
     const mostraTipoMembro = !!board.temTipoMembro;
     const counts = {};
     statusOptions.forEach(s => { counts[s] = 0; });
-    let semClassificacao = 0;
     const tipoMembroCounts = { "Observador": 0, "Afiliado": 0, "": 0 };
     allCountries2.forEach(f => {
-      const nome = f.properties.name;
-      const rec = getRecord2(nome);
-      if (!rec.status) { semClassificacao++; return; }
+      const rec = getRecord2(f.properties.name);
+      // Pais sem classificação nao entra em contagem nenhuma — de
+      // proposito nao tem linha propria na legenda (ficava com ~100% e so
+      // ocupava espaco); ele aparece so no mapa, no cinza neutro.
+      if (!rec.status) return;
       counts[rec.status] = (counts[rec.status] || 0) + 1;
       if (mostraTipoMembro && rec.status === ultimoStatus) {
         const t = rec.tipoMembro || "";
@@ -13842,12 +13843,7 @@ applyRolePermissions();
       }
     });
     const totalUltimo = counts[ultimoStatus] || 0;
-    const pctSemClass = total ? Math.round((semClassificacao / total) * 100) : 0;
-    const linhaSemClassificacao = `<div class="legend-row-wrap"><div class="legend-row">
-        <div class="legend-left"><span class="legend-dot" style="background:${CINZA_SEM_CLASSIFICACAO}"></span>Sem classificação</div>
-        <div class="legend-stats"><span class="legend-pct">${pctSemClass}%</span><span class="legend-count">${semClassificacao} countries</span></div>
-      </div></div>`;
-    rowsEl.innerHTML = linhaSemClassificacao + statusOptions.map(s => {
+    rowsEl.innerHTML = statusOptions.map(s => {
       const pct = total ? Math.round((counts[s] / total) * 100) : 0;
       const color = corDoStatus2(board, s);
       const clicavel = mostraTipoMembro && s === ultimoStatus;
