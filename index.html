@@ -13508,15 +13508,19 @@ applyRolePermissions();
   // quadros. Antes era o Lead que usava esse cinza; agora o cinza e do
   // "sem classificação" e cada quadro tem seu proprio Lead num tom bem
   // claro da cor da casa (ver as paletas abaixo). ────────────────────────
-  const CINZA_SEM_CLASSIFICACAO = "#e4e2d8";
+  // Mesmo cinza do "Not Started" da aba Members original — pedido da
+  // Karina, pra sem-classificação ficar igual nas duas abas.
+  const CINZA_SEM_CLASSIFICACAO = "#cecbc0";
 
   // Paletas prontas dos quadros iniciais — os mesmos tons ja usados em
   // outras pilulas de status do dashboard, pra ficar consistente. O Lead
-  // de cada quadro e um tom BEM claro da cor daquele quadro, sempre mais
-  // claro que o tom de Negociação que vem depois.
-  const PALETA_AZUL   = { Lead: "#dde6f0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
-  const PALETA_ROSA    = { Lead: "#f7e2ec", "Negociação": "#e28fb8", "Membro": "#a3215f" };
-  const PALETA_ROXA    = { Lead: "#e6e4f9", "Negociação": "#afa9ec", "Membro": "#534ab7" };
+  // de cada quadro e um tom ACINZENTADO da cor daquele quadro (azul,
+  // rosa ou roxo puxados pro cinza) — fica claramente separado tanto do
+  // cinza neutro de sem-classificação quanto do Negociação saturado que
+  // vem depois.
+  const PALETA_AZUL   = { Lead: "#b6c3d0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
+  const PALETA_ROSA    = { Lead: "#d0bcc5", "Negociação": "#e28fb8", "Membro": "#a3215f" };
+  const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
   // nada muito escuro. OK/Atenção/Urgência nao sao "niveis de proximidade"
   // como Lead/Negociação/Membro, entao esse quadro NAO ganha o campo de
@@ -13571,7 +13575,10 @@ applyRolePermissions();
     // nao apareceria pra quem ja usou. So mexe se ainda estiver no cinza
     // antigo, pra nao desfazer uma cor que a Karina tenha escolhido.
     const LEAD_NOVO_POR_QUADRO = { federacoes: PALETA_AZUL.Lead, "comite-fem": PALETA_ROSA.Lead, ladies26: PALETA_ROXA.Lead };
-    const CINZAS_LEAD_ANTIGOS = ["#e4e2d8", "#f4f3ee"];
+    // Todo Lead que ja foi padrao em alguma versao anterior — os cinzas
+    // neutros e, depois, os tons bem claros. Se o Lead salvo for um
+    // desses, ele nao foi escolhido a mao e pode migrar.
+    const CINZAS_LEAD_ANTIGOS = ["#e4e2d8", "#f4f3ee", "#dde6f0", "#f7e2ec", "#e6e4f9"];
     boards2.forEach(b => {
       const novo = LEAD_NOVO_POR_QUADRO[b.id];
       if (!novo || !b.cores || !b.cores.Lead) return;
