@@ -2435,7 +2435,7 @@
   }
   #planilha2-barra {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border);
+    gap: 12px; padding: 10px 14px; border-top: 1px solid var(--border);
     font-size: 12.5px; color: var(--text-muted);
   }
   #pl2-add-col {
@@ -5258,16 +5258,16 @@
 </div>
 
 <div id="planilha2-wrap" class="hidden">
-  <div id="planilha2-barra">
-    <span id="planilha2-contagem"></span>
-    <button type="button" id="pl2-add-col">+ Coluna</button>
-  </div>
   <div id="planilha2-scroll">
     <table id="planilha2">
       <thead id="planilha2-head"></thead>
       <tbody id="planilha2-body"></tbody>
     </table>
     <div id="planilha2-vazia" class="hidden">Nenhum país bate com os filtros.</div>
+  </div>
+  <div id="planilha2-barra">
+    <span id="planilha2-contagem"></span>
+    <button type="button" id="pl2-add-col">+ Coluna</button>
   </div>
 </div>
 <span id="planilha2-datalists"></span>
