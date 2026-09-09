@@ -2350,6 +2350,75 @@
     font-size: 13px;
   }
   #planilha2-vazia.hidden { display: none; }
+  #planilha2-barra {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 12.5px; color: var(--text-muted);
+  }
+  #pl2-add-col {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  #planilha2-scroll { overflow: auto; max-height: 70vh; }
+  #planilha2 thead th { position: sticky; top: 0; z-index: 2; }
+  .pl2-linha-filtro th { top: 33px; background: #fff; padding: 5px 6px; }
+  .pl2-filtro {
+    width: 100%; box-sizing: border-box; font: inherit; font-size: 12px;
+    padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
+    background: #fff; color: var(--text);
+  }
+  #planilha2 td.pl2-continente { padding: 10px 12px; color: var(--text-muted); white-space: nowrap; }
+  #planilha2 td.pl2-select { padding: 0; }
+  #planilha2 td.pl2-select select {
+    width: 100%; border: none; background: none; font: inherit;
+    padding: 9px 10px; color: var(--text); cursor: pointer;
+  }
+  .pl2-del-col {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 14px; line-height: 1; margin-left: 6px; padding: 0 2px;
+  }
+  .pl2-del-col:hover { color: #b3261e; }
+  #planilha2 td.pl2-multi { padding: 0; }
+  .pl2-multi-btn {
+    width: 100%; min-height: 38px; background: none; border: none; cursor: pointer;
+    display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+    padding: 6px 10px; font: inherit; text-align: left;
+  }
+  .pl2-chip {
+    background: #eeedfe; color: #3c3489; border-radius: 20px;
+    padding: 2px 9px; font-size: 11.5px; font-weight: 600;
+  }
+  .pl2-vazio { color: var(--text-muted); }
+  #pl2-multi-menu {
+    position: fixed; z-index: 1100; background: #fff;
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.16); padding: 8px; min-width: 160px;
+    max-height: 240px; overflow-y: auto;
+  }
+  #pl2-multi-menu label {
+    display: flex; align-items: center; gap: 8px; padding: 5px 6px;
+    font-size: 13px; cursor: pointer; border-radius: 5px;
+  }
+  #pl2-multi-menu label:hover { background: var(--bg); }
+  #pl2-col-overlay {
+    position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #pl2-col-overlay.hidden { display: none; }
+  #pl2-col-modal {
+    background: #fff; border-radius: 12px; padding: 22px; width: 380px;
+    max-width: 92vw; box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  }
+  #pl2-col-modal h3 { margin: 0 0 16px; font-size: 16px; }
+  #pl2-col-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+  #pl2-col-cancelar {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-size: 13.5px;
+  }
+  #pl2-col-salvar {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+  }
   #members2-badge {
     display: inline-block;
     margin: 10px 0 14px;
@@ -5059,21 +5128,40 @@
 </div>
 
 <div id="planilha2-wrap" class="hidden">
-  <table id="planilha2">
-    <thead>
-      <tr>
-        <th>País</th>
-        <th>Nome federação</th>
-        <th>Contato fed</th>
-        <th>Grupo feminino</th>
-        <th>Nome comitê</th>
-        <th>Contato comitê</th>
-        <th>LW stop 26</th>
-      </tr>
-    </thead>
-    <tbody id="planilha2-body"></tbody>
-  </table>
-  <div id="planilha2-vazia" class="hidden">Nenhum país adicionado ainda neste quadro. Marque um país no mapa e ele aparece aqui.</div>
+  <div id="planilha2-barra">
+    <span id="planilha2-contagem"></span>
+    <button type="button" id="pl2-add-col">+ Coluna</button>
+  </div>
+  <div id="planilha2-scroll">
+    <table id="planilha2">
+      <thead id="planilha2-head"></thead>
+      <tbody id="planilha2-body"></tbody>
+    </table>
+    <div id="planilha2-vazia" class="hidden">Nenhum país bate com os filtros.</div>
+  </div>
+</div>
+<span id="planilha2-datalists"></span>
+
+<div id="pl2-col-overlay" class="hidden">
+  <div id="pl2-col-modal">
+    <h3>Nova coluna</h3>
+    <div class="field">
+      <label for="pl2-col-nome">Nome da coluna</label>
+      <input type="text" id="pl2-col-nome" placeholder="Ex: Responsável">
+    </div>
+    <div class="field">
+      <label for="pl2-col-tipo">Tipo</label>
+      <select id="pl2-col-tipo"></select>
+    </div>
+    <div class="field hidden" id="pl2-col-opcoes-campo">
+      <label for="pl2-col-opcoes">Opções (separadas por vírgula)</label>
+      <input type="text" id="pl2-col-opcoes" placeholder="Ex: Sim, Não, Talvez">
+    </div>
+    <div id="pl2-col-acoes">
+      <button type="button" id="pl2-col-cancelar">Cancelar</button>
+      <button type="button" id="pl2-col-salvar">Criar coluna</button>
+    </div>
+  </div>
 </div>
 
 <div id="footer2">
@@ -13982,58 +14070,330 @@ applyRolePermissions();
     }
   }
 
-  // ── Planilha: mesma base de dados do mapa, so que em tabela. Mostra
-  // APENAS os paises que ja foram adicionados neste quadro (os que tem
-  // registro salvo) — nao a lista dos 241 do mundo. Os campos aqui
-  // (federacao, contatos, comite, LW stop) so existem nesta visao; o
-  // painel do mapa continua com status e parceiro. ─────────────────────
-  const CAMPOS_PLANILHA = [
-    { chave: "nomeFederacao",  rotulo: "Nome federação" },
-    { chave: "contatoFed",     rotulo: "Contato fed" },
-    { chave: "grupoFeminino",  rotulo: "Grupo feminino" },
-    { chave: "nomeComite",     rotulo: "Nome comitê" },
-    { chave: "contatoComite",  rotulo: "Contato comitê" }
+  // ── Continente de cada pais. Gerado a partir do codigo ISO numerico que
+  // o proprio world-atlas traz em cada feature, cruzado com o dataset
+  // world-countries — nao por casamento de nome, que erraria em coisas
+  // como "Dem. Rep. Congo". Os 5 territorios sem codigo ISO (Somaliland,
+  // Kosovo, N. Cyprus, Indian Ocean Ter., Siachen Glacier) foram
+  // resolvidos a mao. Cobre os 241 do mapa, sem sobra. ─────────────────
+  const PAISES_POR_CONTINENTE = {
+    "Américas": ["Anguilla", "Antigua and Barb.", "Argentina", "Aruba", "Bahamas", "Barbados", "Belize", "Bermuda", "Bolivia", "Brazil", "British Virgin Is.", "Canada", "Cayman Is.", "Chile", "Colombia", "Costa Rica", "Cuba", "Curaçao", "Dominica", "Dominican Rep.", "Ecuador", "El Salvador", "Falkland Is.", "Greenland", "Grenada", "Guatemala", "Guyana", "Haiti", "Honduras", "Jamaica", "Mexico", "Montserrat", "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto Rico", "Saint Lucia", "Sint Maarten", "St-Barthélemy", "St-Martin", "St. Kitts and Nevis", "St. Pierre and Miquelon", "St. Vin. and Gren.", "Suriname", "Trinidad and Tobago", "Turks and Caicos Is.", "U.S. Virgin Is.", "United States of America", "Uruguay", "Venezuela"],
+    "Antártida": ["Antarctica", "Fr. S. Antarctic Lands", "Heard I. and McDonald Is.", "S. Geo. and the Is."],
+    "Europa": ["Albania", "Andorra", "Austria", "Belarus", "Belgium", "Bosnia and Herz.", "Bulgaria", "Croatia", "Cyprus", "Czechia", "Denmark", "Estonia", "Faeroe Is.", "Finland", "France", "Germany", "Greece", "Guernsey", "Hungary", "Iceland", "Ireland", "Isle of Man", "Italy", "Jersey", "Kosovo", "Latvia", "Liechtenstein", "Lithuania", "Luxembourg", "Macedonia", "Malta", "Moldova", "Monaco", "Montenegro", "Netherlands", "Norway", "Poland", "Portugal", "Romania", "Russia", "San Marino", "Serbia", "Slovakia", "Slovenia", "Spain", "Sweden", "Switzerland", "Ukraine", "United Kingdom", "Vatican", "Åland"],
+    "Oceania": ["American Samoa", "Ashmore and Cartier Is.", "Australia", "Cook Is.", "Fiji", "Fr. Polynesia", "Guam", "Kiribati", "Marshall Is.", "Micronesia", "N. Mariana Is.", "Nauru", "New Caledonia", "New Zealand", "Niue", "Norfolk Island", "Palau", "Papua New Guinea", "Pitcairn Is.", "Samoa", "Solomon Is.", "Tonga", "Vanuatu", "Wallis and Futuna Is."],
+    "África": ["Algeria", "Angola", "Benin", "Botswana", "Br. Indian Ocean Ter.", "Burkina Faso", "Burundi", "Cabo Verde", "Cameroon", "Central African Rep.", "Chad", "Comoros", "Congo", "Côte d'Ivoire", "Dem. Rep. Congo", "Djibouti", "Egypt", "Eq. Guinea", "Eritrea", "Ethiopia", "Gabon", "Gambia", "Ghana", "Guinea", "Guinea-Bissau", "Kenya", "Lesotho", "Liberia", "Libya", "Madagascar", "Malawi", "Mali", "Mauritania", "Mauritius", "Morocco", "Mozambique", "Namibia", "Niger", "Nigeria", "Rwanda", "S. Sudan", "Saint Helena", "Senegal", "Seychelles", "Sierra Leone", "Somalia", "Somaliland", "South Africa", "Sudan", "São Tomé and Principe", "Tanzania", "Togo", "Tunisia", "Uganda", "W. Sahara", "Zambia", "Zimbabwe", "eSwatini"],
+    "Ásia": ["Afghanistan", "Armenia", "Azerbaijan", "Bahrain", "Bangladesh", "Bhutan", "Brunei", "Cambodia", "China", "Georgia", "Hong Kong", "India", "Indian Ocean Ter.", "Indonesia", "Iran", "Iraq", "Israel", "Japan", "Jordan", "Kazakhstan", "Kuwait", "Kyrgyzstan", "Laos", "Lebanon", "Macao", "Malaysia", "Maldives", "Mongolia", "Myanmar", "N. Cyprus", "Nepal", "North Korea", "Oman", "Pakistan", "Palestine", "Philippines", "Qatar", "Saudi Arabia", "Siachen Glacier", "Singapore", "South Korea", "Sri Lanka", "Syria", "Taiwan", "Tajikistan", "Thailand", "Timor-Leste", "Turkey", "Turkmenistan", "United Arab Emirates", "Uzbekistan", "Vietnam", "Yemen"]
+  };
+  const CONTINENTE_POR_PAIS = {};
+  Object.entries(PAISES_POR_CONTINENTE).forEach(([cont, paises]) => {
+    paises.forEach(p => { CONTINENTE_POR_PAIS[p] = cont; });
+  });
+  const CONTINENTES = Object.keys(PAISES_POR_CONTINENTE).sort();
+  function continenteDe(nome) { return CONTINENTE_POR_PAIS[nome] || "Outros"; }
+
+  // ── Planilha ─────────────────────────────────────────────────────────
+  // Uma linha por pais do mundo (todos os 241, nao so os ja preenchidos).
+  // País e Continente sao fixos; o resto sao COLUNAS configuraveis,
+  // guardadas por quadro em board.colunas, cada uma com um tipo.
+  //
+  // Os ids das colunas que ja vinham prontas sao os mesmos nomes de campo
+  // que a versao anterior gravava (nomeFederacao, contatoFed...), entao os
+  // dados que ja existiam continuam aparecendo sem precisar converter nada.
+  const TIPOS_COLUNA = {
+    texto:    { rotulo: "Texto livre" },
+    pessoa:   { rotulo: "Pessoa" },
+    select:   { rotulo: "Seleção única" },
+    email:    { rotulo: "E-mail" },
+    telefone: { rotulo: "Telefone" },
+    multi:    { rotulo: "Seleção múltipla" }
+  };
+  // A coluna de status de cada quadro (o "pipeline") e uma seleção única
+  // que se cria sozinha — as opcoes dela sao os status do proprio quadro,
+  // e ela grava em rec.status, o MESMO campo que o mapa pinta. Editar na
+  // planilha muda a cor no mapa e vice-versa.
+  const COL_STATUS = "__status__";
+
+  const COLUNAS_PADRAO = [
+    { id: "nomeFederacao", nome: "Nome federação", tipo: "texto" },
+    { id: "contatoFed",    nome: "Contato fed",    tipo: "email" },
+    { id: "grupoFeminino", nome: "Grupo feminino", tipo: "texto" },
+    { id: "nomeComite",    nome: "Nome comitê",    tipo: "texto" },
+    { id: "contatoComite", nome: "Contato comitê", tipo: "email" },
+    { id: "lwStop26",      nome: "LW stop 26",     tipo: "select", opcoes: ["Sim", "Não"] }
   ];
 
-  function paisesDoQuadro2() {
-    // A ordem do mapa (allCountries2) da uma listagem estavel; se o mapa
-    // ainda nao carregou, cai pras chaves salvas mesmo.
-    const salvos = Object.keys(countryData2);
-    if (!allCountries2.length) return salvos.sort();
-    const ordem = allCountries2.map(f => f.properties.name).filter(n => countryData2[n]);
-    // paises salvos que nao existem no mapa atual nao somem da planilha
-    salvos.forEach(n => { if (!ordem.includes(n)) ordem.push(n); });
-    return ordem;
+  function colunasDoQuadro() {
+    const b = boardAtual();
+    if (!Array.isArray(b.colunas)) {
+      b.colunas = COLUNAS_PADRAO.map(c => Object.assign({}, c));
+      saveBoards2();
+    }
+    // A coluna de status vem sempre primeiro e nao fica salva na lista —
+    // ela e derivada do quadro, entao acompanha sozinha qualquer mudanca
+    // nos status dele.
+    return [{ id: COL_STATUS, nome: "Status", tipo: "select", opcoes: statusOptionsAtuais() }].concat(b.colunas);
+  }
+
+  function valorDaCelula(rec, col) {
+    if (col.id === COL_STATUS) return rec.status || "";
+    const v = rec[col.id];
+    if (col.tipo === "multi") return Array.isArray(v) ? v : (v ? [v] : []);
+    // dado antigo do LW stop era booleano (checkbox); vira Sim/Não
+    if (col.id === "lwStop26" && typeof v === "boolean") return v ? "Sim" : "";
+    return v == null ? "" : String(v);
+  }
+
+  // Sugestoes do tipo "pessoa": todos os nomes ja digitados naquela coluna,
+  // pra ir formando uma lista sem precisar cadastrar gente antes.
+  function pessoasJaUsadas(colId) {
+    const set = new Set();
+    Object.values(countryData2).forEach(r => {
+      const v = r && r[colId];
+      if (typeof v === "string" && v.trim()) set.add(v.trim());
+    });
+    return [...set].sort();
+  }
+
+  // ── Filtros: um por coluna, incluindo País e Continente ──────────────
+  // Comparacao sem acento e sem caixa: "japao" acha "Japão". A Tasks 2 tem
+  // uma funcao igual, mas ela vive dentro da IIFE dela — daqui nao da pra
+  // enxergar, entao a Members 2 tem a sua.
+  function normalizarTexto2(v) {
+    return String(v == null ? "" : v).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
+  let filtros2 = {};
+  function limparFiltros2() { filtros2 = {}; }
+
+  function passaNoFiltro2(nome, cols) {
+    const f = filtros2;
+    if (f.__pais__ && !normalizarTexto2(nome).includes(normalizarTexto2(f.__pais__))) return false;
+    if (f.__continente__ && continenteDe(nome) !== f.__continente__) return false;
+    const rec = getRecord2(nome);
+    return cols.every(col => {
+      const alvo = f[col.id];
+      if (!alvo) return true;
+      const val = valorDaCelula(rec, col);
+      if (col.tipo === "multi") return val.includes(alvo);
+      if (col.tipo === "select") return val === alvo;
+      return normalizarTexto2(val).includes(normalizarTexto2(alvo));
+    });
+  }
+
+  function opcoesDaColuna(col) {
+    if (col.tipo === "select" || col.tipo === "multi") return col.opcoes || [];
+    return [];
+  }
+
+  function filtroMarkup(col) {
+    const atual = filtros2[col.id] || "";
+    if (col.tipo === "select" || col.tipo === "multi") {
+      return `<select class="pl2-filtro" data-col="${esc2(col.id)}">
+        <option value="">— todos —</option>
+        ${opcoesDaColuna(col).map(o => `<option value="${esc2(o)}" ${o === atual ? "selected" : ""}>${esc2(o)}</option>`).join("")}
+      </select>`;
+    }
+    return `<input type="text" class="pl2-filtro" data-col="${esc2(col.id)}" value="${esc2(atual)}" placeholder="filtrar…">`;
+  }
+
+  function esc2(v) {
+    return String(v == null ? "" : v)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  }
+
+  function celulaMarkup(nome, rec, col) {
+    const val = valorDaCelula(rec, col);
+    const d = `data-pais="${esc2(nome)}" data-col="${esc2(col.id)}"`;
+    if (col.tipo === "select") {
+      const cores = col.id === COL_STATUS ? statusColorsAtuais() : null;
+      const fundo = (cores && val) ? `style="background:${corDoStatus2(boardAtual(), val)}"` : "";
+      return `<td class="pl2-select"><select class="pl2-input" ${d} ${fundo}>
+        <option value=""></option>
+        ${opcoesDaColuna(col).map(o => `<option value="${esc2(o)}" ${o === val ? "selected" : ""}>${esc2(o)}</option>`).join("")}
+      </select></td>`;
+    }
+    if (col.tipo === "multi") {
+      const chips = val.length
+        ? val.map(v => `<span class="pl2-chip">${esc2(v)}</span>`).join("")
+        : `<span class="pl2-vazio">—</span>`;
+      return `<td class="pl2-multi"><button type="button" class="pl2-multi-btn" ${d}>${chips}</button></td>`;
+    }
+    if (col.tipo === "pessoa") {
+      const listaId = "pl2dl-" + col.id;
+      return `<td><input type="text" class="pl2-input" list="${listaId}" ${d} value="${esc2(val)}"></td>`;
+    }
+    const tipoHtml = col.tipo === "email" ? "email" : (col.tipo === "telefone" ? "tel" : "text");
+    return `<td><input type="${tipoHtml}" class="pl2-input" ${d} value="${esc2(val)}"></td>`;
   }
 
   function renderPlanilha2() {
+    const cols = colunasDoQuadro();
+    const cabeca = document.getElementById("planilha2-head");
     const corpo = document.getElementById("planilha2-body");
     const vazia = document.getElementById("planilha2-vazia");
-    const paises = paisesDoQuadro2();
-    document.getElementById("planilha2").classList.toggle("hidden", !paises.length);
-    vazia.classList.toggle("hidden", !!paises.length);
-    corpo.innerHTML = paises.map(nome => {
+
+    // Sem paises no mapa ainda (topojson nao carregou) — nao ha o que listar
+    const todos = allCountries2.length
+      ? allCountries2.map(f => f.properties.name)
+      : Object.keys(countryData2);
+    const visiveis = todos.filter(n => passaNoFiltro2(n, cols));
+
+    cabeca.innerHTML = `<tr>
+        <th>País</th><th>Continente</th>
+        ${cols.map(c => `<th>${esc2(c.nome)}${c.id === COL_STATUS ? "" :
+          `<button type="button" class="pl2-del-col" data-col="${esc2(c.id)}" title="Excluir coluna">×</button>`}</th>`).join("")}
+      </tr>
+      <tr class="pl2-linha-filtro">
+        <th><input type="text" class="pl2-filtro" data-col="__pais__" value="${esc2(filtros2.__pais__ || "")}" placeholder="filtrar…"></th>
+        <th><select class="pl2-filtro" data-col="__continente__">
+          <option value="">— todos —</option>
+          ${CONTINENTES.map(c => `<option value="${esc2(c)}" ${filtros2.__continente__ === c ? "selected" : ""}>${esc2(c)}</option>`).join("")}
+        </select></th>
+        ${cols.map(c => `<th>${filtroMarkup(c)}</th>`).join("")}
+      </tr>`;
+
+    corpo.innerHTML = visiveis.map(nome => {
       const rec = getRecord2(nome);
-      const celulas = CAMPOS_PLANILHA.map(c =>
-        `<td><input type="text" data-pais="${nome.replace(/"/g, "&quot;")}" data-campo="${c.chave}" value="${String(rec[c.chave] || "").replace(/"/g, "&quot;")}"></td>`
-      ).join("");
       return `<tr>
-        <td class="pl2-pais">${nome}</td>
-        ${celulas}
-        <td class="pl2-lw"><input type="checkbox" data-pais="${nome.replace(/"/g, "&quot;")}" data-campo="lwStop26" ${rec.lwStop26 ? "checked" : ""}></td>
+        <td class="pl2-pais">${esc2(nome)}</td>
+        <td class="pl2-continente">${esc2(continenteDe(nome))}</td>
+        ${cols.map(c => celulaMarkup(nome, rec, c)).join("")}
       </tr>`;
     }).join("");
-    corpo.querySelectorAll('input[type="text"]').forEach(inp => {
+
+    // datalists dos campos do tipo "pessoa"
+    const dls = cols.filter(c => c.tipo === "pessoa").map(c =>
+      `<datalist id="pl2dl-${esc2(c.id)}">${pessoasJaUsadas(c.id).map(v => `<option value="${esc2(v)}">`).join("")}</datalist>`
+    ).join("");
+    document.getElementById("planilha2-datalists").innerHTML = dls;
+
+    document.getElementById("planilha2-contagem").textContent =
+      visiveis.length === todos.length ? `${todos.length} países`
+        : `${visiveis.length} de ${todos.length} países`;
+    vazia.classList.toggle("hidden", visiveis.length > 0);
+
+    ligarEventosPlanilha2();
+  }
+
+  function ligarEventosPlanilha2() {
+    const corpo = document.getElementById("planilha2-body");
+    corpo.querySelectorAll("input.pl2-input").forEach(inp => {
       inp.addEventListener("change", () => {
-        setRecord2(inp.dataset.pais, { [inp.dataset.campo]: inp.value.trim() });
+        setRecord2(inp.dataset.pais, { [inp.dataset.col]: inp.value.trim() });
       });
     });
-    corpo.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-      chk.addEventListener("change", () => {
-        setRecord2(chk.dataset.pais, { lwStop26: chk.checked });
+    corpo.querySelectorAll("select.pl2-input").forEach(sel => {
+      sel.addEventListener("change", () => {
+        const col = sel.dataset.col, pais = sel.dataset.pais;
+        if (col === COL_STATUS) {
+          // mesma fonte do mapa: muda aqui, muda a cor la
+          setRecord2(pais, { status: sel.value });
+          if (allCountries2.length) renderWorldMap2();
+          renderLegend2();
+          sel.style.background = sel.value ? corDoStatus2(boardAtual(), sel.value) : "";
+        } else {
+          setRecord2(pais, { [col]: sel.value });
+        }
+      });
+    });
+    corpo.querySelectorAll(".pl2-multi-btn").forEach(btn => {
+      btn.addEventListener("click", e => { e.stopPropagation(); abrirMultiSelect2(btn); });
+    });
+    document.getElementById("planilha2-head").querySelectorAll(".pl2-filtro").forEach(el => {
+      const evt = el.tagName === "SELECT" ? "change" : "input";
+      el.addEventListener(evt, () => {
+        filtros2[el.dataset.col] = el.value;
+        const foco = el.dataset.col, pos = el.selectionStart;
+        renderPlanilha2();
+        // devolve o foco pro campo que estava sendo digitado
+        const novo = document.querySelector(`.pl2-filtro[data-col="${foco}"]`);
+        if (novo) { novo.focus(); if (pos != null && novo.setSelectionRange) novo.setSelectionRange(pos, pos); }
+      });
+    });
+    document.getElementById("planilha2-head").querySelectorAll(".pl2-del-col").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const b = boardAtual();
+        const col = (b.colunas || []).find(c => c.id === btn.dataset.col);
+        if (!col) return;
+        if (!confirm(`Excluir a coluna "${col.nome}"? Os dados dela somem deste quadro.`)) return;
+        b.colunas = b.colunas.filter(c => c.id !== btn.dataset.col);
+        saveBoards2();
+        delete filtros2[btn.dataset.col];
+        renderPlanilha2();
       });
     });
   }
+
+  // ── Popup da seleção múltipla ────────────────────────────────────────
+  function fecharMultiSelect2() {
+    const m = document.getElementById("pl2-multi-menu");
+    if (m) m.remove();
+  }
+  function abrirMultiSelect2(btn) {
+    fecharMultiSelect2();
+    const cols = colunasDoQuadro();
+    const col = cols.find(c => c.id === btn.dataset.col);
+    if (!col) return;
+    const pais = btn.dataset.pais;
+    const atuais = valorDaCelula(getRecord2(pais), col);
+    const menu = document.createElement("div");
+    menu.id = "pl2-multi-menu";
+    menu.innerHTML = (col.opcoes || []).map(o =>
+      `<label><input type="checkbox" value="${esc2(o)}" ${atuais.includes(o) ? "checked" : ""}> ${esc2(o)}</label>`
+    ).join("") || `<div class="pl2-vazio" style="padding:6px">Sem opções</div>`;
+    document.body.appendChild(menu);
+    const r = btn.getBoundingClientRect();
+    menu.style.top = (r.bottom + 4) + "px";
+    menu.style.left = r.left + "px";
+    menu.addEventListener("click", e => e.stopPropagation());
+    menu.querySelectorAll("input").forEach(chk => {
+      chk.addEventListener("change", () => {
+        const sel = [...menu.querySelectorAll("input:checked")].map(x => x.value);
+        setRecord2(pais, { [col.id]: sel });
+        renderPlanilha2();
+        // o menu some no re-render; reabre pra dar pra marcar varias seguidas
+        const novo = document.querySelector(`.pl2-multi-btn[data-pais="${CSS.escape(pais)}"][data-col="${CSS.escape(col.id)}"]`);
+        if (novo) abrirMultiSelect2(novo);
+      });
+    });
+  }
+  document.addEventListener("click", fecharMultiSelect2);
+
+  // ── Criar coluna ─────────────────────────────────────────────────────
+  const colModal = document.getElementById("pl2-col-overlay");
+  const colNome = document.getElementById("pl2-col-nome");
+  const colTipo = document.getElementById("pl2-col-tipo");
+  const colOpcoesCampo = document.getElementById("pl2-col-opcoes-campo");
+  const colOpcoes = document.getElementById("pl2-col-opcoes");
+  colTipo.innerHTML = Object.entries(TIPOS_COLUNA)
+    .map(([k, v]) => `<option value="${k}">${v.rotulo}</option>`).join("");
+  function atualizarCampoOpcoes2() {
+    const precisa = colTipo.value === "select" || colTipo.value === "multi";
+    colOpcoesCampo.classList.toggle("hidden", !precisa);
+  }
+  colTipo.addEventListener("change", atualizarCampoOpcoes2);
+  document.getElementById("pl2-add-col").addEventListener("click", () => {
+    colNome.value = ""; colOpcoes.value = ""; colTipo.value = "texto";
+    atualizarCampoOpcoes2();
+    colModal.classList.remove("hidden");
+    colNome.focus();
+  });
+  document.getElementById("pl2-col-cancelar").addEventListener("click", () => colModal.classList.add("hidden"));
+  colModal.addEventListener("click", e => { if (e.target === colModal) colModal.classList.add("hidden"); });
+  document.getElementById("pl2-col-salvar").addEventListener("click", () => {
+    const nome = colNome.value.trim();
+    if (!nome) { colNome.focus(); return; }
+    const tipo = colTipo.value;
+    const col = { id: "col_" + Date.now().toString(36), nome, tipo };
+    if (tipo === "select" || tipo === "multi") {
+      col.opcoes = colOpcoes.value.split(",").map(o => o.trim()).filter(Boolean);
+    }
+    const b = boardAtual();
+    if (!Array.isArray(b.colunas)) b.colunas = COLUNAS_PADRAO.map(c => Object.assign({}, c));
+    b.colunas.push(col);
+    saveBoards2();
+    colModal.classList.add("hidden");
+    renderPlanilha2();
+  });
 
   // ── Switch Mapa / Planilha ───────────────────────────────────────────
   const tabMapa2 = document.getElementById("members2-tab-mapa");
