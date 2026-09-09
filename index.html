@@ -2357,7 +2357,51 @@
     font-size: 13px;
     color: var(--text-muted);
   }
-  #legend2-view h2 { margin: 0 0 4px; font-size: 16px; }
+  #board2-select {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 4px 6px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    max-width: 100%;
+  }
+  #board2-select:hover { border-color: var(--border); background: var(--bg); }
+  #board2-modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.35);
+    display: flex; align-items: center; justify-content: center;
+  }
+  #board2-modal-overlay.hidden { display: none; }
+  #board2-modal {
+    background: #fff; border-radius: 12px; padding: 22px;
+    width: 380px; max-width: 92vw;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+  }
+  #board2-modal h3 { margin: 0 0 16px; font-size: 16px; }
+  #board2-modal .field { margin-bottom: 12px; }
+  #board2-modal .board2-status-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+  #board2-modal .board2-status-row input[type="text"] { flex: 1 1 auto; }
+  #board2-modal .board2-status-row input[type="color"] {
+    width: 34px; height: 34px; padding: 0; border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer; flex-shrink: 0;
+  }
+  #board2-modal-actions {
+    display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;
+  }
+  #board2-modal-cancel {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-size: 13.5px;
+  }
+  #board2-modal-save {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 8px 16px; cursor: pointer; font-size: 13.5px; font-weight: 600;
+  }
+
   #save-confirm.show { opacity: 1; }
 
   #footer {
@@ -4897,7 +4941,7 @@
 
   <div id="sidebar2">
     <div id="legend2-view" class="side-card">
-      <h2>Federations</h2>
+      <select id="board2-select"></select>
       <p id="legend2-total"></p>
       <div class="map-search-bar">
         <div class="map-search-wrap">
@@ -4939,6 +4983,21 @@
 
 <div id="footer2">
   <span id="count2">Nenhum país selecionado</span>
+</div>
+
+<div id="board2-modal-overlay" class="hidden">
+  <div id="board2-modal">
+    <h3>Novo quadro</h3>
+    <div class="field">
+      <label for="board2-modal-name">Nome do quadro</label>
+      <input type="text" id="board2-modal-name" placeholder="Ex: Membros - LATAM">
+    </div>
+    <div id="board2-modal-status-rows"></div>
+    <div id="board2-modal-actions">
+      <button type="button" id="board2-modal-cancel">Cancelar</button>
+      <button type="button" id="board2-modal-save">Criar quadro</button>
+    </div>
+  </div>
 </div>
 
 </div>
@@ -13417,12 +13476,23 @@ applyRolePermissions();
 //
 // Mesmo espirito da Tasks 2: uma copia da experiencia central de Members
 // (mapa, clicar num pais, legenda, busca), com dados PROPRIOS
-// (localStorage "wpf_members2_data") que nunca tocam countryData nem a
-// nuvem. Karina pediu "so o essencial + busca" pra comecar — de proposito
-// SEM: crowns/trading/achievements/badges no mapa, drill-down por estado,
+// (localStorage) que nunca tocam countryData nem a nuvem. Karina pediu
+// "so o essencial + busca" pra comecar — de proposito SEM:
+// crowns/trading/achievements/badges no mapa, drill-down por estado,
 // paineis de Committee/Brasil, alternancia Federations/Social. So status +
 // parceiro por pais, do mesmo jeito que a Tasks 2 comecou pequena antes de
 // crescer feature por feature ao longo de varias sessoes.
+//
+// Depois virou multi-quadro: o que era "Federations" fixo agora e um
+// dropdown com varios QUADROS (board) — cada um com nome, paleta de cores
+// e dados de paises proprios, totalmente separados uns dos outros. Os 3
+// quadros iniciais (Membros - Federações, Membros - Comitê Fem, Ladies 26
+// - Comitê Fem) tem sempre os mesmos 3 status (Lead/Negociação/Membro),
+// so a cor muda; um quadro criado via "+ Novo quadro" tambem usa esses 3
+// nomes de status como ponto de partida editavel — Karina escolhe o nome
+// de cada status e a cor na hora de criar. Simplificacao deliberada: 3
+// status fixos por quadro, nao um numero livre — se um dia precisar de
+// mais ou menos que 3, isso e outra conversa.
 //
 // Sem sincronizar com a nuvem por enquanto — cada navegador guarda o
 // proprio rascunho, local. Se um dia isso precisar ser visto por mais de
@@ -13430,31 +13500,68 @@ applyRolePermissions();
 // Tasks 2 tem hoje.
 // ══════════════════════════════════════════════════════════════════════════
 (function() {
-  const M2_STORAGE_KEY = "wpf_members2_data";
-  let countryData2 = {};
+  const BOARDS_KEY = "wpf_members2_boards";
+  const ACTIVE_BOARD_KEY = "wpf_members2_active_board";
+  const NOVO_QUADRO_VALOR = "__novo__";
+
+  // Paletas prontas dos 3 quadros iniciais — os mesmos tons ja usados em
+  // outras pilulas de status do dashboard, pra ficar consistente.
+  const PALETA_AZUL   = { Lead: "#dde6f0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
+  const PALETA_ROSA    = { Lead: "#f6e3ec", "Negociação": "#e28fb8", "Membro": "#a3215f" };
+  const PALETA_ROXA    = { Lead: "#e4e2d8", "Negociação": "#afa9ec", "Membro": "#534ab7" };
+
+  function paletaParaObjeto(cores) {
+    const out = {};
+    Object.keys(cores).forEach(k => { out[k] = { fill: cores[k] }; });
+    return out;
+  }
+
+  const STATUS_PADRAO = ["Lead", "Negociação", "Membro"];
+  const DEFAULT_BOARDS = [
+    { id: "federacoes", nome: "Membros - Federações", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_AZUL) },
+    { id: "comite-fem", nome: "Membros - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROSA) },
+    { id: "ladies26",   nome: "Ladies 26 - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROXA) }
+  ];
+
+  let boards2 = [];
   try {
-    const guardado = JSON.parse(localStorage.getItem(M2_STORAGE_KEY) || "{}");
-    if (guardado && typeof guardado === "object") countryData2 = guardado;
-  } catch (e) { countryData2 = {}; }
+    const guardado = JSON.parse(localStorage.getItem(BOARDS_KEY) || "null");
+    boards2 = Array.isArray(guardado) && guardado.length ? guardado : DEFAULT_BOARDS;
+  } catch (e) { boards2 = DEFAULT_BOARDS; }
+  function saveBoards2() { localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2)); }
+  if (!localStorage.getItem(BOARDS_KEY)) saveBoards2(); // primeira vez: grava os 3 padrao
 
-  function saveData2() { localStorage.setItem(M2_STORAGE_KEY, JSON.stringify(countryData2)); }
+  let activeBoardId2 = localStorage.getItem(ACTIVE_BOARD_KEY) || boards2[0].id;
+  if (!boards2.some(b => b.id === activeBoardId2)) activeBoardId2 = boards2[0].id;
 
-  // Status proprios da Members 2 — nao os 7 da Members original. So 3:
-  // Lead (o padrao — um pais sem nada preenchido ja e um Lead, mesmo
-  // cinza), Negociação (o mesmo roxo claro que "Contacting" usava) e
-  // Membro (o mesmo roxo escuro que "Negotiation" usava).
-  const STATUS_OPTIONS2 = ["Lead", "Negociação", "Membro"];
-  const STATUS_COLORS2 = {
-    "Lead":       { fill: "#e4e2d8", badgeBg: "#f1efe8", badgeText: "#5d5c55" },
-    "Negociação": { fill: "#afa9ec", badgeBg: "#eeedfe", badgeText: "#3c3489" },
-    "Membro":     { fill: "#534ab7", badgeBg: "#eeedfe", badgeText: "#26215c" }
-  };
-  // So existe quando status === "Membro" — se um pais e Membro, precisa
-  // dizer se e Observador ou Afiliado.
+  function boardAtual() { return boards2.find(b => b.id === activeBoardId2) || boards2[0]; }
+  function chaveDadosDoBoard(id) {
+    // "federacoes" e o quadro original — mantem a chave antiga (sem
+    // sufixo) pra nao perder dado que ja tinha sido salvo antes de o
+    // multi-quadro existir.
+    return id === "federacoes" ? "wpf_members2_data" : "wpf_members2_data__" + id;
+  }
+
+  let countryData2 = {};
+  function carregarDadosDoBoard() {
+    try {
+      const guardado = JSON.parse(localStorage.getItem(chaveDadosDoBoard(activeBoardId2)) || "{}");
+      countryData2 = (guardado && typeof guardado === "object") ? guardado : {};
+    } catch (e) { countryData2 = {}; }
+  }
+  carregarDadosDoBoard();
+
+  function saveData2() { localStorage.setItem(chaveDadosDoBoard(activeBoardId2), JSON.stringify(countryData2)); }
+
+  function statusOptionsAtuais() { return boardAtual().status; }
+  function statusColorsAtuais() { return boardAtual().cores; }
+
+  // So existe quando status === "Membro" (o 3o status de cada quadro) —
+  // se um pais e Membro, precisa dizer se e Observador ou Afiliado.
   const TIPO_MEMBRO_OPCOES = ["Observador", "Afiliado"];
 
   function getRecord2(name) {
-    const rec = countryData2[name] || { status: "Lead", partner: "", tipoMembro: "" };
+    const rec = countryData2[name] || { status: statusOptionsAtuais()[0], partner: "", tipoMembro: "" };
     if (rec.partner === undefined) rec.partner = "";
     if (rec.tipoMembro === undefined) rec.tipoMembro = "";
     return rec;
@@ -13465,7 +13572,8 @@ applyRolePermissions();
   }
   function fillFor2(name) {
     const rec = getRecord2(name);
-    return (STATUS_COLORS2[rec.status] || STATUS_COLORS2["Lead"]).fill;
+    const cores = statusColorsAtuais();
+    return (cores[rec.status] || cores[statusOptionsAtuais()[0]]).fill;
   }
 
   // ── Mapa: svg propria, mas reaproveita a MESMA projecao/geometria do
@@ -13507,16 +13615,89 @@ applyRolePermissions();
     }
   }
 
+  // ── Seletor de quadro ─────────────────────────────────────────────────
+  const board2Select = document.getElementById("board2-select");
+  function renderBoard2Select() {
+    board2Select.innerHTML = boards2.map(b =>
+      `<option value="${b.id}" ${b.id === activeBoardId2 ? "selected" : ""}>${b.nome}</option>`
+    ).join("") + `<option value="${NOVO_QUADRO_VALOR}">+ Novo quadro</option>`;
+  }
+  renderBoard2Select();
+
+  function trocarQuadro2(novoId) {
+    activeBoardId2 = novoId;
+    localStorage.setItem(ACTIVE_BOARD_KEY, novoId);
+    carregarDadosDoBoard();
+    // Fecha o painel — a selecao de pais era do quadro anterior, e o
+    // proximo pode nem ter os mesmos status (nomes diferentes).
+    activeCountry2 = null; activeFeature2 = null;
+    document.getElementById("panel2").classList.add("closed");
+    document.getElementById("count2").textContent = "Nenhum país selecionado";
+    popularSelectStatus2();
+    if (allCountries2.length) renderWorldMap2();
+    renderLegend2();
+  }
+  board2Select.addEventListener("change", () => {
+    if (board2Select.value === NOVO_QUADRO_VALOR) {
+      abrirModalNovoQuadro2();
+      renderBoard2Select(); // desfaz a selecao do "+ Novo quadro" no <select>
+      return;
+    }
+    trocarQuadro2(board2Select.value);
+  });
+
+  // ── Modal "+ Novo quadro" ──────────────────────────────────────────────
+  const board2ModalOverlay = document.getElementById("board2-modal-overlay");
+  const board2ModalName = document.getElementById("board2-modal-name");
+  const board2ModalRows = document.getElementById("board2-modal-status-rows");
+  const CORES_SUGERIDAS_NOVO_QUADRO = ["#e4e2d8", "#afa9ec", "#534ab7"];
+
+  function abrirModalNovoQuadro2() {
+    board2ModalName.value = "";
+    board2ModalRows.innerHTML = STATUS_PADRAO.map((nome, i) => `
+      <div class="board2-status-row">
+        <input type="text" class="board2-status-name" value="${nome}" placeholder="Nome do status">
+        <input type="color" class="board2-status-color" value="${CORES_SUGERIDAS_NOVO_QUADRO[i]}">
+      </div>`).join("");
+    board2ModalOverlay.classList.remove("hidden");
+    board2ModalName.focus();
+  }
+  function fecharModalNovoQuadro2() { board2ModalOverlay.classList.add("hidden"); }
+  document.getElementById("board2-modal-cancel").addEventListener("click", fecharModalNovoQuadro2);
+  board2ModalOverlay.addEventListener("click", e => {
+    if (e.target === board2ModalOverlay) fecharModalNovoQuadro2();
+  });
+  document.getElementById("board2-modal-save").addEventListener("click", () => {
+    const nome = board2ModalName.value.trim();
+    if (!nome) { board2ModalName.focus(); return; }
+    const linhas = [...board2ModalRows.querySelectorAll(".board2-status-row")];
+    const status = linhas.map(l => l.querySelector(".board2-status-name").value.trim() || "Status");
+    const cores = {};
+    linhas.forEach((l, i) => { cores[status[i]] = { fill: l.querySelector(".board2-status-color").value }; });
+    const id = "quadro-" + Date.now().toString(36);
+    boards2.push({ id, nome, status, cores });
+    saveBoards2();
+    fecharModalNovoQuadro2();
+    renderBoard2Select();
+    board2Select.value = id;
+    trocarQuadro2(id);
+  });
+
   // ── Painel ──────────────────────────────────────────────────────────
   const panel2 = document.getElementById("panel2");
   const panel2Name = document.getElementById("panel2-name");
   const panel2Status = document.getElementById("panel2-status");
   const panel2Partner = document.getElementById("panel2-partner");
-  panel2Status.innerHTML = STATUS_OPTIONS2.map(s => `<option value="${s}">${s}</option>`).join("");
+
+  function popularSelectStatus2() {
+    panel2Status.innerHTML = statusOptionsAtuais().map(s => `<option value="${s}">${s}</option>`).join("");
+  }
+  popularSelectStatus2();
 
   // Campo "Tipo de membro" (Observador/Afiliado) — so faz sentido quando o
-  // status e Membro. Montado na hora, do lado do select de status, pra nao
-  // mexer no HTML da view (evita duplicar o painel inteiro so por isto).
+  // status atual do quadro e o 3o da lista ("Membro" nos quadros padrao).
+  // Montado na hora, do lado do select de status, pra nao mexer no HTML
+  // da view (evita duplicar o painel inteiro so por isto).
   const panel2TipoMembroField = document.createElement("div");
   panel2TipoMembroField.className = "field hidden";
   panel2TipoMembroField.id = "panel2-tipo-membro-field";
@@ -13528,8 +13709,12 @@ applyRolePermissions();
   panel2Status.closest(".field").insertAdjacentElement("afterend", panel2TipoMembroField);
   const panel2TipoMembro = panel2TipoMembroField.querySelector("#panel2-tipo-membro");
 
+  function ehUltimoStatus(valor) {
+    const opts = statusOptionsAtuais();
+    return valor === opts[opts.length - 1];
+  }
   function atualizarVisibilidadeTipoMembro() {
-    panel2TipoMembroField.classList.toggle("hidden", panel2Status.value !== "Membro");
+    panel2TipoMembroField.classList.toggle("hidden", !ehUltimoStatus(panel2Status.value));
   }
   panel2Status.addEventListener("change", atualizarVisibilidadeTipoMembro);
 
@@ -13563,9 +13748,10 @@ applyRolePermissions();
     setRecord2(activeCountry2, {
       status: novoStatus,
       partner: panel2Partner.value.trim(),
-      // Sai do status Membro, o tipo (Observador/Afiliado) nao faz mais
-      // sentido — limpa em vez de deixar um valor invisivel guardado.
-      tipoMembro: novoStatus === "Membro" ? panel2TipoMembro.value : ""
+      // Sai do ultimo status (Membro), o tipo (Observador/Afiliado) nao
+      // faz mais sentido — limpa em vez de deixar um valor invisivel
+      // guardado.
+      tipoMembro: ehUltimoStatus(novoStatus) ? panel2TipoMembro.value : ""
     });
     renderWorldMap2();
     renderLegend2();
@@ -13574,53 +13760,56 @@ applyRolePermissions();
     setTimeout(() => { confirmEl.style.opacity = 0; }, 1500);
   });
 
-  // ── Legenda: uma linha por status, com contagem. A linha "Membro" e
-  // clicavel — abre a proporcao entre Membro Observador e Membro Afiliado,
-  // em numero e em % DENTRO do total de Membros (nao do total de paises).
-  // ────────────────────────────────────────────────────────────────────
-  let legend2MembroAberto = false;
+  // ── Legenda: uma linha por status, com contagem. A linha do ULTIMO
+  // status do quadro (Membro, nos quadros padrao) e clicavel — abre a
+  // proporcao entre Observador e Afiliado, em numero e em % DENTRO do
+  // total daquele status (nao do total de paises). ───────────────────────
+  let legend2UltimoAberto = false;
   function renderLegend2() {
     const rowsEl = document.getElementById("legend2-rows");
     const totalEl = document.getElementById("legend2-total");
     const total = allCountries2.length;
     totalEl.textContent = total ? `${total} países` : "";
+    const statusOptions = statusOptionsAtuais();
+    const statusColors = statusColorsAtuais();
+    const ultimoStatus = statusOptions[statusOptions.length - 1];
     const counts = {};
-    STATUS_OPTIONS2.forEach(s => { counts[s] = 0; });
+    statusOptions.forEach(s => { counts[s] = 0; });
     const tipoMembroCounts = { "Observador": 0, "Afiliado": 0, "": 0 };
     allCountries2.forEach(f => {
       const rec = getRecord2(f.properties.name);
       counts[rec.status] = (counts[rec.status] || 0) + 1;
-      if (rec.status === "Membro") {
+      if (rec.status === ultimoStatus) {
         const t = rec.tipoMembro || "";
         tipoMembroCounts[t] = (tipoMembroCounts[t] || 0) + 1;
       }
     });
-    const totalMembros = counts["Membro"] || 0;
-    rowsEl.innerHTML = STATUS_OPTIONS2.map(s => {
+    const totalUltimo = counts[ultimoStatus] || 0;
+    rowsEl.innerHTML = statusOptions.map(s => {
       const pct = total ? Math.round((counts[s] / total) * 100) : 0;
-      const color = (STATUS_COLORS2[s] || STATUS_COLORS2["Lead"]).fill;
-      const clicavel = s === "Membro";
-      const linha = `<div class="legend-row${clicavel ? " legend-row-clickable" : ""}"${clicavel ? ' data-legend2-membro="1"' : ""}>
+      const color = (statusColors[s] || statusColors[statusOptions[0]]).fill;
+      const clicavel = s === ultimoStatus;
+      const linha = `<div class="legend-row${clicavel ? " legend-row-clickable" : ""}"${clicavel ? ' data-legend2-ultimo="1"' : ""}>
           <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${s}</div>
           <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} countries</span></div>
         </div>`;
       let breakdown = "";
-      if (clicavel && legend2MembroAberto) {
+      if (clicavel && legend2UltimoAberto) {
         breakdown = TIPO_MEMBRO_OPCOES.map(t => {
           const n = tipoMembroCounts[t] || 0;
-          const p = totalMembros ? Math.round((n / totalMembros) * 100) : 0;
+          const p = totalUltimo ? Math.round((n / totalUltimo) * 100) : 0;
           return `<div class="legend-row legend-subrow">
-            <div class="legend-left">Membro ${t}</div>
+            <div class="legend-left">${s} ${t}</div>
             <div class="legend-stats"><span class="legend-pct">${p}%</span><span class="legend-count">${n} countries</span></div>
           </div>`;
         }).join("");
       }
       return `<div class="legend-row-wrap">${linha}${breakdown}</div>`;
     }).join("");
-    const membroRow = rowsEl.querySelector('[data-legend2-membro="1"]');
-    if (membroRow) {
-      membroRow.addEventListener("click", () => {
-        legend2MembroAberto = !legend2MembroAberto;
+    const ultimoRow = rowsEl.querySelector('[data-legend2-ultimo="1"]');
+    if (ultimoRow) {
+      ultimoRow.addEventListener("click", () => {
+        legend2UltimoAberto = !legend2UltimoAberto;
         renderLegend2();
       });
     }
