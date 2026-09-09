@@ -4916,7 +4916,7 @@
         <div class="tasks2-col-date"><button type="button" class="tasks2-filtro-btn" data-col="fim">Fim<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-assignee"><button type="button" class="tasks2-filtro-btn" data-col="responsavel">Responsável<span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-area"><button type="button" class="tasks2-filtro-btn" data-col="area">Área<span class="tasks2-filtro-seta">▾</span></button></div>
-        <div class="tasks2-col-pais"><button type="button" class="tasks2-filtro-btn" data-col="pais">País<span class="tasks2-filtro-seta">▾</span></button></div>
+        <div class="tasks2-col-pais"><button type="button" class="tasks2-filtro-btn" data-col="pais"><span id="tasks2-rotulo-pais">País</span><span class="tasks2-filtro-seta">▾</span></button></div>
         <div class="tasks2-col-actions"></div>
       </div>
       <div id="tasks2-table-body"></div>
@@ -5243,7 +5243,7 @@
       <div class="map-search-bar">
         <div class="map-search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="map2-search-input" class="map-search-input" placeholder="Buscar país..." list="map2-search-list" autocomplete="off">
+          <input type="text" id="map2-search-input" class="map-search-input" placeholder="Buscar..." list="map2-search-list" autocomplete="off">
           <datalist id="map2-search-list"></datalist>
           <button type="button" id="map2-search-go" class="map-search-go" aria-label="Buscar">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12,5 19,12 12,19"/></svg>
@@ -5335,7 +5335,7 @@
 </div>
 
 <div id="footer2">
-  <span id="count2">Nenhum país selecionado</span>
+  <span id="count2"></span>
 </div>
 
 <div id="board2-modal-overlay" class="hidden">
@@ -14024,8 +14024,42 @@ applyRolePermissions();
   // referencia estatico, nao dado da Members2, entao nao ha problema em
   // buscar de novo (o navegador serve do cache) em vez de compartilhar
   // o carregamento assincrono da aba original. ──────────────────────────
+  // A WPF trabalha com paises do mundo; a CBTH com estados do Brasil.
+  // Tudo daqui pra baixo fala em "unidade" — o resto da aba (planilha,
+  // filtros, pipelines, nuvem) nao precisa saber qual das duas e.
+  const EH_ESTADOS = ORG_ATUAL === "cbth";
+  const ROTULO_UNIDADE = EH_ESTADOS ? "Estado" : "País";
+  const ROTULO_GRUPO = EH_ESTADOS ? "Região" : "Continente";
+
+  // Regiao de cada estado — o equivalente da coluna Continente.
+  const ESTADOS_POR_REGIAO = {
+    "Norte": ["Acre", "Amapá", "Amazonas", "Pará", "Rondônia", "Roraima", "Tocantins"],
+    "Nordeste": ["Alagoas", "Bahia", "Ceará", "Maranhão", "Paraíba", "Pernambuco", "Piauí", "Rio Grande do Norte", "Sergipe"],
+    "Centro-Oeste": ["Distrito Federal", "Goiás", "Mato Grosso", "Mato Grosso do Sul"],
+    "Sudeste": ["Espírito Santo", "Minas Gerais", "Rio de Janeiro", "São Paulo"],
+    "Sul": ["Paraná", "Rio Grande do Sul", "Santa Catarina"]
+  };
+  const REGIAO_POR_ESTADO = {};
+  Object.entries(ESTADOS_POR_REGIAO).forEach(([r, lista]) =>
+    lista.forEach(e => { REGIAO_POR_ESTADO[e] = r; }));
+
+  function plural2() { return EH_ESTADOS ? "estados" : "países"; }
+  const NADA_SELECIONADO_2 = "Nenhum " + ROTULO_UNIDADE.toLowerCase() + " selecionado";
+  (function () {
+    document.getElementById("count2").textContent = NADA_SELECIONADO_2;
+    document.getElementById("map2-search-input").placeholder =
+      "Buscar " + ROTULO_UNIDADE.toLowerCase() + "...";
+  })();
+
   const svg2 = d3.select("#map2");
-  const projection2 = d3.geoNaturalEarth1().scale(170).translate([480, 250]);
+  // Estados do Brasil precisam de uma projecao enquadrada no Brasil; o
+  // mundo inteiro usa a mesma de antes.
+  const projection2 = EH_ESTADOS
+    ? d3.geoMercator()
+    : d3.geoNaturalEarth1().scale(170).translate([480, 250]);
+  if (EH_ESTADOS) {
+    projection2.fitExtent([[20, 20], [940, 480]], BRAZIL_STATES_GEOJSON);
+  }
   const path2 = d3.geoPath(projection2);
   let allCountries2 = [];
   let activeCountry2 = null, activeFeature2 = null;
@@ -14075,7 +14109,7 @@ applyRolePermissions();
     // proximo pode nem ter os mesmos status (nomes diferentes).
     activeCountry2 = null; activeFeature2 = null;
     document.getElementById("panel2").classList.add("closed");
-    document.getElementById("count2").textContent = "Nenhum país selecionado";
+    document.getElementById("count2").textContent = NADA_SELECIONADO_2;
     popularSelectStatus2();
     if (allCountries2.length) renderWorldMap2();
     renderLegend2();
@@ -14185,7 +14219,7 @@ applyRolePermissions();
     activeFeature2 = null;
     if (highlightHalo2) highlightHalo2.attr("d", null);
     if (highlightPath2) highlightPath2.attr("d", null);
-    document.getElementById("count2").textContent = "Nenhum país selecionado";
+    document.getElementById("count2").textContent = NADA_SELECIONADO_2;
   });
   document.getElementById("save2-btn").addEventListener("click", () => {
     if (!activeCountry2) return;
@@ -14213,7 +14247,7 @@ applyRolePermissions();
     const rowsEl = document.getElementById("legend2-rows");
     const totalEl = document.getElementById("legend2-total");
     const total = allCountries2.length;
-    totalEl.textContent = total ? `${total} países` : "";
+    totalEl.textContent = total ? `${total} ${plural2()}` : "";
     const board = boardAtual();
     const statusOptions = statusOptionsAtuais();
     const ultimoStatus = statusOptions[statusOptions.length - 1];
@@ -14240,7 +14274,7 @@ applyRolePermissions();
       const clicavel = mostraTipoMembro && s === ultimoStatus;
       const linha = `<div class="legend-row${clicavel ? " legend-row-clickable" : ""}"${clicavel ? ' data-legend2-ultimo="1"' : ""}>
           <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${s}</div>
-          <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} countries</span></div>
+          <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} ${plural2()}</span></div>
         </div>`;
       let breakdown = "";
       if (clicavel && legend2UltimoAberto) {
@@ -14249,7 +14283,7 @@ applyRolePermissions();
           const p = totalUltimo ? Math.round((n / totalUltimo) * 100) : 0;
           return `<div class="legend-row legend-subrow">
             <div class="legend-left">${s} ${t}</div>
-            <div class="legend-stats"><span class="legend-pct">${p}%</span><span class="legend-count">${n} countries</span></div>
+            <div class="legend-stats"><span class="legend-pct">${p}%</span><span class="legend-count">${n} ${plural2()}</span></div>
           </div>`;
         }).join("");
       }
@@ -14283,7 +14317,14 @@ applyRolePermissions();
     paises.forEach(p => { CONTINENTE_POR_PAIS[p] = cont; });
   });
   const CONTINENTES = Object.keys(PAISES_POR_CONTINENTE).sort();
-  function continenteDe(nome) { return CONTINENTE_POR_PAIS[nome] || "Outros"; }
+  function continenteDe(nome) {
+    if (EH_ESTADOS) return REGIAO_POR_ESTADO[nome] || "Outros";
+    return CONTINENTE_POR_PAIS[nome] || "Outros";
+  }
+  // Opcoes do filtro da coluna de grupo.
+  function gruposDisponiveis2() {
+    return EH_ESTADOS ? Object.keys(ESTADOS_POR_REGIAO) : CONTINENTES;
+  }
 
   // ── Planilha ─────────────────────────────────────────────────────────
   // Uma linha por pais do mundo (todos os 241, nao so os ja preenchidos).
@@ -14496,7 +14537,7 @@ applyRolePermissions();
     if (colId === "__continente__") {
       return `<select class="pl2-filtro" data-col="__continente__">
         <option value="">— todos —</option>
-        ${CONTINENTES.map(c => `<option value="${esc2(c)}" ${atual === c ? "selected" : ""}>${esc2(c)}</option>`).join("")}
+        ${gruposDisponiveis2().map(c => `<option value="${esc2(c)}" ${atual === c ? "selected" : ""}>${esc2(c)}</option>`).join("")}
       </select>`;
     }
     if (colId === "__pais__") {
@@ -14632,8 +14673,8 @@ applyRolePermissions();
     const porId = {};
     cols.forEach(c => { porId[c.id] = c; });
     const ordem = aplicarOrdem2(idsDeTodasAsColunas2());
-    const meta = id => id === "__pais__" ? { fixa: "pais", nome: "País" }
-      : id === "__continente__" ? { fixa: "continente", nome: "Continente" }
+    const meta = id => id === "__pais__" ? { fixa: "pais", nome: ROTULO_UNIDADE }
+      : id === "__continente__" ? { fixa: "continente", nome: ROTULO_GRUPO }
       : (porId[id] ? { col: porId[id] } : null);
     const ordenadas = ordem.map(meta).filter(Boolean);
 
@@ -14656,8 +14697,8 @@ applyRolePermissions();
     document.getElementById("planilha2-datalists").innerHTML = dls;
 
     document.getElementById("planilha2-contagem").textContent =
-      visiveis.length === todos.length ? `${todos.length} países`
-        : `${visiveis.length} de ${todos.length} países`;
+      visiveis.length === todos.length ? `${todos.length} ${plural2()}`
+        : `${visiveis.length} de ${todos.length} ${plural2()}`;
     vazia.classList.toggle("hidden", visiveis.length > 0);
 
     ligarEventosPlanilha2();
@@ -14897,7 +14938,7 @@ applyRolePermissions();
     const msg = document.getElementById("map2-search-msg");
     if (!nome) { msg.textContent = ""; return; }
     const feature = allCountries2.find(f => f.properties.name.toLowerCase() === nome.toLowerCase());
-    if (!feature) { msg.textContent = "País não encontrado."; return; }
+    if (!feature) { msg.textContent = ROTULO_UNIDADE + " não encontrado."; return; }
     msg.textContent = "";
     selectCountry2(feature.properties.name, feature);
   }
@@ -14983,6 +15024,13 @@ applyRolePermissions();
     linha.prepend(clone);
   })();
 
+  if (EH_ESTADOS) {
+    // Estados vem embutidos no proprio arquivo — nada a buscar na rede.
+    allCountries2 = BRAZIL_STATES_GEOJSON.features;
+    renderWorldMap2();
+    renderLegend2();
+    populateSearchList2();
+  } else
   d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json").then(world => {
     allCountries2 = topojson.feature(world, world.objects.countries).features;
     renderWorldMap2();
@@ -16199,6 +16247,15 @@ applyRolePermissions();
     return [...usados].sort();
   }
 
+  // WPF liga tarefas a paises; CBTH a estados do Brasil. O rotulo segue a
+  // empresa ativa, e a lista vem da Members 2, que ja devolve a unidade
+  // certa — aqui nao precisa saber qual das duas e.
+  const ROTULO_PAIS_TASKS2 = ORG_ATUAL === "cbth" ? "Estado" : "País";
+  (function () {
+    const el = document.getElementById("tasks2-rotulo-pais");
+    if (el) el.textContent = ROTULO_PAIS_TASKS2;
+  })();
+
   function paisCellMarkup(t) {
     const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
     const atual = t.paisLink || "";
@@ -16208,9 +16265,9 @@ applyRolePermissions();
     const chip = atual
       ? `<span class="tasks2-pais-chip">${esc(atual)}</span>`
       : `<span class="tasks2-pais-vazio">— nenhum —</span>`;
-    return `<span class="tasks2-pais-picker" title="${atual ? esc(atual) : "Escolher país"}">
+    return `<span class="tasks2-pais-picker" title="${atual ? esc(atual) : "Escolher " + ROTULO_PAIS_TASKS2.toLowerCase()}">
         ${chip}
-        <select class="tasks2-pais-select" data-id="${t.id}" aria-label="País da linha">
+        <select class="tasks2-pais-select" data-id="${t.id}" aria-label="${ROTULO_PAIS_TASKS2} da linha">
           <option value="">— nenhum —</option>
           ${lista.map(x => `<option value="${esc(x)}" ${x === atual ? "selected" : ""}>${esc(x)}</option>`).join("")}
         </select>
