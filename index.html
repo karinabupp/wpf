@@ -2375,6 +2375,7 @@
   }
   #planilha2 td { height: 38px; }
   #planilha2 td.pl2-select select { padding: 8px 10px; border-radius: 5px; }
+  #planilha2 td.pl2-select select.pl2-sem-valor { color: var(--text-muted); }
   #board2-linha { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
   #board2-linha #board2-select { margin-bottom: 0; flex: 1 1 auto; min-width: 0; }
   #board2-cores {
@@ -14443,8 +14444,8 @@ applyRolePermissions();
     if (col.tipo === "status" || col.tipo === "select") {
       const board = col.tipo === "status" ? boards2.find(b => b.id === col.boardId) : null;
       const fundo = (board && val) ? `style="background:${corDoStatus2(board, val)}"` : "";
-      return `<td class="pl2-select"><select class="pl2-input" ${d} ${fundo}>
-        <option value=""></option>
+      return `<td class="pl2-select"><select class="pl2-input ${val ? "" : "pl2-sem-valor"}" ${d} ${fundo}>
+        <option value="">—</option>
         ${opcoesDaColuna(col).map(o => `<option value="${esc2(o)}" ${o === val ? "selected" : ""}>${esc2(o)}</option>`).join("")}
       </select></td>`;
     }
@@ -14469,9 +14470,13 @@ applyRolePermissions();
     const vazia = document.getElementById("planilha2-vazia");
 
     // Sem paises no mapa ainda (topojson nao carregou) — nao ha o que listar
-    const todos = allCountries2.length
+    // A ordem do topojson e a dele (comeca em Zimbabwe) — pra uma lista de
+    // 241 linhas, ordem alfabetica e a unica em que da pra achar algo.
+    // localeCompare pt-BR pra acento nao jogar pro fim.
+    const todos = (allCountries2.length
       ? allCountries2.map(f => f.properties.name)
-      : Object.keys(countryData2);
+      : Object.keys(countryData2)
+    ).slice().sort((a, b) => a.localeCompare(b, "pt-BR"));
     const visiveis = todos.filter(n => passaNoFiltro2(n, cols));
 
     // Titulo = botao que abre o filtro daquela coluna. Coluna filtrada
