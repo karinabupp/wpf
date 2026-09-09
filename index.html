@@ -2446,6 +2446,13 @@
     display: inline-flex; align-items: center; gap: 5px;
   }
   .pl2-funil { color: var(--text-muted); font-size: 9px; }
+  #planilha2 th[data-colth] { cursor: grab; }
+  #planilha2 th.pl2-arrastando { opacity: 0.45; }
+  #planilha2 th.pl2-alvo { box-shadow: inset 3px 0 0 var(--accent); }
+  .pl2-arrasta {
+    color: var(--border-strong); font-size: 11px; margin-right: 4px;
+    cursor: grab; user-select: none;
+  }
   .pl2-tipo-ic {
     color: var(--text-muted); font-size: 11px; margin-right: 1px;
     display: inline-block; width: 12px; text-align: center;
@@ -5193,7 +5200,6 @@
 <div id="members2-view" class="content-view hidden">
 
 <div id="header-row2">
-  <span id="members2-badge">Members 2 · rascunho, dados isolados</span>
   <div id="members2-switch">
     <button type="button" id="members2-tab-mapa" class="is-ativo">Mapa</button>
     <button type="button" id="members2-tab-planilha">Planilha</button>
@@ -14361,6 +14367,39 @@ applyRolePermissions();
     return [...set].sort();
   }
 
+  // ── Ordem das colunas ────────────────────────────────────────────────
+  // Guardada como lista de ids. Coluna que aparecer depois (pipeline novo,
+  // coluna criada) entra no fim em vez de sumir, e id que nao existe mais
+  // e ignorado — assim a ordem sobrevive a criar/apagar coluna e quadro.
+  const ORDEM_KEY = "wpf_members2_ordem_colunas";
+  let ordemColunas2 = [];
+  try {
+    const o = JSON.parse(localStorage.getItem(ORDEM_KEY) || "null");
+    if (Array.isArray(o)) ordemColunas2 = o;
+  } catch (e) { ordemColunas2 = []; }
+  function saveOrdem2() { localStorage.setItem(ORDEM_KEY, JSON.stringify(ordemColunas2)); }
+
+  function aplicarOrdem2(ids) {
+    const conhecidos = ordemColunas2.filter(id => ids.includes(id));
+    const novos = ids.filter(id => !conhecidos.includes(id));
+    return conhecidos.concat(novos);
+  }
+
+  function moverColuna2(origem, destino) {
+    if (origem === destino) return;
+    const ids = aplicarOrdem2(idsDeTodasAsColunas2());
+    const de = ids.indexOf(origem), para = ids.indexOf(destino);
+    if (de === -1 || para === -1) return;
+    ids.splice(para, 0, ids.splice(de, 1)[0]);
+    ordemColunas2 = ids;
+    saveOrdem2();
+    renderPlanilha2();
+  }
+
+  function idsDeTodasAsColunas2() {
+    return ["__pais__", "__continente__"].concat(colunasDaPlanilha().map(c => c.id));
+  }
+
   // ── Filtros: um por coluna, incluindo País e Continente ──────────────
   // Comparacao sem acento e sem caixa: "japao" acha "Japão". A Tasks 2 tem
   // uma funcao igual, mas ela vive dentro da IIFE dela — daqui nao da pra
@@ -14523,25 +14562,34 @@ applyRolePermissions();
       const ativo = !!filtros2[colId];
       const ic = tipo && ICONE_TIPO[tipo]
         ? `<span class="pl2-tipo-ic" title="${esc2((TIPOS_COLUNA[tipo] || {}).rotulo || tipo)}">${ICONE_TIPO[tipo]}</span>` : "";
-      return `<th class="${ativo ? "pl2-th-filtrada" : ""}">
+      return `<th class="${ativo ? "pl2-th-filtrada" : ""}" draggable="true" data-colth="${esc2(colId)}">
+        <span class="pl2-arrasta" title="Arraste para mudar a ordem da coluna">⠿</span>
         <button type="button" class="pl2-th-btn" data-col="${esc2(colId)}" title="Filtrar por ${esc2(rotulo)}">
           ${ic}<span>${esc2(rotulo)}</span><span class="pl2-funil">⏷</span>
         </button>${extra || ""}</th>`;
     };
-    cabeca.innerHTML = `<tr>
-        ${th("__pais__", "País")}
-        ${th("__continente__", "Continente")}
-        ${cols.map(c => th(c.id, c.nome, c.tipo === "status" ? "" :
-          `<button type="button" class="pl2-del-col" data-col="${esc2(c.id)}" title="Excluir coluna">×</button>`, c.tipo)).join("")}
-      </tr>`;
 
-    corpo.innerHTML = visiveis.map(nome => {
-      return `<tr>
-        <td class="pl2-pais">${esc2(nome)}</td>
-        <td class="pl2-continente">${esc2(continenteDe(nome))}</td>
-        ${cols.map(c => celulaMarkup(nome, c)).join("")}
-      </tr>`;
-    }).join("");
+    // Uma unica lista ordenada manda no cabecalho E nas celulas, pra nao
+    // existir a chance de a ordem de uma sair diferente da outra.
+    const porId = {};
+    cols.forEach(c => { porId[c.id] = c; });
+    const ordem = aplicarOrdem2(idsDeTodasAsColunas2());
+    const meta = id => id === "__pais__" ? { fixa: "pais", nome: "País" }
+      : id === "__continente__" ? { fixa: "continente", nome: "Continente" }
+      : (porId[id] ? { col: porId[id] } : null);
+    const ordenadas = ordem.map(meta).filter(Boolean);
+
+    cabeca.innerHTML = `<tr>${ordenadas.map(m => m.fixa
+      ? th(m.fixa === "pais" ? "__pais__" : "__continente__", m.nome)
+      : th(m.col.id, m.col.nome, m.col.tipo === "status" ? "" :
+          `<button type="button" class="pl2-del-col" data-col="${esc2(m.col.id)}" title="Excluir coluna">×</button>`, m.col.tipo)
+    ).join("")}</tr>`;
+
+    corpo.innerHTML = visiveis.map(nome => `<tr>${ordenadas.map(m =>
+      m.fixa === "pais" ? `<td class="pl2-pais">${esc2(nome)}</td>`
+      : m.fixa === "continente" ? `<td class="pl2-continente">${esc2(continenteDe(nome))}</td>`
+      : celulaMarkup(nome, m.col)
+    ).join("")}</tr>`).join("");
 
     // datalists dos campos do tipo "pessoa"
     const dls = cols.filter(c => c.tipo === "pessoa").map(c =>
@@ -14588,6 +14636,33 @@ applyRolePermissions();
     });
     corpo.querySelectorAll(".pl2-multi-btn").forEach(btn => {
       btn.addEventListener("click", e => { e.stopPropagation(); abrirMultiSelect2(btn); });
+    });
+    let arrastando2 = null;
+    document.getElementById("planilha2-head").querySelectorAll("th[data-colth]").forEach(th => {
+      th.addEventListener("dragstart", e => {
+        arrastando2 = th.dataset.colth;
+        e.dataTransfer.effectAllowed = "move";
+        // Firefox so inicia o arrasto se algo for escrito no dataTransfer
+        e.dataTransfer.setData("text/plain", arrastando2);
+        th.classList.add("pl2-arrastando");
+      });
+      th.addEventListener("dragend", () => {
+        arrastando2 = null;
+        document.querySelectorAll(".pl2-arrastando, .pl2-alvo").forEach(x =>
+          x.classList.remove("pl2-arrastando", "pl2-alvo"));
+      });
+      th.addEventListener("dragover", e => {
+        if (!arrastando2 || arrastando2 === th.dataset.colth) return;
+        e.preventDefault();
+        th.classList.add("pl2-alvo");
+      });
+      th.addEventListener("dragleave", () => th.classList.remove("pl2-alvo"));
+      th.addEventListener("drop", e => {
+        e.preventDefault();
+        th.classList.remove("pl2-alvo");
+        const de = arrastando2 || e.dataTransfer.getData("text/plain");
+        if (de) moverColuna2(de, th.dataset.colth);
+      });
     });
     document.getElementById("planilha2-head").querySelectorAll(".pl2-th-btn").forEach(btn => {
       btn.addEventListener("click", e => { e.stopPropagation(); abrirFiltro2(btn); });
@@ -14784,6 +14859,19 @@ applyRolePermissions();
   window.membros2Bridge = {
     paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR"))
   };
+
+  // Logo igual ao da aba Members. Clonado do #logo original (que ja nasce
+  // com a marca da empresa ativa), pelo mesmo motivo das outras abas: nao
+  // duplicar o base64 gigante.
+  (function () {
+    const linha = document.getElementById("header-row2");
+    const clone = document.getElementById("logo").cloneNode(true);
+    clone.removeAttribute("id");
+    clone.style.height = "44px";
+    clone.style.width = "auto";
+    clone.style.display = "block";
+    linha.prepend(clone);
+  })();
 
   d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json").then(world => {
     allCountries2 = topojson.feature(world, world.objects.countries).features;
