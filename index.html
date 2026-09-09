@@ -2442,7 +2442,11 @@
     background: var(--accent); color: #fff; border: none; border-radius: 6px;
     padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
   }
-  #planilha2-scroll { overflow: auto; max-height: 70vh; }
+  /* 70vh deixava uma faixa morta embaixo, porque o que esta acima da
+     tabela (logo + switch) nao entra na conta de vh. Descontar uma altura
+     fixa faz a tabela ir ate perto do fim da janela em qualquer tela, e
+     ainda sobra espaco pra barra de contagem logo abaixo. */
+  #planilha2-scroll { overflow: auto; max-height: calc(100vh - 165px); }
   #planilha2 thead th { position: sticky; top: 0; z-index: 2; }
   .pl2-th-btn {
     background: none; border: none; padding: 0; cursor: pointer;
