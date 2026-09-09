@@ -13439,9 +13439,24 @@ applyRolePermissions();
 
   function saveData2() { localStorage.setItem(M2_STORAGE_KEY, JSON.stringify(countryData2)); }
 
+  // Status proprios da Members 2 — nao os 7 da Members original. So 3:
+  // Lead (o padrao — um pais sem nada preenchido ja e um Lead, mesmo
+  // cinza), Negociação (o mesmo roxo claro que "Contacting" usava) e
+  // Membro (o mesmo roxo escuro que "Negotiation" usava).
+  const STATUS_OPTIONS2 = ["Lead", "Negociação", "Membro"];
+  const STATUS_COLORS2 = {
+    "Lead":       { fill: "#e4e2d8", badgeBg: "#f1efe8", badgeText: "#5d5c55" },
+    "Negociação": { fill: "#afa9ec", badgeBg: "#eeedfe", badgeText: "#3c3489" },
+    "Membro":     { fill: "#534ab7", badgeBg: "#eeedfe", badgeText: "#26215c" }
+  };
+  // So existe quando status === "Membro" — se um pais e Membro, precisa
+  // dizer se e Observador ou Afiliado.
+  const TIPO_MEMBRO_OPCOES = ["Observador", "Afiliado"];
+
   function getRecord2(name) {
-    const rec = countryData2[name] || { status: "Not Started", partner: "" };
+    const rec = countryData2[name] || { status: "Lead", partner: "", tipoMembro: "" };
     if (rec.partner === undefined) rec.partner = "";
+    if (rec.tipoMembro === undefined) rec.tipoMembro = "";
     return rec;
   }
   function setRecord2(name, patch) {
@@ -13450,7 +13465,7 @@ applyRolePermissions();
   }
   function fillFor2(name) {
     const rec = getRecord2(name);
-    return (STATUS_COLORS[rec.status] || STATUS_COLORS["Not Started"]).fill;
+    return (STATUS_COLORS2[rec.status] || STATUS_COLORS2["Lead"]).fill;
   }
 
   // ── Mapa: svg propria, mas reaproveita a MESMA projecao/geometria do
@@ -13497,8 +13512,26 @@ applyRolePermissions();
   const panel2Name = document.getElementById("panel2-name");
   const panel2Status = document.getElementById("panel2-status");
   const panel2Partner = document.getElementById("panel2-partner");
-  panel2Status.innerHTML = STATUS_OPTIONS.map(s =>
-    `<option value="${s}">${STATUS_DISPLAY_LABELS[s] || s}</option>`).join("");
+  panel2Status.innerHTML = STATUS_OPTIONS2.map(s => `<option value="${s}">${s}</option>`).join("");
+
+  // Campo "Tipo de membro" (Observador/Afiliado) — so faz sentido quando o
+  // status e Membro. Montado na hora, do lado do select de status, pra nao
+  // mexer no HTML da view (evita duplicar o painel inteiro so por isto).
+  const panel2TipoMembroField = document.createElement("div");
+  panel2TipoMembroField.className = "field hidden";
+  panel2TipoMembroField.id = "panel2-tipo-membro-field";
+  panel2TipoMembroField.innerHTML = `<label for="panel2-tipo-membro">Tipo de membro</label>
+    <select id="panel2-tipo-membro">
+      <option value="">— escolher —</option>
+      ${TIPO_MEMBRO_OPCOES.map(t => `<option value="${t}">${t}</option>`).join("")}
+    </select>`;
+  panel2Status.closest(".field").insertAdjacentElement("afterend", panel2TipoMembroField);
+  const panel2TipoMembro = panel2TipoMembroField.querySelector("#panel2-tipo-membro");
+
+  function atualizarVisibilidadeTipoMembro() {
+    panel2TipoMembroField.classList.toggle("hidden", panel2Status.value !== "Membro");
+  }
+  panel2Status.addEventListener("change", atualizarVisibilidadeTipoMembro);
 
   function selectCountry2(name, feature) {
     activeCountry2 = name;
@@ -13508,6 +13541,8 @@ applyRolePermissions();
     const rec = getRecord2(name);
     panel2Status.value = rec.status;
     panel2Partner.value = rec.partner;
+    panel2TipoMembro.value = rec.tipoMembro || "";
+    atualizarVisibilidadeTipoMembro();
     if (highlightHalo2 && highlightPath2) {
       highlightHalo2.attr("d", path2(feature)).raise();
       highlightPath2.attr("d", path2(feature)).raise();
@@ -13524,7 +13559,14 @@ applyRolePermissions();
   });
   document.getElementById("save2-btn").addEventListener("click", () => {
     if (!activeCountry2) return;
-    setRecord2(activeCountry2, { status: panel2Status.value, partner: panel2Partner.value.trim() });
+    const novoStatus = panel2Status.value;
+    setRecord2(activeCountry2, {
+      status: novoStatus,
+      partner: panel2Partner.value.trim(),
+      // Sai do status Membro, o tipo (Observador/Afiliado) nao faz mais
+      // sentido — limpa em vez de deixar um valor invisivel guardado.
+      tipoMembro: novoStatus === "Membro" ? panel2TipoMembro.value : ""
+    });
     renderWorldMap2();
     renderLegend2();
     const confirmEl = document.getElementById("save2-confirm");
@@ -13532,30 +13574,56 @@ applyRolePermissions();
     setTimeout(() => { confirmEl.style.opacity = 0; }, 1500);
   });
 
-  // ── Legenda: uma linha por status, com contagem — sem os sub-niveis
-  // expansiveis (Trading/Digital/etc.) que a legenda original tem dentro
-  // de "Member". ────────────────────────────────────────────────────────
+  // ── Legenda: uma linha por status, com contagem. A linha "Membro" e
+  // clicavel — abre a proporcao entre Membro Observador e Membro Afiliado,
+  // em numero e em % DENTRO do total de Membros (nao do total de paises).
+  // ────────────────────────────────────────────────────────────────────
+  let legend2MembroAberto = false;
   function renderLegend2() {
     const rowsEl = document.getElementById("legend2-rows");
     const totalEl = document.getElementById("legend2-total");
     const total = allCountries2.length;
     totalEl.textContent = total ? `${total} países` : "";
     const counts = {};
-    STATUS_OPTIONS.forEach(s => { counts[s] = 0; });
+    STATUS_OPTIONS2.forEach(s => { counts[s] = 0; });
+    const tipoMembroCounts = { "Observador": 0, "Afiliado": 0, "": 0 };
     allCountries2.forEach(f => {
-      const st = getRecord2(f.properties.name).status;
-      counts[st] = (counts[st] || 0) + 1;
+      const rec = getRecord2(f.properties.name);
+      counts[rec.status] = (counts[rec.status] || 0) + 1;
+      if (rec.status === "Membro") {
+        const t = rec.tipoMembro || "";
+        tipoMembroCounts[t] = (tipoMembroCounts[t] || 0) + 1;
+      }
     });
-    rowsEl.innerHTML = STATUS_OPTIONS.map(s => {
+    const totalMembros = counts["Membro"] || 0;
+    rowsEl.innerHTML = STATUS_OPTIONS2.map(s => {
       const pct = total ? Math.round((counts[s] / total) * 100) : 0;
-      const color = (STATUS_COLORS[s] || STATUS_COLORS["Not Started"]).fill;
-      return `<div class="legend-row-wrap">
-        <div class="legend-row">
-          <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${STATUS_DISPLAY_LABELS[s] || s}</div>
+      const color = (STATUS_COLORS2[s] || STATUS_COLORS2["Lead"]).fill;
+      const clicavel = s === "Membro";
+      const linha = `<div class="legend-row${clicavel ? " legend-row-clickable" : ""}"${clicavel ? ' data-legend2-membro="1"' : ""}>
+          <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${s}</div>
           <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} countries</span></div>
-        </div>
-      </div>`;
+        </div>`;
+      let breakdown = "";
+      if (clicavel && legend2MembroAberto) {
+        breakdown = TIPO_MEMBRO_OPCOES.map(t => {
+          const n = tipoMembroCounts[t] || 0;
+          const p = totalMembros ? Math.round((n / totalMembros) * 100) : 0;
+          return `<div class="legend-row legend-subrow">
+            <div class="legend-left">Membro ${t}</div>
+            <div class="legend-stats"><span class="legend-pct">${p}%</span><span class="legend-count">${n} countries</span></div>
+          </div>`;
+        }).join("");
+      }
+      return `<div class="legend-row-wrap">${linha}${breakdown}</div>`;
     }).join("");
+    const membroRow = rowsEl.querySelector('[data-legend2-membro="1"]');
+    if (membroRow) {
+      membroRow.addEventListener("click", () => {
+        legend2MembroAberto = !legend2MembroAberto;
+        renderLegend2();
+      });
+    }
   }
 
   // ── Busca ───────────────────────────────────────────────────────────
