@@ -2277,7 +2277,11 @@
      drill-down por estado, sem paineis de Brasil/Committee — o mesmo tipo
      de recorte que a Tasks 2 teve no comeco, pra nao promoter reconstruir
      o sistema inteiro de uma vez. ──────────────────────────────────── */
-  #header-row2 { display: flex; align-items: center; gap: 16px; }
+  /* Mesmo respiro que #header-row usa na aba Members. */
+  #header-row2 {
+    display: flex; align-items: center; gap: 16px;
+    width: 100%; max-width: min(96vw, 1900px); margin-bottom: 20px;
+  }
   #members2-switch {
     display: inline-flex;
     border: 1px solid var(--border);
@@ -5680,7 +5684,14 @@ const SUPABASE_HEADERS = {
 // this list is just how it maps onto rows when reading/writing.
 // tasks2* saem da aba Tasks 2. Ela nasceu isolada, so no localStorage; passou
 // a sincronizar quando Karina pediu que a tela ficasse igual pra quem abrisse.
-const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico", "historicoGeral"];
+// Cada empresa tem as proprias secoes: a WPF usa os nomes sem sufixo (que
+// ja existiam) e a CBTH os mesmos nomes com "__cbth". Assim as duas
+// sincronizam de verdade entre computadores sem uma sobrescrever a outra.
+// Members 2 vai inteira numa secao so por empresa (quadros + colunas +
+// ordem + dados de cada quadro), em vez de espalhar em varias.
+const CLOUD_SECTIONS = ["federations", "committee", "states", "committeeStates", "brazilStates", "goals", "tasks", "users", "social", "socialBR", "affiliations", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico", "historicoGeral", "tasks2__cbth", "tasks2Areas__cbth", "tasks2Kpis__cbth", "tasks2Historico__cbth", "members2", "members2__cbth"];
+// Sufixo da empresa ativa, usado nos nomes de secao acima.
+const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 
 // A aba Tasks 2 vive dentro de uma IIFE no fim do script, entao seus dados
 // nao sao alcancaveis daqui. Ela publica esta ponte ao carregar; ate la fica
@@ -5721,7 +5732,7 @@ function setCloudStatus(state) {
 }
 
 function collectAllData() {
-  return {
+  return preencherSecoesPorOrg({
     revision: localRevision,
     federations: countryData,
     committee: committeeCountryData,
@@ -5734,16 +5745,26 @@ function collectAllData() {
     social: socialData,
     socialBR: socialDataBR,
     affiliations: affiliationsCountryData,
-    // undefined (nao []) enquanto a ponte nao existe: undefined e omitido
-    // do push, [] apagaria.
-    tasks2: tasks2Bridge ? tasks2Bridge.getTasks() : undefined,
-    tasks2Areas: tasks2Bridge ? tasks2Bridge.getAreas() : undefined,
-    tasks2Kpis: tasks2Bridge ? tasks2Bridge.getKpis() : undefined,
-    // O historico tambem vai pra nuvem: sem isso, so daria pra voltar no
-    // tempo do navegador onde a edicao foi feita.
-    tasks2Historico: tasks2Bridge ? tasks2Bridge.getHistorico() : undefined,
     historicoGeral: historicoGeral.length ? historicoGeral : undefined
-  };
+  });
+}
+
+// As secoes da Tasks 2 e da Members 2 vao com o sufixo da empresa ativa,
+// entao os nomes das chaves nao dao pra escrever direto no literal acima.
+// undefined (nao []) enquanto a ponte nao existe: undefined e omitido do
+// push, [] apagaria o que ja esta la.
+function preencherSecoesPorOrg(p) {
+  const suf = SUFIXO_ORG();
+  if (tasks2Bridge) {
+    p["tasks2" + suf] = tasks2Bridge.getTasks();
+    p["tasks2Areas" + suf] = tasks2Bridge.getAreas();
+    p["tasks2Kpis" + suf] = tasks2Bridge.getKpis();
+    p["tasks2Historico" + suf] = tasks2Bridge.getHistorico();
+  }
+  if (window.membros2Bridge && membros2Bridge.getDados) {
+    p["members2" + suf] = membros2Bridge.getDados();
+  }
+  return p;
 }
 
 // Applies cloud data to the in-memory datasets and mirrors them into
@@ -5765,6 +5786,9 @@ function applyAllData(data) {
   // A Tasks 2 aplica o que e dela por conta propria: os dados vivem dentro
   // da IIFE e precisam passar pelas migracoes de categoria e status dela.
   if (tasks2Bridge) tasks2Bridge.apply(data);
+  if (window.membros2Bridge && membros2Bridge.apply) {
+    membros2Bridge.apply(data["members2" + SUFIXO_ORG()]);
+  }
   // Versoes de maquinas diferentes se juntam, nenhuma substitui a outra:
   // o objetivo aqui e nao perder.
   if (Array.isArray(data.historicoGeral) && data.historicoGeral.length) {
@@ -13922,7 +13946,10 @@ applyRolePermissions();
       if (paleta && !b.coresCustom) b.cores = paletaParaObjeto(paleta);
     });
   }
-  function saveBoards2() { localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2)); }
+  function saveBoards2() {
+    localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2));
+    scheduleCloudSave();
+  }
   saveBoards2(); // grava a lista (ja migrada/semeada, se era o caso)
 
   let activeBoardId2 = localStorage.getItem(ACTIVE_BOARD_KEY) || boards2[0].id;
@@ -13945,7 +13972,10 @@ applyRolePermissions();
   }
   carregarDadosDoBoard();
 
-  function saveData2() { localStorage.setItem(chaveDadosDoBoard(activeBoardId2), JSON.stringify(countryData2)); }
+  function saveData2() {
+    localStorage.setItem(chaveDadosDoBoard(activeBoardId2), JSON.stringify(countryData2));
+    scheduleCloudSave();
+  }
 
   function statusOptionsAtuais() { return boardAtual().status; }
   function statusColorsAtuais() { return boardAtual().cores; }
@@ -14278,7 +14308,10 @@ applyRolePermissions();
     const g = JSON.parse(localStorage.getItem(PAISES_KEY) || "{}");
     if (g && typeof g === "object") dadosPaises2 = g;
   } catch (e) { dadosPaises2 = {}; }
-  function savePaises2() { localStorage.setItem(PAISES_KEY, JSON.stringify(dadosPaises2)); }
+  function savePaises2() {
+    localStorage.setItem(PAISES_KEY, JSON.stringify(dadosPaises2));
+    scheduleCloudSave();
+  }
   function getPais2(nome) { return dadosPaises2[nome] || {}; }
   function setValorPais2(nome, colId, valor) {
     if (!dadosPaises2[nome]) dadosPaises2[nome] = {};
@@ -14303,6 +14336,7 @@ applyRolePermissions();
     if (!d[nome]) d[nome] = { status: "", partner: "", tipoMembro: "" };
     d[nome].status = valor;
     localStorage.setItem(chaveDadosDoBoard(boardId), JSON.stringify(d));
+    scheduleCloudSave();
   }
 
   // A planilha nasce so com o essencial: País, Continente e uma coluna por
@@ -14317,7 +14351,10 @@ applyRolePermissions();
     const c = JSON.parse(localStorage.getItem(COLUNAS_KEY) || "null");
     colunas2 = Array.isArray(c) ? c : COLUNAS_PADRAO.map(x => Object.assign({}, x));
   } catch (e) { colunas2 = COLUNAS_PADRAO.map(x => Object.assign({}, x)); }
-  function saveColunas2() { localStorage.setItem(COLUNAS_KEY, JSON.stringify(colunas2)); }
+  function saveColunas2() {
+    localStorage.setItem(COLUNAS_KEY, JSON.stringify(colunas2));
+    scheduleCloudSave();
+  }
   saveColunas2();
 
   // Migracao: antes os campos do pais viviam dentro do registro de cada
@@ -14377,7 +14414,10 @@ applyRolePermissions();
     const o = JSON.parse(localStorage.getItem(ORDEM_KEY) || "null");
     if (Array.isArray(o)) ordemColunas2 = o;
   } catch (e) { ordemColunas2 = []; }
-  function saveOrdem2() { localStorage.setItem(ORDEM_KEY, JSON.stringify(ordemColunas2)); }
+  function saveOrdem2() {
+    localStorage.setItem(ORDEM_KEY, JSON.stringify(ordemColunas2));
+    scheduleCloudSave();
+  }
 
   function aplicarOrdem2(ids) {
     const conhecidos = ordemColunas2.filter(id => ids.includes(id));
@@ -14856,8 +14896,60 @@ applyRolePermissions();
   // promise da Members original) e faz a primeira pintura. ──────────────
   // Ponte pra Tasks 2: so leitura, so a lista de nomes. A Tasks 2 precisa
   // dela pro select da coluna País; nao expoe dado de pipeline nenhum.
+  // Junta tudo que a Members 2 guarda: quadros, colunas, ordem, os dados
+  // por pais e o status de cada quadro. Vai como UMA secao por empresa.
+  function dadosDeTodosOsQuadros2() {
+    const out = {};
+    boards2.forEach(b => {
+      try {
+        const d = b.id === activeBoardId2
+          ? countryData2
+          : JSON.parse(localStorage.getItem(chaveDadosDoBoard(b.id)) || "{}");
+        out[b.id] = d || {};
+      } catch (e) { out[b.id] = {}; }
+    });
+    return out;
+  }
+
   window.membros2Bridge = {
-    paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR"))
+    paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    getDados: () => ({
+      boards: boards2,
+      colunas: colunas2,
+      ordem: ordemColunas2,
+      paises: dadosPaises2,
+      statusPorQuadro: dadosDeTodosOsQuadros2()
+    }),
+    apply: (pacote) => {
+      if (!pacote || typeof pacote !== "object") return;
+      // Vazio vindo da nuvem nao apaga o que ha aqui — mesma regra da
+      // Tasks 2: ou o outro lado ainda nao abriu a aba, ou e resquicio.
+      if (Array.isArray(pacote.boards) && pacote.boards.length) {
+        boards2 = pacote.boards;
+        localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2));
+      }
+      if (Array.isArray(pacote.colunas)) {
+        colunas2 = pacote.colunas;
+        localStorage.setItem(COLUNAS_KEY, JSON.stringify(colunas2));
+      }
+      if (Array.isArray(pacote.ordem)) {
+        ordemColunas2 = pacote.ordem;
+        localStorage.setItem(ORDEM_KEY, JSON.stringify(ordemColunas2));
+      }
+      if (pacote.paises && typeof pacote.paises === "object" && Object.keys(pacote.paises).length) {
+        dadosPaises2 = pacote.paises;
+        localStorage.setItem(PAISES_KEY, JSON.stringify(dadosPaises2));
+      }
+      if (pacote.statusPorQuadro && typeof pacote.statusPorQuadro === "object") {
+        Object.entries(pacote.statusPorQuadro).forEach(([bid, d]) => {
+          if (!d || typeof d !== "object") return;
+          localStorage.setItem(chaveDadosDoBoard(bid), JSON.stringify(d));
+          if (bid === activeBoardId2) countryData2 = d;
+        });
+      }
+      if (allCountries2.length) { renderWorldMap2(); renderLegend2(); }
+      if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+    }
   };
 
   // Logo igual ao da aba Members. Clonado do #logo original (que ja nasce
@@ -17601,15 +17693,22 @@ applyRolePermissions();
   let tasks2TemDados = tasks2Seeded;
 
   tasks2Bridge = {
-    // CBTH fica so local (nunca sobe pra nuvem nem baixa de la) — e um
-    // placeholder por enquanto, nao uma segunda empresa de verdade com
-    // conta e permissoes proprias. So a WPF participa da sincronizacao.
-    getTasks: () => (ORG_ATUAL === "wpf" && tasks2TemDados ? tasksData : undefined),
-    getAreas: () => (ORG_ATUAL === "wpf" && tasks2TemDados ? areasData : undefined),
-    getKpis:  () => (ORG_ATUAL === "wpf" && tasks2TemDados ? kpisData : undefined),
-    getHistorico: () => (ORG_ATUAL === "wpf" && historicoData.length ? historicoData : undefined),
+    // As duas empresas sincronizam. Cada uma escreve nas SUAS secoes
+    // (a CBTH nas terminadas em "__cbth"), entao nao existe risco de uma
+    // sobrescrever a outra — o que era o motivo de a CBTH ficar local.
+    getTasks: () => (tasks2TemDados ? tasksData : undefined),
+    getAreas: () => (tasks2TemDados ? areasData : undefined),
+    getKpis:  () => (tasks2TemDados ? kpisData : undefined),
+    getHistorico: () => (historicoData.length ? historicoData : undefined),
     apply: (data) => {
-      if (ORG_ATUAL !== "wpf") return; // CBTH nao recebe nada da nuvem
+      // Le sempre da secao da empresa ativa.
+      const suf = ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL;
+      data = {
+        tasks2: data["tasks2" + suf],
+        tasks2Areas: data["tasks2Areas" + suf],
+        tasks2Kpis: data["tasks2Kpis" + suf],
+        tasks2Historico: data["tasks2Historico" + suf]
+      };
       // Lista vazia vinda da nuvem NAO apaga o que ha aqui. Ou o outro lado
       // ainda nao tinha carregado a aba, ou e o resquicio da perda acima; nos
       // dois casos manter o que temos e mais seguro do que zerar.
