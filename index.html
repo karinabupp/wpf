@@ -2361,7 +2361,31 @@
   }
   #planilha2-scroll { overflow: auto; max-height: 70vh; }
   #planilha2 thead th { position: sticky; top: 0; z-index: 2; }
-  .pl2-linha-filtro th { top: 33px; background: #fff; padding: 5px 6px; }
+  .pl2-th-btn {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font: inherit; font-weight: 600; font-size: 12px; color: var(--text);
+    display: inline-flex; align-items: center; gap: 5px;
+  }
+  .pl2-funil { color: var(--text-muted); font-size: 9px; }
+  #planilha2 th.pl2-th-filtrada { background: #eeedfe; }
+  #planilha2 th.pl2-th-filtrada .pl2-th-btn { color: #3c3489; }
+  #planilha2 th.pl2-th-filtrada .pl2-funil { color: #3c3489; }
+  #pl2-filtro-menu {
+    position: fixed; z-index: 1100; background: #fff;
+    border: 1px solid var(--border-strong); border-radius: 8px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.16); padding: 10px;
+    width: 220px; display: flex; flex-direction: column; gap: 8px;
+  }
+  #pl2-filtro-menu .pl2-filtro {
+    width: 100%; box-sizing: border-box; font: inherit; font-size: 13px;
+    padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px;
+    background: #fff; color: var(--text);
+  }
+  .pl2-filtro-limpar {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 10px; font-size: 12.5px; cursor: pointer; color: var(--text-muted);
+  }
+  .pl2-filtro-limpar:hover { background: var(--bg); }
   .pl2-filtro {
     width: 100%; box-sizing: border-box; font: inherit; font-size: 12px;
     padding: 4px 6px; border: 1px solid var(--border); border-radius: 5px;
@@ -14184,16 +14208,69 @@ applyRolePermissions();
     return [];
   }
 
-  function filtroMarkup(col) {
-    const atual = filtros2[col.id] || "";
-    if (col.tipo === "select" || col.tipo === "multi") {
-      return `<select class="pl2-filtro" data-col="${esc2(col.id)}">
+  // Controle de filtro de uma coluna. Mora no popup que abre ao clicar no
+  // titulo — nao existe mais linha fixa de filtros ocupando espaco.
+  // "__pais__" e "__continente__" nao sao colunas de verdade, entao vem
+  // como caso especial aqui.
+  function filtroControleMarkup(colId) {
+    const atual = filtros2[colId] || "";
+    if (colId === "__continente__") {
+      return `<select class="pl2-filtro" data-col="__continente__">
+        <option value="">— todos —</option>
+        ${CONTINENTES.map(c => `<option value="${esc2(c)}" ${atual === c ? "selected" : ""}>${esc2(c)}</option>`).join("")}
+      </select>`;
+    }
+    if (colId === "__pais__") {
+      return `<input type="text" class="pl2-filtro" data-col="__pais__" value="${esc2(atual)}" placeholder="filtrar…">`;
+    }
+    const col = colunasDoQuadro().find(c => c.id === colId);
+    if (col && (col.tipo === "select" || col.tipo === "multi")) {
+      return `<select class="pl2-filtro" data-col="${esc2(colId)}">
         <option value="">— todos —</option>
         ${opcoesDaColuna(col).map(o => `<option value="${esc2(o)}" ${o === atual ? "selected" : ""}>${esc2(o)}</option>`).join("")}
       </select>`;
     }
-    return `<input type="text" class="pl2-filtro" data-col="${esc2(col.id)}" value="${esc2(atual)}" placeholder="filtrar…">`;
+    return `<input type="text" class="pl2-filtro" data-col="${esc2(colId)}" value="${esc2(atual)}" placeholder="filtrar…">`;
   }
+
+  // ── Popup de filtro (abre no clique do titulo da coluna) ─────────────
+  function fecharFiltro2() {
+    const m = document.getElementById("pl2-filtro-menu");
+    if (m) m.remove();
+  }
+  function abrirFiltro2(botao) {
+    const colId = botao.dataset.col;
+    const jaAberto = document.getElementById("pl2-filtro-menu");
+    if (jaAberto && jaAberto.dataset.col === colId) { fecharFiltro2(); return; }
+    fecharFiltro2();
+    const menu = document.createElement("div");
+    menu.id = "pl2-filtro-menu";
+    menu.dataset.col = colId;
+    menu.innerHTML = `${filtroControleMarkup(colId)}
+      <button type="button" class="pl2-filtro-limpar">Limpar</button>`;
+    document.body.appendChild(menu);
+    const r = botao.getBoundingClientRect();
+    menu.style.top = (r.bottom + 4) + "px";
+    // nao deixa vazar pela direita da tela
+    menu.style.left = Math.min(r.left, window.innerWidth - 230) + "px";
+    menu.addEventListener("click", e => e.stopPropagation());
+    const campo = menu.querySelector(".pl2-filtro");
+    const evt = campo.tagName === "SELECT" ? "change" : "input";
+    campo.addEventListener(evt, () => {
+      filtros2[colId] = campo.value;
+      // O popup vive fora da tabela, entao redesenhar as linhas nao o
+      // fecha nem tira o foco de quem esta digitando.
+      renderPlanilha2();
+    });
+    menu.querySelector(".pl2-filtro-limpar").addEventListener("click", () => {
+      delete filtros2[colId];
+      fecharFiltro2();
+      renderPlanilha2();
+    });
+    campo.focus();
+  }
+  document.addEventListener("click", fecharFiltro2);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") fecharFiltro2(); });
 
   function esc2(v) {
     return String(v == null ? "" : v)
@@ -14237,18 +14314,20 @@ applyRolePermissions();
       : Object.keys(countryData2);
     const visiveis = todos.filter(n => passaNoFiltro2(n, cols));
 
+    // Titulo = botao que abre o filtro daquela coluna. Coluna filtrada
+    // ganha um funil marcado, pra dar pra ver que ha filtro escondido ali.
+    const th = (colId, rotulo, extra) => {
+      const ativo = !!filtros2[colId];
+      return `<th class="${ativo ? "pl2-th-filtrada" : ""}">
+        <button type="button" class="pl2-th-btn" data-col="${esc2(colId)}" title="Filtrar por ${esc2(rotulo)}">
+          <span>${esc2(rotulo)}</span><span class="pl2-funil">${ativo ? "⏷" : "⏷"}</span>
+        </button>${extra || ""}</th>`;
+    };
     cabeca.innerHTML = `<tr>
-        <th>País</th><th>Continente</th>
-        ${cols.map(c => `<th>${esc2(c.nome)}${c.id === COL_STATUS ? "" :
-          `<button type="button" class="pl2-del-col" data-col="${esc2(c.id)}" title="Excluir coluna">×</button>`}</th>`).join("")}
-      </tr>
-      <tr class="pl2-linha-filtro">
-        <th><input type="text" class="pl2-filtro" data-col="__pais__" value="${esc2(filtros2.__pais__ || "")}" placeholder="filtrar…"></th>
-        <th><select class="pl2-filtro" data-col="__continente__">
-          <option value="">— todos —</option>
-          ${CONTINENTES.map(c => `<option value="${esc2(c)}" ${filtros2.__continente__ === c ? "selected" : ""}>${esc2(c)}</option>`).join("")}
-        </select></th>
-        ${cols.map(c => `<th>${filtroMarkup(c)}</th>`).join("")}
+        ${th("__pais__", "País")}
+        ${th("__continente__", "Continente")}
+        ${cols.map(c => th(c.id, c.nome, c.id === COL_STATUS ? "" :
+          `<button type="button" class="pl2-del-col" data-col="${esc2(c.id)}" title="Excluir coluna">×</button>`)).join("")}
       </tr>`;
 
     corpo.innerHTML = visiveis.map(nome => {
@@ -14298,16 +14377,8 @@ applyRolePermissions();
     corpo.querySelectorAll(".pl2-multi-btn").forEach(btn => {
       btn.addEventListener("click", e => { e.stopPropagation(); abrirMultiSelect2(btn); });
     });
-    document.getElementById("planilha2-head").querySelectorAll(".pl2-filtro").forEach(el => {
-      const evt = el.tagName === "SELECT" ? "change" : "input";
-      el.addEventListener(evt, () => {
-        filtros2[el.dataset.col] = el.value;
-        const foco = el.dataset.col, pos = el.selectionStart;
-        renderPlanilha2();
-        // devolve o foco pro campo que estava sendo digitado
-        const novo = document.querySelector(`.pl2-filtro[data-col="${foco}"]`);
-        if (novo) { novo.focus(); if (pos != null && novo.setSelectionRange) novo.setSelectionRange(pos, pos); }
-      });
+    document.getElementById("planilha2-head").querySelectorAll(".pl2-th-btn").forEach(btn => {
+      btn.addEventListener("click", e => { e.stopPropagation(); abrirFiltro2(btn); });
     });
     document.getElementById("planilha2-head").querySelectorAll(".pl2-del-col").forEach(btn => {
       btn.addEventListener("click", () => {
