@@ -13519,7 +13519,7 @@ applyRolePermissions();
   // cinza neutro de sem-classificação quanto do Negociação saturado que
   // vem depois.
   const PALETA_AZUL   = { Lead: "#b6c3d0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
-  const PALETA_ROSA    = { Lead: "#d0bcc5", "Negociação": "#e28fb8", "Membro": "#a3215f" };
+  const PALETA_ROSA    = { Lead: "#c7bec1", "Negociação": "#e28fb8", "Membro": "#a3215f" };
   const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
   // nada muito escuro. OK/Atenção/Urgência nao sao "niveis de proximidade"
@@ -13578,7 +13578,7 @@ applyRolePermissions();
     // Todo Lead que ja foi padrao em alguma versao anterior — os cinzas
     // neutros e, depois, os tons bem claros. Se o Lead salvo for um
     // desses, ele nao foi escolhido a mao e pode migrar.
-    const CINZAS_LEAD_ANTIGOS = ["#e4e2d8", "#f4f3ee", "#dde6f0", "#f7e2ec", "#e6e4f9"];
+    const CINZAS_LEAD_ANTIGOS = ["#e4e2d8", "#f4f3ee", "#dde6f0", "#f7e2ec", "#e6e4f9", "#d0bcc5"];
     boards2.forEach(b => {
       const novo = LEAD_NOVO_POR_QUADRO[b.id];
       if (!novo || !b.cores || !b.cores.Lead) return;
