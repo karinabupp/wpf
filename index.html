@@ -3276,6 +3276,15 @@
      ══════════════════════════════════════════════════════════ */
   body.role-colab #nav-tasks2 { display: none !important; }
   body.role-colab #nav-members2 { display: none !important; }
+  /* A Marketing virou fonte de dados das metas automaticas da Tasks 2 —
+     os numeros dela aparecem la. A aba em si sai do menu; a view e todo o
+     codigo continuam no lugar, entao os KPIs seguem carregando e as metas
+     seguem lendo deles. */
+  #nav-marketing { display: none !important; }
+  /* Guias Late e KPI saem da Tasks 2. Escondidas por id porque a classe
+     .hidden empata em especificidade com .tasks2-subnav-btn{display:flex}
+     e perde pela ordem. A view e o codigo continuam, so o botao some. */
+  #tasks2-nav-late, #tasks2-nav-kpi { display: none !important; }
   /* A categoria e trocada no proprio emoji ao lado do nome: um <select>
      nativo transparente fica por cima do icone. Assim o clique abre a lista
      com os rotulos completos, e nao precisa de menu proprio nem de tratar
@@ -4108,6 +4117,11 @@
   }
   .tasks2-meta-progresso-btn:hover { border-color: var(--border-strong); }
   .tasks2-meta-progresso-btn.is-vazio { color: var(--text-muted); font-weight: 500; font-style: italic; }
+  .tasks2-meta-auto {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; opacity: 0.65; margin-left: 2px;
+  }
+  .tasks2-meta-progresso-btn.is-auto { cursor: default; }
   .tasks2-meta-progresso-btn.is-completo { color: #1e8a3c; border-color: #bcdba0; background: #eaf3de; }
   #tasks2-pontuacao-painel {
     position: fixed;
@@ -15421,9 +15435,43 @@ applyRolePermissions();
   // {atual, alvo} pra uma meta, ou null se o nome dela nao tem numero (meta
   // antiga, de antes desta funcionalidade — nao trava nada, so nao ha o que
   // mostrar como fracao ainda).
+  // Metas que nao somam pontuacao de linhas abaixo: o "atual" vem pronto
+  // de um KPI do Marketing. A chave e o id do KPI em goalsData; o alvo
+  // continua saindo do numero escrito no nome da meta, como nas outras.
+  // Casado pelo texto do nome porque a Karina cria essas metas escrevendo,
+  // nao escolhendo de uma lista — se ela renomear, para de casar e a meta
+  // volta a somar pontuacao normalmente, sem quebrar.
+  const METAS_AUTOMATICAS = [
+    { termos: ["acesso", "site"], kpi: "campanhas-adwords" },
+    { termos: ["seguidor", "instagram"], kpi: "social-media" }
+  ];
+
+  function kpiDoMarketing(id) {
+    try {
+      const g = (goalsData || []).find(x => x && x.id === id);
+      if (!g || !Array.isArray(g.entries) || !g.entries.length) return null;
+      // a entrada mais recente por data
+      const ult = g.entries.slice().sort((a, b) =>
+        String(a.date || "").localeCompare(String(b.date || ""))).pop();
+      const v = parseBRNumber(ult.value);
+      return typeof v === "number" && !isNaN(v) ? v : null;
+    } catch (e) { return null; }
+  }
+
+  function fonteAutomatica(nome) {
+    const n = normalizarTexto(nome);
+    return METAS_AUTOMATICAS.find(m => m.termos.every(t => n.includes(t))) || null;
+  }
+
   function metaProgresso(t) {
     const alvo = extrairNumeroDoNome(t.name);
     if (alvo === null) return null;
+    const auto = fonteAutomatica(t.name);
+    if (auto) {
+      const atual = kpiDoMarketing(auto.kpi);
+      // KPI sem valor ainda: cai no comportamento normal em vez de mostrar 0
+      if (atual !== null) return { atual, alvo, automatica: true };
+    }
     const pontuacoes = Array.isArray(t.pontuacoes) ? t.pontuacoes : [];
     let atual = 0;
     pontuacoes.forEach(p => {
@@ -15599,9 +15647,10 @@ applyRolePermissions();
     if (t.rowType !== "meta") return "";
     const prog = metaProgresso(t);
     const texto = prog ? `${prog.atual}/${prog.alvo}` : "— sem número na meta —";
+    const auto = !!(prog && prog.automatica);
     const completo = !!(prog && prog.alvo > 0 && prog.atual >= prog.alvo);
     return `<div class="tasks2-meta-progresso">
-      <button type="button" class="tasks2-meta-progresso-btn ${prog ? "" : "is-vazio"} ${completo ? "is-completo" : ""}" data-id="${t.id}" title="Clique para gerenciar a pontuação desta meta">${texto}</button>
+      <button type="button" class="tasks2-meta-progresso-btn ${prog ? "" : "is-vazio"} ${completo ? "is-completo" : ""} ${auto ? "is-auto" : ""}" data-id="${t.id}" ${auto ? 'data-auto="1"' : ""} title="${auto ? "Puxado automaticamente do Marketing" : "Clique para gerenciar a pontuação desta meta"}">${texto}${auto ? ' <span class="tasks2-meta-auto">auto</span>' : ""}</button>
     </div>`;
   }
 
@@ -16702,6 +16751,9 @@ applyRolePermissions();
     body.querySelectorAll(".tasks2-meta-progresso-btn").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
+        // Meta automatica nao tem o que pontuar — o numero vem do
+        // Marketing, nao das linhas abaixo dela.
+        if (btn.dataset.auto === "1") return;
         const jaAberto = tasksPontuacaoMetaId === btn.dataset.id;
         fecharPontuacaoPainel();
         if (jaAberto) { renderTasksTable(); return; } // clicar de novo fecha
