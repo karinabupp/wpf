@@ -2280,6 +2280,9 @@
   /* Mesmo respiro que #header-row usa na aba Members. */
   #header-row2 {
     display: flex; align-items: center; gap: 16px;
+    /* logo na esquerda, switch encostado na direita — mesma linha, como
+       o #header-row da aba Members faz com o seletor dele. */
+    justify-content: space-between;
     width: 100%; max-width: min(96vw, 1900px); margin-bottom: 20px;
   }
   #members2-switch {
