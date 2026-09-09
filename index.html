@@ -2277,6 +2277,79 @@
      drill-down por estado, sem paineis de Brasil/Committee — o mesmo tipo
      de recorte que a Tasks 2 teve no comeco, pra nao promoter reconstruir
      o sistema inteiro de uma vez. ──────────────────────────────────── */
+  #header-row2 { display: flex; align-items: center; gap: 16px; }
+  #members2-switch {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+  }
+  #members2-switch button {
+    background: none;
+    border: none;
+    padding: 7px 18px;
+    font-size: 13.5px;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  #members2-switch button.is-ativo { background: var(--accent); color: #fff; font-weight: 600; }
+  #members2-switch button:not(.is-ativo):hover { background: var(--land-default); }
+
+  /* Planilha: so os paises que a Karina ja adicionou neste quadro. */
+  #planilha2-wrap {
+    width: 100%;
+    max-width: min(96vw, 1900px);
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  #planilha2-wrap.hidden { display: none; }
+  #main2.hidden, #footer2.hidden, #planilha2.hidden { display: none; }
+  #planilha2 { border-collapse: collapse; width: 100%; font-size: 13px; }
+  #planilha2 th, #planilha2 td {
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 0;
+    text-align: left;
+    vertical-align: middle;
+  }
+  #planilha2 th {
+    background: var(--bg);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 10px 12px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+  #planilha2 th:last-child, #planilha2 td:last-child { border-right: none; }
+  #planilha2 tbody tr:last-child td { border-bottom: none; }
+  #planilha2 td.pl2-pais { padding: 10px 12px; font-weight: 600; white-space: nowrap; }
+  #planilha2 td input[type="text"] {
+    width: 100%;
+    border: none;
+    background: none;
+    padding: 10px 12px;
+    font: inherit;
+    color: var(--text);
+    box-sizing: border-box;
+  }
+  #planilha2 td input[type="text"]:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    background: #fff;
+  }
+  #planilha2 td.pl2-lw { text-align: center; padding: 8px 12px; }
+  #planilha2 td.pl2-lw input { width: 17px; height: 17px; cursor: pointer; }
+  #planilha2-vazia {
+    padding: 34px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  #planilha2-vazia.hidden { display: none; }
   #members2-badge {
     display: inline-block;
     margin: 10px 0 14px;
@@ -4932,6 +5005,10 @@
 
 <div id="header-row2">
   <span id="members2-badge">Members 2 · rascunho, dados isolados</span>
+  <div id="members2-switch">
+    <button type="button" id="members2-tab-mapa" class="is-ativo">Mapa</button>
+    <button type="button" id="members2-tab-planilha">Planilha</button>
+  </div>
 </div>
 
 <div id="main2">
@@ -4979,6 +5056,24 @@
       </div>
     </div>
   </div>
+</div>
+
+<div id="planilha2-wrap" class="hidden">
+  <table id="planilha2">
+    <thead>
+      <tr>
+        <th>País</th>
+        <th>Nome federação</th>
+        <th>Contato fed</th>
+        <th>Grupo feminino</th>
+        <th>Nome comitê</th>
+        <th>Contato comitê</th>
+        <th>LW stop 26</th>
+      </tr>
+    </thead>
+    <tbody id="planilha2-body"></tbody>
+  </table>
+  <div id="planilha2-vazia" class="hidden">Nenhum país adicionado ainda neste quadro. Marque um país no mapa e ele aparece aqui.</div>
 </div>
 
 <div id="footer2">
@@ -13519,7 +13614,7 @@ applyRolePermissions();
   // cinza neutro de sem-classificação quanto do Negociação saturado que
   // vem depois.
   const PALETA_AZUL   = { Lead: "#b6c3d0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
-  const PALETA_ROSA    = { Lead: "#c7bec1", "Negociação": "#e28fb8", "Membro": "#a3215f" };
+  const PALETA_ROSA    = { Lead: "#cbbcc2", "Negociação": "#e28fb8", "Membro": "#a3215f" };
   const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
   // nada muito escuro. OK/Atenção/Urgência nao sao "niveis de proximidade"
@@ -13699,6 +13794,8 @@ applyRolePermissions();
     popularSelectStatus2();
     if (allCountries2.length) renderWorldMap2();
     renderLegend2();
+    // Cada quadro tem os proprios paises, entao a planilha muda junto.
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
   }
   board2Select.addEventListener("change", () => {
     if (board2Select.value === NOVO_QUADRO_VALOR) {
@@ -13884,6 +13981,75 @@ applyRolePermissions();
       });
     }
   }
+
+  // ── Planilha: mesma base de dados do mapa, so que em tabela. Mostra
+  // APENAS os paises que ja foram adicionados neste quadro (os que tem
+  // registro salvo) — nao a lista dos 241 do mundo. Os campos aqui
+  // (federacao, contatos, comite, LW stop) so existem nesta visao; o
+  // painel do mapa continua com status e parceiro. ─────────────────────
+  const CAMPOS_PLANILHA = [
+    { chave: "nomeFederacao",  rotulo: "Nome federação" },
+    { chave: "contatoFed",     rotulo: "Contato fed" },
+    { chave: "grupoFeminino",  rotulo: "Grupo feminino" },
+    { chave: "nomeComite",     rotulo: "Nome comitê" },
+    { chave: "contatoComite",  rotulo: "Contato comitê" }
+  ];
+
+  function paisesDoQuadro2() {
+    // A ordem do mapa (allCountries2) da uma listagem estavel; se o mapa
+    // ainda nao carregou, cai pras chaves salvas mesmo.
+    const salvos = Object.keys(countryData2);
+    if (!allCountries2.length) return salvos.sort();
+    const ordem = allCountries2.map(f => f.properties.name).filter(n => countryData2[n]);
+    // paises salvos que nao existem no mapa atual nao somem da planilha
+    salvos.forEach(n => { if (!ordem.includes(n)) ordem.push(n); });
+    return ordem;
+  }
+
+  function renderPlanilha2() {
+    const corpo = document.getElementById("planilha2-body");
+    const vazia = document.getElementById("planilha2-vazia");
+    const paises = paisesDoQuadro2();
+    document.getElementById("planilha2").classList.toggle("hidden", !paises.length);
+    vazia.classList.toggle("hidden", !!paises.length);
+    corpo.innerHTML = paises.map(nome => {
+      const rec = getRecord2(nome);
+      const celulas = CAMPOS_PLANILHA.map(c =>
+        `<td><input type="text" data-pais="${nome.replace(/"/g, "&quot;")}" data-campo="${c.chave}" value="${String(rec[c.chave] || "").replace(/"/g, "&quot;")}"></td>`
+      ).join("");
+      return `<tr>
+        <td class="pl2-pais">${nome}</td>
+        ${celulas}
+        <td class="pl2-lw"><input type="checkbox" data-pais="${nome.replace(/"/g, "&quot;")}" data-campo="lwStop26" ${rec.lwStop26 ? "checked" : ""}></td>
+      </tr>`;
+    }).join("");
+    corpo.querySelectorAll('input[type="text"]').forEach(inp => {
+      inp.addEventListener("change", () => {
+        setRecord2(inp.dataset.pais, { [inp.dataset.campo]: inp.value.trim() });
+      });
+    });
+    corpo.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+      chk.addEventListener("change", () => {
+        setRecord2(chk.dataset.pais, { lwStop26: chk.checked });
+      });
+    });
+  }
+
+  // ── Switch Mapa / Planilha ───────────────────────────────────────────
+  const tabMapa2 = document.getElementById("members2-tab-mapa");
+  const tabPlanilha2 = document.getElementById("members2-tab-planilha");
+  function mostrarVisao2(qual) {
+    const ehMapa = qual === "mapa";
+    document.getElementById("main2").classList.toggle("hidden", !ehMapa);
+    document.getElementById("footer2").classList.toggle("hidden", !ehMapa);
+    document.getElementById("planilha2-wrap").classList.toggle("hidden", ehMapa);
+    tabMapa2.classList.toggle("is-ativo", ehMapa);
+    tabPlanilha2.classList.toggle("is-ativo", !ehMapa);
+    if (ehMapa) { if (allCountries2.length) renderWorldMap2(); }
+    else renderPlanilha2();
+  }
+  tabMapa2.addEventListener("click", () => mostrarVisao2("mapa"));
+  tabPlanilha2.addEventListener("click", () => mostrarVisao2("planilha"));
 
   // ── Busca ───────────────────────────────────────────────────────────
   function populateSearchList2() {
