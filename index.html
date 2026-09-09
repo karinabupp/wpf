@@ -13504,23 +13504,19 @@ applyRolePermissions();
   const ACTIVE_BOARD_KEY = "wpf_members2_active_board";
   const NOVO_QUADRO_VALOR = "__novo__";
 
-  // Cinza fixo do Lead — igual em TODOS os quadros, nao importa a cor de
-  // fundo de cada um (pedido explicito da Karina: "o lead precisa SEMPRE
-  // estar no cinza de ladies 26"). Um pouco mais claro que isso e o cinza
-  // de pais SEM NENHUM registro salvo ainda — os dois sao neutros, so
-  // muda a intensidade, e ambos ficam mais claros que o tom claro
-  // (Negociação) de qualquer quadro. ─────────────────────────────────────
-  const CINZA_LEAD = "#e4e2d8";
-  const CINZA_SEM_CLASSIFICACAO = "#f4f3ee";
+  // Cinza neutro de pais SEM classificação nenhuma — igual em todos os
+  // quadros. Antes era o Lead que usava esse cinza; agora o cinza e do
+  // "sem classificação" e cada quadro tem seu proprio Lead num tom bem
+  // claro da cor da casa (ver as paletas abaixo). ────────────────────────
+  const CINZA_SEM_CLASSIFICACAO = "#e4e2d8";
 
   // Paletas prontas dos quadros iniciais — os mesmos tons ja usados em
   // outras pilulas de status do dashboard, pra ficar consistente. O Lead
-  // de cada uma aqui embaixo e so um placeholder: na hora de pintar o
-  // mapa e a legenda, o status chamado exatamente "Lead" sempre usa
-  // CINZA_LEAD, nao o que estiver salvo aqui (ver corDoStatus2 abaixo).
-  const PALETA_AZUL   = { Lead: CINZA_LEAD, "Negociação": "#85b7eb", "Membro": "#185fa5" };
-  const PALETA_ROSA    = { Lead: CINZA_LEAD, "Negociação": "#e28fb8", "Membro": "#a3215f" };
-  const PALETA_ROXA    = { Lead: CINZA_LEAD, "Negociação": "#afa9ec", "Membro": "#534ab7" };
+  // de cada quadro e um tom BEM claro da cor daquele quadro, sempre mais
+  // claro que o tom de Negociação que vem depois.
+  const PALETA_AZUL   = { Lead: "#dde6f0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
+  const PALETA_ROSA    = { Lead: "#f7e2ec", "Negociação": "#e28fb8", "Membro": "#a3215f" };
+  const PALETA_ROXA    = { Lead: "#e6e4f9", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
   // nada muito escuro. OK/Atenção/Urgência nao sao "niveis de proximidade"
   // como Lead/Negociação/Membro, entao esse quadro NAO ganha o campo de
@@ -13542,15 +13538,14 @@ applyRolePermissions();
     { id: "ladies26",   nome: "Ladies 26 - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROXA), temTipoMembro: true }
   ];
 
-  // Cor de verdade pra um status, dentro de um quadro — separado do que
-  // esta guardado em board.cores porque "Lead" e um caso especial fixo, e
-  // "" (sem classificação, o padrao de todo pais nunca salvo OU
-  // explicitamente revertido pelo select) tambem tem cor propria.
+  // Cor de verdade pra um status, dentro de um quadro. "" (sem
+  // classificação — todo pais nunca salvo OU explicitamente revertido
+  // pelo select) tem cor propria, fixa; todo o resto vem da paleta do
+  // proprio quadro, Lead incluido.
   function corDoStatus2(board, status) {
     if (!status) return CINZA_SEM_CLASSIFICACAO;
-    if (status === "Lead") return CINZA_LEAD;
     const c = board.cores[status];
-    return c ? c.fill : CINZA_LEAD;
+    return c ? c.fill : CINZA_SEM_CLASSIFICACAO;
   }
 
   let boards2 = [];
@@ -13570,6 +13565,18 @@ applyRolePermissions();
     if (!boards2.some(b => b.id === "avisos-gerais")) {
       boards2.unshift({ id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(), cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false });
     }
+    // O Lead dos 3 quadros padrao era um cinza fixo antes; agora e um tom
+    // claro da cor de cada quadro. Quem ja abriu a aba tem o cinza velho
+    // gravado no localStorage — sem esta migracao a mudanca simplesmente
+    // nao apareceria pra quem ja usou. So mexe se ainda estiver no cinza
+    // antigo, pra nao desfazer uma cor que a Karina tenha escolhido.
+    const LEAD_NOVO_POR_QUADRO = { federacoes: PALETA_AZUL.Lead, "comite-fem": PALETA_ROSA.Lead, ladies26: PALETA_ROXA.Lead };
+    const CINZAS_LEAD_ANTIGOS = ["#e4e2d8", "#f4f3ee"];
+    boards2.forEach(b => {
+      const novo = LEAD_NOVO_POR_QUADRO[b.id];
+      if (!novo || !b.cores || !b.cores.Lead) return;
+      if (CINZAS_LEAD_ANTIGOS.includes(String(b.cores.Lead.fill).toLowerCase())) b.cores.Lead.fill = novo;
+    });
   }
   function saveBoards2() { localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2)); }
   saveBoards2(); // grava a lista (ja migrada/semeada, se era o caso)
@@ -13694,7 +13701,7 @@ applyRolePermissions();
   const board2ModalOverlay = document.getElementById("board2-modal-overlay");
   const board2ModalName = document.getElementById("board2-modal-name");
   const board2ModalRows = document.getElementById("board2-modal-status-rows");
-  const CORES_SUGERIDAS_NOVO_QUADRO = ["#e4e2d8", "#afa9ec", "#534ab7"];
+  const CORES_SUGERIDAS_NOVO_QUADRO = [PALETA_ROXA.Lead, "#afa9ec", "#534ab7"];
 
   function abrirModalNovoQuadro2() {
     board2ModalName.value = "";
