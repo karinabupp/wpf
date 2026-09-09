@@ -13876,8 +13876,12 @@ applyRolePermissions();
 // Tasks 2 tem hoje.
 // ══════════════════════════════════════════════════════════════════════════
 (function() {
-  const BOARDS_KEY = "wpf_members2_boards";
-  const ACTIVE_BOARD_KEY = "wpf_members2_active_board";
+  // Cada empresa tem os proprios quadros, colunas e dados. A WPF fica com
+  // os nomes de chave originais (pra nao orfanar nada ja salvo) e a CBTH
+  // ganha o sufixo. Sem isso, um pipeline criado na WPF aparecia na CBTH.
+  function chaveOrg2(base) { return ORG_ATUAL === "wpf" ? base : base + "__" + ORG_ATUAL; }
+  const BOARDS_KEY = chaveOrg2("wpf_members2_boards");
+  const ACTIVE_BOARD_KEY = chaveOrg2("wpf_members2_active_board");
   const NOVO_QUADRO_VALOR = "__novo__";
 
   // Cinza neutro de pais SEM classificação nenhuma — igual em todos os
@@ -13911,12 +13915,23 @@ applyRolePermissions();
 
   const STATUS_PADRAO = ["Lead", "Negociação", "Membro"];
   const STATUS_AVISOS = ["OK", "Atenção", "Urgência"];
-  const DEFAULT_BOARDS = [
+  // Quadros iniciais da CBTH: Avisos Gerais (mesmas regras e cores da WPF)
+  // e um pipeline proprio de federacoes, com so dois status.
+  const PALETA_CBTH_FEDS = { "Negociação": "#d9a83a", "Membro": "#4f9d55" };
+  const DEFAULT_BOARDS_CBTH = [
+    { id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(),
+      cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false },
+    { id: "cbth-status-federacoes", nome: "Status Federações",
+      status: ["Negociação", "Membro"], cores: paletaParaObjeto(PALETA_CBTH_FEDS),
+      temTipoMembro: false }
+  ];
+  const DEFAULT_BOARDS_WPF = [
     { id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(), cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false },
     { id: "federacoes", nome: "Membros - Federações", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_AZUL), temTipoMembro: true },
     { id: "comite-fem", nome: "Membros - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROSA), temTipoMembro: true },
     { id: "ladies26",   nome: "Ladies 26 - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROXA), temTipoMembro: true }
   ];
+  const DEFAULT_BOARDS = ORG_ATUAL === "wpf" ? DEFAULT_BOARDS_WPF : DEFAULT_BOARDS_CBTH;
 
   // Cor de verdade pra um status, dentro de um quadro. "" (sem
   // classificação — todo pais nunca salvo OU explicitamente revertido
@@ -13934,8 +13949,8 @@ applyRolePermissions();
     boards2 = Array.isArray(guardado) && guardado.length ? guardado : [];
   } catch (e) { boards2 = []; }
   if (!boards2.length) {
-    // Primeira vez que a Members 2 abre neste navegador — semeia os 4
-    // quadros padrao (Avisos Gerais + os 3 de membros) de uma vez.
+    // Primeira vez que a Members 2 abre neste navegador — semeia os
+    // quadros padrao da empresa ativa de uma vez (a WPF tem 4, a CBTH 2).
     boards2 = DEFAULT_BOARDS.map(b => Object.assign({}, b));
   } else {
     // Ja existiam quadros salvos de uma sessao anterior desta mesma
@@ -13959,7 +13974,8 @@ applyRolePermissions();
       "avisos-gerais": PALETA_AVISOS,
       federacoes: PALETA_AZUL,
       "comite-fem": PALETA_ROSA,
-      ladies26: PALETA_ROXA
+      ladies26: PALETA_ROXA,
+      "cbth-status-federacoes": PALETA_CBTH_FEDS
     };
     boards2.forEach(b => {
       const paleta = PALETAS_PADRAO[b.id];
@@ -13981,7 +13997,8 @@ applyRolePermissions();
     // "federacoes" e o quadro original — mantem a chave antiga (sem
     // sufixo) pra nao perder dado que ja tinha sido salvo antes de o
     // multi-quadro existir.
-    return id === "federacoes" ? "wpf_members2_data" : "wpf_members2_data__" + id;
+    const base = id === "federacoes" ? "wpf_members2_data" : "wpf_members2_data__" + id;
+    return chaveOrg2(base);
   }
 
   let countryData2 = {};
@@ -14362,8 +14379,8 @@ applyRolePermissions();
   // olhando Feds ou Comitê Fem. Entao eles moram num registro global por
   // pais, e so o STATUS continua guardado por quadro. A planilha mostra
   // uma coluna de status pra cada pipeline existente, lado a lado.
-  const PAISES_KEY = "wpf_members2_paises";
-  const COLUNAS_KEY = "wpf_members2_colunas";
+  const PAISES_KEY = chaveOrg2("wpf_members2_paises");
+  const COLUNAS_KEY = chaveOrg2("wpf_members2_colunas");
 
   let dadosPaises2 = {};
   try {
@@ -14470,7 +14487,7 @@ applyRolePermissions();
   // Guardada como lista de ids. Coluna que aparecer depois (pipeline novo,
   // coluna criada) entra no fim em vez de sumir, e id que nao existe mais
   // e ignorado — assim a ordem sobrevive a criar/apagar coluna e quadro.
-  const ORDEM_KEY = "wpf_members2_ordem_colunas";
+  const ORDEM_KEY = chaveOrg2("wpf_members2_ordem_colunas");
   let ordemColunas2 = [];
   try {
     const o = JSON.parse(localStorage.getItem(ORDEM_KEY) || "null");
