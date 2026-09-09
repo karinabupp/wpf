@@ -13504,11 +13504,28 @@ applyRolePermissions();
   const ACTIVE_BOARD_KEY = "wpf_members2_active_board";
   const NOVO_QUADRO_VALOR = "__novo__";
 
-  // Paletas prontas dos 3 quadros iniciais — os mesmos tons ja usados em
-  // outras pilulas de status do dashboard, pra ficar consistente.
-  const PALETA_AZUL   = { Lead: "#dde6f0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
-  const PALETA_ROSA    = { Lead: "#f6e3ec", "Negociação": "#e28fb8", "Membro": "#a3215f" };
-  const PALETA_ROXA    = { Lead: "#e4e2d8", "Negociação": "#afa9ec", "Membro": "#534ab7" };
+  // Cinza fixo do Lead — igual em TODOS os quadros, nao importa a cor de
+  // fundo de cada um (pedido explicito da Karina: "o lead precisa SEMPRE
+  // estar no cinza de ladies 26"). Um pouco mais claro que isso e o cinza
+  // de pais SEM NENHUM registro salvo ainda — os dois sao neutros, so
+  // muda a intensidade, e ambos ficam mais claros que o tom claro
+  // (Negociação) de qualquer quadro. ─────────────────────────────────────
+  const CINZA_LEAD = "#e4e2d8";
+  const CINZA_SEM_CLASSIFICACAO = "#f4f3ee";
+
+  // Paletas prontas dos quadros iniciais — os mesmos tons ja usados em
+  // outras pilulas de status do dashboard, pra ficar consistente. O Lead
+  // de cada uma aqui embaixo e so um placeholder: na hora de pintar o
+  // mapa e a legenda, o status chamado exatamente "Lead" sempre usa
+  // CINZA_LEAD, nao o que estiver salvo aqui (ver corDoStatus2 abaixo).
+  const PALETA_AZUL   = { Lead: CINZA_LEAD, "Negociação": "#85b7eb", "Membro": "#185fa5" };
+  const PALETA_ROSA    = { Lead: CINZA_LEAD, "Negociação": "#e28fb8", "Membro": "#a3215f" };
+  const PALETA_ROXA    = { Lead: CINZA_LEAD, "Negociação": "#afa9ec", "Membro": "#534ab7" };
+  // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
+  // nada muito escuro. OK/Atenção/Urgência nao sao "niveis de proximidade"
+  // como Lead/Negociação/Membro, entao esse quadro NAO ganha o campo de
+  // Tipo de membro (ver temTipoMembro abaixo).
+  const PALETA_AVISOS = { "OK": "#7c9a5e", "Atenção": "#d3a94c", "Urgência": "#c06a4f" };
 
   function paletaParaObjeto(cores) {
     const out = {};
@@ -13517,19 +13534,45 @@ applyRolePermissions();
   }
 
   const STATUS_PADRAO = ["Lead", "Negociação", "Membro"];
+  const STATUS_AVISOS = ["OK", "Atenção", "Urgência"];
   const DEFAULT_BOARDS = [
-    { id: "federacoes", nome: "Membros - Federações", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_AZUL) },
-    { id: "comite-fem", nome: "Membros - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROSA) },
-    { id: "ladies26",   nome: "Ladies 26 - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROXA) }
+    { id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(), cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false },
+    { id: "federacoes", nome: "Membros - Federações", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_AZUL), temTipoMembro: true },
+    { id: "comite-fem", nome: "Membros - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROSA), temTipoMembro: true },
+    { id: "ladies26",   nome: "Ladies 26 - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROXA), temTipoMembro: true }
   ];
+
+  // Cor de verdade pra um status, dentro de um quadro — separado do que
+  // esta guardado em board.cores porque "Lead" e um caso especial fixo, e
+  // "" (sem classificação, o padrao de todo pais nunca salvo OU
+  // explicitamente revertido pelo select) tambem tem cor propria.
+  function corDoStatus2(board, status) {
+    if (!status) return CINZA_SEM_CLASSIFICACAO;
+    if (status === "Lead") return CINZA_LEAD;
+    const c = board.cores[status];
+    return c ? c.fill : CINZA_LEAD;
+  }
 
   let boards2 = [];
   try {
     const guardado = JSON.parse(localStorage.getItem(BOARDS_KEY) || "null");
-    boards2 = Array.isArray(guardado) && guardado.length ? guardado : DEFAULT_BOARDS;
-  } catch (e) { boards2 = DEFAULT_BOARDS; }
+    boards2 = Array.isArray(guardado) && guardado.length ? guardado : [];
+  } catch (e) { boards2 = []; }
+  if (!boards2.length) {
+    // Primeira vez que a Members 2 abre neste navegador — semeia os 4
+    // quadros padrao (Avisos Gerais + os 3 de membros) de uma vez.
+    boards2 = DEFAULT_BOARDS.map(b => Object.assign({}, b));
+  } else {
+    // Ja existiam quadros salvos de uma sessao anterior desta mesma
+    // feature (antes de existir Avisos Gerais e o campo temTipoMembro) —
+    // completa em vez de descartar o que a Karina ja tinha criado.
+    boards2.forEach(b => { if (b.temTipoMembro === undefined) b.temTipoMembro = true; });
+    if (!boards2.some(b => b.id === "avisos-gerais")) {
+      boards2.unshift({ id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(), cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false });
+    }
+  }
   function saveBoards2() { localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2)); }
-  if (!localStorage.getItem(BOARDS_KEY)) saveBoards2(); // primeira vez: grava os 3 padrao
+  saveBoards2(); // grava a lista (ja migrada/semeada, se era o caso)
 
   let activeBoardId2 = localStorage.getItem(ACTIVE_BOARD_KEY) || boards2[0].id;
   if (!boards2.some(b => b.id === activeBoardId2)) activeBoardId2 = boards2[0].id;
@@ -13561,7 +13604,10 @@ applyRolePermissions();
   const TIPO_MEMBRO_OPCOES = ["Observador", "Afiliado"];
 
   function getRecord2(name) {
-    const rec = countryData2[name] || { status: statusOptionsAtuais()[0], partner: "", tipoMembro: "" };
+    // "" (sem classificação) e o padrao de verdade — nao o primeiro status
+    // da lista. Isso deixa o pais nunca tocado E o pais revertido pelo
+    // select pro mesmo lugar, sem diferenca de tratamento.
+    const rec = countryData2[name] || { status: "", partner: "", tipoMembro: "" };
     if (rec.partner === undefined) rec.partner = "";
     if (rec.tipoMembro === undefined) rec.tipoMembro = "";
     return rec;
@@ -13571,9 +13617,7 @@ applyRolePermissions();
     saveData2();
   }
   function fillFor2(name) {
-    const rec = getRecord2(name);
-    const cores = statusColorsAtuais();
-    return (cores[rec.status] || cores[statusOptionsAtuais()[0]]).fill;
+    return corDoStatus2(boardAtual(), getRecord2(name).status);
   }
 
   // ── Mapa: svg propria, mas reaproveita a MESMA projecao/geometria do
@@ -13675,7 +13719,7 @@ applyRolePermissions();
     const cores = {};
     linhas.forEach((l, i) => { cores[status[i]] = { fill: l.querySelector(".board2-status-color").value }; });
     const id = "quadro-" + Date.now().toString(36);
-    boards2.push({ id, nome, status, cores });
+    boards2.push({ id, nome, status, cores, temTipoMembro: true });
     saveBoards2();
     fecharModalNovoQuadro2();
     renderBoard2Select();
@@ -13690,7 +13734,8 @@ applyRolePermissions();
   const panel2Partner = document.getElementById("panel2-partner");
 
   function popularSelectStatus2() {
-    panel2Status.innerHTML = statusOptionsAtuais().map(s => `<option value="${s}">${s}</option>`).join("");
+    panel2Status.innerHTML = `<option value="">— sem classificação —</option>` +
+      statusOptionsAtuais().map(s => `<option value="${s}">${s}</option>`).join("");
   }
   popularSelectStatus2();
 
@@ -13714,7 +13759,8 @@ applyRolePermissions();
     return valor === opts[opts.length - 1];
   }
   function atualizarVisibilidadeTipoMembro() {
-    panel2TipoMembroField.classList.toggle("hidden", !ehUltimoStatus(panel2Status.value));
+    const mostra = boardAtual().temTipoMembro && ehUltimoStatus(panel2Status.value);
+    panel2TipoMembroField.classList.toggle("hidden", !mostra);
   }
   panel2Status.addEventListener("change", atualizarVisibilidadeTipoMembro);
 
@@ -13751,7 +13797,7 @@ applyRolePermissions();
       // Sai do ultimo status (Membro), o tipo (Observador/Afiliado) nao
       // faz mais sentido — limpa em vez de deixar um valor invisivel
       // guardado.
-      tipoMembro: ehUltimoStatus(novoStatus) ? panel2TipoMembro.value : ""
+      tipoMembro: (boardAtual().temTipoMembro && ehUltimoStatus(novoStatus)) ? panel2TipoMembro.value : ""
     });
     renderWorldMap2();
     renderLegend2();
@@ -13770,25 +13816,34 @@ applyRolePermissions();
     const totalEl = document.getElementById("legend2-total");
     const total = allCountries2.length;
     totalEl.textContent = total ? `${total} países` : "";
+    const board = boardAtual();
     const statusOptions = statusOptionsAtuais();
-    const statusColors = statusColorsAtuais();
     const ultimoStatus = statusOptions[statusOptions.length - 1];
+    const mostraTipoMembro = !!board.temTipoMembro;
     const counts = {};
     statusOptions.forEach(s => { counts[s] = 0; });
+    let semClassificacao = 0;
     const tipoMembroCounts = { "Observador": 0, "Afiliado": 0, "": 0 };
     allCountries2.forEach(f => {
-      const rec = getRecord2(f.properties.name);
+      const nome = f.properties.name;
+      const rec = getRecord2(nome);
+      if (!rec.status) { semClassificacao++; return; }
       counts[rec.status] = (counts[rec.status] || 0) + 1;
-      if (rec.status === ultimoStatus) {
+      if (mostraTipoMembro && rec.status === ultimoStatus) {
         const t = rec.tipoMembro || "";
         tipoMembroCounts[t] = (tipoMembroCounts[t] || 0) + 1;
       }
     });
     const totalUltimo = counts[ultimoStatus] || 0;
-    rowsEl.innerHTML = statusOptions.map(s => {
+    const pctSemClass = total ? Math.round((semClassificacao / total) * 100) : 0;
+    const linhaSemClassificacao = `<div class="legend-row-wrap"><div class="legend-row">
+        <div class="legend-left"><span class="legend-dot" style="background:${CINZA_SEM_CLASSIFICACAO}"></span>Sem classificação</div>
+        <div class="legend-stats"><span class="legend-pct">${pctSemClass}%</span><span class="legend-count">${semClassificacao} countries</span></div>
+      </div></div>`;
+    rowsEl.innerHTML = linhaSemClassificacao + statusOptions.map(s => {
       const pct = total ? Math.round((counts[s] / total) * 100) : 0;
-      const color = (statusColors[s] || statusColors[statusOptions[0]]).fill;
-      const clicavel = s === ultimoStatus;
+      const color = corDoStatus2(board, s);
+      const clicavel = mostraTipoMembro && s === ultimoStatus;
       const linha = `<div class="legend-row${clicavel ? " legend-row-clickable" : ""}"${clicavel ? ' data-legend2-ultimo="1"' : ""}>
           <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${s}</div>
           <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} countries</span></div>
