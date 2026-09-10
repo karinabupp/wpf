@@ -15531,6 +15531,10 @@ applyRolePermissions();
   }
 
   function fonteAutomatica(nome) {
+    // So a WPF. Os KPIs que alimentam isso (AdWords, Social Media) sao da
+    // Marketing da WPF; na CBTH uma meta com nome parecido casaria e
+    // passaria a exibir numero de outra empresa.
+    if (ORG_ATUAL !== "wpf") return null;
     const n = normalizarTexto(nome);
     return METAS_AUTOMATICAS.find(m => m.termos.every(t => n.includes(t))) || null;
   }
