@@ -3291,7 +3291,10 @@
   /* Guias Late e KPI saem da Tasks 2. Escondidas por id porque a classe
      .hidden empata em especificidade com .tasks2-subnav-btn{display:flex}
      e perde pela ordem. A view e o codigo continuam, so o botao some. */
-  #tasks2-nav-late, #tasks2-nav-kpi { display: none !important; }
+  #tasks2-nav-late, #tasks2-nav-kpi, #tasks2-nav-list { display: none !important; }
+  /* Sem nenhum botao dentro, a caixa do subnav so deixaria um retangulo
+     vazio no canto. */
+  #tasks2-subnav { display: none !important; }
   /* A categoria e trocada no proprio emoji ao lado do nome: um <select>
      nativo transparente fica por cima do icone. Assim o clique abre a lista
      com os rotulos completos, e nao precisa de menu proprio nem de tratar
@@ -4902,6 +4905,8 @@
       <div id="tasks2-bulk-bar">
         <span id="tasks2-bulk-count"></span>
         <div id="tasks2-bulk-actions">
+          <button id="tasks2-bulk-copiar" type="button">Copiar</button>
+          <button id="tasks2-bulk-colar" type="button" class="hidden">Colar aqui</button>
           <button id="tasks2-bulk-delete" type="button">Excluir selecionadas</button>
           <button id="tasks2-bulk-clear" type="button">Cancelar seleção</button>
         </div>
@@ -15176,6 +15181,33 @@ applyRolePermissions();
     return TASK_TYPE_ORDER[Math.min(i + 1, TASK_TYPE_ORDER.length - 1)];
   }
 
+  // ── Copiar / colar linhas ────────────────────────────────────────────
+  // Clone com ids novos em toda a arvore: sem isso duas linhas dividiriam
+  // o mesmo id e editar uma mexeria na outra.
+  function clonarLinha2(t) {
+    const copia = JSON.parse(JSON.stringify(t));
+    (function renomear(x) {
+      x.id = "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      // vinculos que apontam pra ids antigos nao sobrevivem a copia
+      x.mentions = [];
+      x.pontuacoes = [];
+      (x.subtasks || []).forEach(renomear);
+    })(copia);
+    return copia;
+  }
+
+  function paiDaLinha2(lista, id, pai) {
+    for (const x of lista) {
+      if (x.id === id) return pai || null;
+      const achou = paiDaLinha2(x.subtasks || [], id, x);
+      if (achou !== undefined && achou !== null) return achou;
+      if ((x.subtasks || []).some(y => y.id === id)) return x;
+    }
+    return null;
+  }
+
+  let clipboardLinhas2 = [];
+
   function novaLinha(rowType) {
     return {
       id: "task-" + Date.now(),
@@ -15221,8 +15253,14 @@ applyRolePermissions();
   const statusAllowed = (t, s) => statusesFor(t).includes(s);
   // Objetivo, meta e projeto tem status calculado: nada de select. Os tres
   // sao niveis de agrupamento — so reproduzem o que esta abaixo deles.
+  //
+  // Entregavel entra nessa regra SO quando ja tem tarefas dentro: uma
+  // tarefa Done ou em andamento tem que puxar o entregavel junto. Vazio
+  // ele continua com select proprio, senao um entregavel recem-criado
+  // ficaria travado em "Not Started" sem jeito de marcar nada.
   const statusIsAuto = t =>
-    t.rowType === "objetivo" || t.rowType === "meta" || t.rowType === "projeto";
+    t.rowType === "objetivo" || t.rowType === "meta" || t.rowType === "projeto" ||
+    (t.rowType === "entregavel" && Array.isArray(t.subtasks) && t.subtasks.length > 0);
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
@@ -16480,6 +16518,7 @@ applyRolePermissions();
           ${paisCellMarkup(t)}
         </div>
         <div class="tasks2-col-actions">
+          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="dup" type="button" title="Duplicar esta linha logo abaixo">⧉</button>` : ""}
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
@@ -16967,6 +17006,17 @@ applyRolePermissions();
         renderTasksTable();
       });
     });
+    body.querySelectorAll('.tasks2-action-btn[data-action="dup"]').forEach(btn => {
+      btn.addEventListener("click", () => {
+        const pai = paiDaLinha2(tasksData, btn.dataset.id);
+        const lista = pai ? pai.subtasks : tasksData;
+        const i = lista.findIndex(x => x.id === btn.dataset.id);
+        if (i === -1) return;
+        lista.splice(i + 1, 0, clonarLinha2(lista[i]));
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
     body.querySelectorAll('.tasks2-action-btn[data-action="delete"]').forEach(btn => {
       btn.addEventListener("click", () => {
         tasksConfirmDeleteId = btn.dataset.id;
@@ -17113,6 +17163,37 @@ applyRolePermissions();
     document.getElementById("tasks2-bulk-actions").classList.toggle("hidden", tasksBulkConfirming);
     document.getElementById("tasks2-bulk-confirm").classList.toggle("hidden", !tasksBulkConfirming);
   }
+
+  document.getElementById("tasks2-bulk-copiar").addEventListener("click", () => {
+    // Guarda as linhas escolhidas (com tudo que esta dentro delas).
+    clipboardLinhas2 = [];
+    (function walk(lista) {
+      lista.forEach(t => {
+        if (tasksSelectedIds.has(t.id)) clipboardLinhas2.push(clonarLinha2(t));
+        else walk(t.subtasks || []);
+      });
+    })(tasksData);
+    const b = document.getElementById("tasks2-bulk-colar");
+    b.classList.toggle("hidden", !clipboardLinhas2.length);
+    b.textContent = `Colar ${clipboardLinhas2.length} aqui`;
+  });
+
+  document.getElementById("tasks2-bulk-colar").addEventListener("click", () => {
+    if (!clipboardLinhas2.length) return;
+    // Cola DENTRO de cada linha marcada agora — e assim que da pra mandar
+    // as mesmas tarefas pra varios entregaveis de uma vez.
+    const alvos = [...tasksSelectedIds];
+    if (!alvos.length) return;
+    alvos.forEach(id => {
+      const alvo = findTaskById(tasksData, id);
+      if (!alvo) return;
+      if (!Array.isArray(alvo.subtasks)) alvo.subtasks = [];
+      clipboardLinhas2.forEach(c => alvo.subtasks.push(clonarLinha2(c)));
+      tasksExpanded[alvo.id] = true; // abre pra dar pra ver o que chegou
+    });
+    saveTasksData();
+    renderTasksTable();
+  });
 
   document.getElementById("tasks2-bulk-delete").addEventListener("click", () => {
     tasksBulkConfirming = true;
