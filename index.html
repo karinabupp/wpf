@@ -15651,7 +15651,11 @@ applyRolePermissions();
   // volta a somar pontuacao normalmente, sem quebrar.
   const METAS_AUTOMATICAS = [
     { termos: ["acesso", "site"], kpi: "campanhas-adwords" },
-    { termos: ["seguidor", "instagram"], kpi: "social-media" }
+    { termos: ["seguidor", "instagram"], kpi: "social-media" },
+    // CPC e meta de teto: cumprida quando fica ABAIXO do alvo, ao
+    // contrario das outras, em que se sobe ate alcancar.
+    { termos: ["cpc"], kpi: "cpc-adwords", menorMelhor: true },
+    { termos: ["gasto", "adwords"], kpi: "budget-adwords" }
   ];
 
   function kpiDoMarketing(id) {
@@ -15682,7 +15686,7 @@ applyRolePermissions();
     if (auto) {
       const atual = kpiDoMarketing(auto.kpi);
       // KPI sem valor ainda: cai no comportamento normal em vez de mostrar 0
-      if (atual !== null) return { atual, alvo, automatica: true };
+      if (atual !== null) return { atual, alvo, automatica: true, menorMelhor: !!auto.menorMelhor };
     }
     const pontuacoes = Array.isArray(t.pontuacoes) ? t.pontuacoes : [];
     let atual = 0;
@@ -15860,7 +15864,8 @@ applyRolePermissions();
     const prog = metaProgresso(t);
     const texto = prog ? `${prog.atual}/${prog.alvo}` : "— sem número na meta —";
     const auto = !!(prog && prog.automatica);
-    const completo = !!(prog && prog.alvo > 0 && prog.atual >= prog.alvo);
+    const completo = !!(prog && prog.alvo > 0 &&
+      (prog.menorMelhor ? prog.atual <= prog.alvo : prog.atual >= prog.alvo));
     return `<div class="tasks2-meta-progresso">
       <button type="button" class="tasks2-meta-progresso-btn ${prog ? "" : "is-vazio"} ${completo ? "is-completo" : ""} ${auto ? "is-auto" : ""}" data-id="${t.id}" ${auto ? 'data-auto="1"' : ""} title="${auto ? "Puxado automaticamente do Marketing" : "Clique para gerenciar a pontuação desta meta"}">${texto}${auto ? ' <span class="tasks2-meta-auto">auto</span>' : ""}</button>
     </div>`;
