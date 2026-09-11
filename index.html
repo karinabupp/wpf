@@ -3963,14 +3963,8 @@
   .tasks2-drag-handle:active { cursor: grabbing; }
   .tasks2-row-selected { box-shadow: inset 3px 0 0 var(--accent); }
   .tasks2-col-name, .tasks2-col-status, .tasks2-col-date, .tasks2-col-kpi { position: relative; }
-  /* Coluna marcada: a alça fica visivel mesmo sem o mouse em cima, pra
-     dar pra ver o que vai junto no proximo arrasto. */
-  .tasks2-fill-handle.is-marcado { display: block !important; background: #1f7a3d; box-shadow: 0 0 0 1px #1f7a3d; }
-  body.tasks2-tem-marcados .tasks2-fill-handle { display: block; opacity: 0.35; }
-  body.tasks2-tem-marcados .tasks2-fill-handle.is-marcado { opacity: 1; }
-  /* A alça da linha inteira mora na coluna de acoes, encostada na esquerda
-     dela pra nao brigar com os botoes. */
-  .tasks2-fill-linha { left: 2px; right: auto; }
+  /* Responsavel e o checkbox tambem ganham alca: precisam prender o absolute. */
+  .tasks2-row .tasks2-col-assignee, .tasks2-row .tasks2-col-select { position: relative; }
   .tasks2-fill-handle {
     display: none;
     position: absolute;
@@ -3987,6 +3981,24 @@
 
   }
   .tasks2-name-input:focus ~ .tasks2-fill-handle, .tasks2-status-select:focus ~ .tasks2-fill-handle, .tasks2-date-input:focus ~ .tasks2-fill-handle, .tasks2-kpi-select:focus ~ .tasks2-fill-handle, .tasks2-fill-handle.dragging { display: block; }
+  /* A alca aparece ao passar o mouse na celula (e com foco dentro dela), em
+     TODAS as colunas. Antes so aparecia com foco no input, e a regra acima
+     nao alcanca os selects de Area/Pais, que ficam dentro de um span — por
+     isso nessas colunas ela existia mas nunca ficava visivel. */
+  .tasks2-row [data-fill-field]:hover .tasks2-fill-handle,
+  .tasks2-row [data-fill-field]:focus-within .tasks2-fill-handle,
+  .tasks2-cell-marcada .tasks2-fill-handle { display: block; }
+  /* Celulas marcadas com Ctrl/Cmd+clique: descem juntas no mesmo arraste. */
+  .tasks2-cell-marcada { box-shadow: inset 0 0 0 2px var(--accent); background: rgba(24,95,165,0.10); }
+  /* Alca da linha inteira: so com UMA linha marcada no checkbox, sempre visivel. */
+  .tasks2-fill-handle-linha { display: block; right: 2px; bottom: 3px; }
+  /* Responsavel calculado: le como preenchido, mas sem jeito de editar. */
+  .tasks2-assignee-chips.is-auto { cursor: default; }
+  .tasks2-assignee-chip.tasks2-assignee-auto { padding-right: 9px; font-style: italic; }
+  .tasks2-assignee-chip.tasks2-assignee-auto-vazio { color: var(--text-muted); background: transparent; }
+  /* Selecao com o mouse (estilo Notion): camada azul por cima das celulas. */
+  .tasks2-row .tasks2-cell-faixa { background-color: rgba(35,131,226,0.16) !important; box-shadow: inset 0 0 0 1px rgba(35,131,226,0.55); }
+  body.tasks2-selecionando, body.tasks2-selecionando * { user-select: none !important; cursor: cell !important; }
   .tasks2-fill-target { box-shadow: inset 0 0 0 2px var(--accent); background: rgba(24,95,165,0.08); }
   body.tasks2-fill-active { user-select: none; }
   .tasks2-row-dragging { opacity: 0.4; }
@@ -15161,9 +15173,10 @@ applyRolePermissions();
   const STATUS_ICON_COLORS = {
     "Not Started":  "#84847a",
     "In Progress":  "#1668c4",
+    "Deadline":     "#c28800",
     "Late":         "#cf2b2b",
     "Done":         "#1e8a3c",
-    "On Hold":      "#c28800",
+    "On Hold":      "#e06b12",
     "Cancelled":    "#9a9a92",
   };
 
@@ -15238,13 +15251,16 @@ applyRolePermissions();
     ).join("");
   }
 
-  const TASK_STATUS_OPTIONS = ["Not Started", "In Progress", "Late", "Done", "On Hold", "Cancelled"];
+  // Deadline: vence em ate 3 dias (automatico, ver autoSyncLateStatuses).
+  // Fica entre In Progress e Late e herdou o amarelo; On Hold virou laranja.
+  const TASK_STATUS_OPTIONS = ["Not Started", "In Progress", "Deadline", "Late", "Done", "On Hold", "Cancelled"];
   const TASK_STATUS_COLORS = {
     "Not Started":  { bg: "#f1efe8", text: "#444441" },
     "In Progress":  { bg: "#e6f1fb", text: "#0c447c" },
     "Late":{ bg: "#fcebeb", text: "#791f1f" },
     "Done":         { bg: "#eaf3de", text: "#173404" },
-    "On Hold":      { bg: "#fdf3d6", text: "#7a5b06" },
+    "Deadline":     { bg: "#fdf3d6", text: "#7a5b06" },
+    "On Hold":      { bg: "#fde6d2", text: "#8a3b0c" },
     "Cancelled":    { bg: "#efefec", text: "#6b6a63" },
   };
 
@@ -15254,7 +15270,7 @@ applyRolePermissions();
   //    Azul (In Progress) andando, verde (Done) concluido, vermelho (Late)
   //    se ha algo atrasado embaixo.
   //  - entregavel/tarefa : os seis status de sempre
-  const STATUS_CALCULADO = ["Not Started", "In Progress", "Late", "Done"];
+  const STATUS_CALCULADO = ["Not Started", "In Progress", "Deadline", "Late", "Done"];
   const STATUS_BY_TYPE = {
     objetivo:   STATUS_CALCULADO,
     meta:       STATUS_CALCULADO,
@@ -15274,6 +15290,27 @@ applyRolePermissions();
   const statusIsAuto = t =>
     t.rowType === "objetivo" || t.rowType === "meta" || t.rowType === "projeto" ||
     (t.rowType === "entregavel" && Array.isArray(t.subtasks) && t.subtasks.length > 0);
+
+  // Responsavel calculado: Objetivo, Projeto e Entregavel COM algo dentro
+  // mostram todo mundo que e responsavel em qualquer linha abaixo (a arvore
+  // inteira, sem repetir, pulando linhas Cancelled e o que esta dentro
+  // delas). Meta fica de fora de proposito: e escolhida a mao. Linha vazia
+  // segue editavel — igual ao status, senao nasceria travada em "ninguem".
+  const responsavelIsAuto = t =>
+    (t.rowType === "objetivo" || t.rowType === "projeto" || t.rowType === "entregavel") &&
+    Array.isArray(t.subtasks) && t.subtasks.length > 0;
+
+  function computeRollupResponsaveis(t) {
+    const nomes = [];
+    (function juntar(lista) {
+      lista.forEach(x => {
+        if (x.status === "Cancelled") return;
+        (x.assignees || []).forEach(n => { if (!nomes.includes(n)) nomes.push(n); });
+        juntar(x.subtasks || []);
+      });
+    })(t.subtasks);
+    return nomes;
+  }
 
   // Encaixa o status no vocabulario da categoria. Chamado quando a linha
   // nasce, quando os dados sao carregados e quando a categoria muda.
@@ -15325,8 +15362,16 @@ applyRolePermissions();
     };
   }
 
+  // Mesma varredura do atraso, pra Deadline: sobe de qualquer profundidade,
+  // mas perde pro Late (quem tem algo atrasado embaixo mostra Late).
+  function temDeadlineAbaixo(t) {
+    return t.subtasks.some(x =>
+      x.status !== "Cancelled" && (x.status === "Deadline" || temDeadlineAbaixo(x)));
+  }
+
   function computeRollupStatus(t) {
     if (temAtrasoAbaixo(t)) return "Late";
+    if (temDeadlineAbaixo(t)) return "Deadline";
     const live = t.subtasks.filter(x => x.status !== "Cancelled");
     if (!live.length) return "Not Started";
     if (live.every(x => x.status === "Done")) return "Done";
@@ -15376,6 +15421,10 @@ applyRolePermissions();
           if (t.startDate !== d.inicio) { t.startDate = d.inicio; changed = true; }
           if (t.endDate !== d.fim) { t.endDate = d.fim; changed = true; }
         }
+        if (responsavelIsAuto(t)) {
+          const r = computeRollupResponsaveis(t);
+          if (JSON.stringify(t.assignees || []) !== JSON.stringify(r)) { t.assignees = r; changed = true; }
+        }
       });
     })(tasksData, 0);
     // Persistir aqui e o que faz o dado no localStorage bater com a tela.
@@ -15410,6 +15459,18 @@ applyRolePermissions();
 
   let tasksAssigneePickerId = null; // id of a task currently showing the "pick an existing name" dropdown
   let tasksAssigneeExpandedId = null; // id of a task showing all its assignee chips instead of the "Name +N" summary
+
+  // Responsavel calculado: so leitura, sem + e ×. Com 2+ nomes sai recolhido
+  // em "Nome +N" (a lista toda no tooltip) pra linha nao crescer.
+  function responsavelAutoMarkup(t) {
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const nomes = t.assignees || [];
+    const dica = "Automático: quem é responsável nas linhas abaixo" + (nomes.length ? " — " + nomes.join(", ") : "");
+    const conteudo = !nomes.length
+      ? `<span class="tasks2-assignee-chip tasks2-assignee-auto-vazio">—</span>`
+      : `<span class="tasks2-assignee-chip tasks2-assignee-auto">${esc(nomes[0])}${nomes.length > 1 ? " +" + (nomes.length - 1) : ""}</span>`;
+    return `<div class="tasks2-assignee-chips is-auto" title="${esc(dica)}">${conteudo}</div>`;
+  }
 
   function assigneeCellMarkup(t, colab) {
     const fullChips = t.assignees.map(name => `
@@ -16001,12 +16062,15 @@ applyRolePermissions();
   // de verdade a partir dos responsáveis do rascunho, que é exatamente o tipo
   // de vazamento que o isolamento existe pra evitar.
 
+  const DIAS_DEADLINE = 3; // Fim entre hoje e hoje+3 => Deadline
+
   // Any task past its end date automatically flips to "Late" — regardless of
   // whatever status it was in before — except Done/Cancelled, which are
   // treated as finished/moot and are left alone. Runs before every render so
   // the table, Late view and Geral stats always reflect this on their own.
   function autoSyncLateStatuses() {
     const today = todayISO();
+    const limiteDeadline = new Date(Date.parse(today + "T00:00:00Z") + DIAS_DEADLINE * 86400000).toISOString().slice(0, 10);
     let changed = false;
     function walk(items) {
       items.forEach(t => {
@@ -16018,6 +16082,21 @@ applyRolePermissions();
       const podeAtrasar = t.rowType === "entregavel" || t.rowType === "tarefa";
       if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
           t.status = "Late";
+          delete t.statusAntesDeadline;
+          changed = true;
+        } else if (podeAtrasar && t.endDate && t.endDate >= today && t.endDate <= limiteDeadline
+                   && !["Done", "Cancelled", "Late", "Deadline"].includes(t.status)) {
+          // Vence em ate 3 dias: vira Deadline e guarda o status de antes,
+          // pra devolver se a data de Fim for empurrada pra frente.
+          t.statusAntesDeadline = t.status;
+          t.status = "Deadline";
+          changed = true;
+        } else if (t.status === "Deadline" && t.statusAntesDeadline !== undefined
+                   && (!podeAtrasar || !t.endDate || t.endDate > limiteDeadline)) {
+          // Saiu da janela (data adiada ou apagada): volta ao que era. So vale
+          // pro Deadline automatico — o escolhido a mao nao tem o campo.
+          t.status = statusAllowed(t, t.statusAntesDeadline) ? t.statusAntesDeadline : "Not Started";
+          delete t.statusAntesDeadline;
           changed = true;
         }
         walk(t.subtasks);
@@ -16514,12 +16593,15 @@ applyRolePermissions();
     const canKpi = colabCan("tasksEditKpi");
     const canDelete = colabCan("tasksDelete");
     const canCreate = colabCan("tasksCreate");
+    // Com UMA linha so marcada, ela ganha a alca de copiar a linha inteira.
+    const alcaLinha = selected && tasksSelectedIds.size === 1;
     let html = `
       <div class="tasks2-row ${selected ? "tasks2-row-selected" : ""}" data-id="${t.id}"${rowStyle}>
         <div class="tasks2-col-select">
           <input type="checkbox" class="tasks2-row-checkbox" data-id="${t.id}" ${selected ? "checked" : ""}>
+          ${alcaLinha ? `<span class="tasks2-fill-handle tasks2-fill-handle-linha" data-id="${t.id}" data-linha="1" title="Arraste para copiar a linha inteira (nome, status, datas, responsável, área e ${ROTULO_PAIS_TASKS2.toLowerCase()}) para as linhas abaixo"></span>` : ""}
         </div>
-        <div class="tasks2-col-name" style="padding-left:${nameIndent(t, depth)}px">
+        <div class="tasks2-col-name" data-fill-field="name" style="padding-left:${nameIndent(t, depth)}px">
           <div class="tasks2-name-row">
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
@@ -16531,34 +16613,33 @@ applyRolePermissions();
           </div>
           ${mentionsChipsMarkup(t)}
         </div>
-        <div class="tasks2-col-status">
+        <div class="tasks2-col-status" data-fill-field="status">
           ${statusIsAuto(t)
           ? `<span class="tasks2-status-static" style="background:${colors.bg}; color:${colors.text}" title="Status automático: vem do que está abaixo deste objetivo">${t.status}</span>`
           : `<select class="tasks2-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}">${taskStatusOptionsMarkup(t.status, statusesFor(t))}</select>`}
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="status" title="Arraste para copiar o status para as linhas ao lado"></span>
         </div>
-        <div class="tasks2-col-date">
+        <div class="tasks2-col-date" data-fill-field="startDate">
           <input type="date" class="tasks2-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="startDate" value="${t.startDate}" title="${datasSaoAuto(t) ? "Calculada: a primeira data de início lá dentro" : "Data de início"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
           ${(canDates && !datasSaoAuto(t)) ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="startDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
         </div>
-        <div class="tasks2-col-date">
+        <div class="tasks2-col-date" data-fill-field="endDate">
           <input type="date" class="tasks2-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="endDate" value="${t.endDate}" title="${datasSaoAuto(t) ? "Calculada: a última data de término lá dentro" : "Data final"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
           ${(canDates && !datasSaoAuto(t)) ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="endDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
         </div>
-        <div class="tasks2-col-assignee">
-          ${assigneeCellMarkup(t, !canAssignee)}
-          ${canAssignee ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="assignees" title="Arraste para copiar o responsável para as linhas abaixo"></span>` : ""}
+        <div class="tasks2-col-assignee" data-fill-field="assignees">
+          ${responsavelIsAuto(t) ? responsavelAutoMarkup(t) : assigneeCellMarkup(t, !canAssignee)}
+          ${(canAssignee && !responsavelIsAuto(t)) ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="assignees" title="Arraste para copiar os responsáveis para as linhas abaixo"></span>` : ""}
         </div>
-        <div class="tasks2-col-area">
+        <div class="tasks2-col-area" data-fill-field="areaLink">
           ${areaCellMarkup(t, depth, inheritedArea)}
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="areaLink" title="Arraste para copiar a área para as linhas abaixo"></span>
         </div>
-        <div class="tasks2-col-pais">
+        <div class="tasks2-col-pais" data-fill-field="paisLink">
           ${paisCellMarkup(t)}
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="paisLink" title="Arraste para copiar ${ROTULO_PAIS_TASKS2.toLowerCase()} para as linhas abaixo"></span>
         </div>
         <div class="tasks2-col-actions">
-          <span class="tasks2-fill-handle tasks2-fill-linha" data-id="${t.id}" data-field="__linha__" title="Arraste para copiar a linha inteira para baixo"></span>
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
@@ -16719,6 +16800,10 @@ applyRolePermissions();
       row.addEventListener("click", (e) => {
         if (e.target.classList.contains("tasks2-row-checkbox")) return; // handled by its own listener
         if (!(e.ctrlKey || e.metaKey)) return;
+        // Ctrl/Cmd+clique numa CELULA marca a celula pro arraste (ver
+        // "celulasMarcadas"). Linha continua sendo selecionada pelo checkbox
+        // ou com Ctrl/Cmd+clique nas colunas sem campo (checkbox, + / lixeira).
+        if (e.target.closest("[data-fill-field]")) return;
         const id = row.dataset.id;
         e.preventDefault();
         if (tasksSelectedIds.has(id)) tasksSelectedIds.delete(id); else tasksSelectedIds.add(id);
@@ -16981,6 +17066,7 @@ applyRolePermissions();
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
         t.status = select.value;
+        delete t.statusAntesDeadline; // escolha a mao: nada pra devolver depois
         saveTasksData();
         renderTasksTable();
       });
@@ -17075,6 +17161,8 @@ applyRolePermissions();
       });
     });
     wireFillHandles(body);
+    aplicarMarcasCelulas();
+    aplicarFaixa();
     updateTasksBulkBar();
     refreshNameExpandButtons();
   }
@@ -17105,36 +17193,40 @@ applyRolePermissions();
   // --- Fill handle: click a cell (name/status/dates/kpi) to select it, then
   // drag the little square at its corner up or down to copy that one value
   // onto every row the drag passes over — like a spreadsheet's autofill.
-  let tasksFill = null; // { fields, valores, startIndex, ids } enquanto arrasta
+  // Tres jeitos de arrastar, todos pelo mesmo mecanismo:
+  //  1. a alca de UMA celula copia so aquele campo;
+  //  2. com celulas marcadas por Ctrl/Cmd+clique na mesma linha, a alca de
+  //     qualquer uma delas leva TODAS as marcadas juntas;
+  //  3. com UMA linha marcada no checkbox, a alca da linha leva a linha
+  //     inteira (todos os campos de CAMPOS_ARRASTAVEIS, inclusive o nome).
+  // Sempre sobrescreve as linhas por onde passa (como no Excel) — nao cria
+  // linha nova; pra isso existe o Copiar/Colar.
+  let tasksFill = null; // { campos, valores, startIndex, ids } while a drag is in progress
+  // Tipo fica de fora de proposito: trocar categoria mexe na hierarquia.
+  const CAMPOS_ARRASTAVEIS = ["name", "status", "startDate", "endDate", "assignees", "areaLink", "paisLink"];
+  let celulasMarcadas = null; // { id, campos: Set } — celulas marcadas com Ctrl/Cmd+clique
 
-  // Todos os campos que podem ser copiados pra baixo, na ordem das colunas.
-  const CAMPOS_COPIAVEIS = ["name", "status", "startDate", "endDate", "assignees", "areaLink", "paisLink"];
-
-  // Campos marcados a dedo (clique na alça sem arrastar). Vazio = arrasta
-  // so o campo da alça que voce pegou.
-  let tasksCamposMarcados = new Set();
-
-  function camposDoArrasto2(field) {
-    if (field === "__linha__") return CAMPOS_COPIAVEIS.slice(); // linha inteira
-    if (tasksCamposMarcados.size && tasksCamposMarcados.has(field)) {
-      return [...tasksCamposMarcados];
-    }
-    return [field];
+  function campoEditavel(field) {
+    if (field === "startDate" || field === "endDate") return colabCan("tasksEditDates");
+    if (field === "assignees") return colabCan("tasksEditAssignee");
+    return CAMPOS_ARRASTAVEIS.includes(field);
   }
 
-  // Copia com cuidado: array (responsavel) precisa de copia propria, senao
-  // as linhas passariam a dividir a mesma lista e editar uma mexeria em todas.
-  function valorParaCopiar2(t, campo) {
-    const v = t[campo];
-    return Array.isArray(v) ? v.slice() : v;
+  // Uma linha so recebe o valor se o campo dela for editavel: status e datas
+  // calculados (niveis de agrupamento com filhos) sao pulados, e status fora
+  // do vocabulario da categoria tambem. O pre-visual usa a MESMA regra, entao
+  // o azul mostra exatamente o que vai mudar.
+  function podeReceber(t, field, value) {
+    if (!campoEditavel(field)) return false;
+    if (field === "status") return !statusIsAuto(t) && statusAllowed(t, value);
+    if ((field === "startDate" || field === "endDate") && datasSaoAuto(t)) return false;
+    if (field === "assignees" && responsavelIsAuto(t)) return false;
+    return true;
   }
 
-  function pintarMarcados2() {
-    document.querySelectorAll(".tasks2-fill-handle").forEach(h => {
-      h.classList.toggle("is-marcado", tasksCamposMarcados.has(h.dataset.field));
-    });
-    document.body.classList.toggle("tasks2-tem-marcados", tasksCamposMarcados.size > 0);
-  }
+  // Responsavel e array: cada linha ganha a sua copia, senao todas passariam
+  // a dividir o mesmo array e mexer numa mexeria em todas.
+  const copiaValor = v => Array.isArray(v) ? [...v] : (v === undefined ? "" : v);
 
   function tasksFlatRowIds() {
     return [...document.querySelectorAll("#tasks2-table-body .tasks2-row")].map(el => el.dataset.id);
@@ -17144,34 +17236,80 @@ applyRolePermissions();
     document.querySelectorAll(".tasks2-fill-target").forEach(el => el.classList.remove("tasks2-fill-target"));
   }
 
-  // startDate and endDate both live inside a ".tasks2-col-date" wrapper, so we
-  // find the cell via the specific input rather than the class alone.
-  function tasksFindFieldCell(rowEl, field) {
-    const input = rowEl.querySelector(`[data-field="${field}"]`);
-    return input ? input.closest(".tasks2-row > div") : null;
+  function aplicarMarcasCelulas() {
+    document.querySelectorAll(".tasks2-cell-marcada").forEach(el => el.classList.remove("tasks2-cell-marcada"));
+    if (!celulasMarcadas) return;
+    const row = [...document.querySelectorAll("#tasks2-table-body .tasks2-row")].find(r => r.dataset.id === celulasMarcadas.id);
+    if (!row) return;
+    celulasMarcadas.campos.forEach(f => {
+      const cell = row.querySelector(`[data-fill-field="${f}"]`);
+      if (cell) cell.classList.add("tasks2-cell-marcada");
+    });
   }
 
+  function limparMarcasCelulas() {
+    if (!celulasMarcadas) return;
+    celulasMarcadas = null;
+    aplicarMarcasCelulas();
+  }
+
+  // Ctrl/Cmd+clique numa celula marca/desmarca. Em captura, pra chegar antes
+  // do select abrir ou do campo pegar foco. Clique sem tecla em qualquer
+  // lugar (menos numa alca) limpa as marcas, como numa planilha.
+  document.addEventListener("mousedown", (e) => {
+    const alvo = e.target instanceof Element ? e.target : null;
+    if (alvo && alvo.closest(".tasks2-fill-handle")) return;
+    const cell = alvo && alvo.closest("#tasks2-table-body .tasks2-row [data-fill-field]");
+    if (!cell || !(e.ctrlKey || e.metaKey)) { limparMarcasCelulas(); return; }
+    const field = cell.dataset.fillField;
+    if (!campoEditavel(field)) return;
+    e.preventDefault();
+    const id = cell.closest(".tasks2-row").dataset.id;
+    if (!celulasMarcadas || celulasMarcadas.id !== id) celulasMarcadas = { id, campos: new Set() };
+    if (celulasMarcadas.campos.has(field)) celulasMarcadas.campos.delete(field);
+    else celulasMarcadas.campos.add(field);
+    if (!celulasMarcadas.campos.size) celulasMarcadas = null;
+    aplicarMarcasCelulas();
+  }, true);
+  // O clique que vem depois do mousedown marcado nao pode chegar nos botoes
+  // da celula (ex.: o chip "Nome +1" do Responsavel expandia a lista).
+  document.addEventListener("click", (e) => {
+    if (!(e.ctrlKey || e.metaKey) || !(e.target instanceof Element)) return;
+    if (!e.target.closest("#tasks2-table-body .tasks2-row [data-fill-field]")) return;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+  // No Mac, Ctrl+clique abre o menu de contexto — dentro de uma celula, nao.
+  document.addEventListener("contextmenu", (e) => {
+    if (e.ctrlKey && e.target instanceof Element && e.target.closest("#tasks2-table-body .tasks2-row [data-fill-field]")) e.preventDefault();
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") limparMarcasCelulas(); });
+
   function wireFillHandles(body) {
-    // A tabela se redesenha o tempo todo; sem repintar, as colunas
-    // marcadas perderiam o destaque a cada mudanca.
-    setTimeout(pintarMarcados2, 0);
     body.querySelectorAll(".tasks2-fill-handle").forEach(handle => {
       handle.addEventListener("mousedown", (e) => {
         e.preventDefault();
         e.stopPropagation();
         const ids = tasksFlatRowIds();
-        const startIndex = ids.indexOf(handle.dataset.id);
-        const t = findTaskById(tasksData, handle.dataset.id);
+        const id = handle.dataset.id;
+        const startIndex = ids.indexOf(id);
+        const t = findTaskById(tasksData, id);
         if (startIndex === -1 || !t) return;
-        const campos = camposDoArrasto2(handle.dataset.field);
+        let campos;
+        if (handle.dataset.linha === "1") campos = CAMPOS_ARRASTAVEIS.filter(campoEditavel);
+        else if (celulasMarcadas && celulasMarcadas.id === id && celulasMarcadas.campos.has(handle.dataset.field)) campos = [...celulasMarcadas.campos];
+        else campos = [handle.dataset.field];
         const valores = {};
-        campos.forEach(c => { valores[c] = valorParaCopiar2(t, c); });
-        tasksFill = { fields: campos, valores, startIndex, ids, moveu: false,
-                      origem: handle.dataset.field };
+        campos.forEach(f => { valores[f] = copiaValor(t[f]); });
+        tasksFill = { campos, valores, startIndex, ids };
         handle.classList.add("dragging");
         document.body.classList.add("tasks2-fill-active");
       });
     });
+  }
+
+  function intervaloDoArraste(targetIndex, startIndex) {
+    return targetIndex > startIndex ? [startIndex + 1, targetIndex] : [targetIndex, startIndex - 1];
   }
 
   document.addEventListener("mousemove", (e) => {
@@ -17181,15 +17319,15 @@ applyRolePermissions();
     if (!rowEl) return;
     const targetIndex = tasksFill.ids.indexOf(rowEl.dataset.id);
     if (targetIndex === -1) return;
-    const [from, to] = targetIndex > tasksFill.startIndex
-      ? [tasksFill.startIndex + 1, targetIndex]
-      : [targetIndex, tasksFill.startIndex - 1];
+    const [from, to] = intervaloDoArraste(targetIndex, tasksFill.startIndex);
     if (from > to) return;
-    tasksFill.moveu = true;
     const rows = [...document.querySelectorAll("#tasks2-table-body .tasks2-row")];
     for (let i = from; i <= to; i++) {
-      tasksFill.fields.forEach(campo => {
-        const cell = tasksFindFieldCell(rows[i], campo);
+      const t = findTaskById(tasksData, tasksFill.ids[i]);
+      if (!t || !rows[i]) continue;
+      tasksFill.campos.forEach(f => {
+        if (!podeReceber(t, f, tasksFill.valores[f])) return;
+        const cell = rows[i].querySelector(`[data-fill-field="${f}"]`);
         if (cell) cell.classList.add("tasks2-fill-target");
       });
     }
@@ -17197,41 +17335,351 @@ applyRolePermissions();
 
   document.addEventListener("mouseup", (e) => {
     if (!tasksFill) return;
-    const { fields, valores, startIndex, ids, moveu, origem } = tasksFill;
+    const { campos, valores, startIndex, ids } = tasksFill;
     const rowEl = document.elementFromPoint(e.clientX, e.clientY)?.closest(".tasks2-row");
     tasksClearFillPreview();
     document.querySelectorAll(".tasks2-fill-handle.dragging").forEach(h => h.classList.remove("dragging"));
     document.body.classList.remove("tasks2-fill-active");
     tasksFill = null;
-    // Clique sem arrastar = marcar/desmarcar aquela coluna, pra depois
-    // arrastar varias de uma vez. A alça da linha inteira nao entra nisso.
-    if (!moveu) {
-      if (origem !== "__linha__") {
-        if (tasksCamposMarcados.has(origem)) tasksCamposMarcados.delete(origem);
-        else tasksCamposMarcados.add(origem);
-        pintarMarcados2();
-      }
-      return;
-    }
     if (!rowEl) return;
     const targetIndex = ids.indexOf(rowEl.dataset.id);
     if (targetIndex === -1 || targetIndex === startIndex) return;
-    const [from, to] = targetIndex > startIndex ? [startIndex + 1, targetIndex] : [targetIndex, startIndex - 1];
+    const [from, to] = intervaloDoArraste(targetIndex, startIndex);
     if (from > to) return;
+    let mudou = false;
+    const antes = fotoParaDesfazer();
     for (let i = from; i <= to; i++) {
       const t = findTaskById(tasksData, ids[i]);
       if (!t) continue;
-      fields.forEach(campo => {
-        const valor = valores[campo];
-        // Status fora do vocabulario da linha, ou status/datas calculados,
-        // nao podem ser sobrescritos pelo arrasto.
-        if (campo === "status" && (statusIsAuto(t) || !statusAllowed(t, valor))) return;
-        if ((campo === "startDate" || campo === "endDate") && datasSaoAuto(t)) return;
-        t[campo] = Array.isArray(valor) ? valor.slice() : valor;
+      campos.forEach(f => {
+        if (!podeReceber(t, f, valores[f])) return;
+        t[f] = copiaValor(valores[f]);
+        if (f === "status") delete t.statusAntesDeadline;
+        mudou = true;
       });
     }
+    if (mudou) empilharDesfazer(antes);
+    if (!mudou) return;
     saveTasksData();
     renderTasksTable();
+  });
+
+  // ── Selecao com o mouse, copiar, colar, apagar e desfazer (estilo Notion) ──
+  // Aperta numa celula e arrasta ate outra: o retangulo fica azul.
+  //  - Ctrl/Cmd+C copia (sem area azul, copia a celula onde esta o cursor —
+  //    a nao ser que haja texto selecionado dentro do nome: ai e texto normal).
+  //  - Ctrl/Cmd+V cola na celula com o cursor ou na area azul. Se a area for
+  //    maior que o copiado, repete: 1 linha copiada enche 5 linhas.
+  //  - Delete/Backspace apaga o que esta azul (status nunca fica vazio).
+  //  - Ctrl/Cmd+Z desfaz o ultimo colar / apagar / arraste.
+  // Clique simples continua editando; arrastar DENTRO do nome continua
+  // selecionando texto — so vira selecao de celulas ao cruzar pra outra.
+  // Cada valor so entra na coluna dele (data vai em Inicio/Fim, nao em
+  // Pais), e status/datas calculados nao sao sobrescritos (podeReceber).
+  //
+  // "var" de proposito: renderTasksTable chama aplicarFaixa, e com "let" um
+  // render que acontecesse antes desta linha estouraria (TDZ).
+  var COLUNAS_FAIXA = CAMPOS_ARRASTAVEIS; // mesma ordem das colunas na tela
+  var faixa = null;          // { a: {id, col}, b: {id, col} }
+  var faixaPendente = null;  // mousedown numa celula, esperando ver se vira arraste
+  var faixaArrastando = false;
+  var transferencia = null;  // { cols, linhas, texto } — o ultimo Ctrl/Cmd+C daqui
+  var pilhaDesfazer = [];
+  var SELECT_TEM_PICKER = typeof HTMLSelectElement !== "undefined" && "showPicker" in HTMLSelectElement.prototype;
+
+  function fotoParaDesfazer() { return JSON.stringify(tasksData); }
+  function empilharDesfazer(foto) {
+    if (!pilhaDesfazer) pilhaDesfazer = [];
+    pilhaDesfazer.push(foto);
+    if (pilhaDesfazer.length > 20) pilhaDesfazer.shift();
+  }
+  function desfazer() {
+    const foto = pilhaDesfazer && pilhaDesfazer.pop();
+    if (!foto) return false;
+    // No lugar (splice), sem trocar o array: outros pedacos seguram a referencia.
+    tasksData.splice(0, tasksData.length, ...JSON.parse(foto));
+    saveTasksData();
+    renderTasksTable();
+    return true;
+  }
+
+  function linhasVisiveis() { return [...document.querySelectorAll("#tasks2-table-body .tasks2-row")]; }
+  function tasks2Visivel() { const v = document.getElementById("tasks2-view"); return !!(v && v.offsetParent); }
+
+  function celulaInfo(el) {
+    const cell = el && el.closest ? el.closest("#tasks2-table-body .tasks2-row [data-fill-field]") : null;
+    if (!cell) return null;
+    const col = COLUNAS_FAIXA.indexOf(cell.dataset.fillField);
+    if (col === -1) return null;
+    return { id: cell.closest(".tasks2-row").dataset.id, col };
+  }
+
+  function retanguloFaixa() {
+    if (!faixa || !faixa.a || !faixa.b) return null;
+    const ids = linhasVisiveis().map(r => r.dataset.id);
+    const ia = ids.indexOf(faixa.a.id), ib = ids.indexOf(faixa.b.id);
+    if (ia === -1 || ib === -1) return null;
+    return { ids, r0: Math.min(ia, ib), r1: Math.max(ia, ib),
+             c0: Math.min(faixa.a.col, faixa.b.col), c1: Math.max(faixa.a.col, faixa.b.col) };
+  }
+
+  function aplicarFaixa() {
+    document.querySelectorAll(".tasks2-cell-faixa").forEach(el => el.classList.remove("tasks2-cell-faixa"));
+    const r = retanguloFaixa();
+    if (!r) return;
+    const rows = linhasVisiveis();
+    for (let i = r.r0; i <= r.r1; i++) {
+      for (let c = r.c0; c <= r.c1; c++) {
+        const cell = rows[i].querySelector(`[data-fill-field="${COLUNAS_FAIXA[c]}"]`);
+        if (cell) cell.classList.add("tasks2-cell-faixa");
+      }
+    }
+  }
+  function limparFaixa() { if (!faixa) return; faixa = null; aplicarFaixa(); }
+
+  function tirarFoco() {
+    const ae = document.activeElement;
+    if (ae && ae !== document.body && ae.blur) ae.blur();
+    if (window.getSelection) window.getSelection().removeAllRanges();
+  }
+
+  document.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    const alvo = e.target instanceof Element ? e.target : null;
+    if (!alvo || alvo.closest(".tasks2-fill-handle")) return;
+    if (e.ctrlKey || e.metaKey) return; // Ctrl/Cmd+clique = marcar celula pro arraste
+    const info = celulaInfo(alvo);
+    // Botoes e controles que nao sao o valor da celula nao comecam selecao.
+    if (!info || alvo.closest("button, .tasks2-drag-handle, .tasks2-type-picker, .tasks2-assignee-select, a")) {
+      faixaPendente = null;
+      limparFaixa();
+      return;
+    }
+    if (e.shiftKey) {
+      // Shift+clique estende a partir da area azul, ou da celula com o cursor.
+      const ancora = faixa ? faixa.a : celulaInfo(document.activeElement);
+      if (ancora) {
+        e.preventDefault();
+        faixa = { a: ancora, b: info };
+        tirarFoco();
+        aplicarFaixa();
+        return;
+      }
+    }
+    limparFaixa();
+    const select = alvo.tagName === "SELECT" ? alvo : null;
+    faixaPendente = { id: info.id, col: info.col, select };
+    // O select nativo abre a lista ja no mousedown e engoliria o arraste.
+    // Seguro a abertura e abro no mouseup se nao tiver virado selecao.
+    if (select && SELECT_TEM_PICKER) e.preventDefault();
+  }, true);
+
+  document.addEventListener("mousemove", (e) => {
+    if (!faixaPendente || !(e.buttons & 1)) return;
+    const info = celulaInfo(document.elementFromPoint(e.clientX, e.clientY));
+    if (!info) return;
+    if (!faixaArrastando) {
+      if (info.id === faixaPendente.id && info.col === faixaPendente.col) return; // ainda na mesma celula
+      faixaArrastando = true;
+      document.body.classList.add("tasks2-selecionando");
+      tirarFoco();
+      faixa = { a: { id: faixaPendente.id, col: faixaPendente.col }, b: null };
+    }
+    faixa.b = info;
+    aplicarFaixa();
+  });
+
+  document.addEventListener("mouseup", () => {
+    const pend = faixaPendente;
+    faixaPendente = null;
+    if (faixaArrastando) {
+      faixaArrastando = false;
+      document.body.classList.remove("tasks2-selecionando");
+      return;
+    }
+    if (pend && pend.select && SELECT_TEM_PICKER && document.contains(pend.select) && !pend.select.disabled) {
+      pend.select.focus(); // clique simples num seletor: abre a lista, como antes
+      try { pend.select.showPicker(); } catch (err) { /* sem picker: fica so o foco */ }
+    }
+  });
+
+  // ── valores ↔ texto (o texto e o que vai pro Excel/Sheets/Notion) ──
+  function textoDoValor(campo, v) {
+    if (campo === "assignees") return (Array.isArray(v) ? v : []).join(", ");
+    if (campo === "areaLink") { const a = v ? findAreaById(v) : null; return a ? a.name : ""; }
+    return v == null ? "" : String(v);
+  }
+
+  function valorDoTexto(campo, bruto) {
+    const txt = String(bruto == null ? "" : bruto).trim();
+    const igual = (a, b) => String(a).trim().toLowerCase() === b.toLowerCase();
+    if (campo === "name") return txt ? { ok: true, v: txt } : { ok: false };
+    if (campo === "status") {
+      const s = TASK_STATUS_OPTIONS.find(x => igual(x, txt));
+      return s ? { ok: true, v: s } : { ok: false };
+    }
+    if (campo === "startDate" || campo === "endDate") {
+      if (!txt) return { ok: true, v: "" };
+      let m = txt.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (m) return { ok: true, v: `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}` };
+      m = txt.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); // dd/mm/aaaa
+      if (m) return { ok: true, v: `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` };
+      return { ok: false };
+    }
+    if (campo === "assignees") {
+      if (!txt) return { ok: true, v: [] };
+      const nomes = txt.split(/[,;]/).map(x => x.trim()).filter(Boolean)
+        .map(n => (usersList.find(u => igual(u.username, n)) || {}).username).filter(Boolean);
+      return nomes.length ? { ok: true, v: [...new Set(nomes)] } : { ok: false };
+    }
+    if (campo === "areaLink") {
+      if (!txt) return { ok: true, v: "" };
+      const a = areasData.find(x => igual(x.name, txt));
+      return a ? { ok: true, v: a.id } : { ok: false };
+    }
+    if (campo === "paisLink") {
+      if (!txt) return { ok: true, v: "" };
+      const p = paisesDisponiveis2().find(x => igual(x, txt));
+      return p ? { ok: true, v: p } : { ok: false };
+    }
+    return { ok: false };
+  }
+
+  // Copiado daqui mesmo: vai pela mesma coluna. Unica troca aceita e entre
+  // as duas datas (Inicio <-> Fim).
+  function converterInterno(campoOrigem, valor, campoDestino) {
+    if (campoOrigem === campoDestino) return { ok: true, v: copiaValor(valor) };
+    const datas = ["startDate", "endDate"];
+    if (datas.includes(campoOrigem) && datas.includes(campoDestino)) return { ok: true, v: valor };
+    return { ok: false };
+  }
+
+  // Area azul ou, sem ela, a celula onde esta o cursor.
+  function areaAtiva() {
+    const r = retanguloFaixa();
+    if (r) return { rect: r, el: null };
+    const ae = document.activeElement;
+    const info = celulaInfo(ae);
+    if (!info) return null;
+    const ids = linhasVisiveis().map(x => x.dataset.id);
+    const i = ids.indexOf(info.id);
+    if (i === -1) return null;
+    return { rect: { ids, r0: i, r1: i, c0: info.col, c1: info.col }, el: ae };
+  }
+
+  const editandoTexto = el => !!el && (el.tagName === "TEXTAREA" || (el.tagName === "INPUT" && /^(text|search|url|email|number)$/.test(el.type)));
+
+  document.addEventListener("copy", (e) => {
+    if (!tasks2Visivel()) return;
+    const area = areaAtiva();
+    if (!area) return;
+    // Texto selecionado dentro do nome: e copia de texto normal.
+    if (area.el && area.el.tagName === "TEXTAREA" && area.el.selectionStart !== area.el.selectionEnd) return;
+    const { rect } = area;
+    const cols = COLUNAS_FAIXA.slice(rect.c0, rect.c1 + 1);
+    const linhas = [];
+    for (let i = rect.r0; i <= rect.r1; i++) {
+      const t = findTaskById(tasksData, rect.ids[i]);
+      linhas.push(cols.map(c => (t ? copiaValor(t[c]) : "")));
+    }
+    const texto = linhas.map(l => l.map((v, j) => textoDoValor(cols[j], v).replace(/[\t\r\n]+/g, " ")).join("\t")).join("\n");
+    transferencia = { cols, linhas, texto };
+    if (e.clipboardData) e.clipboardData.setData("text/plain", texto);
+    e.preventDefault();
+  });
+
+  document.addEventListener("paste", (e) => {
+    if (!tasks2Visivel()) return;
+    const area = areaAtiva();
+    if (!area) return;
+    const texto = e.clipboardData ? e.clipboardData.getData("text/plain") : "";
+    const nossa = !!transferencia && texto.replace(/\r/g, "") === transferencia.texto;
+    // Cursor dentro do nome e texto que veio de fora: cola como texto normal.
+    if (area.el && area.el.tagName === "TEXTAREA" && !nossa) return;
+    let fonte;
+    if (nossa) fonte = { interna: true, cols: transferencia.cols, linhas: transferencia.linhas };
+    else if (texto) fonte = { interna: false, linhas: texto.replace(/\r/g, "").replace(/\n+$/, "").split("\n").map(l => l.split("\t")) };
+    else return;
+    e.preventDefault();
+    colarEm(area.rect, fonte);
+  });
+
+  function colarEm(rect, fonte) {
+    const h = fonte.linhas.length;
+    const w = Math.max(...fonte.linhas.map(l => l.length));
+    if (!h || !w) return;
+    const altura = Math.max(h, rect.r1 - rect.r0 + 1);
+    const largura = Math.max(w, rect.c1 - rect.c0 + 1);
+    const antes = fotoParaDesfazer();
+    let mudou = false;
+    let ultimaLinha = rect.r0, ultimaCol = rect.c0;
+    for (let i = 0; i < altura; i++) {
+      const id = rect.ids[rect.r0 + i];
+      if (!id) break; // acabaram as linhas visiveis
+      const t = findTaskById(tasksData, id);
+      if (!t) continue;
+      const linhaFonte = fonte.linhas[i % h];
+      for (let j = 0; j < largura; j++) {
+        const campo = COLUNAS_FAIXA[rect.c0 + j];
+        if (!campo) break;
+        const k = j % w;
+        if (k >= linhaFonte.length) continue;
+        const conv = fonte.interna ? converterInterno(fonte.cols[k], linhaFonte[k], campo) : valorDoTexto(campo, linhaFonte[k]);
+        if (!conv.ok || !podeReceber(t, campo, conv.v)) continue;
+        t[campo] = copiaValor(conv.v);
+        if (campo === "status") delete t.statusAntesDeadline;
+        mudou = true;
+        ultimaLinha = rect.r0 + i;
+        ultimaCol = Math.max(ultimaCol, rect.c0 + j);
+      }
+    }
+    if (!mudou) return;
+    empilharDesfazer(antes);
+    // O que foi colado fica azul, pra dar pra ver onde entrou.
+    faixa = { a: { id: rect.ids[rect.r0], col: rect.c0 }, b: { id: rect.ids[ultimaLinha], col: ultimaCol } };
+    tirarFoco();
+    saveTasksData();
+    renderTasksTable();
+  }
+
+  function apagarFaixa(rect) {
+    const antes = fotoParaDesfazer();
+    let mudou = false;
+    for (let i = rect.r0; i <= rect.r1; i++) {
+      const t = findTaskById(tasksData, rect.ids[i]);
+      if (!t) continue;
+      for (let c = rect.c0; c <= rect.c1; c++) {
+        const campo = COLUNAS_FAIXA[c];
+        if (campo === "status") continue; // status nunca fica vazio
+        const vazio = campo === "assignees" ? [] : "";
+        if (!podeReceber(t, campo, vazio)) continue;
+        if (JSON.stringify(t[campo] == null ? vazio : t[campo]) === JSON.stringify(vazio)) continue;
+        t[campo] = vazio;
+        mudou = true;
+      }
+    }
+    if (!mudou) return;
+    empilharDesfazer(antes);
+    saveTasksData();
+    renderTasksTable();
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (!tasks2Visivel()) return;
+    const ae = document.activeElement;
+    if (e.key === "Escape") { limparFaixa(); return; }
+    // Enquanto digita no nome, Ctrl+Z e Delete sao do texto, nao da tabela.
+    if (editandoTexto(ae) || (ae && ae.tagName === "INPUT" && ae.type === "date")) return;
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "z") {
+      if (pilhaDesfazer && pilhaDesfazer.length) { e.preventDefault(); desfazer(); }
+      return;
+    }
+    if ((e.key === "Delete" || e.key === "Backspace") && !e.ctrlKey && !e.metaKey) {
+      const r = retanguloFaixa();
+      if (!r) return;
+      e.preventDefault();
+      apagarFaixa(r);
+    }
   });
 
   // --- Bulk select / delete bar ---
@@ -17398,6 +17846,7 @@ applyRolePermissions();
         const t = findTaskById(tasksData, select.dataset.id);
         if (!t) return;
         t.status = select.value;
+        delete t.statusAntesDeadline;
         saveTasksData();
         renderTasksLateView();
       });
