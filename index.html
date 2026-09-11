@@ -3365,8 +3365,10 @@
   /* ── Coluna Área (classes seguem tasks2-area-*) ───────────────────────────────────────────────
      Mesmo padrao dos outros seletores: o que se le e o chip, com um
      <select> nativo transparente por cima. */
+  /* position:relative pra alca de arrastar (que e absolute) se prender a
+     celula, e nao a alguma coisa mais acima. */
   .tasks2-col-area,
-  .tasks2-col-objetivo { display: flex; align-items: center; min-width: 0; padding: 0 8px; }
+  .tasks2-col-objetivo { display: flex; align-items: center; min-width: 0; padding: 0 8px; position: relative; }
   .tasks2-area-picker,
   .tasks2-obj-picker {
     position: relative;
@@ -3402,7 +3404,7 @@
     text-overflow: ellipsis;
     padding: 4px 5px;
   }
-  .tasks2-col-pais { display: flex; align-items: center; min-width: 0; padding: 0 4px; }
+  .tasks2-col-pais { display: flex; align-items: center; min-width: 0; padding: 0 4px; position: relative; }
   .tasks2-pais-picker { position: relative; display: inline-flex; align-items: center; max-width: 100%; }
   .tasks2-pais-chip {
     background: #e8eef6; color: #24405e; border-radius: 20px; padding: 3px 9px;
@@ -16356,7 +16358,7 @@ applyRolePermissions();
       : `<span class="tasks2-pais-vazio">— nenhum —</span>`;
     return `<span class="tasks2-pais-picker" title="${atual ? esc(atual) : "Escolher " + ROTULO_PAIS_TASKS2.toLowerCase()}">
         ${chip}
-        <select class="tasks2-pais-select" data-id="${t.id}" aria-label="${ROTULO_PAIS_TASKS2} da linha">
+        <select class="tasks2-pais-select" data-id="${t.id}" data-field="paisLink" aria-label="${ROTULO_PAIS_TASKS2} da linha">
           <option value="">— nenhum —</option>
           ${lista.map(x => `<option value="${esc(x)}" ${x === atual ? "selected" : ""}>${esc(x)}</option>`).join("")}
         </select>
@@ -16379,7 +16381,7 @@ applyRolePermissions();
       `<option value="${x.id}" ${x.id === t.areaLink ? "selected" : ""}>${esc(x.name)}</option>`).join("");
     return `<span class="tasks2-area-picker" title="${p ? esc(p.name) + (ehHerdado ? " — herdado da linha acima" : "") : "Escolher área"}">
         ${chip}
-        <select class="tasks2-area-select" data-id="${t.id}" aria-label="Área da linha">
+        <select class="tasks2-area-select" data-id="${t.id}" data-field="areaLink" aria-label="Área da linha">
           <option value="">${depth === 0 ? "— nenhum —" : "— herdar —"}</option>
           ${opcoes}
         </select>
@@ -16540,9 +16542,11 @@ applyRolePermissions();
         </div>
         <div class="tasks2-col-area">
           ${areaCellMarkup(t, depth, inheritedArea)}
+          <span class="tasks2-fill-handle" data-id="${t.id}" data-field="areaLink" title="Arraste para copiar a área para as linhas abaixo"></span>
         </div>
         <div class="tasks2-col-pais">
           ${paisCellMarkup(t)}
+          <span class="tasks2-fill-handle" data-id="${t.id}" data-field="paisLink" title="Arraste para copiar ${ROTULO_PAIS_TASKS2.toLowerCase()} para as linhas abaixo"></span>
         </div>
         <div class="tasks2-col-actions">
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
