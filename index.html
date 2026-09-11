@@ -3963,6 +3963,14 @@
   .tasks2-drag-handle:active { cursor: grabbing; }
   .tasks2-row-selected { box-shadow: inset 3px 0 0 var(--accent); }
   .tasks2-col-name, .tasks2-col-status, .tasks2-col-date, .tasks2-col-kpi { position: relative; }
+  /* Coluna marcada: a alça fica visivel mesmo sem o mouse em cima, pra
+     dar pra ver o que vai junto no proximo arrasto. */
+  .tasks2-fill-handle.is-marcado { display: block !important; background: #1f7a3d; box-shadow: 0 0 0 1px #1f7a3d; }
+  body.tasks2-tem-marcados .tasks2-fill-handle { display: block; opacity: 0.35; }
+  body.tasks2-tem-marcados .tasks2-fill-handle.is-marcado { opacity: 1; }
+  /* A alça da linha inteira mora na coluna de acoes, encostada na esquerda
+     dela pra nao brigar com os botoes. */
+  .tasks2-fill-linha { left: 2px; right: auto; }
   .tasks2-fill-handle {
     display: none;
     position: absolute;
@@ -16539,6 +16547,7 @@ applyRolePermissions();
         </div>
         <div class="tasks2-col-assignee">
           ${assigneeCellMarkup(t, !canAssignee)}
+          ${canAssignee ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="assignees" title="Arraste para copiar o responsável para as linhas abaixo"></span>` : ""}
         </div>
         <div class="tasks2-col-area">
           ${areaCellMarkup(t, depth, inheritedArea)}
@@ -16549,6 +16558,7 @@ applyRolePermissions();
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="paisLink" title="Arraste para copiar ${ROTULO_PAIS_TASKS2.toLowerCase()} para as linhas abaixo"></span>
         </div>
         <div class="tasks2-col-actions">
+          <span class="tasks2-fill-handle tasks2-fill-linha" data-id="${t.id}" data-field="__linha__" title="Arraste para copiar a linha inteira para baixo"></span>
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
@@ -17095,7 +17105,36 @@ applyRolePermissions();
   // --- Fill handle: click a cell (name/status/dates/kpi) to select it, then
   // drag the little square at its corner up or down to copy that one value
   // onto every row the drag passes over — like a spreadsheet's autofill.
-  let tasksFill = null; // { field, value, startIndex, ids } while a drag is in progress
+  let tasksFill = null; // { fields, valores, startIndex, ids } enquanto arrasta
+
+  // Todos os campos que podem ser copiados pra baixo, na ordem das colunas.
+  const CAMPOS_COPIAVEIS = ["name", "status", "startDate", "endDate", "assignees", "areaLink", "paisLink"];
+
+  // Campos marcados a dedo (clique na alça sem arrastar). Vazio = arrasta
+  // so o campo da alça que voce pegou.
+  let tasksCamposMarcados = new Set();
+
+  function camposDoArrasto2(field) {
+    if (field === "__linha__") return CAMPOS_COPIAVEIS.slice(); // linha inteira
+    if (tasksCamposMarcados.size && tasksCamposMarcados.has(field)) {
+      return [...tasksCamposMarcados];
+    }
+    return [field];
+  }
+
+  // Copia com cuidado: array (responsavel) precisa de copia propria, senao
+  // as linhas passariam a dividir a mesma lista e editar uma mexeria em todas.
+  function valorParaCopiar2(t, campo) {
+    const v = t[campo];
+    return Array.isArray(v) ? v.slice() : v;
+  }
+
+  function pintarMarcados2() {
+    document.querySelectorAll(".tasks2-fill-handle").forEach(h => {
+      h.classList.toggle("is-marcado", tasksCamposMarcados.has(h.dataset.field));
+    });
+    document.body.classList.toggle("tasks2-tem-marcados", tasksCamposMarcados.size > 0);
+  }
 
   function tasksFlatRowIds() {
     return [...document.querySelectorAll("#tasks2-table-body .tasks2-row")].map(el => el.dataset.id);
@@ -17113,6 +17152,9 @@ applyRolePermissions();
   }
 
   function wireFillHandles(body) {
+    // A tabela se redesenha o tempo todo; sem repintar, as colunas
+    // marcadas perderiam o destaque a cada mudanca.
+    setTimeout(pintarMarcados2, 0);
     body.querySelectorAll(".tasks2-fill-handle").forEach(handle => {
       handle.addEventListener("mousedown", (e) => {
         e.preventDefault();
@@ -17121,7 +17163,11 @@ applyRolePermissions();
         const startIndex = ids.indexOf(handle.dataset.id);
         const t = findTaskById(tasksData, handle.dataset.id);
         if (startIndex === -1 || !t) return;
-        tasksFill = { field: handle.dataset.field, value: t[handle.dataset.field], startIndex, ids };
+        const campos = camposDoArrasto2(handle.dataset.field);
+        const valores = {};
+        campos.forEach(c => { valores[c] = valorParaCopiar2(t, c); });
+        tasksFill = { fields: campos, valores, startIndex, ids, moveu: false,
+                      origem: handle.dataset.field };
         handle.classList.add("dragging");
         document.body.classList.add("tasks2-fill-active");
       });
@@ -17139,21 +17185,34 @@ applyRolePermissions();
       ? [tasksFill.startIndex + 1, targetIndex]
       : [targetIndex, tasksFill.startIndex - 1];
     if (from > to) return;
+    tasksFill.moveu = true;
     const rows = [...document.querySelectorAll("#tasks2-table-body .tasks2-row")];
     for (let i = from; i <= to; i++) {
-      const cell = tasksFindFieldCell(rows[i], tasksFill.field);
-      if (cell) cell.classList.add("tasks2-fill-target");
+      tasksFill.fields.forEach(campo => {
+        const cell = tasksFindFieldCell(rows[i], campo);
+        if (cell) cell.classList.add("tasks2-fill-target");
+      });
     }
   });
 
   document.addEventListener("mouseup", (e) => {
     if (!tasksFill) return;
-    const { field, value, startIndex, ids } = tasksFill;
+    const { fields, valores, startIndex, ids, moveu, origem } = tasksFill;
     const rowEl = document.elementFromPoint(e.clientX, e.clientY)?.closest(".tasks2-row");
     tasksClearFillPreview();
     document.querySelectorAll(".tasks2-fill-handle.dragging").forEach(h => h.classList.remove("dragging"));
     document.body.classList.remove("tasks2-fill-active");
     tasksFill = null;
+    // Clique sem arrastar = marcar/desmarcar aquela coluna, pra depois
+    // arrastar varias de uma vez. A alça da linha inteira nao entra nisso.
+    if (!moveu) {
+      if (origem !== "__linha__") {
+        if (tasksCamposMarcados.has(origem)) tasksCamposMarcados.delete(origem);
+        else tasksCamposMarcados.add(origem);
+        pintarMarcados2();
+      }
+      return;
+    }
     if (!rowEl) return;
     const targetIndex = ids.indexOf(rowEl.dataset.id);
     if (targetIndex === -1 || targetIndex === startIndex) return;
@@ -17162,10 +17221,14 @@ applyRolePermissions();
     for (let i = from; i <= to; i++) {
       const t = findTaskById(tasksData, ids[i]);
       if (!t) continue;
-      // Arrastar status por cima de categorias diferentes nao pode gravar um
-      // valor fora do vocabulario da linha — nem sobrescrever o automatico.
-      if (field === "status" && (statusIsAuto(t) || !statusAllowed(t, value))) continue;
-      t[field] = value;
+      fields.forEach(campo => {
+        const valor = valores[campo];
+        // Status fora do vocabulario da linha, ou status/datas calculados,
+        // nao podem ser sobrescritos pelo arrasto.
+        if (campo === "status" && (statusIsAuto(t) || !statusAllowed(t, valor))) return;
+        if ((campo === "startDate" || campo === "endDate") && datasSaoAuto(t)) return;
+        t[campo] = Array.isArray(valor) ? valor.slice() : valor;
+      });
     }
     saveTasksData();
     renderTasksTable();
