@@ -4318,6 +4318,9 @@
     cursor: pointer;
 
   }
+  /* Data calculada: fica sem o cinza de campo desabilitado, senao parece
+     que a linha simplesmente nao tem data. */
+  .tasks2-date-input.is-auto { color: var(--text); opacity: 1; cursor: default; }
   .tasks2-date-input {
     border: none;
     background: transparent;
@@ -15293,6 +15296,25 @@ applyRolePermissions();
       x.status !== "Cancelled" && (x.status === "Late" || temAtrasoAbaixo(x)));
   }
 
+  // Datas de quem agrupa saem de quem esta embaixo: comeco = a primeira
+  // data de inicio que aparece la dentro, fim = a ultima data de termino.
+  // Mesma regra do status, entao um entregavel vazio segue com datas
+  // proprias. Como o walk roda de baixo pra cima, olhar so os filhos
+  // diretos ja alcanca a arvore inteira — eles proprios ja vieram
+  // calculados.
+  const datasSaoAuto = t => statusIsAuto(t);
+
+  function computeRollupDatas(t) {
+    const vivos = t.subtasks.filter(x => x.status !== "Cancelled");
+    const inicios = vivos.map(x => x.startDate).filter(Boolean);
+    const fins = vivos.map(x => x.endDate).filter(Boolean);
+    return {
+      // ISO (aaaa-mm-dd) ordena certo como texto, nao precisa virar Date
+      inicio: inicios.length ? inicios.slice().sort()[0] : "",
+      fim: fins.length ? fins.slice().sort().pop() : ""
+    };
+  }
+
   function computeRollupStatus(t) {
     if (temAtrasoAbaixo(t)) return "Late";
     const live = t.subtasks.filter(x => x.status !== "Cancelled");
@@ -15338,6 +15360,11 @@ applyRolePermissions();
         if (statusIsAuto(t)) {
           const s = computeRollupStatus(t);
           if (t.status !== s) { t.status = s; changed = true; }
+        }
+        if (datasSaoAuto(t)) {
+          const d = computeRollupDatas(t);
+          if (t.startDate !== d.inicio) { t.startDate = d.inicio; changed = true; }
+          if (t.endDate !== d.fim) { t.endDate = d.fim; changed = true; }
         }
       });
     })(tasksData, 0);
@@ -16501,12 +16528,12 @@ applyRolePermissions();
           <span class="tasks2-fill-handle" data-id="${t.id}" data-field="status" title="Arraste para copiar o status para as linhas ao lado"></span>
         </div>
         <div class="tasks2-col-date">
-          <input type="date" class="tasks2-date-input" data-id="${t.id}" data-field="startDate" value="${t.startDate}" title="Data de início" ${canDates ? "" : "disabled"}>
-          ${canDates ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="startDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
+          <input type="date" class="tasks2-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="startDate" value="${t.startDate}" title="${datasSaoAuto(t) ? "Calculada: a primeira data de início lá dentro" : "Data de início"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
+          ${(canDates && !datasSaoAuto(t)) ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="startDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
         </div>
         <div class="tasks2-col-date">
-          <input type="date" class="tasks2-date-input" data-id="${t.id}" data-field="endDate" value="${t.endDate}" title="Data final" ${canDates ? "" : "disabled"}>
-          ${canDates ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="endDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
+          <input type="date" class="tasks2-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="endDate" value="${t.endDate}" title="${datasSaoAuto(t) ? "Calculada: a última data de término lá dentro" : "Data final"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
+          ${(canDates && !datasSaoAuto(t)) ? `<span class="tasks2-fill-handle" data-id="${t.id}" data-field="endDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
         </div>
         <div class="tasks2-col-assignee">
           ${assigneeCellMarkup(t, !canAssignee)}
@@ -16867,6 +16894,11 @@ applyRolePermissions();
         }
         t[input.dataset.field] = input.value.trim();
         saveTasksData();
+        // Data mexida precisa subir: entregavel, projeto, meta e objetivo
+        // tiram as datas deles do que esta embaixo, e isso so e recalculado
+        // no render. Sem redesenhar, a linha de cima so mudaria na proxima
+        // vez que a tabela fosse redesenhada por outro motivo.
+        if (input.dataset.field !== "name") renderTasksTable();
       });
     });
     body.querySelectorAll(".tasks2-mention-jump").forEach(el => {
