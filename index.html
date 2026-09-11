@@ -3405,8 +3405,8 @@
   .tasks2-col-pais { display: flex; align-items: center; min-width: 0; padding: 0 4px; }
   .tasks2-pais-picker { position: relative; display: inline-flex; align-items: center; max-width: 100%; }
   .tasks2-pais-chip {
-    background: #e8eef6; color: #24405e; border-radius: 20px; padding: 3px 10px;
-    font-size: 12px; font-weight: 600; white-space: nowrap;
+    background: #e8eef6; color: #24405e; border-radius: 20px; padding: 3px 9px;
+    font-size: 11.5px; font-weight: 600; white-space: nowrap;
     overflow: hidden; text-overflow: ellipsis; max-width: 100%;
   }
   .tasks2-pais-vazio { color: var(--text-muted); font-size: 12px; }
@@ -3877,7 +3877,7 @@
   .tasks2-objetivo-card > .tasks2-row:last-child { border-bottom: none; }
   .tasks2-row {
     display: grid;
-    grid-template-columns: 30px minmax(360px, 1fr) 132px 146px 146px 168px 132px 132px 60px;
+    grid-template-columns: 30px minmax(320px, 1fr) 132px 146px 146px 168px 132px 176px 60px;
     align-items: center;
     border-bottom: 1px solid var(--border);
     min-height: 56px;
@@ -4483,7 +4483,7 @@
   .tasks2-delete-yes { background: #e24b4a; color: #fff; }
   .tasks2-delete-no { background: transparent; border: 1px solid var(--border-strong) !important; color: var(--text-muted); }
   @media (max-width: 1650px) {
-    .tasks2-row { grid-template-columns: 28px minmax(320px, 1fr) 116px 138px 138px 142px 118px 118px 58px; min-height: 46px; }
+    .tasks2-row { grid-template-columns: 28px minmax(290px, 1fr) 116px 138px 138px 142px 118px 152px 58px; min-height: 46px; }
     .tasks2-row > div { padding: 0 9px; }
     .tasks2-name-input { font-size: 13.5px; padding: 6px 4px; height: 2.25em; }
     .tasks2-status-select { font-size: 12px; padding: 5px 6px; }
@@ -4493,7 +4493,7 @@
     .tasks2-head-row { min-height: 36px; }
   }
   @media (max-width: 1380px) {
-    .tasks2-row { grid-template-columns: 26px minmax(280px, 1fr) 102px 128px 128px 120px 104px 104px 54px; min-height: 42px; }
+    .tasks2-row { grid-template-columns: 26px minmax(255px, 1fr) 102px 128px 128px 120px 104px 132px 54px; min-height: 42px; }
     .tasks2-row > div { padding: 0 7px; }
     .tasks2-name-input { font-size: 13px; padding: 5px 3px; height: 2.2em; }
     .tasks2-status-select { font-size: 11.5px; padding: 4px 5px; }
@@ -16545,7 +16545,6 @@ applyRolePermissions();
           ${paisCellMarkup(t)}
         </div>
         <div class="tasks2-col-actions">
-          ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="dup" type="button" title="Duplicar esta linha logo abaixo">⧉</button>` : ""}
           ${canCreate ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasks2-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
@@ -17034,17 +17033,6 @@ applyRolePermissions();
         if (!parent) return;
         parent.subtasks.push(novaLinha(proximoNivel(parent.rowType)));
         tasksExpanded.add(parent.id);
-        saveTasksData();
-        renderTasksTable();
-      });
-    });
-    body.querySelectorAll('.tasks2-action-btn[data-action="dup"]').forEach(btn => {
-      btn.addEventListener("click", () => {
-        const pai = paiDaLinha2(tasksData, btn.dataset.id);
-        const lista = pai ? pai.subtasks : tasksData;
-        const i = lista.findIndex(x => x.id === btn.dataset.id);
-        if (i === -1) return;
-        lista.splice(i + 1, 0, clonarLinha2(lista[i]));
         saveTasksData();
         renderTasksTable();
       });
