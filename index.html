@@ -5746,19 +5746,14 @@ const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 
 // A aba Tasks 2 vive dentro de uma IIFE no fim do script, entao seus dados
 // nao sao alcancaveis daqui. Ela publica esta ponte ao carregar; ate la fica
-// null, e as secoes dela sao OMITIDAS do push (ver pushAllSectionsToCloud).
+// null, e as secoes dela sao OMITIDAS do push (ver enviarAgora).
 // Enviar [] enquanto a ponte nao existe apagaria o dado de todo mundo.
 let tasks2Bridge = null;
 
-let cloudSyncTimer = null;
 
-// Every edit bumps this counter and it's saved (a) instantly to localStorage
-// and (b) alongside the data in every cloud push. On load we compare it to
-// the cloud's revision: if local is AHEAD (an edit was made but the debounced
-// push never finished — e.g. the page was refreshed right after typing),
-// we keep the local data and re-push it, instead of letting the older cloud
-// snapshot silently overwrite what was just entered. This is what was
-// causing edits (in China's map, in Tasks, anywhere) to disappear on refresh.
+// Contador de edicoes deste navegador. NAO decide mais quem ganha (era um
+// contador por navegador, e comparar os de dois PCs apagava edicoes — ver
+// "SINCRONIZACAO COM A NUVEM" abaixo). Continua indo na coluna revision.
 const REVISION_KEY = "wpf_data_revision";
 let localRevision = parseInt(localStorage.getItem(REVISION_KEY) || "0", 10) || 0;
 
@@ -5775,9 +5770,11 @@ function setCloudStatus(state) {
     loading: "☁️ Carregando dados da nuvem…",
     saving:  "☁️ Salvando na nuvem…",
     synced:  "☁️ Sincronizado",
-    error:   "⚠️ Não foi possível sincronizar — salvo só neste navegador"
+    error:   "⚠️ Não foi possível sincronizar — salvo só neste navegador",
+    merged:  "☁️ Sincronizado · juntado com alterações de outro computador",
+    updated: "☁️ Sincronizado · atualizado com alterações de outro computador"
   };
-  const colors = { loading: "#77766f", saving: "#8a6d1f", synced: "#0f6e56", error: "#a3312a" };
+  const colors = { loading: "#77766f", saving: "#8a6d1f", synced: "#0f6e56", error: "#a3312a", merged: "#0f6e56", updated: "#0f6e56" };
   el.textContent = labels[state] || "";
   el.style.color = colors[state] || "";
 }
@@ -5954,7 +5951,7 @@ function restaurarVersaoGeral(indice) {
   registrarVersaoGeral(collectAllData());
   applyAllData(v.data);
   bumpLocalRevision();
-  scheduleCloudSave();
+  scheduleCloudSave({ forcar: true }); // restaurar substitui, nao junta
   return true;
 }
 
@@ -5976,7 +5973,7 @@ function restaurarBackupArquivo(texto) {
   registrarVersaoGeral(collectAllData()); // o estado atual vira versao antes
   applyAllData(d);
   bumpLocalRevision();
-  scheduleCloudSave();
+  scheduleCloudSave({ forcar: true }); // restaurar substitui, nao junta
   return null;
 }
 
@@ -6025,79 +6022,527 @@ function montarListaBackup() {
   });
 }
 
-async function pushAllSectionsToCloud() {
-  const all = collectAllData();
-  registrarVersaoGeral(all);
-  // Secao ausente e PULADA, nao enviada como []. Antes um section faltando
-  // virava lista vazia e sobrescrevia o que estava na nuvem.
-  const rows = CLOUD_SECTIONS
-    .filter(section => all[section] !== undefined)
-    .map(section => ({
-      section,
-      data: all[section],
-      revision: all.revision,
-      updated_at: new Date().toISOString()
-    }));
-  const res = await fetch(SUPABASE_TABLE_URL, {
-    method: "POST",
-    headers: { ...SUPABASE_HEADERS, "Prefer": "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify(rows)
-  });
-  if (!res.ok) {
-    let detail = "";
-    try { detail = await res.text(); } catch (e) {}
-    throw new Error(`HTTP ${res.status}${detail ? " — " + detail.slice(0, 200) : ""}`);
+// ══════════════════════════════════════════════════════════════════════════
+// SINCRONIZACAO COM A NUVEM (reescrita em 15/09/2026)
+//
+// Problemas que isto resolve:
+//  1. A dash so lia a nuvem ao abrir a pagina, entao o que um computador
+//     escrevia so aparecia no outro depois de um refresh.
+//  2. Quem ganhava era decidido por um contador de revisao de CADA
+//     navegador. Um PC com contador alto ignorava as edicoes de um PC com
+//     contador baixo e ainda as apagava ao reenviar os dados velhos.
+//  3. Cada gravacao mandava o dashboard INTEIRO, entao qualquer edicao num
+//     PC desatualizado sobrescrevia tudo o que os outros tinham feito.
+//
+// Como funciona agora:
+//  - "Base" = o retrato do que este navegador sabe que esta na nuvem (em
+//    impressoes digitais por campo, nao os dados em si). Fica em memoria e
+//    no localStorage.
+//  - Editar marca "pendente". No refresh: se ha pendente, as secoes que
+//    este navegador mudou sao enviadas (com junta); o resto vem da nuvem.
+//    Sem pendente, a nuvem sempre ganha.
+//  - So as secoes que mudaram vao pra nuvem.
+//  - Antes de enviar, confere se outra pessoa gravou a mesma secao. Se
+//    gravou, junta campo a campo (linha pelo id): o que este navegador
+//    mudou entra, o que o outro mudou fica.
+//  - A cada 15s (e ao voltar pra janela) busca so as secoes que mudaram.
+//    Nao aplica enquanto a pessoa esta digitando/arrastando.
+// ══════════════════════════════════════════════════════════════════════════
+const CLOUD_BASE_KEY = "wpf_cloud_base_v1";
+const CLOUD_STAMPS_KEY = "wpf_cloud_stamps_v1";
+const CLOUD_PENDING_KEY = "wpf_cloud_pending_v1";
+const CLOUD_POLL_MS = 15 * 1000;
+// Historicos nao sao juntados campo a campo: sao uniao de versoes por data,
+// que o applyAllData / a ponte da Tasks 2 ja fazem.
+const SECOES_HISTORICO = ["historicoGeral", "tasks2Historico", "tasks2Historico__cbth"];
+const ehSecaoHistorico = s => SECOES_HISTORICO.includes(s);
+
+// So as secoes que a empresa ativa usa (as da outra empresa nem sao lidas).
+function secaoDaOrg(s) {
+  const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2)(__.+)?$/.exec(s);
+  if (!porEmpresa) return true;
+  return (porEmpresa[2] || "") === SUFIXO_ORG();
+}
+const secoesAtivas = () => CLOUD_SECTIONS.filter(secaoDaOrg);
+
+// ─── Impressao digital ────────────────────────────────────────────────────
+function hashTexto(str) {
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
   }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
-async function loadFromCloud() {
-  setCloudStatus("loading");
-  try {
-    const res = await fetch(`${SUPABASE_TABLE_URL}?select=section,data,revision`, {
-      headers: SUPABASE_HEADERS
+// Chave de uma linha dentro de uma lista: id (ou username, nos usuarios).
+function chaveDoItem(el) {
+  if (!el || typeof el !== "object" || Array.isArray(el)) return null;
+  const k = el.id !== undefined && el.id !== null && el.id !== "" ? el.id : el.username;
+  return (typeof k === "string" || typeof k === "number") && k !== "" ? "#" + k : null;
+}
+function chavesDaLista(arr) {
+  if (!arr.length) return null;
+  const ks = [];
+  const vistos = new Set();
+  for (const el of arr) {
+    const k = chaveDoItem(el);
+    if (k === null || vistos.has(k)) return null;
+    vistos.add(k); ks.push(k);
+  }
+  return ks;
+}
+
+// Arvore de impressoes digitais. Folha = string. Objeto = {t:"o"}. Lista com
+// ids = {t:"k", o: impressao da ordem}. Independe da ordem das chaves.
+function arvoreDe(v) {
+  if (Array.isArray(v)) {
+    const ks = chavesDaLista(v);
+    const c = {};
+    const partes = v.map((el, i) => {
+      const t = arvoreDe(el);
+      if (ks) c[ks[i]] = t;
+      return (ks ? JSON.stringify(ks[i]) + "=" : "") + hashDe(t);
     });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const rows = await res.json();
-    const data = {};
-    let cloudRevision = 0;
-    rows.forEach(r => {
-      data[r.section] = r.data;
-      if (typeof r.revision === "number" && r.revision > cloudRevision) cloudRevision = r.revision;
-    });
-    if (localRevision === 0 || cloudRevision >= localRevision) {
-      // Cloud is at least as new as us (or this browser has never made a
-      // local edit) — safe to adopt it.
-      applyAllData(data);
-      localRevision = Math.max(cloudRevision, localRevision);
-      localStorage.setItem(REVISION_KEY, String(localRevision));
-      setCloudStatus("synced");
+    if (!ks) return hashTexto("a[" + partes.join(",") + "]");
+    return { t: "k", h: hashTexto("k[" + partes.join(",") + "]"), c, ks, o: hashTexto(ks.join("\u0001")) };
+  }
+  if (v && typeof v === "object") {
+    const c = {};
+    const chaves = Object.keys(v).filter(k => v[k] !== undefined).sort();
+    const partes = chaves.map(k => { c[k] = arvoreDe(v[k]); return JSON.stringify(k) + ":" + hashDe(c[k]); });
+    return { t: "o", h: hashTexto("o{" + partes.join(",") + "}"), c };
+  }
+  return hashTexto("p" + JSON.stringify(v === undefined ? null : v));
+}
+function hashDe(t) { return t === undefined ? undefined : (typeof t === "string" ? t : t.h); }
+// Versao pra guardar: sem a lista de chaves em ordem (so a impressao dela).
+function podarArvore(t) {
+  if (!t || typeof t === "string") return t;
+  const c = {};
+  Object.keys(t.c).forEach(k => { c[k] = podarArvore(t.c[k]); });
+  return t.t === "k" ? { t: "k", h: t.h, c, o: t.o } : { t: t.t, h: t.h, c };
+}
+
+// ─── Junta de tres vias ───────────────────────────────────────────────────
+// base = o que os dois tinham em comum; L = este navegador; C = a nuvem.
+// Regra: o lado que mudou em relacao a base ganha. Se os dois mudaram o
+// MESMO campo da MESMA linha, fica o deste navegador (o ultimo a gravar).
+// Linha apagada de um lado e editada do outro nao some: fica a editada.
+function juntarSecao(base, L, C) {
+  const ressuscitados = new Set();
+  const out = juntarNo(base, L, arvoreDe(L), C, arvoreDe(C), ressuscitados);
+  removerDuplicados(out, ressuscitados, base);
+  return JSON.parse(JSON.stringify(out));
+}
+
+function juntarNo(bt, L, lt, C, ct, ress) {
+  const bh = hashDe(bt);
+  if (bh !== undefined && hashDe(lt) === bh) return C;   // so a nuvem mudou
+  if (bh !== undefined && hashDe(ct) === bh) return L;   // so aqui mudou
+  if (hashDe(lt) === hashDe(ct)) return L;               // mudaram igual
+  const tipo = lt && lt.t;
+  if (!tipo || !ct || ct.t !== tipo) return L;           // folhas ou tipos diferentes
+  const bc = bt && typeof bt === "object" && bt.t === tipo ? bt.c : {};
+
+  const ixL = tipo === "k" ? new Map(lt.ks.map((k, i) => [k, i])) : null;
+  const ixC = tipo === "k" ? new Map(ct.ks.map((k, i) => [k, i])) : null;
+  const valorL = k => (tipo === "o" ? L[k] : L[ixL.get(k)]);
+  const valorC = k => (tipo === "o" ? C[k] : C[ixC.get(k)]);
+  const escolhido = {};
+  const todas = new Set([...Object.keys(lt.c), ...Object.keys(ct.c)]);
+  todas.forEach(k => {
+    const emL = k in lt.c, emC = k in ct.c, naBase = k in bc;
+    if (emL && emC) {
+      escolhido[k] = juntarNo(bc[k], valorL(k), lt.c[k], valorC(k), ct.c[k], ress);
+    } else if (emL) {
+      // A nuvem apagou? So apaga se aqui ninguem mexeu nessa linha.
+      if (!naBase) escolhido[k] = valorL(k);
+      else if (hashDe(lt.c[k]) !== hashDe(bc[k])) { escolhido[k] = valorL(k); ress.add(escolhido[k]); }
     } else {
-      // We have edits the cloud never received (most likely the page was
-      // refreshed right after typing, before the debounced push finished).
-      // Keep the local data as-is and push it up instead of discarding it.
-      setCloudStatus("synced");
-      scheduleCloudSave();
+      if (!naBase) escolhido[k] = valorC(k);
+      else if (hashDe(ct.c[k]) !== hashDe(bc[k])) { escolhido[k] = valorC(k); ress.add(escolhido[k]); }
     }
-  } catch (err) {
-    console.warn("Supabase load failed, keeping localStorage data:", err);
-    setCloudStatus("error");
+  });
+
+  if (tipo === "o") {
+    const res = {};
+    [...Object.keys(L), ...Object.keys(C)].forEach(k => {
+      if (k in escolhido && !(k in res)) res[k] = escolhido[k];
+    });
+    return res;
   }
+  // Lista: a ordem vem de quem reordenou. Se aqui a ordem continua a da
+  // base, vale a ordem da nuvem; as linhas do outro lado entram logo depois
+  // da linha que vinha antes delas.
+  const ordemAquiMudou = !(bt && bt.t === "k") || hashTexto(lt.ks.join("\u0001")) !== bt.o;
+  const principal = ordemAquiMudou ? lt.ks : ct.ks;
+  const outra = ordemAquiMudou ? ct.ks : lt.ks;
+  const ordem = principal.filter(k => k in escolhido);
+  outra.forEach((k, i) => {
+    if (!(k in escolhido) || ordem.includes(k)) return;
+    let pos = 0;
+    for (let j = i - 1; j >= 0; j--) {
+      const p = ordem.indexOf(outra[j]);
+      if (p >= 0) { pos = p + 1; break; }
+    }
+    ordem.splice(pos, 0, k);
+  });
+  return ordem.map(k => escolhido[k]);
 }
 
-function scheduleCloudSave() {
+// Linha movida de lugar aqui e editada na nuvem aparece duas vezes (no lugar
+// novo e, "ressuscitada", no antigo). Fica uma so, no lugar novo, com as
+// edicoes das duas juntas.
+const grupoDaLista = p => (p === "subtasks" || p === "__raiz" ? "tarefas" : p);
+function nosDaBasePorChave(bt) {
+  const out = {};
+  (function andar(t, prop) {
+    if (!t || typeof t === "string") return;
+    Object.keys(t.c).forEach(k => {
+      if (t.t === "k") { out[grupoDaLista(prop) + "|" + k] = t.c[k]; andar(t.c[k], prop); }
+      else andar(t.c[k], k);
+    });
+  })(bt, "__raiz");
+  return out;
+}
+function removerDuplicados(raiz, ress, base) {
+  if (!ress.size) return;
+  const achados = {};
+  (function andar(v, prop) {
+    if (Array.isArray(v)) {
+      if (chavesDaLista(v) || v.some(el => chaveDoItem(el) !== null)) v.forEach(el => {
+        const ch = chaveDoItem(el);
+        if (ch === null) return;
+        const k = grupoDaLista(prop) + "|" + ch;
+        (achados[k] = achados[k] || []).push({ lista: v, el });
+      });
+      v.forEach(el => andar(el, prop));
+    } else if (v && typeof v === "object") {
+      Object.keys(v).forEach(k => andar(v[k], k));
+    }
+  })(raiz, "__raiz");
+  let nosBase = null;
+  Object.keys(achados).forEach(k => {
+    const ocs = achados[k];
+    if (ocs.length < 2) return;
+    const normais = ocs.filter(o => !ress.has(o.el));
+    if (!normais.length) return;
+    const fica = normais[0];
+    ocs.filter(o => ress.has(o.el)).forEach(o => {
+      if (!nosBase) nosBase = nosDaBasePorChave(base);
+      const junto = juntarNo(nosBase[k], fica.el, arvoreDe(fica.el), o.el, arvoreDe(o.el), new Set());
+      const i = fica.lista.indexOf(fica.el);
+      if (i >= 0) { fica.lista[i] = junto; fica.el = junto; }
+      const j = o.lista.indexOf(o.el);
+      if (j >= 0) o.lista.splice(j, 1);
+    });
+  });
+}
+
+// ─── Estado da sincronizacao ──────────────────────────────────────────────
+function lerJsonLocal(chave, padrao) {
+  try { const v = JSON.parse(localStorage.getItem(chave) || "null"); return v && typeof v === "object" ? v : padrao; }
+  catch (e) { return padrao; }
+}
+const cloudBaseExistia = localStorage.getItem(CLOUD_BASE_KEY) !== null;
+let cloudBase = lerJsonLocal(CLOUD_BASE_KEY, {});      // secao -> arvore
+let cloudStamps = lerJsonLocal(CLOUD_STAMPS_KEY, {});  // secao -> updated_at lido da nuvem
+let cloudPendente = localStorage.getItem(CLOUD_PENDING_KEY) === "1";
+let cloudEdicoes = 0;          // sobe a cada edicao; diz se houve edicao durante um envio
+let cloudEnviando = false;
+let cloudForcarProximo = false;
+let cloudCarregou = false;      // so vira true quando a primeira carga DEU CERTO
+let cloudCarregando = false;
+// Contador de edicoes ao abrir, ANTES do codigo de inicializacao da pagina
+// (que chama scheduleCloudSave ao semear dados de exemplo).
+const cloudRevisaoAoAbrir = localRevision;
+let cloudBuscando = false;
+let cloudSyncTimer = null;
+
+function guardarBase() {
+  try { localStorage.setItem(CLOUD_BASE_KEY, JSON.stringify(cloudBase)); } catch (e) {}
+  try { localStorage.setItem(CLOUD_STAMPS_KEY, JSON.stringify(cloudStamps)); } catch (e) {}
+}
+function marcarPendente(sim) {
+  cloudPendente = sim;
+  try { sim ? localStorage.setItem(CLOUD_PENDING_KEY, "1") : localStorage.removeItem(CLOUD_PENDING_KEY); } catch (e) {}
+}
+function baseDaSecao(valor, secao) {
+  // Historico: so a impressao do todo (nao se junta campo a campo).
+  return ehSecaoHistorico(secao) ? hashTexto(JSON.stringify(valor)) : podarArvore(arvoreDe(valor));
+}
+function secaoMudouAqui(secao, valor) {
+  if (valor === undefined) return false;
+  const b = cloudBase[secao];
+  if (b === undefined) return true;
+  return (ehSecaoHistorico(secao) ? hashTexto(JSON.stringify(valor)) : hashDe(arvoreDe(valor))) !== hashDe(b);
+}
+// Atualiza a base a partir do que esta em memoria. So pode ser chamado sem
+// edicao pendente: absorve mudancas que o proprio desenho faz nos dados
+// (status Late/Deadline, datas calculadas), que nao sao edicao de ninguem.
+function rebasearDaMemoria(secoes) {
+  if (cloudPendente) return;
+  const all = collectAllData();
+  (secoes || secoesAtivas()).forEach(s => {
+    if (all[s] === undefined) return;
+    if (ehSecaoHistorico(s) && !secoes) return; // caro e desnecessario no ciclo
+    cloudBase[s] = baseDaSecao(all[s], s);
+  });
+  guardarBase();
+}
+
+function cloudFetch(query, opcoes) {
+  return fetch(`${SUPABASE_TABLE_URL}?${query}`, { headers: SUPABASE_HEADERS, cache: "no-store", ...(opcoes || {}) })
+    .then(async res => {
+      if (!res.ok) {
+        let detail = "";
+        try { detail = await res.text(); } catch (e) {}
+        throw new Error(`HTTP ${res.status}${detail ? " — " + detail.slice(0, 200) : ""}`);
+      }
+      return res.json();
+    });
+}
+const filtroSecoes = secoes => `section=in.(${secoes.map(s => encodeURIComponent(s)).join(",")})`;
+async function lerCarimbos(secoes) {
+  const rows = await cloudFetch(`select=section,updated_at&${filtroSecoes(secoes)}`);
+  const out = {};
+  rows.forEach(r => { out[r.section] = r.updated_at; });
+  return out;
+}
+async function lerSecoes(secoes) {
+  const rows = await cloudFetch(`select=section,data,updated_at&${filtroSecoes(secoes)}`);
+  const data = {}, carimbos = {};
+  rows.forEach(r => { data[r.section] = r.data; carimbos[r.section] = r.updated_at; });
+  return { data, carimbos };
+}
+
+// Pessoa digitando num campo, ou com o botao do mouse apertado (arrastando,
+// selecionando): redesenhar agora apagaria o que ela esta fazendo.
+let cloudPonteiroApertado = false;
+document.addEventListener("pointerdown", () => { cloudPonteiroApertado = true; }, true);
+window.addEventListener("pointerup", () => { cloudPonteiroApertado = false; setTimeout(buscarAtualizacoesDaNuvem, 400); }, true);
+window.addEventListener("pointercancel", () => { cloudPonteiroApertado = false; }, true);
+function usuarioOcupado() {
+  if (cloudPonteiroApertado) return true;
+  const a = document.activeElement;
+  if (!a || a === document.body) return false;
+  if (a.isContentEditable) return true;
+  const tag = a.tagName;
+  if (tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (tag === "INPUT") {
+    const tipo = (a.type || "text").toLowerCase();
+    return !["button", "checkbox", "radio", "submit", "reset", "file", "color", "range"].includes(tipo);
+  }
+  return false;
+}
+document.addEventListener("focusout", () => { setTimeout(buscarAtualizacoesDaNuvem, 400); });
+
+// Depois de aplicar dados que vieram da nuvem, redesenha o que o
+// applyAllData nao redesenha sozinho.
+function redesenharAposNuvem() {
+  try { if (typeof allCountries !== "undefined" && allCountries.length) refreshMapColors(); } catch (e) {}
+}
+
+function aplicarDaNuvem(data, carimbos) {
+  const secoes = Object.keys(data);
+  if (!secoes.length) return;
+  applyAllData(data);
+  redesenharAposNuvem();
+  secoes.forEach(s => { if (carimbos[s]) cloudStamps[s] = carimbos[s]; });
+  // A base e o que ficou em memoria depois de aplicar (ja normalizado).
+  // Historico: o que ficou aqui e a uniao, entao a base e o que veio da nuvem
+  // — assim a versao local que a nuvem nao tem ainda conta como mudanca.
+  const all = collectAllData();
+  secoes.forEach(s => {
+    if (ehSecaoHistorico(s)) cloudBase[s] = baseDaSecao(data[s], s);
+    else if (all[s] !== undefined) cloudBase[s] = baseDaSecao(all[s], s);
+  });
+  guardarBase();
+}
+
+// ─── Envio ────────────────────────────────────────────────────────────────
+// Se ja ha um envio andando, espera ele terminar e envia de novo (o que
+// mudou nesse meio tempo). Devolve true/false; com lancarErro, lanca.
+let cloudEnvioAtual = Promise.resolve(true);
+function enviarParaNuvem(opcoes) {
+  if (cloudEnviando) return cloudEnvioAtual.catch(() => {}).then(() => enviarParaNuvem(opcoes));
+  cloudEnvioAtual = enviarAgora(opcoes || {});
+  return cloudEnvioAtual;
+}
+async function enviarAgora(opcoes) {
+  // Antes da primeira carga dar certo, nao envia nada: sem saber o que esta
+  // na nuvem, os dados de exemplo da inicializacao poderiam subir por cima.
+  // A carga chama o envio quando terminar.
+  if (!cloudCarregou) {
+    if (opcoes.lancarErro) throw new Error("Nuvem ainda não carregou");
+    return false;
+  }
+  cloudEnviando = true;
+  const edicoesNoInicio = cloudEdicoes;
+  const forcar = cloudForcarProximo;
+  cloudForcarProximo = false;
+  let juntou = false;
+  try {
+    registrarVersaoGeral(collectAllData());
+    let all = collectAllData();
+    const mudadas = secoesAtivas().filter(s => all[s] !== undefined && (forcar || secaoMudouAqui(s, all[s])));
+    if (mudadas.length) {
+      if (!forcar) {
+        // Outra pessoa gravou alguma destas secoes desde a ultima vez que
+        // este navegador olhou? Entao junta antes de enviar.
+        const remotos = await lerCarimbos(mudadas);
+        const conflito = mudadas.filter(s => remotos[s] && remotos[s] !== cloudStamps[s]);
+        if (conflito.length) {
+          const { data, carimbos } = await lerSecoes(conflito);
+          all = collectAllData();
+          const juntado = {};
+          conflito.forEach(s => {
+            if (data[s] === undefined) return;
+            // Historico: aplicar ja faz a uniao das versoes.
+            juntado[s] = ehSecaoHistorico(s) ? data[s] : juntarSecao(cloudBase[s], all[s], data[s]);
+          });
+          applyAllData(juntado);
+          redesenharAposNuvem();
+          conflito.forEach(s => { if (carimbos[s]) cloudStamps[s] = carimbos[s]; });
+          juntou = true;
+        }
+      }
+      // Retrato sincrono do que vai subir: nada muda entre aqui e o corpo.
+      all = collectAllData();
+      const agora = new Date().toISOString();
+      const rows = mudadas.filter(s => all[s] !== undefined).map(section => ({
+        section, data: all[section], revision: localRevision, updated_at: agora
+      }));
+      const corpo = JSON.stringify(rows);
+      const enviado = JSON.parse(corpo);
+      const res = await fetch(`${SUPABASE_TABLE_URL}?select=section,updated_at`, {
+        method: "POST",
+        headers: { ...SUPABASE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation" },
+        body: corpo
+      });
+      if (!res.ok) {
+        let detail = "";
+        try { detail = await res.text(); } catch (e) {}
+        throw new Error(`HTTP ${res.status}${detail ? " — " + detail.slice(0, 200) : ""}`);
+      }
+      let resposta = null;
+      try { resposta = await res.json(); } catch (e) { resposta = null; }
+      const carimbos = {};
+      if (Array.isArray(resposta)) resposta.forEach(r => { if (r && r.section) carimbos[r.section] = r.updated_at; });
+      enviado.forEach(r => {
+        cloudBase[r.section] = baseDaSecao(r.data, r.section);
+        cloudStamps[r.section] = carimbos[r.section] || r.updated_at;
+      });
+      guardarBase();
+    }
+    if (cloudEdicoes === edicoesNoInicio) marcarPendente(false);
+    setCloudStatus(juntou ? "merged" : "synced");
+    return true;
+  } catch (err) {
+    console.warn("Supabase save failed, data stays local only:", err);
+    setCloudStatus("error");
+    if (opcoes.lancarErro) throw err;
+    return false;
+  } finally {
+    cloudEnviando = false;
+  }
+}
+// Nome antigo: quem chama espera erro lancado (ver saveUsersListNow).
+const pushAllSectionsToCloud = () => enviarParaNuvem({ lancarErro: true });
+
+function scheduleCloudSave(opcoes) {
   bumpLocalRevision();
+  cloudEdicoes++;
+  marcarPendente(true);
+  if (opcoes && opcoes.forcar) cloudForcarProximo = true;
   setCloudStatus("saving");
   clearTimeout(cloudSyncTimer);
-  cloudSyncTimer = setTimeout(async () => {
-    try {
-      await pushAllSectionsToCloud();
-      setCloudStatus("synced");
-    } catch (err) {
-      console.warn("Supabase save failed, data stays local only:", err);
-      setCloudStatus("error");
-    }
-  }, 800);
+  cloudSyncTimer = setTimeout(enviarParaNuvem, 800);
 }
+
+// ─── Carga inicial ────────────────────────────────────────────────────────
+async function loadFromCloud() {
+  if (cloudCarregando) return;
+  cloudCarregando = true;
+  setCloudStatus("loading");
+  try {
+    const secoes = secoesAtivas();
+    const { data, carimbos } = await lerSecoes(secoes);
+    const all = collectAllData();
+    if (!cloudBaseExistia) {
+      // Primeira vez com este sistema: nao da pra saber o que aqui e edicao
+      // nao enviada. A nuvem ganha, mas o estado deste navegador vira uma
+      // versao em Settings antes, entao da pra voltar. Navegador que nunca
+      // editou nada so tem os dados de exemplo: guardar isso como versao
+      // atrapalharia o historico (metas de exemplo -> vazias parece perda).
+      if (cloudRevisaoAoAbrir > 0) registrarVersaoGeral(all);
+      marcarPendente(false);
+    }
+    const aplicar = {};
+    const guardarPraJuntar = [];
+    Object.keys(data).forEach(s => {
+      if (cloudPendente && cloudBaseExistia && all[s] !== undefined && !ehSecaoHistorico(s) && secaoMudouAqui(s, all[s])) {
+        guardarPraJuntar.push(s); // editado aqui e nao enviado: vai pelo envio, com junta
+      } else {
+        aplicar[s] = data[s];
+      }
+    });
+    const carimbosAplicados = {};
+    Object.keys(aplicar).forEach(s => { carimbosAplicados[s] = carimbos[s]; });
+    aplicarDaNuvem(aplicar, carimbosAplicados);
+    cloudCarregou = true;
+    if (cloudPendente) {
+      setCloudStatus("saving");
+      enviarParaNuvem();
+    } else {
+      setCloudStatus("synced");
+      // O desenho pode ajustar status/datas logo depois; isso nao e edicao.
+      setTimeout(() => rebasearDaMemoria(), 0);
+    }
+  } catch (err) {
+    // Continua sem carregar: a atualizacao automatica tenta de novo a cada
+    // 15s, e so depois disso algo e enviado.
+    console.warn("Supabase load failed, keeping localStorage data:", err);
+    setCloudStatus("error");
+  } finally {
+    cloudCarregando = false;
+  }
+}
+
+// ─── Atualizacao automatica ───────────────────────────────────────────────
+async function buscarAtualizacoesDaNuvem() {
+  if (!cloudCarregou) { if (!document.hidden) loadFromCloud(); return; }
+  if (cloudBuscando || cloudEnviando || document.hidden) return;
+  // Edicao aqui ainda nao enviada (ou envio que falhou): o envio ja junta
+  // com o que houver na nuvem.
+  if (cloudPendente) { clearTimeout(cloudSyncTimer); cloudSyncTimer = setTimeout(enviarParaNuvem, 800); return; }
+  if (usuarioOcupado()) return;
+  cloudBuscando = true;
+  try {
+    rebasearDaMemoria();
+    const secoes = secoesAtivas().filter(s => !ehSecaoHistorico(s));
+    const remotos = await lerCarimbos(secoes);
+    const mudadas = secoes.filter(s => remotos[s] && remotos[s] !== cloudStamps[s]);
+    if (!mudadas.length) return;
+    const { data, carimbos } = await lerSecoes(mudadas);
+    // A pessoa pode ter comecado a editar enquanto baixava.
+    if (cloudPendente || cloudEnviando || usuarioOcupado()) return;
+    aplicarDaNuvem(data, carimbos);
+    setCloudStatus("updated");
+    setTimeout(() => rebasearDaMemoria(mudadas), 0);
+  } catch (err) {
+    console.warn("Supabase poll failed:", err);
+  } finally {
+    cloudBuscando = false;
+  }
+}
+setInterval(buscarAtualizacoesDaNuvem, CLOUD_POLL_MS);
+window.addEventListener("focus", () => buscarAtualizacoesDaNuvem());
+document.addEventListener("visibilitychange", () => { if (!document.hidden) buscarAtualizacoesDaNuvem(); });
 
 // ══════════════════════════════════════════════════════════
 // USERS / LOGIN / ROLES
@@ -6210,6 +6655,8 @@ function saveUsersList() {
 async function saveUsersListNow() {
   localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList));
   bumpLocalRevision();
+  cloudEdicoes++;
+  marcarPendente(true);
   setCloudStatus("saving");
   clearTimeout(cloudSyncTimer);
   try {
@@ -12117,7 +12564,7 @@ importFile.addEventListener("change", () => {
         countryData = parsed || {};
         saveData();
       }
-      scheduleCloudSave();
+      scheduleCloudSave({ forcar: true }); // importar substitui, nao junta
       refreshMapColors();
       if (activeCountry) selectCountry(activeCountry, activeFeature);
     } catch (e) {
