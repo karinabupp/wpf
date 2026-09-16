@@ -3297,7 +3297,34 @@
   /* Card "Tasks do Slack" gravava na Tasks original, que saiu do menu. */
   #slack-side-col { display: none !important; }
   /* Numero de tarefas em cima do pais no quadro Avisos Gerais (Members 2). */
-  .avisos2-numero { font-size: 11px; font-weight: 700; fill: #2c2c2a; stroke: #ffffff; stroke-width: 3px; paint-order: stroke; }
+  /* Selo "nao lido" (Avisos Gerais, Members 2): branco, numero preto. */
+  .avisos2-selo { cursor: pointer; }
+  .avisos2-selo-fundo { fill: #ffffff; stroke: rgba(0,0,0,.18); stroke-width: 1px; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+  .avisos2-selo:hover .avisos2-selo-fundo { stroke: rgba(0,0,0,.45); }
+  .avisos2-numero { font-size: 11px; font-weight: 700; fill: #111111; pointer-events: none; }
+  #avisos2-popup-overlay { position: fixed; inset: 0; z-index: 900; background: rgba(20,20,18,.35); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  #avisos2-popup-overlay.hidden { display: none; }
+  #avisos2-popup { background: #fff; color: #2c2c2a; border-radius: 12px; width: min(620px, 100%); max-height: 82vh; display: flex; flex-direction: column; box-shadow: 0 12px 40px rgba(0,0,0,.25); }
+  #avisos2-popup-topo { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid #e8e6dc; }
+  #avisos2-popup-titulo { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .avisos2-popup-status { font-size: 12px; font-weight: 600; color: #2c2c2a; padding: 2px 8px; border-radius: 6px; }
+  #avisos2-popup-fechar { border: 0; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; color: #77766f; }
+  #avisos2-popup-lista { overflow-y: auto; padding: 8px 18px 16px; }
+  .avisos2-tarefa { border: 1px solid #e8e6dc; border-radius: 10px; padding: 10px 12px; margin-top: 10px; }
+  .avisos2-tarefa.is-resolvida { opacity: .6; }
+  .avisos2-tarefa-caminho { font-size: 11px; color: #77766f; margin-bottom: 6px; }
+  .avisos2-resolvida { background: #e6efdc; color: #3d5a24; border-radius: 4px; padding: 0 5px; margin-left: 4px; }
+  .avisos2-nome { width: 100%; box-sizing: border-box; font-size: 14px; font-weight: 500; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; }
+  .avisos2-nome:hover, .avisos2-nome:focus { border-color: #d3d1c7; }
+  .avisos2-linha-campos { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+  .avisos2-linha-campos label { display: flex; flex-direction: column; font-size: 11px; color: #77766f; gap: 2px; }
+  .avisos2-linha-campos select, .avisos2-linha-campos input { font-size: 13px; padding: 3px 6px; border: 1px solid #d3d1c7; border-radius: 6px; }
+  .avisos2-responsaveis { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+  .avisos2-rot { font-size: 11px; color: #77766f; margin-right: 2px; }
+  .avisos2-chip { background: #f1efe8; border-radius: 12px; padding: 2px 4px 2px 9px; font-size: 12px; display: inline-flex; align-items: center; gap: 2px; }
+  .avisos2-remover { border: 0; background: transparent; cursor: pointer; color: #77766f; font-size: 14px; line-height: 1; padding: 0 3px; }
+  .avisos2-adicionar { font-size: 12px; border: 1px dashed #d3d1c7; border-radius: 12px; padding: 2px 6px; background: #fff; }
+  .avisos2-vazio { color: #77766f; padding: 16px 0; }
   /* Guias Late e KPI saem da Tasks 2. Escondidas por id porque a classe
      .hidden empata em especificidade com .tasks2-subnav-btn{display:flex}
      e perde pela ordem. A view e o codigo continuam, so o botao some. */
@@ -14391,7 +14418,7 @@ applyRolePermissions();
   // vem depois.
   // 16/09: Membro = verde do OK, Negociação = amarelo da Atenção, Lead um
   // amarelo mais claro (cores de PALETA_AVISOS); Abertura mantida.
-  const PALETA_AZUL   = { Lead: "#e7d09d", "Negociação": "#d3a94c", "Abertura": "#4a8ad0", "Membro": "#7c9a5e" };
+  const PALETA_AZUL   = { Lead: "#eeb98f", "Negociação": "#d3a94c", "Abertura": "#4a8ad0", "Membro": "#7c9a5e" };
   const PALETA_ROSA    = { Lead: "#cbbcc2", "Negociação": "#e28fb8", "Membro": "#a3215f" };
   const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
@@ -14576,10 +14603,10 @@ applyRolePermissions();
         const filhos = Array.isArray(r.subtasks) ? r.subtasks : [];
         if (filhos.length) { andar(filhos, pais); return; }
         if (!pais) return;
-        const a = out[pais] || (out[pais] = { total: 0, deadline: 0, late: 0 });
+        const a = out[pais] || (out[pais] = { total: 0, deadline: 0, late: 0, lateIds: [], deadlineIds: [] });
         a.total++;
-        if (r.status === "Late") a.late++;
-        else if (r.status === "Deadline") a.deadline++;
+        if (r.status === "Late") { a.late++; a.lateIds.push(r.id); }
+        else if (r.status === "Deadline") { a.deadline++; a.deadlineIds.push(r.id); }
       });
     })(lista, "");
     Object.keys(out).forEach(p => {
@@ -14606,7 +14633,122 @@ applyRolePermissions();
     renderLegend2();
     if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
     if (activeCountry2 && ehQuadroAvisos(boardAtual())) panel2Status.value = statusExibido2(activeCountry2);
+    if (popupAvisos2.pais) {
+      const foco = document.activeElement;
+      if (!(foco && document.getElementById("avisos2-popup").contains(foco))) renderPopupAvisos2();
+    }
   }
+
+  // ─── Pop-up das tarefas do numero (clicar no selo) ─────────────────────
+  // Mostra SO as tarefas que o numero conta (Urgência: Late + Deadline;
+  // Atenção: Deadline), Late primeiro, depois por Fim. Editavel: nome,
+  // status, inicio, fim, responsaveis — via tasks2Bridge.editar. A lista de
+  // ids e fixada ao abrir: tarefa que deixa de contar fica, marcada como
+  // resolvida, ate fechar.
+  const popupAvisos2 = { pais: null, ids: [] };
+  const escP2 = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  function idsDoNumero2(a) {
+    if (!a) return [];
+    const ordenar = ids => ids.slice().sort((x, y) => {
+      const tx = tasks2Bridge.tarefa(x) || {}, ty = tasks2Bridge.tarefa(y) || {};
+      return String(tx.endDate || "9999").localeCompare(String(ty.endDate || "9999"));
+    });
+    return a.late ? ordenar(a.lateIds).concat(ordenar(a.deadlineIds)) : ordenar(a.deadlineIds);
+  }
+  function abrirPopupAvisos2(pais) {
+    avisosCache2 = null;
+    const a = avisoDoPais2(pais);
+    if (!a || !a.numero || !tasks2Bridge) return;
+    popupAvisos2.pais = pais;
+    popupAvisos2.ids = idsDoNumero2(a);
+    document.getElementById("avisos2-popup-overlay").classList.remove("hidden");
+    renderPopupAvisos2();
+  }
+  function fecharPopupAvisos2() {
+    popupAvisos2.pais = null;
+    popupAvisos2.ids = [];
+    document.getElementById("avisos2-popup-overlay").classList.add("hidden");
+  }
+  function renderPopupAvisos2() {
+    const pais = popupAvisos2.pais;
+    if (!pais) return;
+    avisosCache2 = null;
+    const a = avisoDoPais2(pais);
+    const contando = new Set(a ? a.lateIds.concat(a.deadlineIds) : []);
+    const statusTxt = a ? a.status : "OK";
+    const board = boards2.find(b => b.id === QUADRO_AVISOS);
+    const corTopo = board ? corDoStatus2(board, statusTxt) : "";
+    document.getElementById("avisos2-popup-titulo").innerHTML =
+      `${escP2(pais)} <span class="avisos2-popup-status" style="background:${corTopo}">${escP2(statusTxt)}</span>`;
+    const opcoes = tasks2Bridge.statusOptions();
+    const usuarios = tasks2Bridge.usuarios();
+    const linhas = popupAvisos2.ids.map(id => {
+      const tk = tasks2Bridge.tarefa(id);
+      if (!tk) return "";
+      const caminho = tasks2Bridge.caminho(id).join(" › ");
+      const resolvida = !contando.has(id);
+      const nomes = Array.isArray(tk.assignees) ? tk.assignees : [];
+      const disponiveis = usuarios.filter(u => !nomes.includes(u));
+      return `<div class="avisos2-tarefa${resolvida ? " is-resolvida" : ""}" data-id="${escP2(id)}">
+        <div class="avisos2-tarefa-caminho">${escP2(caminho)}${resolvida ? ' <span class="avisos2-resolvida">resolvida</span>' : ""}</div>
+        <input type="text" class="avisos2-campo avisos2-nome" data-campo="name" value="${escP2(tk.name)}" aria-label="Nome da tarefa">
+        <div class="avisos2-linha-campos">
+          <label>Status<select class="avisos2-campo" data-campo="status">
+            ${opcoes.map(s => `<option value="${escP2(s)}" ${s === tk.status ? "selected" : ""}>${escP2(s)}</option>`).join("")}
+          </select></label>
+          <label>Início<input type="date" class="avisos2-campo" data-campo="startDate" value="${escP2(tk.startDate || "")}"></label>
+          <label>Fim<input type="date" class="avisos2-campo" data-campo="endDate" value="${escP2(tk.endDate || "")}"></label>
+        </div>
+        <div class="avisos2-responsaveis">
+          <span class="avisos2-rot">Responsáveis</span>
+          ${nomes.map(n => `<span class="avisos2-chip">${escP2(n)}<button type="button" class="avisos2-remover" data-nome="${escP2(n)}" title="Remover">×</button></span>`).join("")}
+          ${disponiveis.length ? `<select class="avisos2-adicionar" aria-label="Adicionar responsável"><option value="">+ adicionar</option>${disponiveis.map(u => `<option value="${escP2(u)}">${escP2(u)}</option>`).join("")}</select>` : ""}
+        </div>
+      </div>`;
+    }).join("");
+    document.getElementById("avisos2-popup-lista").innerHTML = linhas || `<div class="avisos2-vazio">Nenhuma tarefa.</div>`;
+  }
+  (function montarPopupAvisos2() {
+    const overlay = document.createElement("div");
+    overlay.id = "avisos2-popup-overlay";
+    overlay.className = "hidden";
+    overlay.innerHTML = `<div id="avisos2-popup" role="dialog" aria-modal="true">
+        <div id="avisos2-popup-topo"><div id="avisos2-popup-titulo"></div>
+          <button type="button" id="avisos2-popup-fechar" title="Fechar">×</button></div>
+        <div id="avisos2-popup-lista"></div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", e => { if (e.target === overlay) fecharPopupAvisos2(); });
+    document.getElementById("avisos2-popup-fechar").addEventListener("click", fecharPopupAvisos2);
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && popupAvisos2.pais) fecharPopupAvisos2(); });
+    const lista = document.getElementById("avisos2-popup-lista");
+    const idDe = el => (el.closest(".avisos2-tarefa") || {}).dataset.id;
+    lista.addEventListener("change", e => {
+      const el = e.target;
+      const id = idDe(el);
+      if (!id) return;
+      const tk = tasks2Bridge.tarefa(id);
+      if (!tk) return;
+      if (el.classList.contains("avisos2-campo")) {
+        tasks2Bridge.editar(id, { [el.dataset.campo]: el.value });
+      } else if (el.classList.contains("avisos2-adicionar") && el.value) {
+        tasks2Bridge.editar(id, { assignees: (tk.assignees || []).concat(el.value) });
+      } else return;
+      renderPopupAvisos2();
+    });
+    lista.addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.classList.contains("avisos2-nome")) e.target.blur();
+    });
+    lista.addEventListener("click", e => {
+      const btn = e.target.closest(".avisos2-remover");
+      if (!btn) return;
+      const id = idDe(btn);
+      const tk = id && tasks2Bridge.tarefa(id);
+      if (!tk) return;
+      tasks2Bridge.editar(id, { assignees: (tk.assignees || []).filter(n => n !== btn.dataset.nome) });
+      renderPopupAvisos2();
+    });
+  })();
 
   // ── Mapa: svg propria, mas reaproveita a MESMA projecao/geometria do
   // mundo que a Members original usa — a forma dos paises e dado de
@@ -14694,18 +14836,33 @@ applyRolePermissions();
       const rotulos = allCountries2
         .map(f => ({ f, a: avisoDoPais2(f.properties.name) }))
         .filter(x => x.a && x.a.numero > 0);
-      svg2.append("g")
+      const selos = svg2.append("g")
         .attr("id", "avisos2-numeros")
-        .style("pointer-events", "none")
-        .selectAll("text")
+        .selectAll("g")
         .data(rotulos)
-        .join("text")
+        .join("g")
+        .attr("class", "avisos2-selo")
+        .attr("data-name", x => x.f.properties.name)
+        .attr("role", "button")
+        .attr("transform", x => {
+          const p = pontoDoRotulo(x.f);
+          return (p && isFinite(p[0]) && isFinite(p[1])) ? `translate(${p[0]},${p[1]})` : "translate(-999,-999)";
+        })
+        .on("click", (event, x) => { event.stopPropagation(); abrirPopupAvisos2(x.f.properties.name); });
+      const larguraSelo = n => 16 + 7 * (String(n).length - 1);
+      selos.append("rect")
+        .attr("class", "avisos2-selo-fundo")
+        .attr("x", x => -larguraSelo(x.a.numero) / 2)
+        .attr("y", -9)
+        .attr("width", x => larguraSelo(x.a.numero))
+        .attr("height", 18)
+        .attr("rx", 5);
+      selos.append("text")
         .attr("class", "avisos2-numero")
         .attr("data-name", x => x.f.properties.name)
-        .attr("x", x => { const p = pontoDoRotulo(x.f); return p && isFinite(p[0]) ? p[0] : -999; })
-        .attr("y", x => { const p = pontoDoRotulo(x.f); return p && isFinite(p[1]) ? p[1] : -999; })
         .attr("text-anchor", "middle")
         .attr("dominant-baseline", "central")
+        .attr("y", 0.5)
         .text(x => x.a.numero);
     }
     if (activeCountry2 && activeFeature2) {
@@ -15684,6 +15841,24 @@ applyRolePermissions();
     return true;
   }
 
+  // Lead em laranja queimado clarinho (16/09, 2o pedido). Uma vez so, com
+  // marca propria: o quadro ja esta como cor escolhida.
+  const MIGRACAO_LEAD_ID = "2026-09-16-lead";
+  function migrarCorLead() {
+    if (ORG_ATUAL !== "wpf") return false;
+    const feds = boards2.find(b => b.id === "federacoes");
+    if (!feds || feds.migracaoCorLead === MIGRACAO_LEAD_ID) return false;
+    feds.cores = feds.cores || {};
+    feds.cores["Lead"] = { fill: "#eeb98f" };
+    feds.coresCustom = true;
+    feds.migracaoCorLead = MIGRACAO_LEAD_ID;
+    saveBoards2();
+    if (allCountries2.length) renderWorldMap2();
+    renderLegend2();
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+    return true;
+  }
+
   // ─── Copia unica dos status da Members pro quadro Membros - Federações ──
   // Pedido da Karina em 16/09. Roda UMA vez no total: no primeiro navegador
   // que abrir depois da publicacao, depois da carga da nuvem. A marca
@@ -15754,6 +15929,7 @@ applyRolePermissions();
       const resumo = migrarStatusDaMembers();
       if (resumo) avisarMigracao(resumo);
       migrarCoresFederacoes();
+      migrarCorLead();
     };
     initialCloudLoadPromise.catch(() => {}).then(tentar);
   })();
@@ -19182,6 +19358,32 @@ applyRolePermissions();
     getAreas: () => (tasks2TemDados ? areasData : undefined),
     getKpis:  () => (tasks2TemDados ? kpisData : undefined),
     getHistorico: () => (historicoData.length ? historicoData : undefined),
+    // Edicao vinda de fora da tabela (pop-up do Avisos Gerais, Members 2).
+    // Mesmas regras dos handlers da tabela: status escolhido a mao apaga a
+    // memoria do Deadline automatico; datas recalculam Deadline/Late e os
+    // niveis de cima; tudo sai por saveTasksData (nuvem + Avisos Gerais).
+    statusOptions: () => TASK_STATUS_OPTIONS.slice(),
+    usuarios: () => (usersList || []).map(u => u.username),
+    tarefa: (id) => findTaskById(tasksData, id),
+    caminho: (id) => {
+      const trilha = findTaskPath(tasksData, id) || [];
+      return trilha.slice(0, -1).map(x => (findTaskById(tasksData, x) || {}).name || "").filter(Boolean);
+    },
+    editar: (id, patch) => {
+      const t = findTaskById(tasksData, id);
+      if (!t || !patch) return false;
+      if (patch.name !== undefined) t.name = String(patch.name).trim();
+      if (patch.status !== undefined) { t.status = patch.status; delete t.statusAntesDeadline; }
+      if (patch.startDate !== undefined) t.startDate = patch.startDate;
+      if (patch.endDate !== undefined) t.endDate = patch.endDate;
+      if (Array.isArray(patch.assignees)) t.assignees = patch.assignees.slice();
+      autoSyncLateStatuses();
+      syncStatusCalculados();
+      saveTasksData();
+      const view = document.getElementById("tasks2-view");
+      if (view && !view.classList.contains("hidden")) renderTasksTable();
+      return true;
+    },
     apply: (data) => {
       // Le sempre da secao da empresa ativa.
       const suf = ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL;
