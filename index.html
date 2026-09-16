@@ -17023,8 +17023,8 @@ applyRolePermissions();
   let idsFiltrados = null; // null = sem filtro; Set = so estes ids aparecem
 
   // Abrir/fechar com filtro ativo fica numa lista SEPARADA. Quando o filtro
-  // muda, abre tudo o que ele encontrou (um resultado dentro de um galho
-  // fechado ficaria escondido); depois disso a pessoa abre e fecha a vontade.
+  // muda, tudo comeca FECHADO (pedido da Karina, 16/09 — antes abria tudo o
+  // que o filtro achou); a pessoa abre com a setinha ate onde quiser.
   // Ao limpar o filtro, volta a lista de antes (tasksExpanded), intacta.
   // Antes a arvore era reaberta a CADA redesenho, e a setinha nao fechava.
   let tasksExpandedFiltro = new Set();
@@ -17241,7 +17241,7 @@ applyRolePermissions();
     if (idsFiltrados) {
       const assinatura = assinaturaDosFiltros();
       if (assinatura !== assinaturaFiltroAberto) {
-        tasksExpandedFiltro = new Set(idsFiltrados);
+        tasksExpandedFiltro = new Set();
         assinaturaFiltroAberto = assinatura;
       }
     } else {
