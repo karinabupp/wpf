@@ -14387,7 +14387,7 @@ applyRolePermissions();
   // rosa ou roxo puxados pro cinza) — fica claramente separado tanto do
   // cinza neutro de sem-classificação quanto do Negociação saturado que
   // vem depois.
-  const PALETA_AZUL   = { Lead: "#b6c3d0", "Negociação": "#85b7eb", "Membro": "#185fa5" };
+  const PALETA_AZUL   = { Lead: "#b6c3d0", "Negociação": "#85b7eb", "Abertura": "#4a8ad0", "Membro": "#185fa5" };
   const PALETA_ROSA    = { Lead: "#cbbcc2", "Negociação": "#e28fb8", "Membro": "#a3215f" };
   const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
@@ -14416,7 +14416,7 @@ applyRolePermissions();
   ];
   const DEFAULT_BOARDS_WPF = [
     { id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(), cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false },
-    { id: "federacoes", nome: "Membros - Federações", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_AZUL), temTipoMembro: true },
+    { id: "federacoes", nome: "Membros - Federações", status: ["Lead", "Negociação", "Abertura", "Membro"], cores: paletaParaObjeto(PALETA_AZUL), temTipoMembro: true },
     { id: "comite-fem", nome: "Membros - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROSA), temTipoMembro: true },
     { id: "ladies26",   nome: "Ladies 26 - Comitê Fem", status: STATUS_PADRAO.slice(), cores: paletaParaObjeto(PALETA_ROXA), temTipoMembro: true }
   ];
@@ -14476,6 +14476,26 @@ applyRolePermissions();
     localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2));
     scheduleCloudSave();
   }
+  // "Abertura" (16/09, pedido da Karina) entra no quadro Membros -
+  // Federações entre Negociação e Membro. Membro precisa continuar o ULTIMO
+  // status: e ele que libera o campo "Tipo de membro" (ehUltimoStatus).
+  // Roda no load e sempre que quadros chegam da nuvem.
+  function garantirAbertura() {
+    const b = boards2.find(x => x.id === "federacoes");
+    if (!b || !Array.isArray(b.status)) return false;
+    let mudou = false;
+    if (!b.status.includes("Abertura")) {
+      const i = b.status.indexOf("Membro");
+      b.status.splice(i >= 0 ? i : b.status.length, 0, "Abertura");
+      mudou = true;
+    }
+    if (b.cores && !b.cores["Abertura"]) {
+      b.cores["Abertura"] = { fill: PALETA_AZUL["Abertura"] };
+      mudou = true;
+    }
+    return mudou;
+  }
+  if (ORG_ATUAL === "wpf") garantirAbertura();
   saveBoards2(); // grava a lista (ja migrada/semeada, se era o caso)
 
   let activeBoardId2 = localStorage.getItem(ACTIVE_BOARD_KEY) || boards2[0].id;
@@ -15494,6 +15514,7 @@ applyRolePermissions();
       // Tasks 2: ou o outro lado ainda nao abriu a aba, ou e resquicio.
       if (Array.isArray(pacote.boards) && pacote.boards.length) {
         boards2 = pacote.boards;
+        if (ORG_ATUAL === "wpf") garantirAbertura();
         localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2));
       }
       if (Array.isArray(pacote.colunas)) {
@@ -15519,6 +15540,79 @@ applyRolePermissions();
       if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
     }
   };
+
+  // ─── Copia unica dos status da Members pro quadro Membros - Federações ──
+  // Pedido da Karina em 16/09. Roda UMA vez no total: no primeiro navegador
+  // que abrir depois da publicacao, depois da carga da nuvem. A marca
+  // "migracaoMembers" fica no proprio quadro (vai pra nuvem junto), entao
+  // nenhum outro computador repete. Sobrescreve o status que ja houvesse na
+  // Members 2 pros paises cobertos (decisao da Karina). Members nao muda.
+  const MIGRACAO_MEMBERS_ID = "2026-09-16";
+  const DE_MEMBERS_PARA_MEMBERS2 = {
+    "Contacting": "Lead",
+    "Negotiation": "Negociação",
+    "Opening": "Abertura",
+    "Member": "Membro"
+  };
+  const EXCECOES_MIGRACAO = { "Ireland": "Abertura" }; // estava em Documents
+
+  function migrarStatusDaMembers() {
+    if (ORG_ATUAL !== "wpf") return null;
+    const quadro = boards2.find(b => b.id === "federacoes");
+    if (!quadro || quadro.migracaoMembers === MIGRACAO_MEMBERS_ID) return null;
+    garantirAbertura();
+    let dados = {};
+    try { dados = JSON.parse(localStorage.getItem(chaveDadosDoBoard("federacoes")) || "{}") || {}; } catch (e) { dados = {}; }
+    const fonte = (typeof countryData === "object" && countryData) ? countryData : {};
+    const resumo = {};
+    Object.keys(fonte).forEach(pais => {
+      const rec = fonte[pais];
+      if (!rec || typeof rec !== "object") return;
+      const novo = EXCECOES_MIGRACAO[pais] || DE_MEMBERS_PARA_MEMBERS2[rec.status];
+      if (!novo) return;
+      const atual = dados[pais] || { status: "", partner: "", tipoMembro: "" };
+      if (atual.partner === undefined) atual.partner = "";
+      // Tipo de membro so vale em Membro; saindo de Membro, some.
+      if (novo !== "Membro") atual.tipoMembro = "";
+      else if (atual.tipoMembro === undefined) atual.tipoMembro = "";
+      atual.status = novo;
+      dados[pais] = atual;
+      resumo[novo] = (resumo[novo] || 0) + 1;
+    });
+    localStorage.setItem(chaveDadosDoBoard("federacoes"), JSON.stringify(dados));
+    if (activeBoardId2 === "federacoes") countryData2 = dados;
+    quadro.migracaoMembers = MIGRACAO_MEMBERS_ID;
+    saveBoards2(); // grava quadros + marca e agenda a nuvem (leva os status junto)
+    renderBoard2Select();
+    popularSelectStatus2(); // o seletor do painel ganha a "Abertura"
+    if (allCountries2.length) { renderWorldMap2(); renderLegend2(); }
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+    return resumo;
+  }
+
+  function avisarMigracao(resumo) {
+    const ordem = ["Lead", "Negociação", "Abertura", "Membro"];
+    const partes = ordem.filter(s => resumo[s]).map(s => `${resumo[s]} em ${s}`);
+    const total = ordem.reduce((n, s) => n + (resumo[s] || 0), 0);
+    const aviso = document.createElement("div");
+    aviso.id = "members2-migracao-aviso";
+    aviso.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:950;max-width:360px;background:#fff;color:#2c2c2a;border:1px solid #d3d1c7;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:14px 16px;font-size:13px;line-height:1.45;";
+    aviso.innerHTML = `<b>Members 2 · Membros - Federações</b><br>Status copiados da Members: ${total} ${total === 1 ? "país" : "países"}${partes.length ? " (" + partes.join(", ") + ")" : ""}.<div style="text-align:right;margin-top:8px"><button type="button" style="border:1px solid #d3d1c7;background:#f5f4ef;border-radius:6px;padding:4px 10px;cursor:pointer">OK</button></div>`;
+    aviso.querySelector("button").addEventListener("click", () => aviso.remove());
+    document.body.appendChild(aviso);
+  }
+
+  // Espera a nuvem carregar de verdade (nao roda com dado velho do
+  // navegador). Se a carga falhou, tenta de novo ate dar certo.
+  (function esperarNuvemEMigrar() {
+    if (ORG_ATUAL !== "wpf") return;
+    const tentar = () => {
+      if (typeof cloudCarregou === "undefined" || !cloudCarregou) { setTimeout(tentar, 5000); return; }
+      const resumo = migrarStatusDaMembers();
+      if (resumo) avisarMigracao(resumo);
+    };
+    initialCloudLoadPromise.catch(() => {}).then(tentar);
+  })();
 
   // Logo igual ao da aba Members. Clonado do #logo original (que ja nasce
   // com a marca da empresa ativa), pelo mesmo motivo das outras abas: nao
