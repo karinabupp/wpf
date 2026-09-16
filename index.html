@@ -16180,7 +16180,7 @@ applyRolePermissions();
   function irParaLinhaMencionada(id) {
     const trilha = findTaskPath(tasksData, id);
     if (!trilha) return; // linha foi excluida
-    trilha.slice(0, -1).forEach(ancestralId => tasksExpanded.add(ancestralId));
+    trilha.slice(0, -1).forEach(ancestralId => linhasAbertas().add(ancestralId));
     renderTasksTable();
     const alvo = document.querySelector(`.tasks2-row[data-id="${id}"]`);
     if (!alvo) return;
@@ -17022,16 +17022,30 @@ applyRolePermissions();
 
   let idsFiltrados = null; // null = sem filtro; Set = so estes ids aparecem
 
+  // Abrir/fechar com filtro ativo fica numa lista SEPARADA. Quando o filtro
+  // muda, abre tudo o que ele encontrou (um resultado dentro de um galho
+  // fechado ficaria escondido); depois disso a pessoa abre e fecha a vontade.
+  // Ao limpar o filtro, volta a lista de antes (tasksExpanded), intacta.
+  // Antes a arvore era reaberta a CADA redesenho, e a setinha nao fechava.
+  let tasksExpandedFiltro = new Set();
+  let assinaturaFiltroAberto = null;
+  function assinaturaDosFiltros() {
+    return JSON.stringify(Object.keys(filtros).sort().map(k => {
+      const v = filtros[k];
+      return [k, v instanceof Set ? [...v].sort() : v];
+    }));
+  }
+  // O conjunto de linhas abertas que vale agora (com ou sem filtro).
+  function linhasAbertas() { return idsFiltrados ? tasksExpandedFiltro : tasksExpanded; }
+
   function renderTaskRow(t, depth, inheritedKpi, inheritedArea, inheritedObjetivo) {
     inheritedKpi = inheritedKpi || "";
     inheritedArea = inheritedArea || "";
     inheritedObjetivo = inheritedObjetivo || "";
     if (idsFiltrados && !idsFiltrados.has(t.id)) return "";
     const hasChildren = t.subtasks.length > 0;
-    // Com filtro ativo a arvore vai toda aberta: um resultado dentro de um
-    // galho fechado ficaria escondido pelo proprio filtro que o achou.
-    if (idsFiltrados && hasChildren) tasksExpanded.add(t.id);
-    const expanded = tasksExpanded.has(t.id);
+    // Com filtro ativo, vale a lista propria do filtro (ver linhasAbertas).
+    const expanded = linhasAbertas().has(t.id);
     const colors = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     const isSub = depth > 0; // structural: nested under another row (drag/select stay tied to this)
     // Só tarefa ganha a cor do status no fundo — mesma regra que valia pra
@@ -17224,6 +17238,15 @@ applyRolePermissions();
     syncStatusCalculados();
     const body = document.getElementById("tasks2-table-body");
     idsFiltrados = haFiltro() ? idsVisiveis() : null;
+    if (idsFiltrados) {
+      const assinatura = assinaturaDosFiltros();
+      if (assinatura !== assinaturaFiltroAberto) {
+        tasksExpandedFiltro = new Set(idsFiltrados);
+        assinaturaFiltroAberto = assinatura;
+      }
+    } else {
+      assinaturaFiltroAberto = null;
+    }
     body.innerHTML = tasksData.map(t => {
       const html = renderTaskRow(t, 0);
       // So embrulha em card se sobrou algo pra mostrar. Sem este "if", um
@@ -17240,7 +17263,8 @@ applyRolePermissions();
     body.querySelectorAll(".tasks2-toggle").forEach(btn => {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
-        if (tasksExpanded.has(id)) tasksExpanded.delete(id); else tasksExpanded.add(id);
+        const abertas = linhasAbertas();
+        if (abertas.has(id)) abertas.delete(id); else abertas.add(id);
         renderTasksTable();
       });
     });
@@ -17324,7 +17348,7 @@ applyRolePermissions();
           const [moved] = container.array.splice(container.index, 1);
           target.subtasks.push(moved);
         });
-        tasksExpanded.add(targetId);
+        linhasAbertas().add(targetId);
         tasksSelectedIds.clear();
         tasksDragIds = [];
         saveTasksData();
@@ -17584,7 +17608,7 @@ applyRolePermissions();
         const parent = findTaskById(tasksData, btn.dataset.id);
         if (!parent) return;
         parent.subtasks.push(novaLinha(proximoNivel(parent.rowType)));
-        tasksExpanded.add(parent.id);
+        linhasAbertas().add(parent.id);
         saveTasksData();
         renderTasksTable();
       });
