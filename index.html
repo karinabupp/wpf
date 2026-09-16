@@ -3296,6 +3296,8 @@
   #nav-geral, #nav-goals, #nav-tasks, #nav-settings { display: none !important; }
   /* Card "Tasks do Slack" gravava na Tasks original, que saiu do menu. */
   #slack-side-col { display: none !important; }
+  /* Numero de tarefas em cima do pais no quadro Avisos Gerais (Members 2). */
+  .avisos2-numero { font-size: 11px; font-weight: 700; fill: #2c2c2a; stroke: #ffffff; stroke-width: 3px; paint-order: stroke; }
   /* Guias Late e KPI saem da Tasks 2. Escondidas por id porque a classe
      .hidden empata em especificidade com .tasks2-subnav-btn{display:flex}
      e perde pela ordem. A view e o codigo continuam, so o botao some. */
@@ -14387,7 +14389,9 @@ applyRolePermissions();
   // rosa ou roxo puxados pro cinza) — fica claramente separado tanto do
   // cinza neutro de sem-classificação quanto do Negociação saturado que
   // vem depois.
-  const PALETA_AZUL   = { Lead: "#b6c3d0", "Negociação": "#85b7eb", "Abertura": "#4a8ad0", "Membro": "#185fa5" };
+  // 16/09: Membro = verde do OK, Negociação = amarelo da Atenção, Lead um
+  // amarelo mais claro (cores de PALETA_AVISOS); Abertura mantida.
+  const PALETA_AZUL   = { Lead: "#e7d09d", "Negociação": "#d3a94c", "Abertura": "#4a8ad0", "Membro": "#7c9a5e" };
   const PALETA_ROSA    = { Lead: "#cbbcc2", "Negociação": "#e28fb8", "Membro": "#a3215f" };
   const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
@@ -14545,7 +14549,63 @@ applyRolePermissions();
     saveData2();
   }
   function fillFor2(name) {
-    return corDoStatus2(boardAtual(), getRecord2(name).status);
+    return corDoStatus2(boardAtual(), statusExibido2(name));
+  }
+
+  // ─── Avisos Gerais automatico (16/09) ─────────────────────────────────
+  // O quadro Avisos Gerais deixa de ser escolhido a mao: vem da Tasks.
+  //   Urgência = alguma tarefa Late (numero no mapa: Late + Deadline)
+  //   Atenção  = nenhuma Late e alguma Deadline (numero: Deadline)
+  //   OK       = tem tarefa e nenhuma em Deadline/Late (Done conta como OK)
+  //   sem cor  = nenhuma tarefa naquele pais/estado
+  // "Tarefa" = linha SEM nada embaixo (o status dos niveis de cima so
+  // repete o de baixo). Pais = o da linha, ou o da linha de cima mais
+  // proxima que tiver. Cancelled (e o que estiver dentro) nao conta.
+  // Os status gravados a mao continuam no dado, so deixam de aparecer.
+  const QUADRO_AVISOS = "avisos-gerais";
+  function ehQuadroAvisos(board) { return !!board && board.id === QUADRO_AVISOS; }
+
+  function avisosDasTasks2() {
+    const out = {};
+    let lista = [];
+    try { lista = (tasks2Bridge && tasks2Bridge.getTasks) ? (tasks2Bridge.getTasks() || []) : []; } catch (e) { lista = []; }
+    (function andar(itens, paisHerdado) {
+      (itens || []).forEach(r => {
+        if (!r || r.status === "Cancelled") return;
+        const pais = r.paisLink || paisHerdado || "";
+        const filhos = Array.isArray(r.subtasks) ? r.subtasks : [];
+        if (filhos.length) { andar(filhos, pais); return; }
+        if (!pais) return;
+        const a = out[pais] || (out[pais] = { total: 0, deadline: 0, late: 0 });
+        a.total++;
+        if (r.status === "Late") a.late++;
+        else if (r.status === "Deadline") a.deadline++;
+      });
+    })(lista, "");
+    Object.keys(out).forEach(p => {
+      const a = out[p];
+      a.status = a.late ? "Urgência" : (a.deadline ? "Atenção" : "OK");
+      a.numero = a.late ? a.late + a.deadline : (a.deadline ? a.deadline : 0);
+    });
+    return out;
+  }
+  let avisosCache2 = null;
+  function avisoDoPais2(nome) {
+    if (!avisosCache2) avisosCache2 = avisosDasTasks2();
+    return avisosCache2[nome] || null;
+  }
+  function statusExibido2(name) {
+    if (ehQuadroAvisos(boardAtual())) { const a = avisoDoPais2(name); return a ? a.status : ""; }
+    return getRecord2(name).status;
+  }
+  // Chamado quando as tasks mudam (aqui ou vindas da nuvem).
+  function atualizarAvisos2() {
+    avisosCache2 = null;
+    if (document.getElementById("members2-view").classList.contains("hidden")) return;
+    if (allCountries2.length) renderWorldMap2();
+    renderLegend2();
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+    if (activeCountry2 && ehQuadroAvisos(boardAtual())) panel2Status.value = statusExibido2(activeCountry2);
   }
 
   // ── Mapa: svg propria, mas reaproveita a MESMA projecao/geometria do
@@ -14615,6 +14675,39 @@ applyRolePermissions();
       })
       .on("mouseleave", () => { tooltip.style.opacity = 0; })
       .on("click", (event, d) => selectCountry2(d.properties.name, d));
+    if (ehQuadroAvisos(boardAtual())) {
+      avisosCache2 = null;
+      // No meio da MAIOR parte do territorio (Franca, EUA...: o centro do
+      // pais inteiro cairia no mar ou em outro pais).
+      const pontoDoRotulo = feature => {
+        const g = feature.geometry;
+        if (!g) return null;
+        if (g.type !== "MultiPolygon") return path2.centroid(feature);
+        let melhor = null, maior = -1;
+        g.coordinates.forEach(coords => {
+          const parte = { type: "Feature", geometry: { type: "Polygon", coordinates: coords } };
+          const area = path2.area(parte);
+          if (area > maior) { maior = area; melhor = parte; }
+        });
+        return melhor ? path2.centroid(melhor) : null;
+      };
+      const rotulos = allCountries2
+        .map(f => ({ f, a: avisoDoPais2(f.properties.name) }))
+        .filter(x => x.a && x.a.numero > 0);
+      svg2.append("g")
+        .attr("id", "avisos2-numeros")
+        .style("pointer-events", "none")
+        .selectAll("text")
+        .data(rotulos)
+        .join("text")
+        .attr("class", "avisos2-numero")
+        .attr("data-name", x => x.f.properties.name)
+        .attr("x", x => { const p = pontoDoRotulo(x.f); return p && isFinite(p[0]) ? p[0] : -999; })
+        .attr("y", x => { const p = pontoDoRotulo(x.f); return p && isFinite(p[1]) ? p[1] : -999; })
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "central")
+        .text(x => x.a.numero);
+    }
     if (activeCountry2 && activeFeature2) {
       highlightHalo2.attr("d", path2(activeFeature2)).raise();
       highlightPath2.attr("d", path2(activeFeature2)).raise();
@@ -14733,7 +14826,10 @@ applyRolePermissions();
     panel2.classList.remove("closed");
     panel2Name.textContent = name;
     const rec = getRecord2(name);
-    panel2Status.value = rec.status;
+    panel2Status.value = statusExibido2(name);
+    // Avisos Gerais vem da Tasks: so leitura.
+    panel2Status.disabled = ehQuadroAvisos(boardAtual());
+    panel2Status.title = panel2Status.disabled ? "Calculado a partir das tarefas da aba Tasks" : "";
     panel2TipoMembro.value = rec.tipoMembro || "";
     atualizarVisibilidadeTipoMembro();
     if (highlightHalo2 && highlightPath2) {
@@ -14752,7 +14848,8 @@ applyRolePermissions();
   });
   document.getElementById("save2-btn").addEventListener("click", () => {
     if (!activeCountry2) return;
-    const novoStatus = panel2Status.value;
+    // Avisos Gerais: o status exibido e calculado; o gravado nao muda.
+    const novoStatus = ehQuadroAvisos(boardAtual()) ? getRecord2(activeCountry2).status : panel2Status.value;
     setRecord2(activeCountry2, {
       status: novoStatus,
       // Sai do ultimo status (Membro), o tipo (Observador/Afiliado) nao
@@ -14785,7 +14882,7 @@ applyRolePermissions();
     statusOptions.forEach(s => { counts[s] = 0; });
     const tipoMembroCounts = { "Observador": 0, "Afiliado": 0, "": 0 };
     allCountries2.forEach(f => {
-      const rec = getRecord2(f.properties.name);
+      const rec = Object.assign({}, getRecord2(f.properties.name), { status: statusExibido2(f.properties.name) });
       // Pais sem classificação nao entra em contagem nenhuma — de
       // proposito nao tem linha propria na legenda (ficava com ~100% e so
       // ocupava espaco); ele aparece so no mapa, no cinza neutro.
@@ -14974,7 +15071,10 @@ applyRolePermissions();
   }
 
   function valorDaCelula(nome, col) {
-    if (col.tipo === "status") return statusDoPais2(col.boardId, nome);
+    if (col.tipo === "status") {
+      if (col.boardId === QUADRO_AVISOS) { const a = avisoDoPais2(nome); return a ? a.status : ""; }
+      return statusDoPais2(col.boardId, nome);
+    }
     const v = getPais2(nome)[col.id];
     if (col.tipo === "multi") return Array.isArray(v) ? v : (v ? [v] : []);
     if (col.id === "lwStop26" && typeof v === "boolean") return v ? "Sim" : "";
@@ -15149,7 +15249,9 @@ applyRolePermissions();
       // "Membro" some dentro do proprio card em varios pipelines.
       const bg = (board && val) ? corDoStatus2(board, val) : "";
       const fundo = bg ? `style="background:${bg}; color:${textoSobre2(bg)}"` : "";
-      return `<td class="pl2-select"><select class="pl2-input ${val ? "" : "pl2-sem-valor"}" ${d} ${fundo}>
+      const soLeitura = col.tipo === "status" && col.boardId === QUADRO_AVISOS
+        ? ` disabled title="Calculado a partir das tarefas da aba Tasks"` : "";
+      return `<td class="pl2-select"><select class="pl2-input ${val ? "" : "pl2-sem-valor"}" ${d} ${fundo}${soLeitura}>
         <option value="">—</option>
         ${opcoesDaColuna(col).map(o => `<option value="${esc2(o)}" ${o === val ? "selected" : ""}>${esc2(o)}</option>`).join("")}
       </select></td>`;
@@ -15500,6 +15602,7 @@ applyRolePermissions();
   }
 
   window.membros2Bridge = {
+    atualizarAvisos: () => atualizarAvisos2(),
     paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR")),
     getDados: () => ({
       boards: boards2,
@@ -15540,6 +15643,46 @@ applyRolePermissions();
       if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
     }
   };
+
+  // Ao abrir a Members 2, as tarefas podem ter mudado desde o ultimo desenho.
+  document.getElementById("nav-members2").addEventListener("click", () => setTimeout(atualizarAvisos2, 0));
+  board2Select.addEventListener("change", () => { avisosCache2 = null; });
+
+  // ─── Cores do Membros - Federações iguais as do Avisos Gerais (16/09) ───
+  // Uma vez so (marca no quadro, vai pra nuvem): Membro = cor do OK,
+  // Negociação = cor da Atenção, Lead = essa mesma cor mais clara. Abertura
+  // fica. Le as cores ATUAIS do Avisos Gerais (se alguem trocou la, segue).
+  // Marca o quadro como cor escolhida, pra sincronizacao de paleta nao
+  // desfazer. So WPF: a CBTH tem outro quadro de federacoes.
+  const MIGRACAO_CORES_ID = "2026-09-16";
+  function clarear2(hex, quanto) {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
+    if (!m) return hex;
+    const n = parseInt(m[1], 16);
+    const c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * quanto));
+    return "#" + c.map(v => v.toString(16).padStart(2, "0")).join("");
+  }
+  function migrarCoresFederacoes() {
+    if (ORG_ATUAL !== "wpf") return false;
+    const feds = boards2.find(b => b.id === "federacoes");
+    const avisos = boards2.find(b => b.id === QUADRO_AVISOS);
+    if (!feds || feds.migracaoCores === MIGRACAO_CORES_ID) return false;
+    const corDe = (b, st, padrao) => (b && b.cores && b.cores[st] && b.cores[st].fill) || padrao;
+    const ok = corDe(avisos, "OK", "#7c9a5e");
+    const atencao = corDe(avisos, "Atenção", "#d3a94c");
+    feds.cores = feds.cores || {};
+    feds.cores["Membro"] = { fill: ok };
+    feds.cores["Negociação"] = { fill: atencao };
+    feds.cores["Lead"] = { fill: clarear2(atencao, 0.45) };
+    if (!feds.cores["Abertura"]) feds.cores["Abertura"] = { fill: PALETA_AZUL["Abertura"] };
+    feds.coresCustom = true;
+    feds.migracaoCores = MIGRACAO_CORES_ID;
+    saveBoards2();
+    if (allCountries2.length) renderWorldMap2();
+    renderLegend2();
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+    return true;
+  }
 
   // ─── Copia unica dos status da Members pro quadro Membros - Federações ──
   // Pedido da Karina em 16/09. Roda UMA vez no total: no primeiro navegador
@@ -15610,6 +15753,7 @@ applyRolePermissions();
       if (typeof cloudCarregou === "undefined" || !cloudCarregou) { setTimeout(tentar, 5000); return; }
       const resumo = migrarStatusDaMembers();
       if (resumo) avisarMigracao(resumo);
+      migrarCoresFederacoes();
     };
     initialCloudLoadPromise.catch(() => {}).then(tentar);
   })();
@@ -16579,6 +16723,8 @@ applyRolePermissions();
     // original" apaga o rascunho de todos, nao so o deste navegador.
     registrarSnapshot(); // guarda a versao anterior antes de propagar
     scheduleCloudSave();
+    // Avisos Gerais da Members 2 e calculado destas tarefas.
+    try { window.membros2Bridge && membros2Bridge.atualizarAvisos && membros2Bridge.atualizarAvisos(); } catch (e) {}
   }
 
   // Responsáveis = usuários now, but tasks from before that change may still
@@ -19078,6 +19224,8 @@ applyRolePermissions();
       // nao mede nada direito (ver refreshNameExpandButtons).
       const view = document.getElementById("tasks2-view");
       if (view && !view.classList.contains("hidden")) renderTasksTable();
+      // Tarefas vindas de outro PC mudam o Avisos Gerais da Members 2.
+      try { window.membros2Bridge && membros2Bridge.atualizarAvisos && membros2Bridge.atualizarAvisos(); } catch (e) {}
     }
   };
 
