@@ -14418,7 +14418,7 @@ applyRolePermissions();
   // vem depois.
   // 16/09: Membro = verde do OK, Negociação = amarelo da Atenção, Lead um
   // amarelo mais claro (cores de PALETA_AVISOS); Abertura mantida.
-  const PALETA_AZUL   = { Lead: "#eeb98f", "Negociação": "#d3a94c", "Abertura": "#4a8ad0", "Membro": "#7c9a5e" };
+  const PALETA_AZUL   = { Lead: "#e7d09d", "Negociação": "#d3a94c", "Abertura": "#4a8ad0", "Membro": "#7c9a5e" };
   const PALETA_ROSA    = { Lead: "#cbbcc2", "Negociação": "#e28fb8", "Membro": "#a3215f" };
   const PALETA_ROXA    = { Lead: "#c2bdd4", "Negociação": "#afa9ec", "Membro": "#534ab7" };
   // Avisos Gerais: paleta bem diferente das outras — tons terrosos, medios,
@@ -15841,15 +15841,16 @@ applyRolePermissions();
     return true;
   }
 
-  // Lead em laranja queimado clarinho (16/09, 2o pedido). Uma vez so, com
-  // marca propria: o quadro ja esta como cor escolhida.
-  const MIGRACAO_LEAD_ID = "2026-09-16-lead";
+  // Lead: em 16/09 foi pra laranja queimado clarinho (#eeb98f); em 17/09
+  // Karina pediu de volta o amarelo claro anterior (#e7d09d). Uma vez so,
+  // com marca propria (id novo, pra quem ja tinha a marca do laranja).
+  const MIGRACAO_LEAD_ID = "2026-09-17-lead-amarelo";
   function migrarCorLead() {
     if (ORG_ATUAL !== "wpf") return false;
     const feds = boards2.find(b => b.id === "federacoes");
     if (!feds || feds.migracaoCorLead === MIGRACAO_LEAD_ID) return false;
     feds.cores = feds.cores || {};
-    feds.cores["Lead"] = { fill: "#eeb98f" };
+    feds.cores["Lead"] = { fill: "#e7d09d" };
     feds.coresCustom = true;
     feds.migracaoCorLead = MIGRACAO_LEAD_ID;
     saveBoards2();
