@@ -1,0 +1,9 @@
+# Worker do Agente de Gestão (WhatsApp). Publicado pelo GitHub Actions
+# (.github/workflows/deploy-worker.yml) a cada mudança nesta pasta.
+# Os segredos (WHATSAPP_*, SUPABASE_*, ANTHROPIC_API_KEY) ficam no
+# Cloudflare e NÃO são tocados pelo deploy.
+name = "wpf-whatsapp-bridge"
+main = "whatsapp-bridge.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+keep_vars = true
