@@ -1,0 +1,755 @@
+# Changelog — WPF Dash
+
+Registro de todas as alterações feitas no dashboard. Atualizado ao final de
+toda sessão em que algo for alterado.
+
+**Formato de cada entrada:**
+
+- **Data** — dia da sessão
+- **O que mudou** — descrição objetiva da alteração
+- **Onde** — arquivo, aba ou componente afetado
+- **Por quê** — motivo/contexto da mudança
+
+---
+
+## 2026-09-17 (2ª) — Agente de Gestão no WhatsApp: infraestrutura de pé
+
+Sessão de montagem do agente que conversa pelo WhatsApp e age sobre a Dash.
+Nada do dashboard (`index.html`) foi alterado, fora a página de privacidade.
+
+- **O que foi criado:**
+  1. **App na Meta:** "Agente Gestão", App ID `1138081025211466`, publicado
+     (sai do modo desenvolvimento, senão só chegam webhooks de teste).
+  2. **Número do robô:** `+55 11 97261-7434` (eSIM dedicado, não usar no app
+     do WhatsApp), Phone Number ID `1414890888363584`, WhatsApp Business
+     Account ID `1758272028835115`. Token **permanente** gerado e guardado
+     pela Karina; PIN de 6 dígitos do registro também.
+  3. **Worker no Cloudflare:** `wpf-whatsapp-bridge`, em
+     `https://wpf-whatsapp-bridge.worldpokerfederation.workers.dev`.
+     Rotas: `GET /webhook` (verificação da Meta), `POST /webhook` (mensagem
+     recebida: grava e responde), `POST /enviar` (envio, protegido pelo
+     header `x-agente-token`). Segredos: `WHATSAPP_VERIFY_TOKEN`,
+     `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID`, `SUPABASE_URL`,
+     `SUPABASE_SERVICE_KEY`, `ANTHROPIC_API_KEY`.
+  4. **Supabase** (mesmo projeto da Dash, "operation dashboard"):
+     `wpf_whatsapp_messages` (já existia; ganhou índice único parcial em
+     `wa_message_id`) e `wpf_agente_pessoas` (nova: telefone → nome exato na
+     Tasks, apelidos, `recebe_avisos`), ambas com RLS e sem política
+     pública — só o Worker, com a secret key, acessa.
+  5. **`privacy.html`** no repo `karinabupp/wpf` (commit `bcaf686`), exigida
+     pela Meta pra publicar o app:
+     `https://karinabupp.github.io/wpf/privacy.html`. Responsável é o
+     "Agente de Gestão", sem citar empresa (decisão da Karina); bilíngue;
+     contato `karinabupp@gmail.com`; opt-out por "SAIR".
+- **Estado do agente hoje:** responde por palavra-chave (minhas tarefas,
+  atrasadas, vencendo, o time), lendo a seção `tasks2` de
+  `wpf_dashboard_data` e recalculando Late/Deadline pela data de fim (a Dash
+  só recalcula quando alguém abre a aba). SAIR/VOLTAR funcionam. O Claude
+  entra reescrevendo o texto; ainda **não** decide.
+- **Pedras no caminho, pra não repetir:**
+  - **Número de teste da Meta não serve**: é sempre +1 (EUA) e a Meta bloqueia
+    mensagens entre países envolvendo o Brasil (erro **130497**). Só número
+    +55 próprio funciona pra falar com a equipe no Brasil.
+  - Mensagem real só chega no webhook com o app **publicado**, com o campo
+    **messages** assinado em Webhook fields → Whatsapp Business Account, e
+    com **Subscribe webhooks** ligado no card do número.
+  - No Supabase a antiga `service_role` agora se chama **secret key**
+    (`sb_secret_...`); a publishable não grava (RLS).
+  - Erro 401 `code:190` no envio = token do WhatsApp vencido (os do painel
+    duram 24h) — usar o permanente, via usuário do sistema.
+- **Por quê:** pedido da Karina — um agente que acompanhe as tarefas por
+  WhatsApp e atualize a Dash a partir da conversa.
+- **Verificação:** mensagem enviada do celular chegou no Worker, foi gravada
+  no Supabase (`in`) e respondida (`out`), com as duas linhas conferidas na
+  tabela.
+- **Publicação:** só `privacy.html` foi ao repo (`52bd13e..bcaf686`). O
+  código do Worker vive no Cloudflare, não no GitHub.
+
+---
+
+## 2026-09-17 — Members 2: Lead do Membros - Federações volta ao amarelo claro
+
+Aprovado por Karina ("pode", incluindo publicar).
+
+- **O que mudou:** o Lead do quadro Membros - Federações voltou de
+  `#eeb98f` (laranja queimado clarinho, de 16/09) para o amarelo claro
+  anterior `#e7d09d`. Aplicado uma vez, com marca nova
+  `migracaoCorLead: "2026-09-17-lead-amarelo"` (substitui a do laranja);
+  `PALETA_AZUL` atualizada. Membro, Negociação, Abertura, selos e pop-up
+  iguais.
+- **Onde:** `index.html`, Members 2: `PALETA_AZUL`, `MIGRACAO_LEAD_ID` e
+  `migrarCorLead`.
+- **Por quê:** Karina preferiu o amarelinho anterior.
+- **Verificação:** 5 testes (quadro no estado publicado com a marca do
+  laranja volta pro amarelo; outras cores iguais; mapa pinta Lead de
+  amarelo claro; roda uma vez só; sem erro). Regressão: pop-up 25/25, avisos
+  22/22, cópia de status 22/22, menu 10/10, filtro 14/14, sync 38/38,
+  fumaça nas 7 abas.
+- **Publicação:** push direto `ec0bd99..52bd13e` em `main`. sha256 num
+  clone novo = `2dcf32a2…2ab2b6`, igual ao testado; GitHub Pages `built` em
+  `52bd13e` (17:27 UTC).
+
+---
+
+## 2026-09-16 (6ª) — Members 2: selo clicável com pop-up editável das tarefas + Lead laranja
+
+Aprovado por Karina: pop-up mostra só as tarefas do número; não precisa levar
+até a Tasks, mas precisa permitir editar.
+
+- **O que mudou:**
+  1. **Número virou selo** tipo "mensagem não lida": retângulo branco de
+     cantos arredondados, número preto, sombra leve; alarga com 2+ dígitos.
+  2. **Clicar no selo abre um pop-up** (clicar no país continua abrindo o
+     painel). Título com país e status; só as tarefas do número (Urgência:
+     Late + Deadline; Atenção: Deadline), Late primeiro, depois por Fim;
+     caminho da tarefa em cinza. **Editável:** nome (Enter ou sair do campo
+     grava), status, início, fim, adicionar/remover responsáveis. A lista é
+     fixada ao abrir: tarefa que deixa de contar fica, esmaecida e marcada
+     "resolvida", até fechar. Título, mapa, número e legenda acompanham na
+     hora. Fecha no ×, Esc ou clicando fora.
+  3. **Regras iguais às da tabela** via `tasks2Bridge.editar`: status à mão
+     apaga a memória do Deadline automático (Deadline à mão fica); datas
+     recalculam `autoSyncLateStatuses` e `syncStatusCalculados` (níveis de
+     cima); grava por `saveTasksData` (nuvem + Avisos Gerais). Como na
+     tabela, **Late não sai sozinho de Late ao adiar a data** — é preciso
+     trocar o status.
+  4. **Lead do Membros - Federações** em `#eeb98f` (laranja queimado
+     clarinho), uma vez só com marca `migracaoCorLead`; `PALETA_AZUL`
+     atualizada. Demais cores iguais.
+- **Onde:** `index.html`. Tasks 2: `tasks2Bridge` ganhou `statusOptions`,
+  `usuarios`, `tarefa`, `caminho`, `editar`. Members 2: `avisosDasTasks2`
+  guarda `lateIds`/`deadlineIds`; selos em `renderWorldMap2`; bloco
+  "Pop-up das tarefas do numero" (`abrirPopupAvisos2`, `renderPopupAvisos2`,
+  `montarPopupAvisos2`) logo depois de `atualizarAvisos2`, que também
+  refaz o pop-up aberto (menos com um campo dele em foco); `migrarCorLead`;
+  CSS `.avisos2-selo*` e `#avisos2-popup*`.
+- **Por quê:** pedido da Karina — agir nas tarefas direto do mapa.
+- **Verificação:** JS válido, CSS 1230/1230. 25 testes pela interface:
+  selo branco/preto arredondado; clique abre o pop-up e não o painel;
+  título e só as tarefas do número, Late primeiro; caminho; editar nome;
+  adicionar e remover responsáveis; adiar Fim grava e mantém Late (regra da
+  tabela); trocar status tira de Late; "resolvida" continua na lista; mapa,
+  número e título acompanham; Done deixa o país OK sem número; Deadline à
+  mão fica; tudo na nuvem; entregável de cima recalculado; Esc, clique fora
+  e × fecham; aba Tasks mostra a edição; Lead `#eeb98f` e demais cores
+  iguais; sem erro de página. Regressão: avisos 22/22, cópia de status
+  22/22, menu 10/10, filtro 14/14, sync 38/38, fumaça nas 7 abas.
+- **Publicação:** aprovada por Karina ("pode"). Push direto:
+  `3fb542b..ec0bd99` em `main`. sha256 num clone novo = `8676afc5…b23b`,
+  igual ao testado; GitHub Pages `built` em `ec0bd99` (17/09, 17:21 UTC).
+
+---
+
+## 2026-09-16 (5ª) — Members 2: Avisos Gerais automático pela Tasks + cores do Membros - Federações
+
+Aprovado por Karina: (a) Membro fica verde como o OK; (b) país só com
+tarefas Done fica verde; (c) vale também pra CBTH.
+
+- **O que mudou:**
+  1. **Avisos Gerais calculado da Tasks** (WPF e CBTH): **Urgência**
+     (laranja) se o país tem tarefa Late; **Atenção** (amarelo) se não tem
+     Late mas tem Deadline; **OK** (verde) se tem tarefa e nenhuma em
+     Deadline/Late (só Done também é OK); sem tarefa, sem cor. Conta só
+     linhas **sem nada embaixo** (o status dos níveis de cima só repete o
+     de baixo); país da própria linha ou da linha de cima mais próxima que
+     tiver; **Cancelled** não conta. Status escolhidos à mão continuam no
+     dado, só não aparecem.
+  2. **Número em cima do país**: Atenção mostra as Deadline; Urgência
+     mostra Late + Deadline; OK não mostra. Fica no meio da maior parte do
+     território (país com mais de uma parte).
+  3. **Só leitura** no quadro Avisos Gerais: seletor do painel e coluna da
+     planilha desabilitados, com dica "Calculado a partir das tarefas da
+     aba Tasks"; salvar o painel não grava o calculado por cima. Legenda
+     conta pelo calculado.
+  4. **Atualiza sozinho**: ao abrir a Members 2, quando a Tasks salva e
+     quando tarefas chegam de outro PC (`membros2Bridge.atualizarAvisos`,
+     chamado de `saveTasksData` e de `tasks2Bridge.apply`).
+  5. **Cores do Membros - Federações (WPF)**: Membro = cor do OK do Avisos
+     Gerais, Negociação = cor da Atenção, Lead = essa cor 45% mais clara
+     (`#e7d09d` com as cores atuais), Abertura igual. Aplicado uma vez
+     (marca `migracaoCores` no quadro, que passa a `coresCustom`), lendo as
+     cores atuais do Avisos Gerais; `PALETA_AZUL` atualizada pra navegador
+     novo. Quadro de federações da CBTH e os outros quadros não mudaram.
+- **Onde:** `index.html`, bloco Members 2: `PALETA_AZUL`; bloco "Avisos
+  Gerais automatico" logo depois de `fillFor2` (`avisosDasTasks2`,
+  `statusExibido2`, `atualizarAvisos2`); números em `renderWorldMap2`;
+  `renderLegend2`; `selectCountry2` e botão Salvar; `valorDaCelula` e
+  `celulaMarkup` da planilha; `membros2Bridge.atualizarAvisos`;
+  `migrarCoresFederacoes` (roda depois da cópia de status); CSS
+  `.avisos2-numero`. Bloco Tasks 2: `saveTasksData` e `tasks2Bridge.apply`
+  avisam a Members 2.
+- **Por quê:** pedido da Karina — Avisos Gerais refletir as tarefas e as
+  cores dos pipelines conversarem.
+- **Verificação:** JS válido. 22 testes (WPF e CBTH): Late+Deadline →
+  Urgência com número 2; 2 Deadline → Atenção 2; tarefa com país próprio
+  dentro de entregável de outro país conta pro próprio; em dia e só Done →
+  OK sem número; só Cancelled → sem cor; status manual some; números em cima
+  do próprio país, inclusive Angola (2 partes); legenda; painel e planilha
+  só leitura e sem gravar por cima; cores novas e outros quadros intactos;
+  tarefa resolvida em outro PC atualiza ao vivo; prazo vencido na Tasks
+  aparece ao abrir a Members 2; CBTH por estado e sem troca de cor no quadro
+  dela; sem erro de página. Regressão: cópia de status 22/22, menu 10/10,
+  filtro 14/14, sync 38/38, fumaça nas 7 abas.
+- **Publicação:** aprovada por Karina ("pode"). Push direto:
+  `27b6ea2..3fb542b` em `main`. sha256 num clone novo = `4d9a0610…41b8`,
+  igual ao testado; GitHub Pages `built` em `3fb542b` (22:00 UTC).
+
+---
+
+## 2026-09-16 (4ª) — Members 2: status "Abertura" e cópia dos status da Members
+
+Aprovado por Karina, com a decisão (a): sobrescrever o que já houvesse na
+Members 2 com o status vindo da Members.
+
+- **O que mudou:**
+  1. **Status novo "Abertura"** no quadro **Membros - Federações**, na ordem
+     Lead → Negociação → Abertura → Membro (Membro precisa ser o último:
+     é ele que libera "Tipo de membro"). Cor `#4a8ad0`, entre a da
+     Negociação e a do Membro. `garantirAbertura()` coloca o status no
+     load e sempre que os quadros chegam da nuvem.
+  2. **Cópia única dos status** da Members (`countryData`) pro quadro
+     Membros - Federações: Contacting → Lead, Negotiation → Negociação,
+     Opening → Abertura, Member → Membro, e **Ireland** (Documents) →
+     Abertura. Sobrescreve o status que já existisse na Members 2 pros
+     países cobertos. Parceiro da Members 2 fica; parceiro da Members não é
+     copiado; "Tipo de membro" é mantido em quem continua Membro e zerado em
+     quem sai de Membro. Não mexe em países em Not Started, Needed ou
+     Documents (fora a Ireland), nem em países que só existem na Members 2,
+     nem nos outros quadros. **A Members não muda.**
+  - **Como roda:** a sessão não alcança o Supabase, então a cópia está no
+    código. Roda **uma vez no total**: no primeiro navegador que abrir
+    depois da publicação, só depois de a nuvem carregar de verdade
+    (`cloudCarregou`). Grava a marca `migracaoMembers: "2026-09-16"` no
+    quadro, que sobe pra nuvem com os status; nenhum outro computador ou
+    refresh repete. Ao terminar, mostra um aviso no canto com quantos
+    países foram pra cada status. O histórico geral guarda uma versão antes
+    de enviar.
+- **Onde:** `index.html`, bloco Members 2: `PALETA_AZUL`,
+  `DEFAULT_BOARDS_WPF` (quadro federacoes), `garantirAbertura` antes de
+  `saveBoards2()` inicial, `membros2Bridge.apply`, bloco novo
+  `migrarStatusDaMembers`/`avisarMigracao` antes do logo da Members 2.
+- **Por quê:** pedido da Karina — levar o pipeline da Members pro da
+  Members 2.
+- **Verificação:** JS válido. 22 testes: Abertura na posição certa, com
+  cor; os 4 mapeamentos; Ireland; Documents/Needed/Not Started de fora;
+  sobrescreve mantendo parceiro; país só da Members 2 intacto; Tipo de
+  membro mantido; outros quadros e a Members intactos; marca gravada; aviso
+  com o resumo; seletor e legenda mostram Abertura (inclusive com o quadro
+  já aberto na hora da cópia); "Tipo de membro" só em Membro; outro
+  computador e refresh não repetem mesmo com a Members mudando depois; sem
+  erro de página. Regressão: menu 10/10, filtro 14/14, sync 38/38, fumaça
+  nas 7 abas.
+- **Publicação:** aprovada por Karina ("pode"). Push direto:
+  `e1944c4..27b6ea2` em `main`. sha256 num clone novo = `3361c473…7548`,
+  igual ao testado; GitHub Pages `built` em `27b6ea2` (21:22 UTC). A cópia
+  roda no primeiro navegador que abrir depois do F5.
+
+---
+
+## 2026-09-16 (3ª) — Menu enxuto: Tasks 2 vira "Tasks"; Geral, Goals, Tasks original e Settings saem
+
+Aprovado por Karina com as decisões dela: (a) ocultar em vez de apagar o
+código; (b) Settings some de vez, sem atalho; (c) remover o "criar task"
+do Slack; (d) tirar "(rascunho)" da Members 2.
+
+- **O que mudou:**
+  1. **Menu** só com Tasks, Members, Members 2, Committee, Slack, Forms (e
+     Sair). `#nav-geral`, `#nav-goals`, `#nav-tasks` e `#nav-settings`
+     escondidos por CSS, como já era o `#nav-marketing`. **Views, código e
+     dados continuam** no arquivo e na nuvem — as metas automáticas da Tasks
+     leem os KPIs de Marketing em `goalsData`. Voltar uma aba = tirar o id
+     da regra CSS.
+  2. **Tasks 2 agora se chama "Tasks"** no menu; Members 2 perdeu o
+     "(rascunho)". Só os rótulos mudaram: ids, chaves de localStorage e
+     seções da nuvem (`tasks2`, `members2`) são os mesmos.
+  3. **A Dash abre na Tasks** (antes Geral). A view já vem visível e o botão
+     ativo; semear/desenhar espera a primeira carga da nuvem
+     (`initialCloudLoadPromise`), pra não semear de dado de exemplo.
+     Colab que caísse em Settings agora vai pra Tasks (antes Goals).
+  4. **Slack:** o card "Tasks do Slack" (formulário + lista, que gravava na
+     Tasks original) foi escondido inteiro, não só o botão — sem a Tasks
+     original, o formulário e a lista não serviam pra nada. Código mantido.
+  5. **Rodapé com a nuvem fora do ar:** mostrava "Salvando na nuvem…" pra
+     sempre, porque a Tasks agora salva ajustes ao desenhar na abertura.
+     Enquanto a primeira carga não deu certo, mostra "Carregando" ou "Não
+     foi possível sincronizar" (`cloudCargaFalhou`). Nada é enviado nesse
+     estado, como antes.
+- **Onde:** `index.html`: CSS ao lado de `#nav-marketing`; tooltips de
+  `#nav-tasks2`/`#nav-members2`; classes `active`/`hidden` de `nav-geral`,
+  `nav-tasks2`, `geral-view`, `tasks2-view`; bounce do colab em
+  `applyRolePermissions`; bloco novo no fim da IIFE da Tasks 2 (antes do
+  reset); `enviarAgora`/`loadFromCloud` (rodapé).
+- **Consequências a saber:** sem Settings, não há tela pra criar/editar
+  usuários e senhas, baixar/restaurar backup ou mudar a URL do Daily Digest.
+  Sem Goals, ninguém atualiza os números de Marketing que as metas
+  automáticas usam — elas ficam no último valor. Ambos no Prox Passos.
+- **Por quê:** pedido da Karina — deixar só as abas em uso.
+- **Verificação:** JS válido. 10 testes novos (menu exato; nomes; abre na
+  Tasks com dados da nuvem mesmo com a nuvem lenta; meta automática ainda
+  lê o KPI da Goals — 12345/20000; percorrer todas as abas e voltar; Slack
+  sem o card; Settings invisível; navegador novo abre direto na Tasks; sem
+  erro de página). Filtro 14/14, sync 38/38 (três testes do sync usavam
+  dados inválidos — linha de topo sem tipo com status "Done" — que o
+  desenho da Tasks, agora visível, corrige; ajustados pra dados válidos. A
+  versão publicada também passa 38/38 com os testes ajustados), junta 12/12,
+  fumaça nas 7 abas sem erro.
+- **Publicação:** aprovada por Karina ("pode"). Push direto:
+  `53fb32c..e1944c4` em `main`. sha256 num clone novo = `33f8fdee…8607`,
+  igual ao testado; GitHub Pages `built` em `e1944c4` (20:28 UTC).
+
+---
+
+## 2026-09-16 (2ª) — Tasks 2: filtro mostra as linhas fechadas
+
+Aprovado por Karina ("pode").
+
+- **O que mudou:** ao aplicar, trocar ou adicionar um filtro, **todas as
+  linhas começam fechadas** (antes abria tudo o que o filtro achou). Aparecem
+  só as linhas do topo que têm resultado dentro; a pessoa abre nível por
+  nível, e ao abrir só aparecem os filhos que batem com o filtro. Continua
+  igual: abrir/fechar com filtro, edição e atualização de outro PC não mexem
+  no aberto/fechado, limpar filtro volta ao estado anterior, @menção e "+"
+  abrem o caminho.
+- **Onde:** `index.html`, Tasks 2, `renderTasksTable`:
+  `tasksExpandedFiltro = new Set()` no lugar de `new Set(idsFiltrados)`, e o
+  comentário acima de `tasksExpandedFiltro`.
+- **Por quê:** pedido da Karina — filtrar sem expandir tudo.
+- **Verificação:** JS válido. Testes do filtro reescritos pro comportamento
+  novo (14/14 pela interface: começa fechado, abrir mostra só o que bate,
+  abre até as tarefas, fecha, edição e atualização de outro PC não mexem,
+  limpar volta, refiltrar e mudar filtro fecham de novo, duas áreas). Sync
+  38/38.
+- **Publicação:** aprovada por Karina ("pode publicar"). Push direto:
+  `06e64b8..53fb32c` em `main`. sha256 num clone novo = `40420d9f…ac3e`,
+  igual ao testado; GitHub Pages `built` em `53fb32c` (19:18 UTC).
+
+---
+
+## 2026-09-16 — Tasks 2: abrir e fechar linhas com filtro ativo
+
+Aprovado por Karina ("pode seguir") depois de ver o diagnóstico.
+
+- **Problema relatado:** ao filtrar (principalmente por Área), as linhas
+  apareciam todas abertas e a setinha não fechava.
+- **Causa:** em `renderTaskRow`, com filtro ativo, toda linha com filhos era
+  adicionada a `tasksExpanded` **a cada redesenho**. Clicar na setinha
+  fechava, redesenhava e reabria na hora. Efeito colateral: essas aberturas
+  ficavam gravadas, então ao limpar o filtro a tabela continuava toda aberta.
+- **O que mudou:** com filtro ativo, o abrir/fechar usa uma lista própria
+  (`tasksExpandedFiltro`). Ela é preenchida com tudo o que o filtro achou
+  **só quando o filtro muda** (comparando `assinaturaDosFiltros()`); depois
+  a setinha abre e fecha normalmente, e redesenhos (edição, atualização
+  vinda de outro PC) não reabrem nada. Ao limpar o filtro, volta a lista de
+  antes (`tasksExpanded`), intacta. Trocar ou adicionar um filtro abre tudo
+  de novo. Setinha, ir para linha mencionada, soltar linha dentro de outra
+  e "+" de nova linha passam por `linhasAbertas()`, que devolve a lista que
+  vale no momento. Vale para todos os filtros.
+- **Onde:** `index.html`, só dentro do bloco Tasks 2: logo depois de
+  `let idsFiltrados`, início do `renderTasksTable`, `renderTaskRow`,
+  handler de `.tasks2-toggle`, `irParaLinhaMencionada`, drop de arraste e
+  botão "add". Verificado: tudo fora do bloco Tasks 2 é idêntico ao `main`.
+  O bug do "Colar aqui" (`tasksExpanded[alvo.id] = true`) não foi mexido.
+- **Por quê:** pedido da Karina — precisa conseguir abrir e fechar com
+  filtro.
+- **Verificação:** JS válido. 14 testes pela interface (menu de Área de
+  verdade, cliques nas setinhas): filtro abre tudo; setinha fecha em dois
+  níveis e reabre mantendo o filho fechado; editar nome com filtro não
+  reabre; atualização de outro PC não reabre; limpar filtro volta ao estado
+  anterior; filtrar de novo e adicionar área reabrem; aba Tasks original ok;
+  sem erro de página. **Contraprova:** o mesmo teste contra o `main` falha
+  em 6 itens. Os 38 testes do sync de 15/09 continuam passando.
+- **Publicação:** aprovada por Karina ("pode publicar"). Push direto:
+  `1aacd4c..06e64b8` em `main`. sha256 num clone novo = `d8eba116…7698`,
+  igual ao testado; GitHub Pages `built` em `06e64b8` (18:15 UTC).
+  **Não confirmado** se `operations.worldpokerfederation.workers.dev`
+  recebe essa atualização (ver Prox Passos).
+
+---
+
+## 2026-09-15 — Sincronização entre computadores (atualização ao vivo e fim da perda no refresh)
+
+Aprovado por Karina ("segue com os itens de 1 a 4") depois de ver o
+diagnóstico.
+
+- **Problema relatado:** o que uma pessoa escrevia num PC demorava (ou não
+  chegava) no outro; e editar, dar refresh e ver a informação sumir.
+- **Causas encontradas:**
+  1. A dash lia a nuvem **só ao abrir a página** (`loadFromCloud` uma vez).
+  2. Quem ganhava era decidido por `wpf_data_revision`, um **contador de
+     cada navegador**. Um PC com contador alto (ex. 500) ignorava a edição
+     de um PC com contador baixo (ex. 41) no refresh e ainda reenviava os
+     dados velhos por cima — era isso que apagava as informações.
+  3. Todo envio mandava o **dashboard inteiro**, então uma edição num PC
+     desatualizado sobrescrevia o que os outros tinham feito em qualquer aba.
+- **O que mudou:**
+  1. **Atualização automática:** a cada 15s, ao voltar pra janela e ao sair
+     de um campo, a dash consulta só `section,updated_at` e baixa apenas as
+     seções que mudaram. Não aplica enquanto a pessoa está com um campo em
+     foco ou com o mouse apertado (arrastando/selecionando); aplica assim
+     que ela sai. Históricos não entram na atualização ao vivo.
+  2. **Refresh:** o contador deixou de decidir. Editar marca "pendente"
+     (`wpf_cloud_pending_v1`); a nuvem confirma e desmarca. No refresh, as
+     seções editadas aqui e não enviadas vão pelo envio (com junta); todo
+     o resto vem da nuvem. Sem pendente, a nuvem sempre ganha.
+  3. **Só envia as seções que mudaram**, comparando com a "base" (impressão
+     digital do que este navegador sabe que está na nuvem, guardada em
+     `wpf_cloud_base_v1` + carimbos em `wpf_cloud_stamps_v1`).
+  4. **Junta antes de enviar:** se outra pessoa gravou a mesma seção desde
+     a última leitura, junta campo a campo, linhas pelo `id` (usuários pelo
+     `username`, federações pelo nome do país), inclusive subtasks
+     aninhadas. Regras: o lado que mudou em relação à base ganha; mesmo
+     campo da mesma linha nos dois lados → fica o deste navegador; linha
+     apagada de um lado e editada do outro não some; linha movida aqui e
+     editada lá fica uma só, no lugar novo, com as duas edições; a ordem
+     vem de quem reordenou. Rodapé mostra "juntado com alterações de outro
+     computador".
+  - **Proteções extras:** nada é enviado antes de a primeira carga da
+    nuvem dar certo (a inicialização chama `scheduleCloudSave` ~5 vezes ao
+    semear dados de exemplo — com a nuvem lenta, isso podia subir exemplo
+    por cima). Se a carga falhar, tenta de novo a cada 15s. Primeira
+    abertura com o código novo: a nuvem ganha, e o estado do navegador vira
+    versão em Settings (se ele já tinha edições).
+  - **Restaurar versão, restaurar backup e importar arquivo** usam
+    `scheduleCloudSave({ forcar: true })`: substituem em vez de juntar.
+  - `saveUsersListNow` continua lançando erro quando o envio falha
+    (`pushAllSectionsToCloud` virou apelido de `enviarParaNuvem({ lancarErro: true })`).
+  - Rodapé: estados novos `merged` e `updated`.
+- **Onde:** `index.html`, bloco "SINCRONIZACAO COM A NUVEM" no lugar de
+  `pushAllSectionsToCloud` / `loadFromCloud` / `scheduleCloudSave`
+  (`arvoreDe`, `juntarSecao`, `juntarNo`, `removerDuplicados`,
+  `enviarParaNuvem`/`enviarAgora`, `loadFromCloud`,
+  `buscarAtualizacoesDaNuvem`, `usuarioOcupado`, `aplicarDaNuvem`);
+  `setCloudStatus`; `restaurarVersaoGeral`, `restaurarBackupArquivo`,
+  import de arquivo; `saveUsersListNow`; comentário do `REVISION_KEY`.
+  `applyAllData`, `collectAllData` e as pontes da Tasks 2 e Members 2 não
+  foram alteradas. Nenhuma mudança de tabela no Supabase.
+- **Por quê:** pedido da Karina — dados não aparecendo rápido no outro PC e
+  sumindo depois do refresh.
+- **Verificação:** JS válido, CSS 1201/1201. 12 testes unitários da junta
+  (Node) + 38 testes com **dois navegadores independentes** (localStorage
+  separados) contra um Supabase falso, com Chromium e d3/topojson/chart.js
+  servidos do `node_modules`: contador 500 × 3 no refresh; atualização sem
+  refresh (chamada direta e esperando o relógio de 15s); refresh logo após
+  digitar; PC desatualizado editando outra aba não envia federações; linhas
+  diferentes, mesma linha com campos diferentes, linha nova + apagada;
+  campo em foco não é atropelado; migração com localStorage velho; restaurar
+  versão; salvar usuário na hora; Supabase que carimba a hora sozinho (não
+  fica rebaixando/reenviando); nuvem lenta na abertura (exemplo não sobe);
+  nuvem fora do ar que volta; edição real pela tela da Tasks 2 nos dois PCs
+  + refresh. Fumaça nas 11 abas do nav sem erro de página.
+- **Publicação:** aprovada por Karina ("pode"). Push direto desta sessão:
+  `7b718a8..1aacd4c` em `main`. Conferido: sha256 do `index.html` num clone
+  novo = `516c5d37…c6e9`, igual ao testado; GitHub Pages `built` no commit
+  `1aacd4c` (19:56 UTC). Todos precisam dar refresh na Dash.
+- **Observação:** o commit `7b718a8` ("CPC and AdWords spend become
+  automatic metas too", 11/09 22:01 UTC) foi publicado por outra sessão
+  sem entrada neste Changelog.
+
+---
+
+## 2026-09-11 (3ª sessão) — Tasks 2: Responsável automático (menos Meta)
+
+Aprovado por Karina: Objetivo mostra a árvore toda; pode substituir o que
+estava escolhido à mão.
+
+- **O que mudou:** Objetivo, Projeto e Entregável **com algo dentro** passam
+  a mostrar como Responsável todo mundo que é responsável em qualquer linha
+  abaixo (árvore inteira, sem repetir, pulando linhas Cancelled e o que
+  está dentro delas). **Meta continua escolhida à mão**, e os nomes dela
+  contam pro Objetivo acima. Linha sem nada dentro continua editável.
+  A célula calculada fica só leitura (sem + e ×), recolhida em "Nome +N"
+  com a lista toda no tooltip. Arraste e colar pulam essa célula.
+- **Efeito nos dados:** o responsável escolhido à mão nessas linhas foi
+  **substituído** pelo calculado (aprovado). A versão anterior fica no
+  histórico de versões do Tasks 2.
+- **Onde:** `index.html`, bloco Tasks 2: `responsavelIsAuto`,
+  `computeRollupResponsaveis` (ao lado de `statusIsAuto`), cálculo no mesmo
+  passo de baixo pra cima de `syncStatusCalculados`, `responsavelAutoMarkup`
+  (ao lado de `assigneeCellMarkup`), regra nova em `podeReceber`, CSS
+  `tasks2-assignee-auto*`.
+- **Por quê:** pedido da Karina — o Responsável dos níveis de cima refletir
+  o que está embaixo, igual ao status.
+- **Verificação:** JS válido, CSS 1201/1201. 11 testes novos (entregável,
+  projeto e objetivo calculados; meta manual; linhas vazias editáveis; sem
+  + e sem alça na célula calculada; "Karina Bupp +3"; tirar alguém da
+  tarefa some do entregável e do objetivo; colar na tarefa recalcula o
+  entregável; colar no entregável calculado é ignorado) + as 29 + 35
+  anteriores continuam passando.
+- **Publicação:** Karina subiu o `index.html` pelo GitHub — commit
+  `4edaea3`. Conferido: sha256 no repo = `b0b475d9…28e5`, igual ao
+  entregue. As 4 mudanças de 11/09 estão no ar.
+
+---
+
+## 2026-09-11 (2ª sessão) — Tasks 2: status Deadline, On Hold laranja e seleção estilo Notion
+
+Aprovado por Karina ("Pode fazer") depois de ver o plano.
+
+### 1. Status
+- **On Hold** passou de amarelo pra **laranja** (fundo `#fde6d2`, texto
+  `#8a3b0c`, ícone `#e06b12`).
+- **Deadline**, status novo em **amarelo** (as cores antigas do On Hold),
+  entre In Progress e Late: Not Started · In Progress · Deadline · Late ·
+  Done · On Hold · Cancelled.
+- **Automático** em tarefa e entregável quando o Fim está entre **hoje e
+  hoje+3** (`DIAS_DEADLINE = 3`), se não estiver Done, Cancelled ou Late. O
+  status de antes fica em `t.statusAntesDeadline`: se o Fim for adiado pra
+  fora da janela (ou apagado), a linha volta ao status anterior. Quando a
+  data passa, vira Late como antes. Escolher status à mão (select, arraste
+  ou colar) apaga essa memória, então um Deadline escolhido à mão fica.
+- **Rollup:** Objetivo/Meta/Projeto mostram Deadline se houver Deadline em
+  qualquer nível abaixo (`temDeadlineAbaixo`), com Late tendo prioridade.
+
+### 2. Selecionar, copiar, colar, apagar e desfazer (como no Notion)
+- Apertar numa célula e arrastar até outra deixa o retângulo **azul**
+  (`tasks2-cell-faixa`). Shift+clique estende. Clique simples continua
+  editando; arrastar dentro do nome continua selecionando texto.
+- **Ctrl/Cmd+C** copia a área azul (ou a célula com o cursor) em formato de
+  planilha (TSV) — cola também no Excel/Sheets/Notion. Com texto
+  selecionado dentro do nome, é cópia de texto normal.
+- **Ctrl/Cmd+V** cola na área azul ou na célula com o cursor. Se a área for
+  maior que o copiado, repete (1 linha copiada enche 5). Texto vindo de
+  fora é lido por coluna (status, datas ISO ou dd/mm/aaaa, usuários, áreas
+  e países conhecidos). Cada valor só entra na coluna dele (datas podem
+  trocar entre Início e Fim); status/datas calculados são pulados.
+- **Delete/Backspace** apaga a área azul (status nunca fica vazio).
+- **Ctrl/Cmd+Z** desfaz o último colar, apagar ou arraste (até 20 passos).
+  Enquanto digita no nome, Ctrl+Z e Delete continuam sendo do texto.
+- Os seletores nativos (Status/Área/País) agora abrem no mouseup via
+  `showPicker()`, pra dar pra começar um arraste em cima deles.
+
+- **Onde:** `index.html`, só dentro do bloco Tasks 2: `STATUS_ICON_COLORS`,
+  `TASK_STATUS_OPTIONS`, `TASK_STATUS_COLORS`, `STATUS_CALCULADO`,
+  `computeRollupStatus`, `autoSyncLateStatuses`, os handlers de troca de
+  status; bloco novo "Seleção com o mouse…" logo depois do fill handle;
+  `aplicarFaixa()` no fim do `renderTasksTable`; snapshot de desfazer no
+  mouseup do arraste; CSS `tasks2-cell-faixa` / `tasks2-selecionando`. A aba
+  Tasks original (e o Slack/digest, que usam as tasks originais) não foram
+  tocados.
+- **Por quê:** pedidos da Karina — cor do On Hold, aviso de prazo curto e
+  preencher a tabela copiando e colando como no Notion.
+- **Verificação:** JS válido, CSS 1198/1198. 35 testes novos no Chromium
+  headless com mouse e teclado de verdade (Deadline automático, limite de 3
+  dias, Done ignorado, cores, ordem, rollup, adiar → volta, data passou →
+  Late, Deadline manual fica; seleção, Ctrl+C/V com clipboard real, colar 1
+  linha em 4, calculado protegido, Delete, Ctrl+Z, Esc, cópia pelo cursor,
+  texto selecionado no nome, colar texto externo no nome, arrastar dentro
+  do nome, colar de fora, data dd/mm/aaaa, Shift+clique, clique no Status
+  ainda abre o seletor) + os 29 da 1ª sessão continuam passando.
+- **Publicação:** commit local `fa35e1b` (em cima de `54c0b9a`, que está em
+  cima de `a943bd5`). Push segue bloqueado nesta sessão; `index.html`
+  (sha256 `3f8c85f0…eb27`) entregue pra upload manual — **substitui** o
+  arquivo da 1ª sessão de 11/09 e já contém as mudanças dele.
+
+---
+
+## 2026-09-11 — Tasks 2: arrastar pra baixo (célula, várias células, linha inteira)
+
+Aprovado por Karina, com as decisões dela em cada ponto.
+
+- **O que mudou:**
+  1. **Uma célula, em todas as colunas.** O quadradinho aparece ao **passar
+     o mouse** em Nome, Status, Início, Fim, Responsável, Área e País. Antes
+     só aparecia com o cursor dentro de Nome/Status/datas; em Área e País ele
+     existia mas nunca ficava visível, e Responsável não tinha quadradinho.
+  2. **Várias células da mesma linha.** **Ctrl/Cmd + clique** marca a célula
+     (contorno azul). Arrastar o quadradinho de qualquer célula marcada leva
+     todas juntas. Esc ou um clique normal limpa as marcas.
+  3. **Linha inteira.** Com **uma** linha marcada no checkbox, aparece um
+     quadradinho na célula do checkbox. Arrastar copia Nome, Status, Início,
+     Fim, Responsável, Área e País. **Tipo fica de fora** de propósito, porque
+     trocar a categoria mexe na hierarquia.
+- **Regras:** o arraste sempre **sobrescreve** (não cria linhas; pra isso
+  existe o Copiar/Colar). Responsável **substitui**, e cada linha ganha a
+  própria cópia da lista. Status e datas calculados (níveis de agrupamento
+  com filhos) são pulados. O pré-visual azul usa a mesma regra
+  (`podeReceber`), então só pinta o que vai mudar de fato.
+- **Mudança de comportamento (aprovada):** Ctrl/Cmd + clique numa **célula**
+  deixou de selecionar a linha. Pra selecionar linhas agora é pelo checkbox,
+  ou com Ctrl/Cmd + clique na coluna do checkbox ou dos botões + / 🗑.
+- **Conflito resolvido:** outra sessão publicou às 16:05 o commit `a943bd5`
+  com outra versão do mesmo pedido (clicar no quadradinho marcava a coluna;
+  quadradinho de linha fixo na coluna de ações). Karina escolheu publicar
+  esta versão por cima. O commit `54c0b9a` substitui a lógica do `a943bd5`
+  sem apagar o histórico.
+- **Onde:** `index.html`, só dentro do Tasks 2: CSS `tasks2-fill-*`,
+  `tasks2-cell-marcada`, `tasks2-fill-handle-linha`; `data-fill-field` nas
+  células de `renderTaskRow`; quadradinho novo em Responsável e na célula
+  do checkbox; o bloco "Fill handle" reescrito (`CAMPOS_ARRASTAVEIS`,
+  `campoEditavel`, `podeReceber`, `celulasMarcadas`, `aplicarMarcasCelulas`);
+  o clique com Ctrl/Cmd na linha ignora células com campo. A aba Tasks
+  original não foi tocada.
+- **Por quê:** pedido da Karina, pra preencher a tabela como numa planilha.
+- **Verificação:** JS válido (`node --check`), chaves CSS balanceadas
+  (1196/1196), 29 testes no Chromium headless com o mouse de verdade:
+  quadradinho visível no hover nas 7 colunas; célula única (País,
+  Responsável, Status); 4 células marcadas descendo juntas sem mexer em
+  Nome/Status; linhas calculadas ficam fora do pré-visual; linha inteira
+  (14 células) inclusive Nome; com 2 linhas marcadas o quadradinho de linha
+  some; Ctrl/Cmd + clique no checkbox ainda seleciona a linha; Ctrl/Cmd +
+  clique em Responsável não expande a lista; nenhum erro de página.
+- **Publicação:** o push **foi bloqueado** nesta sessão (`karinabupp/wpf is
+  not in this session's authorized repository set`). O `index.html`
+  (sha256 `40478cd1…02bd`) foi entregue pra upload manual. Ver "Prox Passos".
+
+---
+
+## 2026-09-01 — Coluna Projeto: gerenciador (renomear/excluir) e chip cinza
+
+Duas mudanças na coluna **Projeto** da aba **Tasks 2** (rascunho isolado).
+Ambas aprovadas por Karina antes da execução.
+
+### 1. Painel "Gerenciar projetos"
+
+- **O que mudou:** até então a coluna Projeto só sabia **criar** (`+ Novo
+  projeto…`). Agora o `<select>` tem também `⚙ Gerenciar projetos…` — que
+  aparece só quando já existe pelo menos um projeto — e abre um painel
+  sobreposto com a lista completa. Em cada linha do painel: nome editável,
+  a contagem de uso ("em 7 linhas" / "sem uso") e um botão de excluir.
+
+- **Decisões da Karina:** painel separado em vez de lápis/lixeira dentro da
+  lista suspensa (mantém o `<select>` nativo, que funciona melhor no
+  celular); e exclusão que **avisa e limpa** as linhas, em vez de bloquear
+  enquanto o projeto estiver em uso.
+
+- **Comportamento:**
+  - **Renomear** salva no blur e no Enter; Esc cancela a edição. Nome vazio
+    ou só espaços **mantém o nome anterior** em vez de gravar "".
+  - **Excluir em dois cliques**, mesmo padrão do botão "Recarregar do
+    original": o primeiro clique vira `Excluir? · 7 linhas`, o segundo
+    confirma. Desarma sozinho em 5s ou ao clicar em qualquer outro ponto do
+    painel. **De propósito não usa `window.confirm`** — caixa de diálogo
+    nativa trava a página inteira.
+  - Excluir limpa `t.projetoLink` em **todas** as linhas que usavam o
+    projeto, recursivamente nas subtasks, antes de remover da lista. Sem
+    isso a linha ficaria apontando pra um id inexistente e voltaria a herdar
+    da linha de cima sem querer.
+  - Painel fecha no ×, no Esc e clicando no fundo. Ao fechar, redesenha a
+    tabela (nomes e vínculos podem ter mudado).
+
+- **Onde:** `index.html`, repo `karinabupp/wpf`. Cinco pontos de alteração:
+  1. Bloco CSS `tasks2-projmodal-*` antes de `</style>` (`z-index: 900`, de
+     propósito abaixo do `#login-gate-backdrop`, que é 1000).
+  2. `const GERENCIAR_PROJETOS = "__gerenciar__";` ao lado de
+     `NOVO_PROJETO`.
+  3. Nova `<option>` condicional em `projetoCellMarkup`.
+  4. Ramo novo no handler de `change` do `.tasks2-proj-select`, **antes** do
+     `findTaskById` — "gerenciar" não é um projeto, então abre o painel e
+     devolve o select ao valor anterior via `renderTasksTable()`.
+  5. Bloco JS "Gerenciador de projetos" no fim da IIFE, antes do reset:
+     `contarUsosProjeto`, `renomearProjeto`, `excluirProjeto`,
+     `montarGerenciadorProjetos`, `abrirGerenciadorProjetos`,
+     `fecharGerenciadorProjetos`, `desarmarExclusaoProjeto`.
+
+### 2. Chip do projeto em cinza único
+
+- **O que mudou:** `tomDoProjeto()` passou a devolver sempre
+  `PROJETO_CINZA = { bg: "#e8e6dc", text: "#5d5c55" }` em vez de puxar da
+  fila `PROJETO_TONS` (8 tons de roxo). Todos os projetos saem no mesmo
+  cinza; a distinção entre eles fica só pelo nome.
+- **`PROJETO_TONS` e o campo `p.tom` foram mantidos** de propósito: os
+  projetos já gravados têm esse campo, e manter a fila deixa a volta para as
+  cores a um replace de distância.
+- Como a cor deixou de distinguir projeto, a bolinha de tom que existia no
+  painel foi removida antes de chegar ao ar.
+- **Por quê:** pedido da Karina — o roxo por projeto poluía a tabela.
+
+### Isolamento (segue valendo)
+
+Tudo dentro da IIFE do Tasks 2, gravando só em `wpf_tasks2_projetos` e
+`wpf_tasks2_data`. **Nenhuma chamada a `scheduleCloudSave()`** no código
+novo (verificado no diff — a única ocorrência é dentro de um comentário).
+Não encosta na aba Tasks original, no Supabase, no Geral, no Goals nem no
+Slack.
+
+### Verificação
+
+- `diff` contra o HEAD: **275 linhas inseridas, 1 removida** (a linha do
+  corpo antigo de `tomDoProjeto`). Nenhuma outra linha existente foi tocada.
+- Sintaxe JS válida (`node --check`), chaves CSS balanceadas (1004/1004).
+- 17 testes em Chromium headless, logada como adm, com d3/topojson/chart.js
+  servidos do `node_modules` (a CDN não é alcançável do ambiente — sem isso
+  o `d3 is not defined` mata o bloco Tasks 2, que fica no fim do script):
+  menu lista as duas novas opções; painel abre com as 3 linhas e a contagem
+  certa; renomear grava; nome vazio mantém o anterior; 1º clique só arma;
+  clicar fora desarma; exclusão remove o projeto **e** limpa o vínculo da
+  linha; Esc e clique no fundo fecham; **`wpf_tasks_data` byte a byte
+  idêntico ao do início**; aba Tasks original renderiza normal e não ganhou
+  coluna Projeto.
+
+### Publicação
+
+Push direto **continua bloqueado** pelo proxy de git da sessão
+(`karinabupp/wpf is not in this session's authorized repository set`). O
+`index.html` foi entregue como arquivo para upload manual no GitHub. Ver
+"Prox Passos".
+
+---
+
+## 2026-08-31 — Aba "Tasks 2" (rascunho isolado da aba Tasks)
+
+- **O que mudou:** Criada a aba **Tasks 2**, cópia integral da aba Tasks
+  (view, CSS e lógica) para servir de rascunho. Aprovado por Karina com três
+  decisões: dados em cópia isolada, duplicação total de código, visível só
+  para Adm.
+
+- **Onde:** `index.html`, repo `karinabupp/wpf`. **1.382 linhas inseridas,
+  nenhuma linha existente alterada ou removida** (verificado com `diff` contra
+  o HEAD). Cinco pontos de inserção:
+  1. Bloco CSS `tasks2-*` antes de `</style>` — cópia das regras da aba Tasks
+     (chrome, tabela, responsivo), mais o selo de rascunho, o botão de reset e
+     `body.role-colab #nav-tasks2 { display: none }`.
+  2. Botão `#nav-tasks2` no nav rail, depois de `#nav-tasks`.
+  3. `<div id="tasks2-view">` depois de `#tasks-view`.
+  4. Entrada `"nav-tasks2": "tasks2-view"` no objeto `NAV_VIEWS`.
+  5. Bloco JS "TASKS 2" no fim do `<script>`.
+
+- **Como o isolamento funciona (importante para as próximas sessões):**
+  - Todo o JS do Tasks 2 roda dentro de uma **IIFE**. Os nomes lá dentro
+    (`tasksData`, `renderTasksTable`, `findTaskById`, `tasksExpanded`,
+    `ensureTaskDefaults`…) são cópias locais que **sombreiam** as globais da
+    aba Tasks original. Mexer neles no rascunho não alcança a aba original.
+  - O `saveTasksData()` de dentro da IIFE grava só em
+    `localStorage["wpf_tasks2_data"]` e **não chama `scheduleCloudSave()`**.
+    É isso que mantém o rascunho fora do payload do Supabase e longe das
+    tasks reais, do Geral, do Goals e do Slack.
+  - A IIFE recebe `(() => tasksData)` como getter — não a referência ao array
+    — para pegar sempre a versão atual das tasks reais mesmo depois de a
+    nuvem sobrescrever.
+  - Todas as chamadas cross-tab (`renderGoalsGrid()`) foram removidas da
+    cópia: o rascunho não dispara render de outra aba.
+
+- **Comportamento:** o rascunho copia as tasks reais na **primeira abertura
+  da aba** (não no load da página, pra pegar os dados já sincronizados da
+  nuvem) e depois vive por conta própria. Selo "Rascunho · dados isolados" no
+  topo e botão "↺ Recarregar do original" no rodapé (dois cliques) para
+  refazer a cópia do zero.
+
+- **Testes rodados** (browser headless, logado como adm): Tasks 2 abre com as
+  tasks copiadas; edição no rascunho persiste no rascunho; `wpf_tasks_data`
+  byte a byte idêntico depois da edição; aba Tasks original intacta; reset
+  restaura; colab não enxerga o botão; sintaxe JS válida e chaves CSS
+  balanceadas.
+
+- **Por quê:** ter um sandbox da aba Tasks onde dá pra experimentar mudanças
+  sem risco nenhum pro dashboard em produção.
+
+- **Publicação:** o push direto pelo Claude foi **bloqueado pelo proxy de git
+  da sessão** (o repo não está na lista de fontes autorizadas). O
+  `index.html` foi entregue como arquivo para upload manual no GitHub. Ver
+  "Prox Passos".
+
+---
+
+## 2026-08-31
+
+- **O que mudou:** Criação da estrutura de governança do projeto (docs
+  "Changelog" e "Prox Passos") e definição das regras de trabalho nas
+  instruções do projeto.
+- **Onde:** Projeto WPF Dash (docs, não o dashboard em si).
+- **Por quê:** Estabelecer o projeto como HQ da Dash, com rastreabilidade de
+  alterações entre sessões e aprovação obrigatória antes de qualquer mudança.
+
+---
+
+<!-- Entradas novas vão ACIMA desta linha, da mais recente para a mais antiga. -->
