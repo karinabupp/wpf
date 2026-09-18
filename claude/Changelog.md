@@ -12,6 +12,33 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-18 — Agente de Gestão: tabelas de pendência e auditoria
+
+Aprovado por Karina ("pode"), dentro do desenho do modo conversacional.
+
+- **O que mudou (Supabase, "operation dashboard"):**
+  1. `wpf_agente_pessoas` ganhou a coluna `admin` (boolean, padrão false);
+     só a Karina está marcada como admin.
+  2. Tabela nova `wpf_agente_pendencias`: mudança proposta pelo agente
+     esperando o "sim" (`acao` jsonb, `resumo`, `status` aguardando /
+     confirmada / cancelada / expirada / falhou, `expira_em` = +2h).
+  3. Tabela nova `wpf_agente_auditoria`: quem pediu, seção, linha, ação,
+     `antes`/`depois`, ligação com a pendência.
+  Ambas com RLS ligado e sem política (só o Worker, com a secret key,
+  acessa). Migração `agente_pendencias_auditoria_admin`, só acrescenta.
+- **Changelog de 17/09 corrigido:** o Worker no ar é o de eco, não o de
+  palavra-chave (ver a entrada de 17/09).
+- **Por quê:** base do modo conversacional — o agente propõe, o "sim" da
+  pessoa executa, e toda mudança fica registrada.
+- **Decisões da Karina (18/09):** o agente lê **todas** as empresas da Dash
+  (toda seção `tasks2*`: WPF, CBTH e a terceira que vai entrar); modelo
+  **Sonnet**; código do Worker vai ser guardado no repo em
+  `worker/whatsapp-bridge.js`.
+- **Verificação:** colunas e RLS conferidos por consulta; Karina é a única
+  com `admin = true`.
+
+---
+
 ## 2026-09-17 (2ª) — Agente de Gestão no WhatsApp: infraestrutura de pé
 
 Sessão de montagem do agente que conversa pelo WhatsApp e age sobre a Dash.
@@ -41,11 +68,12 @@ Nada do dashboard (`index.html`) foi alterado, fora a página de privacidade.
      `https://karinabupp.github.io/wpf/privacy.html`. Responsável é o
      "Agente de Gestão", sem citar empresa (decisão da Karina); bilíngue;
      contato `karinabupp@gmail.com`; opt-out por "SAIR".
-- **Estado do agente hoje:** responde por palavra-chave (minhas tarefas,
-  atrasadas, vencendo, o time), lendo a seção `tasks2` de
-  `wpf_dashboard_data` e recalculando Late/Deadline pela data de fim (a Dash
-  só recalcula quando alguém abre a aba). SAIR/VOLTAR funcionam. O Claude
-  entra reescrevendo o texto; ainda **não** decide.
+- **Estado do agente hoje:** ~~responde por palavra-chave…~~ **Corrigido em
+  18/09:** o que ficou publicado no Cloudflare é o Worker de **eco** (grava a
+  mensagem e responde "Recebi: …"), conferido lendo o código direto do
+  Cloudflare. A versão por palavra-chave (minhas tarefas, atrasadas,
+  vencendo, o time, SAIR/VOLTAR, Claude reescrevendo o texto) foi escrita
+  na conversa mas **nunca foi publicada**.
 - **Pedras no caminho, pra não repetir:**
   - **Número de teste da Meta não serve**: é sempre +1 (EUA) e a Meta bloqueia
     mensagens entre países envolvendo o Brasil (erro **130497**). Só número
