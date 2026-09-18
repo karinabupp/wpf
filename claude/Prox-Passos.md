@@ -51,23 +51,13 @@ reconstruir o raciocínio.
     conversar sozinho.
   - *Aberto em:* 2026-09-17
 
-- [ ] **Sessão nova do Claude precisa de acesso ao Supabase pra ler a Dash**
-  — em 17/09 o host `ufwmktomjfcvloswgnyt.supabase.co` estava fora da lista
-  de domínios permitidos da sessão, então não deu pra ler `tasks2` direto.
-  - *Saídas:* adicionar o host nas configurações de rede do projeto, ou
-    colar no chat o resultado de um `select data from wpf_dashboard_data
-    where section = 'tasks2'`.
-  - *Aberto em:* 2026-09-17
-
-- [ ] **O que só a Karina consegue fazer (nas próximas sessões)** — o Claude
-  publica sozinho no GitHub, mas **não** tem acesso ao Cloudflare nem ao
-  Supabase.
-  - *Cloudflare:* colar o código do Worker em Edit code e clicar em Deploy;
-    criar/editar segredos. (Se o editor abrir em modo leitura, trocar o
-    seletor de versão pra "Active/Latest".)
-  - *Supabase:* rodar os SQL no SQL Editor.
+- [ ] **O que só a Karina consegue fazer (nas próximas sessões)** — desde
+  18/09 o Claude publica o **Worker** sozinho (push em `worker/` dispara o
+  GitHub Actions) e roda SQL pelo **conector do Supabase** (conta certa
+  conectada em 18/09). Continua só com a Karina:
+  - *Cloudflare:* criar/editar os segredos do Worker.
   - *Meta:* aprovar template, mexer em número/verificação.
-  - *Aberto em:* 2026-09-17
+  - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-18
 
 - [ ] **Sem Settings: como gerenciar usuários e backup** — em 16/09 Settings
   saiu do menu de vez (decisão da Karina, sem atalho).

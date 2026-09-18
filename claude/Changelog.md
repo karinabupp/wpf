@@ -12,6 +12,43 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-18 (2ª) — Worker do WhatsApp no repo + publicação automática
+
+Aprovado por Karina ("robo deploy: pode"; "pode apagar essa regra").
+
+- **O que mudou:**
+  1. **Código do Worker no repo:** `worker/whatsapp-bridge.js` (o mesmo eco
+     que já estava no ar) e `worker/wrangler.toml` (`name =
+     "wpf-whatsapp-bridge"`, `keep_vars = true`).
+  2. **Publicação automática:** `.github/workflows/deploy-worker.yml`
+     (GitHub Actions, `cloudflare/wrangler-action@v3` com Wrangler 4).
+     Roda a cada push que mexa em `worker/**` e também manualmente
+     (workflow_dispatch). Usa os segredos do repo `CLOUDFLARE_API_TOKEN`
+     (modelo "Edit Cloudflare Workers") e `CLOUDFLARE_ACCOUNT_ID`, criados
+     pela Karina. Os segredos do Worker (WhatsApp, Supabase, Anthropic)
+     ficam no Cloudflare e não são tocados pelo deploy.
+  3. **Supabase:** apagada a política "Allow read for anon" de
+     `wpf_whatsapp_messages`, que deixava qualquer um com a chave pública
+     (a do `index.html`) ler todas as mensagens. A Dash não lê essa tabela;
+     o Worker usa a secret key.
+- **Onde:** repo `karinabupp/wpf` (`worker/`, `.github/workflows/`);
+  Supabase "operation dashboard".
+- **Por quê:** o conector do Cloudflare só lê; com o robô, o Claude publica
+  o Worker sozinho (com OK da Karina) e o código fica versionado.
+- **Pedras no caminho, pra não repetir:** 1ª falha = segredo ainda não
+  criado ("necessary to set a CLOUDFLARE_API_TOKEN"); 2ª = Account ID
+  errado (erro **7003** "Could not route… object identifier is invalid").
+  O Account ID certo é o trecho logo depois de `dash.cloudflare.com/` na
+  barra de endereço. "Re-run" repete o commit antigo; pra pegar o arquivo
+  do robô atualizado, disparar execução nova. O log do Actions não abre de
+  dentro da sessão (host de logs bloqueado) — pedir print à Karina,
+  expandindo "Running Wrangler Commands".
+- **Verificação:** execução `35386099511` com sucesso; código lido de volta
+  pelo conector do Cloudflare = o do repo; "oi" pelo WhatsApp → gravado
+  `in` e `out` no Supabase às 16:36 (segredos intactos).
+
+---
+
 ## 2026-09-18 — Agente de Gestão: tabelas de pendência e auditoria
 
 Aprovado por Karina ("pode"), dentro do desenho do modo conversacional.
