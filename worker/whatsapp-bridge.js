@@ -52,20 +52,28 @@ const TIPOS_COM_CONTEXTO = { meta: true, projeto: true };
 const TIPOS_GRANDES = { entregavel: true, projeto: true, meta: true };
 const TAB_AVISOS = "wpf_agente_avisos";
 
-// ─── Avisos por conta própria (decidido pela Karina em 21/09) ────────────
-// Não existe mensagem diária: o robô só escreve quando há assunto que pede
-// ação. Às 9h25 (dias úteis) ele olha a Dash; se a janela de 24h da pessoa
-// estiver aberta, manda a mensagem completa (grátis no WhatsApp); se
-// estiver fechada, manda o template curto com o botão "Ver agora" (pago),
-// e o detalhe vai quando a pessoa tocar. De hora em hora ele também confere:
-// se ainda há assunto pendente e a janela da pessoa vai fechar na próxima
-// hora, manda antes de fechar. No máximo 2 mensagens por conta própria por
-// dia. Só pra quem tem proativo = true em wpf_agente_pessoas.
+// ─── Conversa por conta própria (decidido pela Karina em 21/09) ──────────
+// A ideia é manter a janela de 24h do WhatsApp sempre aberta (mensagem
+// livre e grátis). Só a RESPOSTA da pessoa renova a janela, então:
+//  - Check-in às 9h25 (dias úteis): com assunto, o Haiku escreve; sem nada,
+//    o código manda "Bom dia! Nada em aberto hoje pra você. Do seu lado,
+//    tem algo?" com [Tudo certo] [Tenho algo] — um toque renova a janela.
+//  - Durante o dia (de hora em hora, dias úteis, depois das 9h30): assunto
+//    novo com a janela aberta é avisado na hora; até 3 avisos por dia.
+//  - Resgate: se a janela vai fechar na próxima hora e ninguém falou nas
+//    últimas 3h, manda um check-in antes de fechar.
+//  - Janela fechada (ex. segunda depois do fim de semana): se há assunto,
+//    template "aviso_dash" com botão "Ver agora" (pago, 1 por dia). Sem
+//    assunto, não manda nada.
+//  - Fim de semana: nada.
+// Só pra quem tem proativo = true em wpf_agente_pessoas.
 const CRON_HORA_FIXA = "25 12 * * 1-5";        // 9h25 em São Paulo (UTC-3)
 const TEMPLATE_AVISO = "aviso_dash";           // criado pela Karina no WhatsApp Manager
 const TEMPLATE_IDIOMA = "pt_BR";
 const MIN_TAREFAS_ABERTAS = 3;                 // régua do entregável em Deadline
-const MAX_PROATIVAS_DIA = 2;
+const MAX_AVISOS_DIA = 3;                      // fora o check-in
+const MAX_CHECKINS_DIA = 2;                    // 9h25 + resgate
+const PAUSA_RESGATE_MS = 3 * 3600000;
 const MARGEM_JANELA_MS = 10 * 60000;           // não arrisca mandar no último minuto
 const RESGATE_JANELA_MS = 75 * 60000;          // "vai fechar logo"
 
@@ -903,7 +911,7 @@ async function escreverAvisos(env, pessoa, pendentes, hoje) {
   return { partes, consumo: { modelo: HAIKU, tokens_entrada: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0), tokens_saida: u.output_tokens || 0, tokens_cache: u.cache_read_input_tokens || 0 } };
 }
 
-async function mandarAvisos(env, pessoa, pendentes, via) {
+async function mandarAvisos(env, pessoa, pendentes, via, tipo) {
   const hoje = hojeSP();
   let escrito;
   try { escrito = await escreverAvisos(env, pessoa, pendentes, hoje); }
@@ -914,7 +922,7 @@ async function mandarAvisos(env, pessoa, pendentes, via) {
   if (!escrito.partes.length) return false;
   for (let i = 0; i < escrito.partes.length; i++) {
     const sep = separarOpcoes(escrito.partes[i]);
-    await enviarComOpcoes(env, pessoa.telefone, sep.texto, sep.opcoes, { ...(i === 0 ? escrito.consumo : {}), proativa: true });
+    await enviarComOpcoes(env, pessoa.telefone, sep.texto, sep.opcoes, { ...(i === 0 ? escrito.consumo : {}), proativa: true, tipo_proativa: tipo || "aviso" });
   }
   await marcarAvisados(env, pessoa.telefone, via);
   return true;
@@ -934,39 +942,60 @@ async function enviarTemplateAviso(env, pessoa, qtd) {
   if (!res.ok) { console.log("template recusado:", res.status, JSON.stringify(corpo)); return false; }
   const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
   await gravarMensagem(env, { wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: pessoa.telefone,
-    msg_type: "template", body: `[aviso] Oi ${primeiro}, tenho ${assuntos} da Dash pra você. [Ver agora]`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, opcoes: ["Ver agora"] });
+    msg_type: "template", body: `[aviso] Oi ${primeiro}! Separei ${assuntos} da Dash pra você dar uma olhada. [Ver agora]`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, tipo_proativa: "template", opcoes: ["Ver agora"] });
   return true;
+}
+
+const OPCOES_CHECKIN = ["Tudo certo", "Tenho algo"];
+function saudacao(horaSP) { return horaSP < 12 ? "Bom dia" : horaSP < 18 ? "Boa tarde" : "Boa noite"; }
+async function checkinVazio(env, pessoa, horaSP) {
+  const primeiro = String(pessoa.nome_tasks || "").split(" ")[0];
+  await enviarComOpcoes(env, pessoa.telefone, `${saudacao(horaSP)}, ${primeiro}! Nada em aberto hoje pra você. Do seu lado, tem algo?`, OPCOES_CHECKIN, { proativa: true, tipo_proativa: "checkin" });
 }
 
 async function rodadaProativa(env, cron, agoraMs) {
   agoraMs = agoraMs || Date.now();
   const horaFixa = cron === CRON_HORA_FIXA;
-  const horaSP = (new Date(agoraMs).getUTCHours() + 21) % 24;
-  if (!horaFixa && (horaSP < 8 || horaSP > 21)) return; // resgate só em horário comercial estendido
+  const sp = new Date(agoraMs - 3 * 3600000);             // relógio de São Paulo
+  const diaSP = sp.getUTCDay(), horaSP = sp.getUTCHours(), minSP = sp.getUTCMinutes();
+  if (diaSP === 0 || diaSP === 6) return;                 // fim de semana: nada
+  if (!horaFixa && (horaSP < 8 || horaSP > 21)) return;
+  const depoisDoCheckin = horaSP > 9 || (horaSP === 9 && minSP >= 30);
   const rp = await sb(env, `${TAB_PESSOAS}?select=*&proativo=eq.true&recebe_avisos=eq.true`);
   const pessoas = rp.ok && Array.isArray(rp.dados) ? rp.dados : [];
   if (!pessoas.length) return;
   const { empresas } = await carregarDash(env);
   const indice = indexar(empresas), hoje = hojeSP();
+  const inicioHoje = new Date(Date.parse(hoje + "T03:00:00Z")).toISOString();
   for (const pessoa of pessoas) {
     const tel = pessoa.telefone;
     const rs = await sb(env, `${TAB_SNAP}?select=dados&telefone=eq.${tel}`);
     const snap = rs.ok && rs.dados && rs.dados[0] ? rs.dados[0].dados : null;
     const pendentes = await sincronizarAvisos(env, tel, detectarAvisos(empresas, indice, pessoa, snap, hoje));
-    if (!pendentes.length) continue;
-    const rh = await sb(env, `${TAB_MSG}?select=id,msg_type,created_at&direction=eq.out&to_number=eq.${tel}&proativa=eq.true&created_at=gte.${encodeURIComponent(inicioDoDiaSP())}`);
-    const hojeProativas = rh.ok && Array.isArray(rh.dados) ? rh.dados : [];
-    if (hojeProativas.length >= MAX_PROATIVAS_DIA) continue;
+    const rh = await sb(env, `${TAB_MSG}?select=tipo_proativa,created_at&direction=eq.out&to_number=eq.${tel}&proativa=eq.true&created_at=gte.${encodeURIComponent(inicioHoje)}`);
+    const hojeP = rh.ok && Array.isArray(rh.dados) ? rh.dados : [];
+    const conta = t => hojeP.filter(m => m.tipo_proativa === t).length;
+    const ultimaProativa = hojeP.reduce((mx, m) => Math.max(mx, Date.parse(m.created_at)), 0);
     const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&order=created_at.desc&limit=1`);
     const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
     const fechaEm = ultimaIn + 24 * 3600000;
     const aberta = fechaEm - agoraMs > MARGEM_JANELA_MS;
+    const checkin = async () => { if (pendentes.length) await mandarAvisos(env, pessoa, pendentes, "janela", "checkin"); else await checkinVazio(env, pessoa, horaSP); };
+
     if (horaFixa) {
-      if (aberta) await mandarAvisos(env, pessoa, pendentes, "janela");
-      else if (!hojeProativas.some(m => m.msg_type === "template")) await enviarTemplateAviso(env, pessoa, pendentes.length);
-    } else if (aberta && fechaEm - agoraMs <= RESGATE_JANELA_MS) {
-      await mandarAvisos(env, pessoa, pendentes, "janela_fechando");
+      if (conta("checkin") > 0) continue;
+      if (aberta) await checkin();
+      else if (pendentes.length && !conta("template")) await enviarTemplateAviso(env, pessoa, pendentes.length);
+      continue;
     }
+    if (!aberta) continue;
+    if (pendentes.length && depoisDoCheckin && conta("aviso") < MAX_AVISOS_DIA) {
+      await mandarAvisos(env, pessoa, pendentes, "janela", "aviso");
+      continue;
+    }
+    // Resgate: janela fechando e nada mandado nas últimas horas.
+    const fechando = fechaEm - agoraMs <= RESGATE_JANELA_MS;
+    if (fechando && conta("checkin") < MAX_CHECKINS_DIA && agoraMs - Math.max(ultimaProativa, ultimaIn) > PAUSA_RESGATE_MS) await checkin();
   }
 }
 
@@ -1004,10 +1033,20 @@ async function tratarMensagem(env, msg, textoRecebido) {
     return;
   }
 
+  // Respostas de um toque ao check-in: o código responde, sem gastar Claude.
+  if (cmd === "tudo certo" || cmd === "tenho algo") {
+    const ru = await sb(env, `${TAB_MSG}?select=opcoes&direction=eq.out&to_number=eq.${tel}&order=created_at.desc&limit=1`);
+    const ops = ru.ok && ru.dados && ru.dados[0] && ru.dados[0].opcoes;
+    if (Array.isArray(ops) && ops.includes("Tudo certo")) {
+      await enviarTexto(env, tel, cmd === "tudo certo" ? "👍 Combinado! Qualquer coisa, é só chamar." : "Manda aí 🙂");
+      return;
+    }
+  }
+
   // Tocou em "Ver agora" do aviso: manda o que está pendente.
   if (cmd === "ver agora") {
     const pend = await pendentesDe(env, tel);
-    if (pend.length && await mandarAvisos(env, pessoa, pend, "template")) return;
+    if (pend.length && await mandarAvisos(env, pessoa, pend, "template", "aviso_detalhe")) return;
   }
 
   // Mudança esperando o "sim"? Resolve em código, sem gastar Claude.
