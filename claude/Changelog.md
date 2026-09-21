@@ -12,6 +12,48 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (12ª) — Robô: avisos curtos, só o pertinente, botões que agem
+
+Pedido da Karina depois do 1º aviso real (19h05: mensagem enorme com 27
+entregáveis listados, sem dizer a empresa, Deadline sem urgência, botões sem
+ação). Proposta aprovada ("de resto tá ótimo"), com um ajuste dela: **não**
+escrever [WPF]/[CBTH] — presume-se WPF; só se diz a empresa quando não é.
+
+- **O que vira aviso (`detectarAvisos`):** atraso só quando **acabou de
+  acontecer** (fim nos últimos 2 dias úteis; atraso antigo fica pra reunião
+  de segunda); entregável só se vence **hoje ou amanhã** com 3+ tarefas
+  abertas; Meta/Projeto de outra pessoa (admin) só se acabou de atrasar, ou
+  vence hoje/amanhã com 3+ abertas; o que está dentro de um assunto já
+  avisado não vira outro assunto (projeto atrasado = 1 aviso com a contagem).
+  Linha nova atribuída continua.
+- **Segunda-feira:** assuntos da Dash não viram aviso (marcados `via =
+  'segunda'`, não acumulam pra terça). E-mail, reunião, sistema e recado vão.
+- **Formato (`mandarAvisos`, `escreverAvisos`):** 1 assunto por mensagem,
+  até 3 linhas, no máximo 2 por rodada (o resto espera, se ainda valer);
+  várias linhas da pessoa no mesmo entregável viram 1 assunto; ordem:
+  sistema › recado › e-mail urgente › vence hoje/amanhã › acabou de atrasar
+  › linha nova › e-mail › reunião. Empresa só quando não é WPF ("na CBTH").
+  O Haiku escreve só o texto; os botões são do código.
+- **Botões (amarrados à mensagem tocada, coluna nova `aviso_chave`):**
+  linha de outra pessoa → **Ver detalhes · Falar com X · Já vi, deixa
+  comigo** (vários donos: "Avisar responsáveis"; só admin fala com outros);
+  linha da própria pessoa → **Ver detalhes · Mudar prazo · Já vi**.
+  Ver detalhes = lista sem Claude (atrasadas primeiro, até 12). Falar com X =
+  rascunho (Haiku) + [Enviar] [Cancelar]; se a Karina escrever outro texto,
+  ele vira o recado; só sai depois do Enviar. Chega como "📌 Recado de
+  Karina: …" com Ver detalhes / Já vi; conversa fechada → modelo aprovado
+  (`aviso_dash`) e o recado entra no "Ver agora". Já vi, deixa comigo =
+  aquele assunto não volta, nem piorando. Mudar prazo = vai pra conversa
+  normal com o pedido pronto.
+- **Onde:** `worker/whatsapp-bridge.js` (bloco "Avisos (regras revistas em
+  21/09)" e botões em `tratarMensagem`); `sql/2026-09-21_robo_aviso_chave.sql`.
+- **Verificação:** 41 testes de ponta a ponta com banco, WhatsApp e Claude
+  simulados (regras, agrupamento, limite de 2, botões, recado com janela
+  aberta e fechada, Ver agora, Já vi, Mudar prazo, segunda) + 28 dos
+  Workers. Um bug achado e corrigido nos testes (recado reescrito).
+
+---
+
 ## 2026-09-21 (11ª) — Login de verdade na Dash + fechar o que estava aberto
 
 Aprovado por Karina (plano de segurança completo, "aprovo"; troca "agora";

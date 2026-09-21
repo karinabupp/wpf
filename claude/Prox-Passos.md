@@ -15,20 +15,13 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Robô: mensagens mais curtas, com empresa e opções que agem** —
-  pedido da Karina em 21/09, depois do 1º aviso real (19h05): mensagem
-  enorme (27 entregáveis de federações listados um a um), sem dizer se era
-  WPF ou CBTH, avisando coisa em Deadline que não era urgente, e opções
-  sem ação ("Chamar Isabela / Adiar discussão / Já vi").
-  - *O que ela quer:* citar a empresa; avisar só o pertinente (toda
-    segunda a equipe revisa a Dash inteira, então o robô ajuda e não
-    polui); opções que fazem algo: **ver detalhes das tarefas**, **o robô
-    manda mensagem pra pessoa em nome dela**, **já vi, deixa comigo**.
-  - *Causa da empresa sumir:* a empresa só vai no apelido (`CBTH-xxxxxx`)
-    e o robô é proibido de citar apelido.
-  - *Status:* proposta apresentada em 21/09, aguardando OK.
-  - *Onde:* `worker/whatsapp-bridge.js` — `detectarAvisos`,
-    `escreverAvisos`, `tratarMensagem`.
+- [ ] **Robô: conferir os avisos novos na prática** — publicados em 21/09
+  (Changelog, 12ª). Olhar nos próximos dias: se está avisando pouco demais
+  (as réguas: atraso "recente" = 2 dias úteis; Deadline só hoje/amanhã com
+  3+ abertas); se os rascunhos do "Falar com X" soam bem; se o "Já vi,
+  deixa comigo" está escondendo algo que devia voltar. Ajustes são nas
+  constantes do bloco "Avisos (regras revistas em 21/09)".
+  - *Não feito:* avisar a Karina quando a pessoa toca "Já vi" num recado.
   - *Aberto em:* 2026-09-21
 
 - [ ] **Login: todos trocarem a senha provisória** — Karina já trocou e

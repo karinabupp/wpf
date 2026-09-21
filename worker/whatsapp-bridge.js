@@ -839,22 +839,71 @@ function resumoSimples(indice, pessoa, hoje) {
 }
 
 // ─── Avisos: detectar, guardar, mandar ───────────────────────────────────
+// ─── Avisos (regras revistas em 21/09, pedido da Karina) ─────────────────
+// Toda segunda a equipe revisa a Dash inteira: o robô ajuda, não polui.
+// Avisa só o que acabou de acontecer ou vence hoje/amanhã e é trabalhoso;
+// um assunto por mensagem, curto, no máximo 2 por vez; a empresa só é dita
+// quando não é a WPF; e os botões fazem algo (ver detalhes, falar com a
+// pessoa, já vi).
+const MAX_ASSUNTOS_RODADA = 2;
+const DIAS_UTEIS_ATRASO_RECENTE = 2;
+const RE_EXTERNO = /^(reuniao|sistema|email|recado)\|/;
+const OP_DETALHES = "Ver detalhes", OP_JA_VI = "Já vi", OP_JA_VI_OUTRO = "Já vi, deixa comigo", OP_PRAZO = "Mudar prazo";
+const OP_ENVIAR = "Enviar", OP_CANCELAR = "Cancelar", OP_AVISAR_TODOS = "Avisar responsáveis";
+
+function diasUteisAtras(hoje, n) {
+  let d = hoje, k = 0;
+  while (k < n) { d = somaDias(d, -1); const w = new Date(d + "T12:00:00Z").getUTCDay(); if (w !== 0 && w !== 6) k++; }
+  return d;
+}
+// A empresa só aparece quando NÃO é a WPF (Karina: "sempre deduziremos que é da WPF").
+const naEmpresa = info => (info.empresa.nome === "WPF" ? "" : ` (na ${info.empresa.nome})`);
+function descricaoAviso(rotulo, info, extra) {
+  const no = info.no;
+  const resp = (no.assignees || []).join(", ") || "sem responsável";
+  const fim = no.endDate ? `fim ${br(no.endDate)}` : "sem data";
+  const onde = info.caminho.length ? ` | dentro de ${info.caminho.slice(-2).map(c => corta(c, 40)).join(" › ")}` : "";
+  return `${rotulo}: ${TIPO_LABEL[no.rowType] || no.rowType} "${corta(no.name, 80)}"${naEmpresa(info)} | ${no.status} | ${fim} | ${resp}${extra || ""}${onde}`;
+}
+const aberta = f => !["Done", "Cancelled"].includes(f.status);
+function folhasAbaixo(no, teste) {
+  const out = [];
+  (function andar(l) { (l || []).forEach(f => { if (f.status === "Cancelled") return; if (!temFilhos(f) && (f.rowType === "tarefa" || f.rowType === "entregavel") && teste(f)) out.push(f); andar(f.subtasks); }); })(no.subtasks);
+  return out;
+}
+
 function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
-  const nome = pessoa.nome_tasks, lim3 = somaDias(hoje, 3), itens = [];
-  const add = (chave, info, rotulo) => itens.push({ chave, descricao: `${rotulo}: ${linhaTexto(info, true, 200)}` });
-  const abertas = no => { let n = 0; (function andar(l) { l.forEach(f => { if (f.rowType === "tarefa" && !temFilhos(f) && !["Done", "Cancelled"].includes(f.status)) n++; andar(f.subtasks || []); }); })(no.subtasks || []); return n; };
-  const temTarefaMinhaAberta = no => algumAbaixo(no, f => !temFilhos(f) && ehDono(f, nome) && !["Done", "Cancelled"].includes(f.status));
+  const nome = pessoa.nome_tasks, amanha = somaDias(hoje, 1), recente = diasUteisAtras(hoje, DIAS_UTEIS_ATRASO_RECENTE), itens = [];
+  const add = (chave, info, rotulo, extra) => itens.push({ chave, descricao: descricaoAviso(rotulo, info, extra) });
+  const acabouDeAtrasar = no => no.status === "Late" && dataValida(no.endDate) && no.endDate >= recente && no.endDate < hoje;
+  const venceLogo = no => dataValida(no.endDate) && no.endDate >= hoje && no.endDate <= amanha;
+  const quando = no => (no.endDate === hoje ? "hoje" : "amanhã");
+  const marcados = new Set(); // Meta/Projeto já avisado: o que está dentro não vira outro assunto
+  const dentroDeMarcado = info => { let p = info.pai; while (p) { if (marcados.has(info.empresa.secao + "|" + p.id)) return true; const ip = indice.porId[info.empresa.secao + "|" + p.id]; p = ip && ip.pai; } return false; };
   Object.values(indice.porId).forEach(info => {
-    const no = info.no, base = `${info.empresa.secao}|${no.id}|`;
-    if (["Done", "Cancelled"].includes(no.status)) return;
-    if (!temFilhos(no) && (no.rowType === "entregavel" || no.rowType === "tarefa") && no.status === "Late" && ehDono(no, nome))
-      add(base + "late", info, "Sua linha está atrasada");
-    if (no.rowType === "entregavel" && temFilhos(no) && no.endDate && no.endDate >= hoje && no.endDate <= lim3) {
-      const n = abertas(no);
-      if (n >= MIN_TAREFAS_ABERTAS && (temTarefaMinhaAberta(no) || pessoa.admin)) add(base + "deadline_aberta", info, `Entregável vence em até 3 dias com ${n} tarefas abertas`);
+    const no = info.no, id = info.empresa.secao + "|" + no.id, base = id + "|";
+    if (!aberta(no)) return;
+    // 1. Linha da pessoa que ACABOU de atrasar (atraso antigo fica pra reunião de segunda).
+    if (!temFilhos(no) && (no.rowType === "entregavel" || no.rowType === "tarefa") && ehDono(no, nome) && acabouDeAtrasar(no) && !dentroDeMarcado(info))
+      add(base + "late", info, "Sua linha acabou de atrasar");
+    // 2. Entregável que vence hoje/amanhã com 3+ tarefas abertas.
+    if (no.rowType === "entregavel" && temFilhos(no) && venceLogo(no) && !dentroDeMarcado(info)) {
+      const n = folhasAbaixo(no, aberta).length;
+      const minhas = folhasAbaixo(no, f => aberta(f) && ehDono(f, nome)).length;
+      if (n >= MIN_TAREFAS_ABERTAS && (minhas || pessoa.admin)) { add(base + "deadline_aberta", info, `Entregável vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
     }
-    if (pessoa.admin && TIPOS_GRANDES[no.rowType] && (no.status === "Late" || no.status === "Deadline") && !ehDono(no, nome))
-      add(base + (no.status === "Late" ? "grande_late" : "grande_deadline"), info, `${TIPO_LABEL[no.rowType]} de ${(no.assignees || []).join(", ") || "ninguém"} está ${no.status}`);
+    // 3. Admin: Meta/Projeto/Entregável de outra pessoa.
+    if (pessoa.admin && TIPOS_GRANDES[no.rowType] && !ehDono(no, nome) && !dentroDeMarcado(info)) {
+      if (acabouDeAtrasar(no)) {
+        const n = folhasAbaixo(no, f => f.status === "Late").length;
+        add(base + "grande_late", info, `${TIPO_LABEL[no.rowType]} acabou de atrasar`, n ? ` | ${n} linha(s) atrasada(s) dentro` : "");
+        marcados.add(id);
+      } else if (no.rowType !== "entregavel" && venceLogo(no)) {
+        const n = folhasAbaixo(no, aberta).length;
+        if (n >= MIN_TAREFAS_ABERTAS) { add(base + "grande_deadline", info, `${TIPO_LABEL[no.rowType]} vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
+      }
+    }
+    // 4. Linha nova atribuída à pessoa.
     if (snap && ehDono(no, nome)) {
       const antes = ((snap.tasks || {})[info.empresa.secao] || {})[no.id];
       if (!antes || !String(antes.a || "").split(", ").includes(nome)) add(base + "atribuida", info, "Linha nova pra você");
@@ -866,8 +915,9 @@ function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
 // Guarda o que é novo e devolve o que ainda não foi avisado. Na primeira
 // vez de cada pessoa, tudo o que já existe vira "base" (conta a partir de
 // agora). Pendente que deixou de valer (resolveram antes do aviso) sai.
+// Assunto que a pessoa dispensou ("Já vi, deixa comigo") não volta.
 async function sincronizarAvisos(env, tel, itens) {
-  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao,avisado_em&telefone=eq.${tel}`);
+  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao,avisado_em,via&telefone=eq.${tel}`);
   const existentes = r.ok && Array.isArray(r.dados) ? r.dados : [];
   const agora = new Date().toISOString();
   if (!existentes.length) {
@@ -876,18 +926,26 @@ async function sincronizarAvisos(env, tel, itens) {
     else await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: [{ telefone: tel, chave: "_base", avisado_em: agora, via: "base" }] });
     return [];
   }
+  const dispensados = new Set(existentes.filter(e => e.via === "dispensado").map(e => prefixoNo(e.chave)).filter(Boolean));
+  itens = itens.filter(i => !dispensados.has(prefixoNo(i.chave)));
   const conhecidas = new Set(existentes.map(e => e.chave)), atuais = new Set(itens.map(i => i.chave));
   const novas = itens.filter(i => !conhecidas.has(i.chave));
   if (novas.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
     body: novas.map(i => ({ telefone: tel, chave: i.chave, descricao: i.descricao })) });
-  // Avisos que não vêm da detecção da Dash (reunião, sistema) não vencem aqui.
-  const externo = c => /^(reuniao|sistema|email)\|/.test(c);
-  const vencidas = existentes.filter(e => !e.avisado_em && !atuais.has(e.chave) && !externo(e.chave));
+  // Avisos que não vêm da detecção da Dash (reunião, sistema, e-mail, recado) não vencem aqui.
+  const vencidas = existentes.filter(e => !e.avisado_em && !atuais.has(e.chave) && !RE_EXTERNO.test(e.chave));
   if (vencidas.length) await sb(env, `${TAB_AVISOS}?id=in.(${vencidas.map(v => v.id).join(",")})`, { method: "DELETE", prefer: "return=minimal" });
   // descrição atualizada (datas/status podem ter mudado desde a detecção)
   const porChave = Object.fromEntries(itens.map(i => [i.chave, i.descricao]));
-  return existentes.filter(e => !e.avisado_em && (atuais.has(e.chave) || externo(e.chave))).map(e => ({ ...e, descricao: porChave[e.chave] || e.descricao }))
+  return existentes.filter(e => !e.avisado_em && (atuais.has(e.chave) || RE_EXTERNO.test(e.chave))).map(e => ({ ...e, descricao: porChave[e.chave] || e.descricao }))
     .concat(novas.map(n => ({ chave: n.chave, descricao: n.descricao })));
+}
+// "secao|id|" de uma chave de linha da Dash (ou null se não for de linha).
+function prefixoNo(chave) {
+  const c = String(chave || "");
+  if (RE_EXTERNO.test(c) || c.startsWith("grupo|") || c === "_base") return null;
+  const p = c.split("|");
+  return p.length >= 3 ? p[0] + "|" + p[1] + "|" : null;
 }
 
 async function pendentesDe(env, tel) {
@@ -897,47 +955,229 @@ async function pendentesDe(env, tel) {
 async function marcarAvisados(env, tel, via) {
   await sb(env, `${TAB_AVISOS}?telefone=eq.${tel}&avisado_em=is.null`, { method: "PATCH", prefer: "return=minimal", body: { avisado_em: new Date().toISOString(), via } });
 }
+async function marcarChaves(env, tel, chaves, via) {
+  if (!chaves.length) return;
+  const lista = chaves.map(c => `"${String(c).replace(/"/g, "")}"`).join(",");
+  await sb(env, `${TAB_AVISOS}?telefone=eq.${tel}&avisado_em=is.null&chave=in.(${encodeURIComponent(lista)})`, { method: "PATCH", prefer: "return=minimal", body: { avisado_em: new Date().toISOString(), via } });
+}
 
-// Haiku escreve o aviso. Uma mensagem; até 3 se o assunto for muito ou
-// complexo (separadas por uma linha com ---). Pergunta no fim, com opções.
-async function escreverAvisos(env, pessoa, pendentes, hoje) {
-  const system = [{ type: "text", text: `Você é o Carinha (homem; use o masculino ao falar de si), o agente de gestão da Dash da Karina, escrevendo POR CONTA PRÓPRIA no WhatsApp pra ${pessoa.nome_tasks} sobre assuntos que pedem ação. Hoje: ${diaSemanaSP()}, ${hoje}.
-- Português do Brasil, tom de colega prestativo, direto. Fale no nível do entregável/projeto; cite datas.
-- Uma mensagem só. Só se forem muitos assuntos ou assuntos bem diferentes e complexos, divida em até 3 mensagens, separadas por uma linha contendo apenas ---. Cada mensagem até ~8 linhas.
-- Termine cada mensagem com UMA pergunta de acompanhamento e sugira respostas na última linha assim: [[opções: Já comecei | Ainda não | Adiar]] (até 3 opções de até 20 caracteres, ou até 10 de até 24).
-- Assuntos de reunião ("Reunião ...: ... Não achei na Tasks") são sugestões pra Karina decidir: pergunte se quer criar. Um item: [[opções: Criar tarefa | Já existe | Ignorar]]. Vários: numere e ofereça, por ex., [[opções: Criar 1 | Criar 2 | Criar todos | Ignorar]].
-- Assunto "sistema" (ex. reconectar o Read AI): repasse o link exatamente como veio.
-- E-mails: diga de quem é, o que pede e o prazo; inclua o link do e-mail se veio. Se a lista diz quem mais está no Para/Cc, pode mencionar (eles NÃO foram avisados). Opções úteis: [[opções: Já vi | Me lembra depois | Criar tarefa]].
-- Use só o que está na lista. Não invente nada. Não cite apelidos (WPF-123456). Não diga que mudou nada na Dash.` }];
-  const lista = pendentes.map(p => "• " + p.descricao).join("\n");
+// Junta o que é do mesmo lugar: várias linhas da pessoa que atrasaram (ou
+// chegaram) no mesmo entregável viram um assunto só.
+const PRIORIDADE = { sistema: 0, recado: 1, email_muito: 2, deadline_aberta: 3, late: 4, grande_late: 5, grande_deadline: 5, atribuida: 6, email: 7, reuniao: 8 };
+function tipoDaChave(p) {
+  const c = String(p.chave || "");
+  if (c.startsWith("email|")) return /atenção imediata/.test(p.descricao || "") ? "email_muito" : "email";
+  const ext = c.match(RE_EXTERNO);
+  if (ext) return ext[1];
+  return c.split("|")[2] || "outro";
+}
+function agruparAvisos(pendentes, indice) {
+  const grupos = {};
+  pendentes.forEach(p => {
+    const tipo = tipoDaChave(p);
+    let chaveGrupo = p.chave;
+    if ((tipo === "late" || tipo === "atribuida") && indice) {
+      const [secao, id] = String(p.chave).split("|");
+      const info = indice.porId[secao + "|" + id];
+      if (info && info.pai) chaveGrupo = `grupo|${tipo}|${secao}|${info.pai.id}`;
+    }
+    (grupos[chaveGrupo] = grupos[chaveGrupo] || { chave: chaveGrupo, tipo, itens: [] }).itens.push(p);
+  });
+  return Object.values(grupos).map(g => (g.itens.length === 1 ? { ...g, chave: g.itens[0].chave } : g))
+    .sort((a, b) => (PRIORIDADE[a.tipo] ?? 9) - (PRIORIDADE[b.tipo] ?? 9));
+}
+function descricaoGrupo(g, indice) {
+  if (g.itens.length === 1) return g.itens[0].descricao;
+  const [, tipo, secao, paiId] = g.chave.split("|");
+  const pai = indice && indice.porId[secao + "|" + paiId];
+  const nomePai = pai ? `${TIPO_LABEL[pai.no.rowType] || ""} "${corta(pai.no.name, 80)}"${naEmpresa(pai)}` : "um mesmo lugar";
+  return `${g.itens.length} linhas suas ${tipo === "late" ? "acabaram de atrasar" : "novas"} em ${nomePai}: ${g.itens.map(i => (i.descricao.match(/"([^"]+)"/) || [])[1]).filter(Boolean).slice(0, 4).join("; ")}${g.itens.length > 4 ? "…" : ""}`;
+}
+
+// A linha (ou grupo) de uma chave, e de quem é.
+function alvoDaChave(chave, indice) {
+  const c = String(chave || "");
+  if (c.startsWith("recado|")) return alvoDaChave(c.split("|").slice(2).join("|"), indice);
+  if (c.startsWith("grupo|")) { const [, tipo, secao, paiId] = c.split("|"); const info = indice.porId[secao + "|" + paiId]; return info ? { info, grupo: tipo } : null; }
+  if (RE_EXTERNO.test(c)) return null;
+  const [secao, id] = c.split("|");
+  const info = indice.porId[secao + "|" + id];
+  return info ? { info, grupo: null } : null;
+}
+// Pessoas "donas" do assunto (quem tem linha aberta ali), fora quem recebe.
+function donosDoAlvo(alvo, pessoa) {
+  const no = alvo.info.no, nomes = new Set();
+  if (!temFilhos(no) || no.rowType === "meta") (no.assignees || []).forEach(n => nomes.add(n));
+  if (temFilhos(no)) folhasAbaixo(no, aberta).forEach(f => (f.assignees || []).forEach(n => nomes.add(n)));
+  nomes.delete(pessoa.nome_tasks);
+  return [...nomes];
+}
+const primeiroNome = n => String(n || "").split(" ")[0];
+// Botões de cada assunto. Sobre linha de outra pessoa: detalhes / falar com
+// ela / já vi. Sobre a própria linha: detalhes / mudar prazo / já vi.
+function opcoesDoAviso(g, pessoa, indice, cadastro) {
+  if (g.tipo === "sistema") return [];
+  if (g.tipo === "reuniao") return ["Criar tarefa", "Já existe", "Ignorar"];
+  if (g.tipo === "email" || g.tipo === "email_muito") return [OP_JA_VI, "Me lembra depois", "Criar tarefa"];
+  const alvo = indice && alvoDaChave(g.chave, indice);
+  if (g.tipo === "recado") return alvo ? [OP_DETALHES, OP_JA_VI] : [OP_JA_VI];
+  if (!alvo) return [OP_JA_VI];
+  const minhaAqui = alvo.grupo || ehDono(alvo.info.no, pessoa.nome_tasks) || folhasAbaixo(alvo.info.no, f => aberta(f) && ehDono(f, pessoa.nome_tasks)).length > 0;
+  if (minhaAqui || !pessoa.admin) return minhaAqui ? [OP_DETALHES, OP_PRAZO, OP_JA_VI] : [OP_DETALHES, OP_JA_VI];
+  const outros = donosDoAlvo(alvo, pessoa).filter(n => cadastro.some(c => c.nome_tasks === n && c.telefone));
+  const falar = outros.length === 1 ? `Falar com ${primeiroNome(outros[0])}` : outros.length > 1 ? OP_AVISAR_TODOS : null;
+  return [OP_DETALHES, ...(falar ? [corta(falar, 20)] : []), OP_JA_VI_OUTRO];
+}
+
+// Haiku escreve um texto curto por assunto (os botões quem põe é o código).
+async function escreverAvisos(env, pessoa, grupos, hoje, tipo, indice) {
+  const saudar = tipo === "checkin" ? `Comece a PRIMEIRA mensagem com "${saudacao((new Date().getUTCHours() + 21) % 24)}, ${primeiroNome(pessoa.nome_tasks)}!". ` : "";
+  const system = [{ type: "text", text: `Você é o Carinha (homem; use o masculino ao falar de si), o agente de gestão da Dash da Karina, escrevendo POR CONTA PRÓPRIA no WhatsApp pra ${pessoa.nome_tasks}. Hoje: ${diaSemanaSP()}, ${hoje}.
+Escreva UMA mensagem curta por assunto, na ordem recebida. Responda SÓ com um array JSON de strings, sem nada antes ou depois: ["mensagem 1", "mensagem 2"].
+- Português do Brasil, tom de colega prestativo. Cada mensagem com no máximo 3 linhas curtas. ${saudar}
+- Nunca liste item por item: resuma com números ("27 entregáveis atrasados dentro").
+- Empresa: só diga a empresa quando o assunto trouxer "(na CBTH)" ou outra; nunca escreva "WPF".
+- Não faça perguntas com opções nem escreva opções: os botões são colocados depois.
+- Reunião ("Não achei na Tasks"): diga o item e pergunte se quer criar a tarefa.
+- E-mail: de quem é, o que pede e o prazo; inclua o link se veio.
+- Assunto "sistema": repasse o link exatamente como veio.
+- Use só o que está no assunto. Não invente nada. Não diga que mudou nada na Dash.` }];
+  const lista = grupos.map((g, i) => `${i + 1}. ${descricaoGrupo(g, indice)}`).join("\n");
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: HAIKU, max_tokens: MAX_TOKENS, system, messages: [{ role: "user", content: `Assuntos pra avisar:\n${lista}` }] })
+    body: JSON.stringify({ model: HAIKU, max_tokens: MAX_TOKENS, system, messages: [{ role: "user", content: `Assuntos:\n${lista}` }] })
   });
   const corpo = await res.json().catch(() => null);
   if (!res.ok) throw new Error("Claude " + res.status);
   const texto = (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
-  const partes = texto.split(/\n\s*-{3,}\s*\n/).map(t => t.trim()).filter(Boolean).slice(0, 3);
+  const m = texto.match(/\[[\s\S]*\]/);
+  const partes = JSON.parse(m ? m[0] : texto);
+  if (!Array.isArray(partes) || partes.length !== grupos.length) throw new Error("formato inesperado");
   const u = corpo.usage || {};
-  return { partes, consumo: { modelo: HAIKU, tokens_entrada: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0), tokens_saida: u.output_tokens || 0, tokens_cache: u.cache_read_input_tokens || 0 } };
+  return { partes: partes.map(p => String(p).trim()), consumo: { modelo: HAIKU, tokens_entrada: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0), tokens_saida: u.output_tokens || 0, tokens_cache: u.cache_read_input_tokens || 0 } };
+}
+// Sem Claude: texto simples feito pelo código.
+function textoSimples(g, indice) {
+  return corta(descricaoGrupo(g, indice).replace(/ \| /g, " · "), 400);
 }
 
-async function mandarAvisos(env, pessoa, pendentes, via, tipo) {
+async function carregarIndice(env) {
+  try { const { empresas } = await carregarDash(env); return indexar(empresas); } catch (e) { return null; }
+}
+async function cadastroPessoas(env) {
+  const r = await sb(env, `${TAB_PESSOAS}?select=telefone,nome_tasks,admin`);
+  return r.ok && Array.isArray(r.dados) ? r.dados : [];
+}
+
+// Manda no máximo 2 assuntos (os mais importantes); o resto espera a próxima
+// rodada, se ainda valer. Cada mensagem guarda a chave do assunto, pra os
+// botões saberem do que se trata.
+async function mandarAvisos(env, pessoa, pendentes, via, tipo, indice) {
   const hoje = hojeSP();
-  let escrito;
-  try { escrito = await escreverAvisos(env, pessoa, pendentes, hoje); }
-  catch (e) {
-    // Sem Claude: manda a lista crua, que é melhor que não avisar.
-    escrito = { partes: ["Oi! Alguns assuntos da Dash pedem sua atenção:\n" + pendentes.map(p => "• " + corta(p.descricao.replace(/\b[A-Z]+-\d+(-\d+)?\s/g, ""), 160)).join("\n")], consumo: {} };
+  indice = indice || await carregarIndice(env);
+  const grupos = agruparAvisos(pendentes, indice).slice(0, MAX_ASSUNTOS_RODADA);
+  if (!grupos.length) return false;
+  const cadastro = await cadastroPessoas(env);
+  // Recado de alguém da equipe vai com o texto dela, sem reescrever.
+  const paraEscrever = grupos.filter(g => g.tipo !== "recado");
+  let escrito = { partes: [], consumo: {} };
+  if (paraEscrever.length) {
+    try { escrito = await escreverAvisos(env, pessoa, paraEscrever, hoje, tipo, indice); }
+    catch (e) { escrito = { partes: paraEscrever.map(g => textoSimples(g, indice)), consumo: {} }; }
   }
-  if (!escrito.partes.length) return false;
-  for (let i = 0; i < escrito.partes.length; i++) {
-    const sep = separarOpcoes(escrito.partes[i]);
-    await enviarComOpcoes(env, pessoa.telefone, sep.texto, sep.opcoes, { ...(i === 0 ? escrito.consumo : {}), proativa: true, tipo_proativa: tipo || "aviso" });
+  let k = 0, primeiro = true;
+  for (const g of grupos) {
+    const texto = g.tipo === "recado" ? "📌 " + g.itens[0].descricao : escrito.partes[k++];
+    if (!texto) continue;
+    const chaveBotao = g.tipo === "recado" ? String(g.chave).split("|").slice(2).join("|") : g.chave;
+    await enviarComOpcoes(env, pessoa.telefone, texto, opcoesDoAviso(g, pessoa, indice, cadastro),
+      { ...(primeiro ? escrito.consumo : {}), proativa: true, tipo_proativa: tipo || "aviso", aviso_chave: chaveBotao || null });
+    primeiro = false;
   }
-  await marcarAvisados(env, pessoa.telefone, via);
+  await marcarChaves(env, pessoa.telefone, grupos.flatMap(g => g.itens.map(i => i.chave)), via);
   return true;
+}
+
+// ─── Botões dos avisos ───────────────────────────────────────────────────
+// Detalhes: as linhas abertas daquele lugar, sem gastar Claude.
+function textoDetalhes(chave, indice, pessoa) {
+  const alvo = alvoDaChave(chave, indice);
+  if (!alvo) return null;
+  const { info, grupo } = alvo, no = info.no;
+  const visivel = f => { const i = indice.porId[info.empresa.secao + "|" + f.id]; return i && visivelPara(i, pessoa, indice); };
+  const linha = f => `• ${corta(f.name, 60)} — ${(f.assignees || []).map(primeiroNome).join(", ") || "sem responsável"} — ${f.endDate ? "fim " + br(f.endDate) : "sem data"} — ${f.status}`;
+  let folhas;
+  if (grupo === "late") folhas = folhasAbaixo(no, f => f.status === "Late" && ehDono(f, pessoa.nome_tasks));
+  else if (grupo === "atribuida") folhas = folhasAbaixo(no, f => aberta(f) && ehDono(f, pessoa.nome_tasks));
+  else if (!temFilhos(no)) folhas = [no];
+  else folhas = folhasAbaixo(no, aberta);
+  folhas = folhas.filter(f => f === no || visivel(f));
+  const ordem = s => (s === "Late" ? 0 : s === "Deadline" ? 1 : 2);
+  folhas.sort((a, b) => ordem(a.status) - ordem(b.status) || String(a.endDate || "9").localeCompare(String(b.endDate || "9")));
+  const cab = `*${corta(no.name, 80)}*${naEmpresa(info)}\n${TIPO_LABEL[no.rowType] || no.rowType} · ${no.status} · ${no.endDate ? "fim " + br(no.endDate) : "sem data"}`;
+  if (!folhas.length) return cab + "\n\nNada em aberto aqui dentro.";
+  const atras = folhas.filter(f => f.status === "Late").length;
+  const resumo = temFilhos(no) ? `\n${folhas.length} linha(s) em aberto${atras ? `, ${atras} atrasada(s)` : ""}:` : "";
+  const MAX = 12;
+  return cab + resumo + "\n" + folhas.slice(0, MAX).map(linha).join("\n") + (folhas.length > MAX ? `\n…e mais ${folhas.length - MAX}.` : "");
+}
+
+async function dispensarAssunto(env, tel, chave) {
+  const pre = prefixoNo(chave);
+  if (!pre) return;
+  await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
+    body: [{ telefone: tel, chave: pre + "dispensado", descricao: "dispensado pela pessoa", avisado_em: new Date().toISOString(), via: "dispensado" }] });
+}
+
+// "Falar com X": o robô escreve um rascunho e só manda depois do "Enviar".
+async function rascunhoRecado(env, remetente, alvo, destinos) {
+  const no = alvo.info.no;
+  const nomes = destinos.map(d => primeiroNome(d.nome_tasks)).join(" e ");
+  const assunto = `${TIPO_LABEL[no.rowType] || ""} "${corta(no.name, 80)}"${naEmpresa(alvo.info)} — ${no.status}, ${no.endDate ? "fim " + br(no.endDate) : "sem data"}`;
+  const reserva = `Oi ${nomes}! A ${primeiroNome(remetente.nome_tasks)} pediu pra eu te chamar sobre ${assunto}. Consegue me dizer como está?`;
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: HAIKU, max_tokens: 200, system: `Você é o Carinha, agente de gestão da Dash. Escreva um recado curto (até 3 linhas) no WhatsApp pra ${nomes}, dizendo que ${primeiroNome(remetente.nome_tasks)} pediu pra você chamar sobre o assunto abaixo, e pedindo uma atualização. Tom leve e cordial, sem cobrança. Só o texto do recado, nada mais. Nunca escreva "WPF".`,
+        messages: [{ role: "user", content: `Assunto: ${assunto}` }] })
+    });
+    const corpo = await res.json().catch(() => null);
+    const t = res.ok && corpo ? (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim() : "";
+    return t ? corta(t, 600) : reserva;
+  } catch (e) { return reserva; }
+}
+async function proporRecado(env, pessoa, tel, chave, indice, destinos, texto) {
+  const alvo = alvoDaChave(chave, indice);
+  if (!alvo || !destinos.length) { await enviarTexto(env, tel, "Não achei com quem falar sobre isso. Pode me dizer de outro jeito?"); return; }
+  texto = texto || await rascunhoRecado(env, pessoa, alvo, destinos);
+  const nomes = destinos.map(d => primeiroNome(d.nome_tasks)).join(" e ");
+  await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel,
+    acao: { tipo: "recado", chave, texto, para: destinos.map(d => ({ telefone: d.telefone, nome: d.nome_tasks })) }, resumo: `Recado pra ${nomes}: ${texto}` }] });
+  await enviarComOpcoes(env, tel, `Vou mandar isto pra ${nomes}:\n\n"${texto}"\n\nSe quiser outro texto, é só escrever.`, [OP_ENVIAR, OP_CANCELAR], { aviso_chave: chave });
+}
+async function entregarRecado(env, remetente, acao) {
+  const idx = await carregarIndice(env);
+  const cadastro = await cadastroPessoas(env);
+  const resultado = [];
+  for (const d of acao.para) {
+    const destino = cadastro.find(c => c.telefone === d.telefone) || { telefone: d.telefone, nome_tasks: d.nome };
+    const chaveRecado = `recado|${Date.now()}|${acao.chave}`;
+    const descricao = `Recado de ${primeiroNome(remetente.nome_tasks)}: ${acao.texto}`;
+    await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: [{ telefone: d.telefone, chave: chaveRecado, descricao }] });
+    if (await janelaAberta(env, d.telefone)) {
+      await mandarAvisos(env, destino, [{ chave: chaveRecado, descricao }], "recado", "recado", idx);
+      resultado.push(`${primeiroNome(d.nome)} ✅`);
+    } else {
+      const inicio = inicioDoDiaSP();
+      const rt = await sb(env, `${TAB_MSG}?select=id&to_number=eq.${d.telefone}&tipo_proativa=eq.template&created_at=gte.${encodeURIComponent(inicio)}`);
+      const jaTemplate = rt.ok && Array.isArray(rt.dados) && rt.dados.length > 0;
+      const foi = !jaTemplate && await enviarTemplateAviso(env, destino, 1);
+      resultado.push(`${primeiroNome(d.nome)}: a conversa dela(e) comigo estava fechada, ${foi ? "mandei o aviso padrão e o recado aparece quando tocar em \"Ver agora\"" : "o recado fica guardado e vai na próxima vez que falar comigo"}`);
+    }
+  }
+  return resultado;
 }
 
 async function enviarTemplateAviso(env, pessoa, qtd) {
@@ -983,7 +1223,13 @@ async function rodadaProativa(env, cron, agoraMs) {
     const tel = pessoa.telefone;
     const rs = await sb(env, `${TAB_SNAP}?select=dados&telefone=eq.${tel}`);
     const snap = rs.ok && rs.dados && rs.dados[0] ? rs.dados[0].dados : null;
-    const pendentes = await sincronizarAvisos(env, tel, detectarAvisos(empresas, indice, pessoa, snap, hoje));
+    let pendentes = await sincronizarAvisos(env, tel, detectarAvisos(empresas, indice, pessoa, snap, hoje));
+    // Segunda: a equipe revisa a Dash na reunião; assuntos da Dash não viram aviso.
+    if (diaSP === 1) {
+      const daDash = pendentes.filter(p => !RE_EXTERNO.test(p.chave));
+      await marcarChaves(env, tel, daDash.map(p => p.chave), "segunda");
+      pendentes = pendentes.filter(p => RE_EXTERNO.test(p.chave));
+    }
     const rh = await sb(env, `${TAB_MSG}?select=tipo_proativa,created_at&direction=eq.out&to_number=eq.${tel}&proativa=eq.true&created_at=gte.${encodeURIComponent(inicioHoje)}`);
     const hojeP = rh.ok && Array.isArray(rh.dados) ? rh.dados : [];
     const conta = t => hojeP.filter(m => m.tipo_proativa === t).length;
@@ -992,7 +1238,7 @@ async function rodadaProativa(env, cron, agoraMs) {
     const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
     const fechaEm = ultimaIn + 24 * 3600000;
     const aberta = fechaEm - agoraMs > MARGEM_JANELA_MS;
-    const checkin = async () => { if (pendentes.length) await mandarAvisos(env, pessoa, pendentes, "janela", "checkin"); else await checkinVazio(env, pessoa, horaSP); };
+    const checkin = async () => { if (pendentes.length) await mandarAvisos(env, pessoa, pendentes, "janela", "checkin", indice); else await checkinVazio(env, pessoa, horaSP); };
 
     if (horaFixa) {
       if (conta("checkin") > 0) continue;
@@ -1002,7 +1248,7 @@ async function rodadaProativa(env, cron, agoraMs) {
     }
     if (!aberta) continue;
     if (pendentes.length && depoisDoCheckin && conta("aviso") < MAX_AVISOS_DIA) {
-      await mandarAvisos(env, pessoa, pendentes, "janela", "aviso");
+      await mandarAvisos(env, pessoa, pendentes, "janela", "aviso", indice);
       continue;
     }
     // Resgate: janela fechando e nada mandado nas últimas horas.
@@ -1316,7 +1562,7 @@ async function processarEmails(env, emails) {
   const horaSP = (new Date().getUTCHours() + 21) % 24;
   if (urgente && horaSP >= 7 && horaSP <= 22 && dono.recebe_avisos && (await janelaAberta(env, DONO_GMAIL_TEL))) {
     const pend = await pendentesDe(env, DONO_GMAIL_TEL);
-    if (pend.length) await mandarAvisos(env, dono, pend, "email_imediato", "aviso_urgente");
+    if (pend.length) await mandarAvisos(env, dono, pend, "email_imediato", "aviso_urgente", indice);
   }
   return { recebidos: novos.length };
 }
@@ -1386,6 +1632,64 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const rpd = await sb(env, `${TAB_PEND}?select=*&telefone=eq.${tel}&status=eq.aguardando&order=criado_em.desc&limit=1`);
   let pend = rpd.ok && rpd.dados && rpd.dados[0];
   if (pend && Date.parse(pend.expira_em) < Date.now()) { await marcarPendencia(env, pend.id, "expirada"); pend = null; }
+
+  // Recado esperando "Enviar": texto novo vira o recado; Enviar manda; Cancelar desiste.
+  if (pend && pend.acao && pend.acao.tipo === "recado") {
+    if (cmd === "enviar" || ehSim(texto)) {
+      const r = await entregarRecado(env, pessoa, pend.acao);
+      await marcarPendencia(env, pend.id, "confirmada");
+      await enviarTexto(env, tel, "Recado enviado. " + r.join(" · "));
+      return;
+    }
+    if (cmd === "cancelar" || ehNao(texto)) { await marcarPendencia(env, pend.id, "cancelada"); await enviarTexto(env, tel, "Ok, não mandei nada."); return; }
+    await marcarPendencia(env, pend.id, "cancelada");
+    const acaoR = pend.acao;
+    pend = null;
+    const idxR = await carregarIndice(env);
+    if (idxR) { await proporRecado(env, pessoa, tel, acaoR.chave, idxR, acaoR.para.map(d => ({ telefone: d.telefone, nome_tasks: d.nome })), corta(texto.trim(), 600)); return; }
+  }
+
+  // Botões dos avisos: amarrados à mensagem tocada (ou à última, se veio número).
+  const BOTOES = ["ver detalhes", "ja vi", "ja vi deixa comigo", "mudar prazo", "avisar responsaveis"];
+  if (BOTOES.includes(cmd) || cmd.startsWith("falar com ")) {
+    const ctxId = msg.context && msg.context.id;
+    const rm = ctxId
+      ? await sb(env, `${TAB_MSG}?select=aviso_chave&wa_message_id=eq.${encodeURIComponent(ctxId)}&limit=1`)
+      : await sb(env, `${TAB_MSG}?select=aviso_chave&direction=eq.out&to_number=eq.${tel}&aviso_chave=not.is.null&order=created_at.desc&limit=1`);
+    const chave = rm.ok && rm.dados && rm.dados[0] && rm.dados[0].aviso_chave;
+    if (chave) {
+      if (cmd === "ja vi" || cmd === "ja vi deixa comigo") {
+        await dispensarAssunto(env, tel, chave);
+        await enviarTexto(env, tel, cmd === "ja vi" ? "👍" : "👍 Deixo com você.");
+        return;
+      }
+      const idx = await carregarIndice(env);
+      if (idx) {
+        if (cmd === "ver detalhes") {
+          const t = textoDetalhes(chave, idx, pessoa);
+          if (t) {
+            const cadastro = await cadastroPessoas(env);
+            const ops = opcoesDoAviso({ chave, tipo: chave.startsWith("grupo|") ? chave.split("|")[1] : (chave.split("|")[2] || "outro"), itens: [] }, pessoa, idx, cadastro).filter(o => o !== OP_DETALHES);
+            await enviarComOpcoes(env, tel, t, ops, { aviso_chave: chave });
+            return;
+          }
+        }
+        if ((cmd.startsWith("falar com ") || cmd === "avisar responsaveis") && pessoa.admin) {
+          const alvo = alvoDaChave(chave, idx);
+          const cadastro = await cadastroPessoas(env);
+          let donos = alvo ? donosDoAlvo(alvo, pessoa) : [];
+          if (cmd.startsWith("falar com ")) { const quem = cmd.slice(10); donos = donos.filter(n => normalizar(primeiroNome(n)) === quem); }
+          const destinos = cadastro.filter(c => c.telefone && c.telefone !== tel && donos.includes(c.nome_tasks));
+          await proporRecado(env, pessoa, tel, chave, idx, destinos);
+          return;
+        }
+        if (cmd === "mudar prazo") {
+          const alvo = alvoDaChave(chave, idx);
+          if (alvo) texto = `Quero mudar o prazo de ${alvo.info.apelido} ("${alvo.info.no.name}")${alvo.grupo ? " — das minhas linhas aí dentro" : ""}. Me pergunte a nova data.`;
+        }
+      }
+    }
+  }
   if (pend && ehSim(texto)) {
     const r = await executarPendencia(env, pend, pessoa, tel);
     await marcarPendencia(env, pend.id, r.ok ? "confirmada" : "falhou");
@@ -1592,5 +1896,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
