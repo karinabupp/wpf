@@ -4562,6 +4562,39 @@
     .tasks2-assignee-add-btn { width: 19px; height: 19px; font-size: 12px; }
     .tasks2-head-row { font-size: 10px; min-height: 32px; }
   }
+  /* Contexto de Meta e Projeto (Tasks): icone discreto ao lado do nome e
+     caixinha pra escrever. Serve de contexto pro Agente do WhatsApp. */
+  .tasks2-contexto-btn {
+    flex-shrink: 0; align-self: center;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; padding: 0; margin-left: 2px;
+    background: transparent; border: 0; border-radius: 6px;
+    color: var(--text); opacity: 0.16; cursor: pointer;
+    transition: opacity 0.15s, background 0.15s;
+  }
+  .tasks2-contexto-btn svg { width: 14px; height: 14px; display: block; }
+  .tasks2-contexto-btn.tem-contexto { opacity: 0.38; }
+  .tasks2-contexto-btn:hover, .tasks2-contexto-btn.is-aberto { opacity: 0.7; background: rgba(0,0,0,0.05); }
+  #tasks2-contexto-painel {
+    position: fixed; z-index: 950;
+    background: var(--bg); border: 1px solid var(--border-strong); border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16);
+    width: 360px; max-width: calc(100vw - 24px);
+    display: flex; flex-direction: column;
+  }
+  .tasks2-contexto-topo {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    font-size: 12.5px; font-weight: 700;
+  }
+  .tasks2-contexto-topo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tasks2-contexto-topo button { background: none; border: 0; font-size: 18px; line-height: 1; cursor: pointer; color: var(--text-muted); }
+  #tasks2-contexto-texto {
+    border: 0; outline: none; resize: vertical; background: transparent; color: var(--text);
+    font: inherit; font-size: 13px; line-height: 1.45;
+    min-height: 130px; max-height: 60vh; padding: 10px 12px;
+  }
+  .tasks2-contexto-dica { font-size: 11px; color: var(--text-muted); padding: 0 12px 9px; }
 </style>
 
 </head>
@@ -16745,6 +16778,76 @@ applyRolePermissions();
     </div>`;
   }
 
+  // ══════════════════════════════════════════════════════════
+  // Contexto — so em Meta e Projeto. Texto livre (t.contexto) que explica
+  // o porquê, quem está envolvido, decisões etc. Não aparece na tabela: fica
+  // atrás de um ícone discreto ao lado do nome. O Agente do WhatsApp lê esse
+  // campo pra entender melhor as conversas. Se a linha deixar de ser Meta ou
+  // Projeto, o texto NÃO é apagado — só some da tela e volta se ela voltar.
+  // ══════════════════════════════════════════════════════════
+  const TIPOS_COM_CONTEXTO = { meta: true, projeto: true };
+  const ICONE_CONTEXTO = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3.5 2.5h9v11h-9z"/><path d="M5.8 5.5h4.4M5.8 8h4.4M5.8 10.5h2.6"/></svg>';
+  let tasksContextoId = null;
+
+  function contextoBtnMarkup(t) {
+    if (!TIPOS_COM_CONTEXTO[t.rowType]) return "";
+    const tem = !!String(t.contexto || "").trim();
+    return `<button type="button" class="tasks2-contexto-btn ${tem ? "tem-contexto" : ""} ${tasksContextoId === t.id ? "is-aberto" : ""}" data-id="${t.id}" title="${tem ? "Contexto (clique pra ver ou editar)" : "Adicionar contexto"}" aria-label="Contexto">${ICONE_CONTEXTO}</button>`;
+  }
+
+  // Grava o que estiver na caixinha e fecha. Só salva se mudou.
+  function fecharContextoPainel() {
+    const painel = document.getElementById("tasks2-contexto-painel");
+    if (!painel) { tasksContextoId = null; return false; }
+    const campo = document.getElementById("tasks2-contexto-texto");
+    const t = findTaskById(tasksData, tasksContextoId);
+    let mudou = false;
+    if (t && campo) {
+      const novo = campo.value.replace(/\s+$/, "");
+      if (novo !== String(t.contexto || "")) {
+        if (novo) t.contexto = novo; else delete t.contexto;
+        mudou = true;
+      }
+    }
+    painel.remove();
+    tasksContextoId = null;
+    if (mudou) saveTasksData();
+    return true;
+  }
+
+  function abrirContextoPainel(botao) {
+    fecharContextoPainel();
+    const t = findTaskById(tasksData, botao.dataset.id);
+    if (!t || !TIPOS_COM_CONTEXTO[t.rowType]) return;
+    tasksContextoId = t.id;
+    const esc = v => String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const painel = document.createElement("div");
+    painel.id = "tasks2-contexto-painel";
+    painel.innerHTML = `<div class="tasks2-contexto-topo">
+        <span title="${esc(t.name || "")}">Contexto · ${esc(TASK_TYPES[t.rowType].label)}: ${esc(t.name || "")}</span>
+        <button type="button" id="tasks2-contexto-fechar" title="Fechar">×</button>
+      </div>
+      <textarea id="tasks2-contexto-texto" placeholder="Por que existe, quem está envolvido, parceiros, decisões tomadas, o que não pode esquecer…">${esc(t.contexto || "")}</textarea>
+      <div class="tasks2-contexto-dica">Salva sozinho ao fechar. O Agente do WhatsApp usa isso pra entender o projeto.</div>`;
+    document.body.appendChild(painel);
+    document.getElementById("tasks2-contexto-fechar").addEventListener("click", () => {
+      fecharContextoPainel();
+      renderTasksTable();
+    });
+    const campo = document.getElementById("tasks2-contexto-texto");
+    campo.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); fecharContextoPainel(); renderTasksTable(); }
+    });
+    const r = botao.getBoundingClientRect();
+    const alto = painel.offsetHeight;
+    const cabeAbaixo = r.bottom + 4 + alto < window.innerHeight - 8;
+    painel.style.top = Math.max(8, cabeAbaixo ? r.bottom + 4 : r.top - alto - 4) + "px";
+    painel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - painel.offsetWidth - 12)) + "px";
+    campo.focus();
+    campo.setSelectionRange(campo.value.length, campo.value.length);
+    botao.classList.add("is-aberto");
+  }
+
   // Quantas Meta e quantos Projeto existem dentro de um Objetivo, em
   // qualquer profundidade — nao so filhos diretos. Meta normalmente mora
   // logo abaixo do Objetivo e Projeto logo abaixo da Meta, mas a arvore
@@ -17504,6 +17607,7 @@ applyRolePermissions();
             <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
             ${objetivoResumoMarkup(t)}
             ${metaProgressoMarkup(t)}
+            ${contextoBtnMarkup(t)}
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
           </div>
           ${mentionsChipsMarkup(t)}
@@ -17906,6 +18010,15 @@ applyRolePermissions();
     });
     body.querySelectorAll(".tasks2-mention-jump").forEach(el => {
       el.addEventListener("click", () => irParaLinhaMencionada(el.dataset.target));
+    });
+    body.querySelectorAll(".tasks2-contexto-btn").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const jaAberto = tasksContextoId === btn.dataset.id;
+        fecharContextoPainel();
+        if (jaAberto) { renderTasksTable(); return; } // clicar de novo fecha
+        abrirContextoPainel(btn);
+      });
     });
     body.querySelectorAll(".tasks2-meta-progresso-btn").forEach(btn => {
       btn.addEventListener("click", e => {
@@ -19167,6 +19280,10 @@ applyRolePermissions();
   document.addEventListener("click", e => {
     fecharPainelFiltro();
     if (!e.target.closest(".tasks2-name-input") && !e.target.closest("#tasks2-mention-painel")) fecharMentionPicker();
+    if (tasksContextoId && !e.target.closest("#tasks2-contexto-painel") && !e.target.closest(".tasks2-contexto-btn")) {
+      fecharContextoPainel();
+      renderTasksTable();
+    }
     if (!e.target.closest("#tasks2-pontuacao-painel") && !e.target.closest(".tasks2-meta-progresso-btn")) {
       if (tasksPontuacaoMetaId) { fecharPontuacaoPainel(); renderTasksTable(); }
     }

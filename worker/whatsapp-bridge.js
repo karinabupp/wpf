@@ -12,8 +12,10 @@
 //  - O Claude NÃO recebe a Dash inteira a cada mensagem. Recebe:
 //      · as últimas modificações desde a mensagem anterior desta pessoa
 //        (comparação com um retrato guardado em wpf_agente_snapshot);
-//      · o resumo de alertas (Late / Deadline / vence em 7 dias) só na
-//        primeira mensagem do dia;
+//      · só as mudanças que pedem ação da pessoa (decidido em 22/09);
+//        pra Karina, também coisas grandes dos outros que viraram Late ou
+//        Deadline. Panorama/alertas só quando alguém pede (ferramenta
+//        resumo_alertas);
 //      · as últimas 6 mensagens da conversa.
 //    O resto ele busca com ferramentas, só a parte que precisa.
 //  - Haiku atende. Ele pode subir pro Sonnet (ferramenta chamar_sonnet)
@@ -46,6 +48,8 @@ const TENTATIVAS_GRAVAR = 3;
 const MAX_LINHAS_MUDANCAS = 30;
 const MAX_LINHAS_ALERTA = 25;
 const MAX_RESULTADOS_BUSCA = 25;
+const TIPOS_COM_CONTEXTO = { meta: true, projeto: true };
+const TIPOS_GRANDES = { entregavel: true, projeto: true, meta: true };
 
 const STATUS_MANUAIS = ["Not Started", "In Progress", "Done", "On Hold", "Cancelled"];
 const TIPOS = ["objetivo", "meta", "projeto", "entregavel", "tarefa"];
@@ -203,12 +207,19 @@ function visivelPara(info, pessoa, indice) {
   }
   return false;
 }
-function linhaTexto(info, comCaminho) {
+// Contexto (texto livre de Meta e Projeto, escrito na Dash).
+function contextoDe(no, limite) {
+  if (!TIPOS_COM_CONTEXTO[no.rowType]) return "";
+  const c = String(no.contexto || "").replace(/\s+/g, " ").trim();
+  return c ? corta(c, limite) : "";
+}
+function linhaTexto(info, comCaminho, limiteContexto) {
   const no = info.no;
   const datas = no.startDate && no.endDate ? `${br(no.startDate)}→${br(no.endDate)}` : no.endDate ? `até ${br(no.endDate)}` : "sem data";
   const resp = (no.assignees || []).length ? no.assignees.join(", ") : "sem responsável";
   const caminho = comCaminho && info.caminho.length ? ` (em ${info.caminho.map(c => corta(c, 30)).join(" › ")})` : "";
-  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 80)} | ${no.status} | ${datas} | ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}`;
+  const ctx = limiteContexto ? contextoDe(no, limiteContexto) : "";
+  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 80)} | ${no.status} | ${datas} | ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}${ctx ? ` | contexto: ${ctx}` : ""}`;
 }
 function caminhoTexto(info) {
   return [info.empresa.nome].concat(info.caminho.map(c => corta(c, 40)), [corta(info.no.name, 60)]).join(" › ");
@@ -241,40 +252,44 @@ function retratar(empresas, members) {
   return out;
 }
 
+// Só o que pede ação direta de quem está falando: linha que é (ou passou
+// a ser) dela e mudou, foi criada, virou Late/Deadline. Pra admin, além
+// disso: Entregável/Projeto/Meta de qualquer pessoa que acabou de virar
+// Late ou Deadline. Cada coisa aparece uma vez (a base anda a cada
+// resposta). O resto (Members 2, mudanças alheias) é descartado aqui,
+// antes de chegar ao Claude.
 function mudancasDesde(antes, agora, pessoa, indice) {
-  const linhas = [];
+  const linhas = [], nome = pessoa.nome_tasks;
   Object.keys(agora.tasks).forEach(secao => {
-    const a = (antes.tasks || {})[secao] || {}, b = agora.tasks[secao];
+    const a = (antes.tasks || {})[secao];
+    if (!a) return; // empresa nova: começa a contar a partir de agora
+    const b = agora.tasks[secao];
     const emp = nomeEmpresa(secao);
     Object.keys(b).forEach(id => {
       const info = indice.porId[secao + "|" + id];
-      if (!info || !visivelPara(info, pessoa, indice)) return;
-      const x = a[id], y = b[id];
-      if (!x) { linhas.push(`+ ${emp} nova ${TIPO_LABEL[y.t] || y.t}: ${linhaTexto(info, true)}`); return; }
-      const dif = [];
-      if (x.n !== y.n) dif.push(`nome "${corta(x.n, 40)}"→"${corta(y.n, 40)}"`);
-      if (x.s !== y.s) dif.push(`status ${x.s}→${y.s}`);
-      if (x.i !== y.i) dif.push(`início ${br(x.i)}→${br(y.i)}`);
-      if (x.f !== y.f) dif.push(`fim ${br(x.f)}→${br(y.f)}`);
-      if (x.a !== y.a) dif.push(`resp. ${x.a || "ninguém"}→${y.a || "ninguém"}`);
-      if (dif.length) linhas.push(`~ ${emp} ${info.apelido} ${corta(y.n, 60)}: ${dif.join("; ")}`);
-    });
-    if (pessoa.admin) Object.keys(a).forEach(id => { if (!b[id]) linhas.push(`- ${emp} saiu da Dash: ${corta(a[id].n, 60)}`); });
-  });
-  if (pessoa.admin) Object.keys(agora.members).forEach(secao => {
-    const a = (antes.members || {})[secao] || {}, b = agora.members[secao];
-    const emp = nomeEmpresa(secao);
-    new Set([...Object.keys(a), ...Object.keys(b)]).forEach(k => {
-      if (a[k] === b[k]) return;
-      if (k.startsWith("col|")) { const [, pais, col] = k.split("|"); linhas.push(`~ ${emp} Members ${pais} coluna ${col}: "${corta(a[k] || "", 30)}"→"${corta(b[k] || "", 30)}"`); return; }
-      const [q, pais] = k.split("|");
-      const [s1] = (a[k] || "").split("¦"), [s2, t2, p2] = (b[k] || "").split("¦");
-      linhas.push(`~ ${emp} Members quadro ${q}, ${pais}: ${s1 || "sem status"}→${s2 || "sem status"}${t2 ? " (" + t2 + ")" : ""}${p2 ? " partner " + p2 : ""}`);
+      if (!info) return;
+      const x = a[id], y = b[id], no = info.no;
+      const minha = ehDono(no, nome);
+      const eraMinha = x && x.a.split(", ").includes(nome) && (y.t === "meta" || !temFilhos(no));
+      const virouAlerta = x && x.s !== y.s && (y.s === "Late" || y.s === "Deadline");
+      if (minha) {
+        if (!x) { linhas.push(`+ ${emp} nova ${TIPO_LABEL[y.t] || y.t} pra você: ${linhaTexto(info, true)}`); return; }
+        const dif = [];
+        if (!eraMinha) dif.push("passou a ser sua");
+        if (x.s !== y.s) dif.push(`status ${x.s}→${y.s}`);
+        if (x.i !== y.i) dif.push(`início ${br(x.i)}→${br(y.i)}`);
+        if (x.f !== y.f) dif.push(`fim ${br(x.f)}→${br(y.f)}`);
+        if (x.n !== y.n) dif.push(`nome "${corta(x.n, 40)}"→"${corta(y.n, 40)}"`);
+        if (dif.length) linhas.push(`~ ${emp} ${info.apelido} ${corta(y.n, 60)}: ${dif.join("; ")}`);
+        return;
+      }
+      if (pessoa.admin && virouAlerta && TIPOS_GRANDES[y.t])
+        linhas.push(`! ${emp} ${TIPO_LABEL[y.t]} de ${y.a || "ninguém"} virou ${y.s}: ${linhaTexto(info, true)}`);
     });
   });
   if (linhas.length > MAX_LINHAS_MUDANCAS) {
     const resto = linhas.length - MAX_LINHAS_MUDANCAS;
-    return linhas.slice(0, MAX_LINHAS_MUDANCAS).join("\n") + `\n…e mais ${resto} mudanças (use buscar pra ver detalhes).`;
+    return linhas.slice(0, MAX_LINHAS_MUDANCAS).join("\n") + `\n…e mais ${resto} (use buscar pra ver).`;
   }
   return linhas.join("\n");
 }
@@ -304,7 +319,7 @@ function quadroCompleto(empresas, members, indice, pessoa) {
     Object.values(indice.porId).filter(i => i.empresa === emp).forEach(info => {
       if (!visivelPara(info, pessoa, indice)) return;
       if (["Done", "Cancelled"].includes(info.no.status)) { ocultas++; return; }
-      linhas.push("  ".repeat(info.caminho.length) + linhaTexto(info, false));
+      linhas.push("  ".repeat(info.caminho.length) + linhaTexto(info, false, 400));
     });
     if (ocultas) linhas.push(`(${ocultas} concluídas/canceladas ocultas)`);
   });
@@ -336,7 +351,16 @@ function buscarTasks(entrada, indice, pessoa, hoje) {
     if (!alvo || !visivelPara(alvo, pessoa, indice)) return "Não achei essa linha.";
     const filhos = [];
     (function andar(no, prof) { (no.subtasks || []).forEach(f => { const i = indice.porId[alvo.empresa.secao + "|" + f.id]; if (filhos.length < 40) filhos.push("  ".repeat(prof) + linhaTexto(i, false)); andar(f, prof + 1); }); })(alvo.no, 1);
-    return [linhaTexto(alvo, true)].concat(filhos).join("\n") + (filhos.length >= 40 ? "\n…(cortado)" : "");
+    // Contexto da própria linha e das Metas/Projetos acima dela.
+    const ctxs = [];
+    let p = alvo.pai, ip = alvo;
+    while (p) {
+      const c = contextoDe(p, 600);
+      if (c) ctxs.push(`Contexto de ${TIPO_LABEL[p.rowType]} "${corta(p.name, 50)}": ${c}`);
+      ip = indice.porId[alvo.empresa.secao + "|" + p.id]; p = ip && ip.pai;
+    }
+    const proprio = contextoDe(alvo.no, 1500);
+    return [linhaTexto(alvo, true)].concat(proprio ? [`Contexto desta linha: ${proprio}`] : [], ctxs.reverse(), filhos).join("\n") + (filhos.length >= 40 ? "\n…(cortado)" : "");
   }
   const termo = normalizar(entrada.texto || "");
   const palavras = termo ? termo.split(" ") : [];
@@ -355,7 +379,7 @@ function buscarTasks(entrada, indice, pessoa, hoje) {
     return true;
   });
   if (!res.length) return "Nada encontrado com esses filtros.";
-  return res.slice(0, MAX_RESULTADOS_BUSCA).map(i => linhaTexto(i, true)).join("\n") + (res.length > MAX_RESULTADOS_BUSCA ? `\n…e mais ${res.length - MAX_RESULTADOS_BUSCA}; refine a busca.` : "");
+  return res.slice(0, MAX_RESULTADOS_BUSCA).map(i => linhaTexto(i, true, 200)).join("\n") + (res.length > MAX_RESULTADOS_BUSCA ? `\n…e mais ${res.length - MAX_RESULTADOS_BUSCA}; refine a busca.` : "");
 }
 function buscarMembers(entrada, members, pessoa) {
   if (!pessoa.admin) return "Members 2 é só pra admin.";
@@ -435,6 +459,25 @@ function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
     acao: { tipo: "criacao", secao: info.empresa.secao, paiId: pai.id, linha: { nome, tipo, startDate: ini, endDate: fim, assignees: resp } },
     resumo: `Criar ${TIPO_LABEL[tipo]} *${nome}* em:\n*${caminhoTexto(info)}*\n` +
       [ini || fim ? `• Datas: ${ini ? br(ini) : "—"} → ${fim ? br(fim) : "—"}` : "• Sem data", `• Responsável: ${resp.join(", ")}`].join("\n")
+  };
+}
+
+// Contexto de Meta/Projeto: acrescentar (padrão) ou substituir o texto.
+function validarContexto(entrada, indice, pessoa) {
+  const info = indice.porApelido[String(entrada.linha || "").toUpperCase()];
+  if (!info) return { erro: `Linha ${entrada.linha} não existe. Use buscar.` };
+  const no = info.no;
+  if (!TIPOS_COM_CONTEXTO[no.rowType]) return { erro: "Só Meta e Projeto têm contexto." };
+  if (!pessoa.admin && !doResponsavel(no, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} só pode escrever no contexto de Metas/Projetos em que está.` };
+  const texto = String(entrada.texto || "").trim();
+  if (!texto) return { erro: "Falta o texto do contexto." };
+  const modo = entrada.modo === "substituir" ? "substituir" : "acrescentar";
+  const atual = String(no.contexto || "");
+  const novo = modo === "substituir" || !atual.trim() ? texto : atual.replace(/\s+$/, "") + "\n" + texto;
+  if (novo === atual) return { erro: "Nada mudaria." };
+  return {
+    acao: { tipo: "contexto", secao: info.empresa.secao, id: no.id, texto: novo },
+    resumo: `*${caminhoTexto(info)}*\n• Contexto (${modo === "substituir" && atual.trim() ? "substituir o texto atual" : "acrescentar"}): ${corta(texto, 500)}`
   };
 }
 
@@ -518,6 +561,14 @@ function aplicarAcao(dados, acao, pessoa) {
     if (!Array.isArray(pai.subtasks)) pai.subtasks = [];
     pai.subtasks.push(nova);
     return { linhaId: nova.id, antes: null, depois: nova };
+  }
+  if (acao.tipo === "contexto") {
+    const no = achar(dados, acao.id);
+    if (!no) return { erro: "a linha não existe mais na Dash" };
+    if (!TIPOS_COM_CONTEXTO[no.rowType]) return { erro: "a linha deixou de ser Meta/Projeto" };
+    const antes = { contexto: no.contexto === undefined ? null : no.contexto };
+    no.contexto = acao.texto;
+    return { linhaId: no.id, antes, depois: { contexto: acao.texto } };
   }
   if (acao.tipo === "members") {
     if (!pessoa.admin) return { erro: "só a Karina pode mudar o Members 2" };
@@ -616,6 +667,17 @@ const F_MEMBERS = {
     coluna: { type: "string", description: "id ou nome da coluna da planilha" }, valor: { type: "string" } },
     required: ["pais"] }
 };
+const F_CONTEXTO = {
+  name: "propor_contexto", description: "Propõe escrever no contexto de uma Meta ou Projeto (texto que explica o porquê, quem está envolvido, decisões, parceiros). Use quando a pessoa pedir, e também OFEREÇA por conta própria quando ela contar algo importante sobre a Meta/Projeto que ainda não está no contexto. Não grava: o sistema pede confirmação.",
+  input_schema: { type: "object", properties: {
+    linha: { type: "string", description: "apelido da Meta ou Projeto" },
+    texto: { type: "string", description: "o que escrever, frase curta e objetiva" },
+    modo: { type: "string", enum: ["acrescentar", "substituir"], description: "padrão: acrescentar" } }, required: ["linha", "texto"] }
+};
+const F_ALERTAS = {
+  name: "resumo_alertas", description: "Panorama rápido: o que está Late, em Deadline ou vence em 7 dias (pra admin, de todo mundo; pros outros, só o deles). Use SÓ quando a pessoa pedir um resumo / como estão as coisas.",
+  input_schema: { type: "object", properties: {} }
+};
 const F_SONNET = {
   name: "chamar_sonnet", description: "Passa esta conversa pro modelo mais forte. Use SÓ quando precisar: análise/panorama geral, planejar ou reorganizar várias linhas, pedido ambíguo com várias partes, decidir onde encaixar algo novo. Pergunta simples, atualização de status e busca você resolve sozinho.",
   input_schema: { type: "object", properties: { motivo: { type: "string" } }, required: ["motivo"] }
@@ -631,14 +693,17 @@ function instrucoes(modelo) {
 Como conversar:
 - Português do Brasil, jeito de WhatsApp. Respostas curtas a médias: em geral até 6 linhas, no máximo umas 12 quando a pergunta pedir. Negrito só com *asteriscos*; sem títulos nem tabelas.
 - Fale no nível do entregável/projeto/objetivo; não despeje listas de tarefas. Ex.: "O Ladies Weekend tem 2 entregas vencendo sexta. O material de divulgação já começou?"
-- Em "como estão as coisas", destaque o que está Late ou Deadline (vence em até 3 dias) e o que vence nos próximos dias, e pergunte do andamento.
+- Panorama/resumo geral só quando a pessoa pedir ("como estão as coisas?"): aí use resumo_alertas e destaque o que está Late ou Deadline.
+- Novidades: quando o sistema mandar "Novidades que pedem ação", comente em 1–3 linhas no começo da resposta, só o que importa, e siga com o que a pessoa perguntou. Se não houver novidades, não mencione.
+- Linhas com "contexto:" trazem o porquê daquela Meta/Projeto; use isso pra entender e conversar melhor.
 - Use só o que está nos dados que você recebeu ou buscou. Nunca invente linha, data, status, país ou pessoa. Se precisar de algo que não está aqui, use buscar / buscar_members antes de responder.
 - Não cite apelidos (WPF-123456) na conversa; eles são só pras ferramentas.
 - Diga a empresa quando houver mais de uma envolvida.
 
 Mudanças:
-- Pra mudar ou criar, chame propor_mudanca, propor_criacao ou propor_members. Uma proposta por vez.
-- Você NUNCA grava e NUNCA diz que já mudou. O sistema mostra o resumo e pergunta "Confirma?" sozinho; junto da ferramenta escreva no máximo uma frase curta, sem pedir confirmação.
+- Pra mudar ou criar, chame propor_mudanca, propor_criacao, propor_members ou propor_contexto. Uma proposta por vez.
+- Você NUNCA grava e NUNCA diz que já mudou ("pronto", "feito", "atualizei" são proibidos antes do sim). O sistema mostra o resumo e pergunta "Confirma?" sozinho; junto da ferramenta escreva no máximo uma frase curta tipo "Posso deixar assim:", sem pedir confirmação.
+- Contexto: só Meta e Projeto têm. Quando a pessoa contar algo relevante sobre uma Meta/Projeto (decisão, parceiro, motivo, prazo combinado) que não está no contexto, ofereça registrar com propor_contexto.
 - Tasks: status que dá pra escolher são Not Started, In Progress, Done, On Hold, Cancelled (Late e Deadline são automáticos pelas datas). Linhas [agrupa] têm status e datas calculados: mude as de baixo. Não existe apagar (só pela Dash). Pra criar, escolha o lugar certo na hierarquia; se não houver lugar óbvio, pergunte antes. Meta nova só se a pessoa pedir ou concordar.
 - Members 2: status de cada quadro (os do próprio quadro), tipo de membro Observador/Afiliado só com o último status (Membro), partner, e colunas da planilha. O quadro Avisos Gerais tem status calculado. Países com o nome em inglês, como no mapa.
 - Datas relativas ("sexta", "semana que vem") contam a partir de hoje; nas ferramentas use AAAA-MM-DD.
@@ -742,15 +807,13 @@ async function tratarMensagem(env, msg, texto) {
   const rs = await sb(env, `${TAB_SNAP}?select=dados,tirado_em&telefone=eq.${tel}`);
   const base = rs.ok && rs.dados && rs.dados[0];
   const mudancas = base ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
-  const primeiraDoDia = (await contarHoje(env, tel, "modelo=not.is.null")) === 0;
 
   const contexto = [
     `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive Members 2)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê Members 2)"}.`,
     `Hoje: ${diaSemanaSP()}, ${hoje}.`,
     `Responsáveis válidos: ${[...nomesConhecidos].join(", ")}.`,
     `Empresas: ${empresas.map(e => e.nome).join(", ")}.`,
-    base ? `Últimas modificações na Dash desde ${String(base.tirado_em).slice(0, 16).replace("T", " ")} UTC:\n${mudancas || "nenhuma"}` : "Primeira conversa: ainda não há base pra comparar modificações.",
-    primeiraDoDia ? `Resumo de alertas de hoje:\n${resumoAlertas(empresas, indice, pessoa, hoje)}` : "",
+    mudancas ? `Novidades que pedem ação (desde a última conversa):\n${mudancas}` : "",
     pendAnterior ? `Havia esta mudança esperando confirmação, e a pessoa respondeu outra coisa, então ela foi descartada:\n${pendAnterior}\nSe a mensagem nova ajusta essa mudança, proponha de novo já ajustada.` : ""
   ].filter(Boolean).join("\n\n");
 
@@ -768,8 +831,8 @@ async function tratarMensagem(env, msg, texto) {
   try {
     for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
       const ferramentas = modelo === HAIKU
-        ? [F_BUSCAR, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_SONNET]
-        : [F_BUSCAR, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_ANALISE];
+        ? [F_BUSCAR, F_ALERTAS, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, F_SONNET]
+        : [F_BUSCAR, F_ALERTAS, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, F_ANALISE];
       ferramentas[ferramentas.length - 1] = { ...ferramentas[ferramentas.length - 1], cache_control: { type: "ephemeral" } };
       const system = [{ type: "text", text: instrucoes(modelo), cache_control: { type: "ephemeral" } }];
       const resp = await chamarClaude(env, modelo, system, ferramentas, mensagens);
@@ -803,11 +866,14 @@ async function tratarMensagem(env, msg, texto) {
       else if (u.name === "propor_mudanca") proposta = validarMudanca(u.input || {}, indice, pessoa, hoje);
       else if (u.name === "propor_criacao") proposta = validarCriacao(u.input || {}, indice, pessoa, nomesConhecidos);
       else if (u.name === "propor_members") proposta = validarMembers(u.input || {}, members, pessoa, todosPaises);
+      else if (u.name === "propor_contexto") proposta = validarContexto(u.input || {}, indice, pessoa);
+      else if (u.name === "resumo_alertas") resultado = resumoAlertas(empresas, indice, pessoa, hoje);
       else resultado = "Ferramenta desconhecida.";
 
       if (proposta && !proposta.erro) {
         await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: proposta.acao, resumo: proposta.resumo }] });
-        await responder((textoClaude ? textoClaude + "\n\n" : "") + proposta.resumo + "\n\nConfirma? Responda *sim* ou *não*.");
+        const intro = textoClaude.replace(/^(pronto|feito|fiz|atualizei|mudei|anotei|registrei)\b[!.,]*\s*/i, "").trim();
+        await responder((intro ? intro + "\n\n" : "") + proposta.resumo + "\n\nConfirma? Responda *sim* ou *não*.");
         return;
       }
       mensagens.push({ role: "assistant", content: resp.content });
@@ -879,4 +945,4 @@ export default {
 
 // Exportado só pros testes.
 export const _teste = { ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
-  validarMudanca, validarCriacao, validarMembers, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
+  validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
