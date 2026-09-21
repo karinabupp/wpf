@@ -1,7 +1,7 @@
 /**
  * Agente de Gestão WPF — ponte do Gmail pro robô do WhatsApp.
  *
- * De hora em hora, olha a caixa PRINCIPAL e manda pro robô:
+ * De hora em hora, olha a caixa de entrada e manda pro robô:
  *   - e-mails NOVOS (a partir de quando o script foi ligado);
  *   - conversas paradas SEM RESPOSTA há 3 dias úteis (a última mensagem
  *     não é sua), uma vez cada.
@@ -67,7 +67,7 @@ function verificarEmails() {
   const emails = [];
 
   // 1) Novos desde a última olhada
-  GmailApp.search("in:inbox category:primary -from:me after:" + (desde - 60), 0, 50).forEach(th => {
+  GmailApp.search("in:inbox -from:me after:" + (desde - 60), 0, 50).forEach(th => {
     th.getMessages().forEach(m => {
       if (Math.floor(m.getDate().getTime() / 1000) <= desde) return;
       if (eu && (m.getFrom() || "").toLowerCase().indexOf(eu) !== -1) return;
@@ -78,7 +78,7 @@ function verificarEmails() {
 
   // 2) Parados sem resposta (só conversas que chegaram depois de ligar)
   const vistos = JSON.parse(p.getProperty("SEM_RESPOSTA") || "[]");
-  GmailApp.search("in:inbox category:primary -from:me older_than:3d newer_than:30d", 0, 40).forEach(th => {
+  GmailApp.search("in:inbox -from:me older_than:3d newer_than:30d", 0, 40).forEach(th => {
     if (vistos.indexOf(th.getId()) !== -1) return;
     const msgs = th.getMessages();
     const ult = msgs[msgs.length - 1];
