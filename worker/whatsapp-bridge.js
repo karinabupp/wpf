@@ -751,6 +751,10 @@ const F_CONTEXTO = {
     texto: { type: "string", description: "o que escrever, frase curta e objetiva" },
     modo: { type: "string", enum: ["acrescentar", "substituir"], description: "padrão: acrescentar" } }, required: ["linha", "texto"] }
 };
+const F_REUNIOES = {
+  name: "buscar_reunioes", description: "Busca nas reuniões gravadas pelo Read AI (resumo e itens de ação), a partir de quando o robô foi conectado. Use pra perguntas sobre o que foi combinado/decidido em reunião.",
+  input_schema: { type: "object", properties: { texto: { type: "string", description: "palavras do assunto; vazio = reuniões mais recentes" } } }
+};
 const F_ALERTAS = {
   name: "resumo_alertas", description: "Panorama rápido: o que está Late, em Deadline ou vence em 7 dias (pra admin, de todo mundo; pros outros, só o deles). Use SÓ quando a pessoa pedir um resumo / como estão as coisas.",
   input_schema: { type: "object", properties: {} }
@@ -781,6 +785,7 @@ Como conversar:
 Mudanças:
 - Pra mudar ou criar, chame propor_mudanca, propor_criacao, propor_members ou propor_contexto. Uma proposta por vez.
 - Você NUNCA grava e NUNCA diz que já mudou ("pronto", "feito", "atualizei" são proibidos antes do sim). O sistema mostra o resumo e pergunta "Confirma?" sozinho; junto da ferramenta escreva no máximo uma frase curta tipo "Posso deixar assim:", sem pedir confirmação.
+- Sugestões vindas de reunião (a Karina respondeu "Criar tarefa", "Criar 1"… a uma mensagem sobre itens de reunião): ache o lugar certo com buscar e use propor_criacao; se não houver lugar óbvio, pergunte onde. "Já existe" / "Ignorar": só confirme em uma linha.
 - Contexto: só Meta e Projeto têm. Quando a pessoa contar algo relevante sobre uma Meta/Projeto (decisão, parceiro, motivo, prazo combinado) que não está no contexto, ofereça registrar com propor_contexto.
 - Tasks: status que dá pra escolher são Not Started, In Progress, Done, On Hold, Cancelled (Late e Deadline são automáticos pelas datas). Linhas [agrupa] têm status e datas calculados: mude as de baixo. Não existe apagar (só pela Dash). Pra criar, escolha o lugar certo na hierarquia; se não houver lugar óbvio, pergunte antes. Meta nova só se a pessoa pedir ou concordar.
 - Members 2: status de cada quadro (os do próprio quadro), tipo de membro Observador/Afiliado só com o último status (Membro), partner, e colunas da planilha. O quadro Avisos Gerais tem status calculado. Países com o nome em inglês, como no mapa.
@@ -873,11 +878,13 @@ async function sincronizarAvisos(env, tel, itens) {
   const novas = itens.filter(i => !conhecidas.has(i.chave));
   if (novas.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
     body: novas.map(i => ({ telefone: tel, chave: i.chave, descricao: i.descricao })) });
-  const vencidas = existentes.filter(e => !e.avisado_em && !atuais.has(e.chave));
+  // Avisos que não vêm da detecção da Dash (reunião, sistema) não vencem aqui.
+  const externo = c => /^(reuniao|sistema|email)\|/.test(c);
+  const vencidas = existentes.filter(e => !e.avisado_em && !atuais.has(e.chave) && !externo(e.chave));
   if (vencidas.length) await sb(env, `${TAB_AVISOS}?id=in.(${vencidas.map(v => v.id).join(",")})`, { method: "DELETE", prefer: "return=minimal" });
   // descrição atualizada (datas/status podem ter mudado desde a detecção)
   const porChave = Object.fromEntries(itens.map(i => [i.chave, i.descricao]));
-  return existentes.filter(e => !e.avisado_em && atuais.has(e.chave)).map(e => ({ ...e, descricao: porChave[e.chave] }))
+  return existentes.filter(e => !e.avisado_em && (atuais.has(e.chave) || externo(e.chave))).map(e => ({ ...e, descricao: porChave[e.chave] || e.descricao }))
     .concat(novas.map(n => ({ chave: n.chave, descricao: n.descricao })));
 }
 
@@ -896,6 +903,8 @@ async function escreverAvisos(env, pessoa, pendentes, hoje) {
 - Português do Brasil, tom de colega prestativo, direto. Fale no nível do entregável/projeto; cite datas.
 - Uma mensagem só. Só se forem muitos assuntos ou assuntos bem diferentes e complexos, divida em até 3 mensagens, separadas por uma linha contendo apenas ---. Cada mensagem até ~8 linhas.
 - Termine cada mensagem com UMA pergunta de acompanhamento e sugira respostas na última linha assim: [[opções: Já comecei | Ainda não | Adiar]] (até 3 opções de até 20 caracteres, ou até 10 de até 24).
+- Assuntos de reunião ("Reunião ...: ... Não achei na Tasks") são sugestões pra Karina decidir: pergunte se quer criar. Um item: [[opções: Criar tarefa | Já existe | Ignorar]]. Vários: numere e ofereça, por ex., [[opções: Criar 1 | Criar 2 | Criar todos | Ignorar]].
+- Assunto "sistema" (ex. reconectar o Read AI): repasse o link exatamente como veio.
 - Use só o que está na lista. Não invente nada. Não cite apelidos (WPF-123456). Não diga que mudou nada na Dash.` }];
   const lista = pendentes.map(p => "• " + p.descricao).join("\n");
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -997,6 +1006,224 @@ async function rodadaProativa(env, cron, agoraMs) {
     const fechando = fechaEm - agoraMs <= RESGATE_JANELA_MS;
     if (fechando && conta("checkin") < MAX_CHECKINS_DIA && agoraMs - Math.max(ultimaProativa, ultimaIn) > PAUSA_RESGATE_MS) await checkin();
   }
+}
+
+// ─── Read AI (reuniões) ──────────────────────────────────────────────────
+// API pública do Read AI (open beta, liberada em todos os planos). OAuth 2.1:
+// a Karina autoriza UMA vez pela página /readai/conectar (link com código de
+// convite de uso único, gerado no Supabase). O robô guarda o refresh token
+// em wpf_agente_config e renova sozinho (o token gira a cada uso). De hora
+// em hora busca reuniões que COMEÇARAM depois da conexão (não lê o passado),
+// guarda resumo e itens de ação em wpf_agente_reunioes e manda o Haiku
+// comparar os itens com a Tasks. O que faltar vira aviso só pra admin.
+const TAB_CONFIG = "wpf_agente_config";
+const TAB_REUNIOES = "wpf_agente_reunioes";
+const READAI_API = "https://api.read.ai";
+const READAI_TOKEN_URL = "https://authn.read.ai/oauth2/token";
+const READAI_REDIRECT = "https://api.read.ai/oauth/ui";
+const READAI_ESPERA_RELATORIO_MS = 6 * 3600000; // depois disso, reunião sem relatório é marcada e esquecida
+
+async function cfgGet(env, chave) {
+  const r = await sb(env, `${TAB_CONFIG}?select=valor&chave=eq.${chave}`);
+  return r.ok && r.dados && r.dados[0] ? r.dados[0].valor : null;
+}
+async function cfgSet(env, chave, valor) {
+  await sb(env, TAB_CONFIG, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ chave, valor, atualizado_em: new Date().toISOString() }] });
+}
+function codigoAleatorio() {
+  const b = new Uint8Array(18); crypto.getRandomValues(b);
+  return Array.from(b, x => x.toString(16).padStart(2, "0")).join("");
+}
+const escHtml = v => String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+function paginaHtml(titulo, corpo) {
+  return new Response(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escHtml(titulo)}</title>
+<style>body{font-family:system-ui,sans-serif;max-width:640px;margin:32px auto;padding:0 16px;line-height:1.5;color:#222}code,textarea,input{font-family:ui-monospace,monospace}
+.campo{display:flex;gap:8px;margin:6px 0 14px}.campo input{flex:1;padding:8px;border:1px solid #bbb;border-radius:6px}button{padding:8px 14px;border-radius:6px;border:0;background:#4b3fd1;color:#fff;cursor:pointer}
+textarea{width:100%;min-height:140px;padding:8px;border:1px solid #bbb;border-radius:6px}ol li{margin-bottom:8px}.ok{color:#1e7a36}.erro{color:#a3312a}</style></head><body><h2>${escHtml(titulo)}</h2>${corpo}</body></html>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+}
+async function conviteValido(env, c) {
+  const conv = await cfgGet(env, "readai_convite");
+  return !!(conv && c && conv.codigo === c && Date.parse(conv.expira) > Date.now());
+}
+async function clienteReadAI(env) {
+  let cli = await cfgGet(env, "readai_cliente");
+  if (cli && cli.client_id) return cli;
+  const res = await fetch(`${READAI_API}/oauth/register`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ client_name: "Agente de Gestao WPF", redirect_uris: [READAI_REDIRECT], grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"], scope: "openid email offline_access profile meeting:read mcp:execute", token_endpoint_auth_method: "client_secret_basic" })
+  });
+  const corpo = await res.json().catch(() => null);
+  if (!res.ok || !corpo || !corpo.client_id) throw new Error("registro no Read AI falhou: " + res.status);
+  cli = { client_id: corpo.client_id, client_secret: corpo.client_secret };
+  await cfgSet(env, "readai_cliente", cli);
+  return cli;
+}
+// Tira code e code_verifier do comando que a página do Read AI manda copiar.
+function extrairCodigo(comando) {
+  const t = String(comando || "");
+  const code = (t.match(/[?&\s"']code=([^"'\s&\\]+)/) || [])[1];
+  const verifier = (t.match(/code_verifier=([^"'\s&\\]+)/) || [])[1];
+  return code && verifier ? { code, verifier } : null;
+}
+async function paginaConectar(env, request, url) {
+  const c = url.searchParams.get("c") || "";
+  if (request.method === "GET") {
+    if (!(await conviteValido(env, c))) return paginaHtml("Link vencido", `<p class="erro">Este link não vale mais. Peça um novo na sessão com o Claude.</p>`);
+    let cli;
+    try { cli = await clienteReadAI(env); } catch (e) { return paginaHtml("Erro", `<p class="erro">${escHtml(e.message)}</p>`); }
+    const copia = (id, v) => `<div class="campo"><input id="${id}" value="${escHtml(v)}" readonly><button type="button" onclick="navigator.clipboard.writeText(document.getElementById('${id}').value);this.textContent='Copiado ✓'">Copiar</button></div>`;
+    return paginaHtml("Conectar o Read AI ao Agente de Gestão", `
+<ol>
+<li>Abra <a href="${READAI_REDIRECT}" target="_blank" rel="noopener">api.read.ai/oauth/ui</a> (abre em outra aba).</li>
+<li>Cole estes dois valores lá:<br><b>Client ID</b>${copia("cid", cli.client_id)}<b>Client Secret</b>${copia("csec", cli.client_secret)}
+O <i>Redirect URI</i> já vem preenchido — não mexa. Clique em <b>Start OAuth Flow</b>.</li>
+<li>Entre na sua conta do Read AI (se pedir) e clique em <b>Allow Access</b>.</li>
+<li>Na tela do código, clique em <b>Copy Command</b>.</li>
+<li>Volte aqui, cole no campo abaixo e clique em <b>Conectar</b>.</li>
+</ol>
+<form method="post"><input type="hidden" name="c" value="${escHtml(c)}"><textarea name="comando" placeholder="Cole aqui o comando copiado (começa com curl …)"></textarea><p><button type="submit">Conectar</button></p></form>`);
+  }
+  const form = await request.formData();
+  const cf = String(form.get("c") || "");
+  if (!(await conviteValido(env, cf))) return paginaHtml("Link vencido", `<p class="erro">Este link não vale mais. Peça um novo na sessão com o Claude.</p>`);
+  const cod = extrairCodigo(form.get("comando"));
+  if (!cod) return paginaHtml("Não reconheci o comando", `<p class="erro">Não achei o código no texto colado. Volte, clique em <b>Copy Command</b> de novo e cole o texto inteiro.</p>`);
+  const cli = await clienteReadAI(env);
+  const res = await fetch(READAI_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "Authorization": "Basic " + btoa(`${cli.client_id}:${cli.client_secret}`) },
+    body: new URLSearchParams({ grant_type: "authorization_code", code: cod.code, redirect_uri: READAI_REDIRECT, code_verifier: cod.verifier }).toString()
+  });
+  const tok = await res.json().catch(() => null);
+  if (!res.ok || !tok || !tok.refresh_token) return paginaHtml("Não conectou", `<p class="erro">O Read AI recusou o código (${res.status}). Os códigos vencem rápido: refaça do passo 1.</p>`);
+  await cfgSet(env, "readai_tokens", { access_token: tok.access_token, refresh_token: tok.refresh_token, expira: Date.now() + (tok.expires_in || 600) * 1000 });
+  if (!(await cfgGet(env, "readai_desde"))) await cfgSet(env, "readai_desde", { ms: Date.now() });
+  await cfgSet(env, "readai_convite", null);
+  await cfgSet(env, "readai_status", { conectado: true, em: new Date().toISOString() });
+  return paginaHtml("Read AI conectado ✓", `<p class="ok">Pronto! O robô vai olhar as reuniões novas (a partir de agora) de hora em hora. Pode fechar esta página.</p>`);
+}
+
+// Access token válido (renova com o refresh token, que gira a cada uso).
+async function tokenReadAI(env) {
+  const t = await cfgGet(env, "readai_tokens");
+  if (!t || !t.refresh_token) return null;
+  if (t.access_token && t.expira - Date.now() > 60000) return t.access_token;
+  const cli = await cfgGet(env, "readai_cliente");
+  const res = await fetch(READAI_TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "Authorization": "Basic " + btoa(`${cli.client_id}:${cli.client_secret}`) },
+    body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: t.refresh_token }).toString()
+  });
+  const tok = await res.json().catch(() => null);
+  if (res.ok && tok && tok.access_token) {
+    await cfgSet(env, "readai_tokens", { access_token: tok.access_token, refresh_token: tok.refresh_token || t.refresh_token, expira: Date.now() + (tok.expires_in || 600) * 1000 });
+    return tok.access_token;
+  }
+  if (res.status === 400 || res.status === 401) await readaiDesconectado(env);
+  return null;
+}
+// A cadeia de tokens quebrou: avisa a Karina uma vez, com um link novo.
+async function readaiDesconectado(env) {
+  await cfgSet(env, "readai_tokens", null);
+  const codigo = codigoAleatorio();
+  await cfgSet(env, "readai_convite", { codigo, expira: new Date(Date.now() + 7 * 86400000).toISOString() });
+  await cfgSet(env, "readai_status", { conectado: false, em: new Date().toISOString() });
+  const base = env.URL_PUBLICA || "https://wpf-whatsapp-bridge.worldpokerfederation.workers.dev";
+  const rp = await sb(env, `${TAB_PESSOAS}?select=telefone&admin=eq.true`);
+  for (const p of (rp.ok && rp.dados) || []) {
+    await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: [{
+      telefone: p.telefone, chave: `sistema|readai_desconectado|${hojeSP()}`,
+      descricao: `Sistema: o robô perdeu o acesso ao Read AI e parou de ler as reuniões. Pra reconectar (2 minutos): ${base}/readai/conectar?c=${codigo}` }] });
+  }
+}
+
+const PALAVRAS_VAZIAS = new Set(["para", "pelo", "pela", "com", "das", "dos", "uma", "que", "sobre", "entre", "como", "mais", "fazer", "enviar", "definir", "participante", "sala", "conferencia", "reuniao"]);
+function candidatosDoItem(item, indice) {
+  const palavras = normalizar(item).split(" ").filter(w => w.length >= 4 && !PALAVRAS_VAZIAS.has(w));
+  if (!palavras.length) return [];
+  return Object.values(indice.porId).map(info => {
+    const alvo = normalizar(info.no.name + " " + info.caminho.slice(-2).join(" "));
+    return { info, n: palavras.filter(w => alvo.includes(w)).length };
+  }).filter(x => x.n >= 2 || (x.n >= 1 && palavras.length <= 2)).sort((a, b) => b.n - a.n).slice(0, 3).map(x => x.info);
+}
+
+async function compararReuniao(env, reuniao, indice) {
+  const itens = (reuniao.itens || []).slice(0, 40);
+  if (!itens.length) return { faltando: [], uso: {} };
+  const blocos = itens.map((it, i) => {
+    const cands = candidatosDoItem(it, indice);
+    return `${i + 1}. ${it}\n   Candidatos na Tasks: ${cands.length ? cands.map(c => linhaTexto(c, true)).join(" || ") : "nenhum"}`;
+  }).join("\n");
+  const system = [{ type: "text", text: `Você compara os itens de ação de uma reunião com o quadro de tarefas (Tasks) da equipe. Hoje: ${hojeSP()}.
+Pra cada item, decida se ele JÁ está coberto por algum candidato (mesma coisa, mesmo que com outras palavras) ou se FALTA na Tasks.
+Só marque como faltando o que for tarefa de verdade e com peso: pede entrega, decisão, contato, proposta, prazo. Ignore itens triviais, genéricos, repetidos ou vagos demais ("sentar pra conversar", "pensar sobre").
+Responda SÓ com JSON, sem texto em volta: {"faltando":[{"i":<número do item>,"resumo":"<tarefa em até 90 caracteres>","responsavel":"<nome ou null>","onde":"<apelido do candidato mais próximo pra servir de lugar, ou null>"}]}` }];
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: HAIKU, max_tokens: 1200, system, messages: [{ role: "user", content: `Reunião "${reuniao.titulo}" (${String(reuniao.inicio).slice(0, 10)}).\nResumo: ${corta(reuniao.resumo || "", 1200)}\n\nItens de ação:\n${blocos}` }] })
+  });
+  const corpo = await res.json().catch(() => null);
+  if (!res.ok) throw new Error("Claude " + res.status);
+  const texto = (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/```(json)?/g, "").trim();
+  let faltando = [];
+  try { faltando = (JSON.parse(texto.slice(texto.indexOf("{"), texto.lastIndexOf("}") + 1)).faltando || []).filter(f => f && f.resumo); } catch (e) { faltando = []; }
+  return { faltando, uso: corpo.usage || {} };
+}
+
+async function readaiRodada(env) {
+  const desde = await cfgGet(env, "readai_desde");
+  if (!desde || !desde.ms) return;
+  const access = await tokenReadAI(env);
+  if (!access) return;
+  const res = await fetch(`${READAI_API}/v1/meetings?limit=10&start_time_ms.gte=${desde.ms}&expand[]=summary&expand[]=action_items`, {
+    headers: { "Authorization": `Bearer ${access}`, "Accept": "application/json" }
+  });
+  if (!res.ok) { console.log("readai lista:", res.status); if (res.status === 401) await readaiDesconectado(env); return; }
+  const lista = ((await res.json().catch(() => null)) || {}).data || [];
+  const terminadas = lista.filter(m => m && m.id && m.end_time_ms).sort((a, b) => a.start_time_ms - b.start_time_ms);
+  if (!terminadas.length) return;
+  const rj = await sb(env, `${TAB_REUNIOES}?select=id&id=in.(${terminadas.map(m => m.id).join(",")})`);
+  const ja = new Set(((rj.ok && rj.dados) || []).map(r => r.id));
+  let indice = null;
+  const admins = (((await sb(env, `${TAB_PESSOAS}?select=telefone&admin=eq.true`)).dados) || []).map(p => p.telefone);
+  for (const m of terminadas) {
+    if (ja.has(m.id)) continue;
+    const itens = Array.isArray(m.action_items) ? m.action_items.map(a => typeof a === "string" ? a : (a && a.text) || "").filter(Boolean) : [];
+    const semRelatorio = !m.summary && !itens.length;
+    if (semRelatorio && Date.now() - m.end_time_ms < READAI_ESPERA_RELATORIO_MS) continue; // relatório ainda sendo gerado
+    const reuniao = {
+      id: m.id, titulo: m.title || "Reunião", inicio: new Date(m.start_time_ms).toISOString(), fim: new Date(m.end_time_ms).toISOString(),
+      participantes: (m.participants || []).filter(p => p && p.attended !== false).map(p => ({ nome: p.name || null, email: p.email || null })),
+      resumo: m.summary || null, itens, relatorio_url: m.report_url || null, status: semRelatorio ? "sem_relatorio" : "ok"
+    };
+    let faltando = [], uso = {};
+    if (!semRelatorio && itens.length) {
+      if (!indice) indice = indexar((await carregarDash(env)).empresas);
+      try { ({ faltando, uso } = await compararReuniao(env, reuniao, indice)); } catch (e) { console.log("comparar reunião:", e.message); continue; }
+    }
+    await sb(env, TAB_REUNIOES, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: [{ ...reuniao, faltando,
+      tokens_entrada: (uso.input_tokens || 0) + (uso.cache_creation_input_tokens || 0) || null, tokens_saida: uso.output_tokens || null }] });
+    const dataBR = br(reuniao.inicio.slice(0, 10));
+    const linhas = faltando.map(f => {
+      const onde = f.onde && indice && indice.porApelido[String(f.onde).toUpperCase()];
+      return { chave: `reuniao|${m.id}|${f.i}`, descricao: `Reunião "${reuniao.titulo}" (${dataBR}): "${corta(f.resumo, 120)}"${f.responsavel ? ` — responsável: ${f.responsavel}` : ""}${onde ? ` — lugar provável: ${caminhoTexto(onde)}` : ""}. Não achei na Tasks.` };
+    });
+    for (const tel of admins) if (linhas.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: linhas.map(l => ({ telefone: tel, ...l })) });
+  }
+}
+
+// Busca nas reuniões guardadas (ferramenta do robô).
+async function buscarReunioes(env, entrada, pessoa) {
+  const r = await sb(env, `${TAB_REUNIOES}?select=titulo,inicio,participantes,resumo,itens,status&order=inicio.desc&limit=30`);
+  let lista = (r.ok && r.dados) || [];
+  if (!pessoa.admin) lista = lista.filter(x => (x.participantes || []).some(p => p.email && pessoa.email && p.email.toLowerCase() === pessoa.email.toLowerCase()));
+  const palavras = normalizar(entrada.texto || "").split(" ").filter(w => w.length >= 3);
+  if (palavras.length) lista = lista.filter(x => { const t = normalizar([x.titulo, x.resumo, ...(x.itens || [])].join(" ")); return palavras.every(w => t.includes(w)); });
+  if (!lista.length) return "Nenhuma reunião guardada com isso (o robô só guarda reuniões a partir da conexão com o Read AI).";
+  return lista.slice(0, 5).map(x => `Reunião "${x.titulo}" em ${br(String(x.inicio).slice(0, 10))} (${(x.participantes || []).map(p => p.nome).filter(Boolean).join(", ")})\nResumo: ${corta(x.resumo || "sem relatório", 700)}\nItens de ação: ${(x.itens || []).slice(0, 15).map(i => "• " + corta(i, 140)).join("\n")}`).join("\n\n");
 }
 
 // ─── Tratamento de uma mensagem ──────────────────────────────────────────
@@ -1104,8 +1331,8 @@ async function tratarMensagem(env, msg, textoRecebido) {
   try {
     for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
       const ferramentas = modelo === HAIKU
-        ? [F_BUSCAR, F_ALERTAS, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, F_SONNET]
-        : [F_BUSCAR, F_ALERTAS, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, F_ANALISE];
+        ? [F_BUSCAR, F_ALERTAS, F_REUNIOES, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, F_SONNET]
+        : [F_BUSCAR, F_ALERTAS, F_REUNIOES, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, F_ANALISE];
       ferramentas[ferramentas.length - 1] = { ...ferramentas[ferramentas.length - 1], cache_control: { type: "ephemeral" } };
       const system = [{ type: "text", text: instrucoes(modelo), cache_control: { type: "ephemeral" } }];
       const resp = await chamarClaude(env, modelo, system, ferramentas, mensagens);
@@ -1145,6 +1372,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
       else if (u.name === "propor_members") proposta = validarMembers(u.input || {}, members, pessoa, todosPaises);
       else if (u.name === "propor_contexto") proposta = validarContexto(u.input || {}, indice, pessoa);
       else if (u.name === "resumo_alertas") resultado = resumoAlertas(empresas, indice, pessoa, hoje);
+      else if (u.name === "buscar_reunioes") resultado = await buscarReunioes(env, u.input || {}, pessoa);
       else resultado = "Ferramenta desconhecida.";
 
       if (proposta && !proposta.erro) {
@@ -1169,7 +1397,10 @@ async function tratarMensagem(env, msg, textoRecebido) {
 // ─── Entrada ─────────────────────────────────────────────────────────────
 export default {
   async scheduled(event, env, ctx) {
-    const trabalho = rodadaProativa(env, event.cron).catch(e => console.log("erro na rodada:", e && e.message));
+    const trabalho = (async () => {
+      if (event.cron !== CRON_HORA_FIXA) { try { await readaiRodada(env); } catch (e) { console.log("erro no Read AI:", e && e.message); } }
+      await rodadaProativa(env, event.cron);
+    })().catch(e => console.log("erro na rodada:", e && e.message));
     if (ctx && ctx.waitUntil) ctx.waitUntil(trabalho); else await trabalho;
   },
 
@@ -1210,6 +1441,11 @@ export default {
       return new Response("ok", { status: 200 });
     }
 
+    if (url.pathname === "/readai/conectar" && (request.method === "GET" || request.method === "POST")) {
+      try { return await paginaConectar(env, request, url); }
+      catch (e) { console.log("readai conectar:", e && e.message); return paginaHtml("Erro", `<p class="erro">Algo deu errado. Tente de novo em instantes.</p>`); }
+    }
+
     if (url.pathname === "/enviar" && request.method === "POST") {
       if (request.headers.get("x-agente-token") !== env.WHATSAPP_VERIFY_TOKEN) return new Response("forbidden", { status: 403 });
       let dados = null;
@@ -1226,5 +1462,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
