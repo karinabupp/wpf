@@ -50,6 +50,24 @@ const MAX_LINHAS_ALERTA = 25;
 const MAX_RESULTADOS_BUSCA = 25;
 const TIPOS_COM_CONTEXTO = { meta: true, projeto: true };
 const TIPOS_GRANDES = { entregavel: true, projeto: true, meta: true };
+const TAB_AVISOS = "wpf_agente_avisos";
+
+// ─── Avisos por conta própria (decidido pela Karina em 21/09) ────────────
+// Não existe mensagem diária: o robô só escreve quando há assunto que pede
+// ação. Às 9h25 (dias úteis) ele olha a Dash; se a janela de 24h da pessoa
+// estiver aberta, manda a mensagem completa (grátis no WhatsApp); se
+// estiver fechada, manda o template curto com o botão "Ver agora" (pago),
+// e o detalhe vai quando a pessoa tocar. De hora em hora ele também confere:
+// se ainda há assunto pendente e a janela da pessoa vai fechar na próxima
+// hora, manda antes de fechar. No máximo 2 mensagens por conta própria por
+// dia. Só pra quem tem proativo = true em wpf_agente_pessoas.
+const CRON_HORA_FIXA = "25 12 * * 1-5";        // 9h25 em São Paulo (UTC-3)
+const TEMPLATE_AVISO = "aviso_dash";           // criado pela Karina no WhatsApp Manager
+const TEMPLATE_IDIOMA = "pt_BR";
+const MIN_TAREFAS_ABERTAS = 3;                 // régua do entregável em Deadline
+const MAX_PROATIVAS_DIA = 2;
+const MARGEM_JANELA_MS = 10 * 60000;           // não arrisca mandar no último minuto
+const RESGATE_JANELA_MS = 75 * 60000;          // "vai fechar logo"
 
 const STATUS_MANUAIS = ["Not Started", "In Progress", "Done", "On Hold", "Cancelled"];
 const TIPOS = ["objetivo", "meta", "projeto", "entregavel", "tarefa"];
@@ -805,6 +823,153 @@ function resumoSimples(indice, pessoa, hoje) {
   return topo + "\nEnquanto isso, o que vence até " + br(lim) + ":\n" + itens.slice(0, 10).join("\n") + (itens.length > 10 ? `\n…e mais ${itens.length - 10}.` : "");
 }
 
+// ─── Avisos: detectar, guardar, mandar ───────────────────────────────────
+function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
+  const nome = pessoa.nome_tasks, lim3 = somaDias(hoje, 3), itens = [];
+  const add = (chave, info, rotulo) => itens.push({ chave, descricao: `${rotulo}: ${linhaTexto(info, true, 200)}` });
+  const abertas = no => { let n = 0; (function andar(l) { l.forEach(f => { if (f.rowType === "tarefa" && !temFilhos(f) && !["Done", "Cancelled"].includes(f.status)) n++; andar(f.subtasks || []); }); })(no.subtasks || []); return n; };
+  const temTarefaMinhaAberta = no => algumAbaixo(no, f => !temFilhos(f) && ehDono(f, nome) && !["Done", "Cancelled"].includes(f.status));
+  Object.values(indice.porId).forEach(info => {
+    const no = info.no, base = `${info.empresa.secao}|${no.id}|`;
+    if (["Done", "Cancelled"].includes(no.status)) return;
+    if (!temFilhos(no) && (no.rowType === "entregavel" || no.rowType === "tarefa") && no.status === "Late" && ehDono(no, nome))
+      add(base + "late", info, "Sua linha está atrasada");
+    if (no.rowType === "entregavel" && temFilhos(no) && no.endDate && no.endDate >= hoje && no.endDate <= lim3) {
+      const n = abertas(no);
+      if (n >= MIN_TAREFAS_ABERTAS && (temTarefaMinhaAberta(no) || pessoa.admin)) add(base + "deadline_aberta", info, `Entregável vence em até 3 dias com ${n} tarefas abertas`);
+    }
+    if (pessoa.admin && TIPOS_GRANDES[no.rowType] && (no.status === "Late" || no.status === "Deadline") && !ehDono(no, nome))
+      add(base + (no.status === "Late" ? "grande_late" : "grande_deadline"), info, `${TIPO_LABEL[no.rowType]} de ${(no.assignees || []).join(", ") || "ninguém"} está ${no.status}`);
+    if (snap && ehDono(no, nome)) {
+      const antes = ((snap.tasks || {})[info.empresa.secao] || {})[no.id];
+      if (!antes || !String(antes.a || "").split(", ").includes(nome)) add(base + "atribuida", info, "Linha nova pra você");
+    }
+  });
+  return itens;
+}
+
+// Guarda o que é novo e devolve o que ainda não foi avisado. Na primeira
+// vez de cada pessoa, tudo o que já existe vira "base" (conta a partir de
+// agora). Pendente que deixou de valer (resolveram antes do aviso) sai.
+async function sincronizarAvisos(env, tel, itens) {
+  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao,avisado_em&telefone=eq.${tel}`);
+  const existentes = r.ok && Array.isArray(r.dados) ? r.dados : [];
+  const agora = new Date().toISOString();
+  if (!existentes.length) {
+    if (itens.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
+      body: itens.map(i => ({ telefone: tel, chave: i.chave, descricao: i.descricao, avisado_em: agora, via: "base" })) });
+    else await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: [{ telefone: tel, chave: "_base", avisado_em: agora, via: "base" }] });
+    return [];
+  }
+  const conhecidas = new Set(existentes.map(e => e.chave)), atuais = new Set(itens.map(i => i.chave));
+  const novas = itens.filter(i => !conhecidas.has(i.chave));
+  if (novas.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
+    body: novas.map(i => ({ telefone: tel, chave: i.chave, descricao: i.descricao })) });
+  const vencidas = existentes.filter(e => !e.avisado_em && !atuais.has(e.chave));
+  if (vencidas.length) await sb(env, `${TAB_AVISOS}?id=in.(${vencidas.map(v => v.id).join(",")})`, { method: "DELETE", prefer: "return=minimal" });
+  // descrição atualizada (datas/status podem ter mudado desde a detecção)
+  const porChave = Object.fromEntries(itens.map(i => [i.chave, i.descricao]));
+  return existentes.filter(e => !e.avisado_em && atuais.has(e.chave)).map(e => ({ ...e, descricao: porChave[e.chave] }))
+    .concat(novas.map(n => ({ chave: n.chave, descricao: n.descricao })));
+}
+
+async function pendentesDe(env, tel) {
+  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao&telefone=eq.${tel}&avisado_em=is.null`);
+  return r.ok && Array.isArray(r.dados) ? r.dados : [];
+}
+async function marcarAvisados(env, tel, via) {
+  await sb(env, `${TAB_AVISOS}?telefone=eq.${tel}&avisado_em=is.null`, { method: "PATCH", prefer: "return=minimal", body: { avisado_em: new Date().toISOString(), via } });
+}
+
+// Haiku escreve o aviso. Uma mensagem; até 3 se o assunto for muito ou
+// complexo (separadas por uma linha com ---). Pergunta no fim, com opções.
+async function escreverAvisos(env, pessoa, pendentes, hoje) {
+  const system = [{ type: "text", text: `Você é o Agente de Gestão da Dash da Karina, escrevendo POR CONTA PRÓPRIA no WhatsApp pra ${pessoa.nome_tasks} sobre assuntos que pedem ação. Hoje: ${diaSemanaSP()}, ${hoje}.
+- Português do Brasil, tom de colega prestativo, direto. Fale no nível do entregável/projeto; cite datas.
+- Uma mensagem só. Só se forem muitos assuntos ou assuntos bem diferentes e complexos, divida em até 3 mensagens, separadas por uma linha contendo apenas ---. Cada mensagem até ~8 linhas.
+- Termine cada mensagem com UMA pergunta de acompanhamento e sugira respostas na última linha assim: [[opções: Já comecei | Ainda não | Adiar]] (até 3 opções de até 20 caracteres, ou até 10 de até 24).
+- Use só o que está na lista. Não invente nada. Não cite apelidos (WPF-123456). Não diga que mudou nada na Dash.` }];
+  const lista = pendentes.map(p => "• " + p.descricao).join("\n");
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: HAIKU, max_tokens: MAX_TOKENS, system, messages: [{ role: "user", content: `Assuntos pra avisar:\n${lista}` }] })
+  });
+  const corpo = await res.json().catch(() => null);
+  if (!res.ok) throw new Error("Claude " + res.status);
+  const texto = (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
+  const partes = texto.split(/\n\s*-{3,}\s*\n/).map(t => t.trim()).filter(Boolean).slice(0, 3);
+  const u = corpo.usage || {};
+  return { partes, consumo: { modelo: HAIKU, tokens_entrada: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0), tokens_saida: u.output_tokens || 0, tokens_cache: u.cache_read_input_tokens || 0 } };
+}
+
+async function mandarAvisos(env, pessoa, pendentes, via) {
+  const hoje = hojeSP();
+  let escrito;
+  try { escrito = await escreverAvisos(env, pessoa, pendentes, hoje); }
+  catch (e) {
+    // Sem Claude: manda a lista crua, que é melhor que não avisar.
+    escrito = { partes: ["Oi! Alguns assuntos da Dash pedem sua atenção:\n" + pendentes.map(p => "• " + corta(p.descricao.replace(/\b[A-Z]+-\d+(-\d+)?\s/g, ""), 160)).join("\n")], consumo: {} };
+  }
+  if (!escrito.partes.length) return false;
+  for (let i = 0; i < escrito.partes.length; i++) {
+    const sep = separarOpcoes(escrito.partes[i]);
+    await enviarComOpcoes(env, pessoa.telefone, sep.texto, sep.opcoes, { ...(i === 0 ? escrito.consumo : {}), proativa: true });
+  }
+  await marcarAvisados(env, pessoa.telefone, via);
+  return true;
+}
+
+async function enviarTemplateAviso(env, pessoa, qtd) {
+  const primeiro = String(pessoa.nome_tasks || "").split(" ")[0] || "oi";
+  const assuntos = `${qtd} assunto${qtd === 1 ? "" : "s"}`;
+  const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", to: pessoa.telefone, type: "template",
+      template: { name: TEMPLATE_AVISO, language: { code: TEMPLATE_IDIOMA },
+        components: [{ type: "body", parameters: [{ type: "text", text: primeiro }, { type: "text", text: assuntos }] }] } })
+  });
+  const corpo = await res.json().catch(() => null);
+  if (!res.ok) { console.log("template recusado:", res.status, JSON.stringify(corpo)); return false; }
+  const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
+  await gravarMensagem(env, { wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: pessoa.telefone,
+    msg_type: "template", body: `[aviso] Oi ${primeiro}, tenho ${assuntos} da Dash pra você. [Ver agora]`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, opcoes: ["Ver agora"] });
+  return true;
+}
+
+async function rodadaProativa(env, cron, agoraMs) {
+  agoraMs = agoraMs || Date.now();
+  const horaFixa = cron === CRON_HORA_FIXA;
+  const horaSP = (new Date(agoraMs).getUTCHours() + 21) % 24;
+  if (!horaFixa && (horaSP < 8 || horaSP > 21)) return; // resgate só em horário comercial estendido
+  const rp = await sb(env, `${TAB_PESSOAS}?select=*&proativo=eq.true&recebe_avisos=eq.true`);
+  const pessoas = rp.ok && Array.isArray(rp.dados) ? rp.dados : [];
+  if (!pessoas.length) return;
+  const { empresas } = await carregarDash(env);
+  const indice = indexar(empresas), hoje = hojeSP();
+  for (const pessoa of pessoas) {
+    const tel = pessoa.telefone;
+    const rs = await sb(env, `${TAB_SNAP}?select=dados&telefone=eq.${tel}`);
+    const snap = rs.ok && rs.dados && rs.dados[0] ? rs.dados[0].dados : null;
+    const pendentes = await sincronizarAvisos(env, tel, detectarAvisos(empresas, indice, pessoa, snap, hoje));
+    if (!pendentes.length) continue;
+    const rh = await sb(env, `${TAB_MSG}?select=id,msg_type,created_at&direction=eq.out&to_number=eq.${tel}&proativa=eq.true&created_at=gte.${encodeURIComponent(inicioDoDiaSP())}`);
+    const hojeProativas = rh.ok && Array.isArray(rh.dados) ? rh.dados : [];
+    if (hojeProativas.length >= MAX_PROATIVAS_DIA) continue;
+    const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&order=created_at.desc&limit=1`);
+    const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
+    const fechaEm = ultimaIn + 24 * 3600000;
+    const aberta = fechaEm - agoraMs > MARGEM_JANELA_MS;
+    if (horaFixa) {
+      if (aberta) await mandarAvisos(env, pessoa, pendentes, "janela");
+      else if (!hojeProativas.some(m => m.msg_type === "template")) await enviarTemplateAviso(env, pessoa, pendentes.length);
+    } else if (aberta && fechaEm - agoraMs <= RESGATE_JANELA_MS) {
+      await mandarAvisos(env, pessoa, pendentes, "janela_fechando");
+    }
+  }
+}
+
 // ─── Tratamento de uma mensagem ──────────────────────────────────────────
 async function tratarMensagem(env, msg, textoRecebido) {
   let texto = textoRecebido;
@@ -839,6 +1004,12 @@ async function tratarMensagem(env, msg, textoRecebido) {
     return;
   }
 
+  // Tocou em "Ver agora" do aviso: manda o que está pendente.
+  if (cmd === "ver agora") {
+    const pend = await pendentesDe(env, tel);
+    if (pend.length && await mandarAvisos(env, pessoa, pend, "template")) return;
+  }
+
   // Mudança esperando o "sim"? Resolve em código, sem gastar Claude.
   const rpd = await sb(env, `${TAB_PEND}?select=*&telefone=eq.${tel}&status=eq.aguardando&order=criado_em.desc&limit=1`);
   let pend = rpd.ok && rpd.dados && rpd.dados[0];
@@ -868,6 +1039,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const rs = await sb(env, `${TAB_SNAP}?select=dados,tirado_em&telefone=eq.${tel}`);
   const base = rs.ok && rs.dados && rs.dados[0];
   const mudancas = base ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
+  const avisosPend = pessoa.proativo ? await pendentesDe(env, tel) : [];
 
   const contexto = [
     `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive Members 2)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê Members 2)"}.`,
@@ -875,6 +1047,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
     `Responsáveis válidos: ${[...nomesConhecidos].join(", ")}.`,
     `Empresas: ${empresas.map(e => e.nome).join(", ")}.`,
     mudancas ? `Novidades que pedem ação (desde a última conversa):\n${mudancas}` : "",
+    avisosPend.length ? `Avisos pendentes pra esta pessoa (ainda não mandados; aproveite e comente):\n${avisosPend.map(a => "• " + a.descricao).join("\n")}` : "",
     pendAnterior ? `Havia esta mudança esperando confirmação, e a pessoa respondeu outra coisa, então ela foi descartada:\n${pendAnterior}\nSe a mensagem nova ajusta essa mudança, proponha de novo já ajustada.` : ""
   ].filter(Boolean).join("\n\n");
 
@@ -887,7 +1060,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const uso = { tokens_entrada: 0, tokens_saida: 0, tokens_cache: 0 };
   const somarUso = u => { if (!u) return; uso.tokens_entrada += (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0); uso.tokens_saida += u.output_tokens || 0; uso.tokens_cache += u.cache_read_input_tokens || 0; };
   const consumo = () => ({ modelo, ...uso, analise_geral: analiseFeita });
-  const responder = async (txt, opcoes) => { await enviarComOpcoes(env, tel, txt, opcoes, consumo()); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
+  const responder = async (txt, opcoes) => { await enviarComOpcoes(env, tel, txt, opcoes, consumo()); if (avisosPend.length) await marcarAvisados(env, tel, "conversa"); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
 
   try {
     for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
@@ -956,6 +1129,11 @@ async function tratarMensagem(env, msg, textoRecebido) {
 
 // ─── Entrada ─────────────────────────────────────────────────────────────
 export default {
+  async scheduled(event, env, ctx) {
+    const trabalho = rodadaProativa(env, event.cron).catch(e => console.log("erro na rodada:", e && e.message));
+    if (ctx && ctx.waitUntil) ctx.waitUntil(trabalho); else await trabalho;
+  },
+
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
@@ -1009,5 +1187,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

@@ -7,3 +7,8 @@ main = "whatsapp-bridge.js"
 compatibility_date = "2026-09-01"
 workers_dev = true
 keep_vars = true
+
+# 9h25 em São Paulo nos dias úteis (hora fixa dos avisos) e de hora em hora
+# (resgate: manda antes de a janela de 24h da pessoa fechar).
+[triggers]
+crons = ["25 12 * * 1-5", "5 * * * *"]
