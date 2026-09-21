@@ -153,6 +153,57 @@ async function enviarTexto(env, para, texto, consumo) {
   return { ok: res.ok, id, corpo };
 }
 
+// ─── Opções clicáveis ────────────────────────────────────────────────────
+// Até 3 opções curtas (≤20 caracteres) viram botões; até 10 (≤24) viram
+// lista ("Ver opções"). Se não couber (texto > 1024 ou opção longa), vai
+// como texto com as opções numeradas, e a pessoa responde com o número.
+// Tocar numa opção chega de volta como o texto dela.
+const LIM_BOTAO = 20, LIM_LISTA = 24, LIM_CORPO_INTERATIVO = 1024;
+function formatoOpcoes(texto, opcoes) {
+  const ops = (opcoes || []).map(o => String(o).trim()).filter(Boolean).filter((o, i, a) => a.indexOf(o) === i).slice(0, 10);
+  if (!ops.length) return { tipo: "texto", texto, opcoes: [] };
+  if (texto.length <= LIM_CORPO_INTERATIVO && ops.length <= 3 && ops.every(o => o.length <= LIM_BOTAO)) return { tipo: "botoes", texto, opcoes: ops };
+  if (texto.length <= LIM_CORPO_INTERATIVO && ops.every(o => o.length <= LIM_LISTA)) return { tipo: "lista", texto, opcoes: ops };
+  return { tipo: "numerado", texto: texto + "\n\n" + ops.map((o, i) => `${i + 1}. ${o}`).join("\n") + "\n_(responda com o número)_", opcoes: ops };
+}
+function corpoInterativo(para, f) {
+  const interactive = f.tipo === "botoes"
+    ? { type: "button", body: { text: f.texto }, action: { buttons: f.opcoes.map((o, i) => ({ type: "reply", reply: { id: "op_" + (i + 1), title: o } })) } }
+    : { type: "list", body: { text: f.texto }, action: { button: "Ver opções", sections: [{ title: "Opções", rows: f.opcoes.map((o, i) => ({ id: "op_" + (i + 1), title: o })) }] } };
+  return { messaging_product: "whatsapp", to: para, type: "interactive", interactive };
+}
+async function enviarComOpcoes(env, para, texto, opcoes, consumo) {
+  texto = corta(texto, 4000);
+  const f = formatoOpcoes(texto, opcoes);
+  if (f.tipo === "texto") return enviarTexto(env, para, texto, consumo);
+  if (f.tipo === "numerado") return enviarTexto(env, para, f.texto, { ...(consumo || {}), opcoes: f.opcoes });
+  const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify(corpoInterativo(para, f))
+  });
+  const corpo = await res.json().catch(() => null);
+  if (!res.ok) {
+    // Se a Meta recusar o formato, não fica sem resposta: vai numerado.
+    console.log("erro ao enviar interativo:", res.status, JSON.stringify(corpo));
+    const numerado = texto + "\n\n" + f.opcoes.map((o, i) => `${i + 1}. ${o}`).join("\n") + "\n_(responda com o número)_";
+    return enviarTexto(env, para, numerado, { ...(consumo || {}), opcoes: f.opcoes });
+  }
+  const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
+  await gravarMensagem(env, {
+    wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: para,
+    msg_type: "interactive", body: texto + `\n[opções: ${f.opcoes.join(" | ")}]`, sent_at: new Date().toISOString(), raw: corpo,
+    ...(consumo || {}), opcoes: f.opcoes
+  });
+  return { ok: true, id, corpo };
+}
+// O Claude termina a resposta com [[opções: A | B | C]] quando faz pergunta.
+function separarOpcoes(texto) {
+  const m = String(texto || "").match(/\[\[\s*op[çc][õo]es\s*:\s*([^\]]*)\]\]\s*$/i);
+  if (!m) return { texto: String(texto || "").trim(), opcoes: [] };
+  return { texto: texto.slice(0, m.index).trim(), opcoes: m[1].split("|").map(o => o.trim()).filter(Boolean) };
+}
+
 // ─── Dados da Dash (só Tasks e Members 2) ────────────────────────────────
 async function carregarDash(env) {
   const r = await sb(env, `${TAB_DASH}?select=section,data,updated_at&or=(section.like.tasks2*,section.like.members2*)`);
@@ -696,6 +747,7 @@ Como conversar:
 - Panorama/resumo geral só quando a pessoa pedir ("como estão as coisas?"): aí use resumo_alertas e destaque o que está Late ou Deadline.
 - Novidades: quando o sistema mandar "Novidades que pedem ação", comente em 1–3 linhas no começo da resposta, só o que importa, e siga com o que a pessoa perguntou. Se não houver novidades, não mencione.
 - Linhas com "contexto:" trazem o porquê daquela Meta/Projeto; use isso pra entender e conversar melhor.
+- Quando terminar com uma pergunta que tenha respostas previsíveis, sugira as respostas na ÚLTIMA linha, assim: [[opções: Já comecei | Ainda não | Adiar]]. De 2 a 3 opções curtas (até 20 caracteres cada); se precisar escolher entre mais coisas (projetos, países…), até 10 opções de até 24 caracteres. Não repita as opções no texto. Sem pergunta, sem opções. Nunca ponha opções junto de uma proposta (o sistema já põe Sim/Não).
 - Use só o que está nos dados que você recebeu ou buscou. Nunca invente linha, data, status, país ou pessoa. Se precisar de algo que não está aqui, use buscar / buscar_members antes de responder.
 - Não cite apelidos (WPF-123456) na conversa; eles são só pras ferramentas.
 - Diga a empresa quando houver mais de uma envolvida.
@@ -754,7 +806,8 @@ function resumoSimples(indice, pessoa, hoje) {
 }
 
 // ─── Tratamento de uma mensagem ──────────────────────────────────────────
-async function tratarMensagem(env, msg, texto) {
+async function tratarMensagem(env, msg, textoRecebido) {
+  let texto = textoRecebido;
   const tel = msg.from;
   const rp = await sb(env, `${TAB_PESSOAS}?select=*&telefone=eq.${tel}`);
   const pessoa = rp.ok && rp.dados && rp.dados[0];
@@ -768,6 +821,14 @@ async function tratarMensagem(env, msg, texto) {
     return;
   }
   if (!texto) { await enviarTexto(env, tel, "Por enquanto eu só entendo mensagens de texto 🙂"); return; }
+
+  // Respondeu "2" a uma mensagem com opções numeradas? Vira o texto da opção.
+  if (/^\s*\d{1,2}\s*$/.test(texto)) {
+    const ru = await sb(env, `${TAB_MSG}?select=opcoes&direction=eq.out&to_number=eq.${tel}&order=created_at.desc&limit=1`);
+    const ops = ru.ok && ru.dados && ru.dados[0] && ru.dados[0].opcoes;
+    const n = parseInt(texto, 10);
+    if (Array.isArray(ops) && n >= 1 && n <= ops.length) texto = ops[n - 1];
+  }
 
   const cmd = normalizar(texto);
   if (cmd === "sair" || cmd === "voltar") {
@@ -826,7 +887,7 @@ async function tratarMensagem(env, msg, texto) {
   const uso = { tokens_entrada: 0, tokens_saida: 0, tokens_cache: 0 };
   const somarUso = u => { if (!u) return; uso.tokens_entrada += (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0); uso.tokens_saida += u.output_tokens || 0; uso.tokens_cache += u.cache_read_input_tokens || 0; };
   const consumo = () => ({ modelo, ...uso, analise_geral: analiseFeita });
-  const responder = async txt => { await enviarTexto(env, tel, txt, consumo()); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
+  const responder = async (txt, opcoes) => { await enviarComOpcoes(env, tel, txt, opcoes, consumo()); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
 
   try {
     for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
@@ -839,7 +900,11 @@ async function tratarMensagem(env, msg, texto) {
       somarUso(resp.usage);
       const textoClaude = (resp.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
       const usos = (resp.content || []).filter(b => b.type === "tool_use");
-      if (!usos.length) { await responder(textoClaude || "Não entendi. Pode repetir de outro jeito?"); return; }
+      if (!usos.length) {
+        const sep = separarOpcoes(textoClaude);
+        await responder(sep.texto || "Não entendi. Pode repetir de outro jeito?", sep.opcoes);
+        return;
+      }
 
       // Subir pro Sonnet: refaz a conversa com o modelo forte.
       const sobe = usos.find(u => u.name === "chamar_sonnet");
@@ -872,8 +937,8 @@ async function tratarMensagem(env, msg, texto) {
 
       if (proposta && !proposta.erro) {
         await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: proposta.acao, resumo: proposta.resumo }] });
-        const intro = textoClaude.replace(/^(pronto|feito|fiz|atualizei|mudei|anotei|registrei)\b[!.,]*\s*/i, "").trim();
-        await responder((intro ? intro + "\n\n" : "") + proposta.resumo + "\n\nConfirma? Responda *sim* ou *não*.");
+        const intro = separarOpcoes(textoClaude).texto.replace(/^(pronto|feito|fiz|atualizei|mudei|anotei|registrei)\b[!.,]*\s*/i, "").trim();
+        await responder((intro ? intro + "\n\n" : "") + proposta.resumo + "\n\nConfirma?", ["Sim", "Não"]);
         return;
       }
       mensagens.push({ role: "assistant", content: resp.content });
@@ -944,5 +1009,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
