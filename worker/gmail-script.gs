@@ -24,8 +24,13 @@ function configurar() {
   Logger.log("Ligado! A partir de agora, e-mails novos vão pro robô de hora em hora.");
 }
 
+// Remetentes que sempre passam, mesmo parecendo automáticos (ex. formulário
+// de contato do site).
+const SEMPRE_PASSA = ["info@worldpokerfederation.org"];
+
 function automatico(m) {
   const de = (m.getFrom() || "").toLowerCase();
+  if (SEMPRE_PASSA.some(e => de.indexOf(e) !== -1)) return false;
   if (/no-?reply|donotreply|notifica|notification|mailer-daemon|newsletter|read\.ai|calendar|bounce/.test(de)) return true;
   if (m.getHeader("List-Unsubscribe") || m.getHeader("List-Id")) return true;
   const auto = (m.getHeader("Auto-Submitted") || "").toLowerCase();
