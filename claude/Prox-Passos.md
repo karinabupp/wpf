@@ -15,56 +15,48 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **🔴 PRIORIDADE: login de verdade na Dash (Supabase Auth)** — aprovado
-  por Karina em 21/09. Hoje qualquer um com a chave anon (pública no site e
-  no repo público) lê e altera toda a Dash, inclusive as senhas em texto
-  puro da seção `users`.
-  - *Decisões dela:* logins = karina@, isabela@, leonardo@,
-    roberto@worldpokerfederation.org (só esses 4). Primeira senha =
-    **provisória** combinada com ela no chat de 21/09 (NÃO registrar aqui:
-    este repo é público), com **troca obrigatória no primeiro acesso**.
-  - *Plano:* criar os 4 no Supabase Auth; tabela de permitidos/papéis (Adm
-    Karina, Colab os outros, mesmas permissões de hoje); RLS em
-    `wpf_dashboard_data` só pra autenticado da lista; Dash usa supabase-js
-    (CDN jsdelivr) com `signInWithPassword`, sessão e "esqueci a senha";
-    `wpf_forms` leitura pública só do necessário + `wpf_form_responses` só
-    INSERT anon (Dash autenticada lê); `wpf_slack_messages` com RLS
-    (conferir antes como o `wpf-slack-bridge` grava — se usar anon, trocar
-    pra secret key); apagar senhas da seção `users`. Robô não muda (usa
-    secret key).
-  - *Como:* testar tudo no Chromium com Supabase simulado; troca em horário
-    combinado; script de volta (políticas antigas) pronto.
+- [ ] **Robô: mensagens mais curtas, com empresa e opções que agem** —
+  pedido da Karina em 21/09, depois do 1º aviso real (19h05): mensagem
+  enorme (27 entregáveis de federações listados um a um), sem dizer se era
+  WPF ou CBTH, avisando coisa em Deadline que não era urgente, e opções
+  sem ação ("Chamar Isabela / Adiar discussão / Já vi").
+  - *O que ela quer:* citar a empresa; avisar só o pertinente (toda
+    segunda a equipe revisa a Dash inteira, então o robô ajuda e não
+    polui); opções que fazem algo: **ver detalhes das tarefas**, **o robô
+    manda mensagem pra pessoa em nome dela**, **já vi, deixa comigo**.
+  - *Causa da empresa sumir:* a empresa só vai no apelido (`CBTH-xxxxxx`)
+    e o robô é proibido de citar apelido.
+  - *Status:* proposta apresentada em 21/09, aguardando OK.
+  - *Onde:* `worker/whatsapp-bridge.js` — `detectarAvisos`,
+    `escreverAvisos`, `tratarMensagem`.
   - *Aberto em:* 2026-09-21
 
-
-- [ ] **Agente: primeiro teste de verdade no WhatsApp** — o modo
-  conversacional econômico está no ar desde 21/09 (ver Changelog), mas
-  ainda não recebeu nenhuma mensagem real.
-  - *Conferir no teste:* resposta chega; `modelo`/`tokens_*` gravados em
-    `wpf_whatsapp_messages`; mudança com "sim" aparece na Dash em até 15s;
-    auditoria em `wpf_agente_auditoria`. Olhar os logs do Worker se não
-    responder (risco: limite de CPU se a conta Cloudflare for do plano
-    grátis — ler a Dash inteira pode estourar).
-  - *Ajustes prováveis:* calibrar quando o Haiku chama o Sonnet (ver
-    consumo real); o cache da parte fixa não deve atuar no Haiku (parte
-    fixa ~1,8 mil tokens, abaixo do mínimo) — só vale a pena mexer se o
-    consumo real pedir.
+- [ ] **Login: todos trocarem a senha provisória** — Karina já trocou e
+  testou (21/09). Isabela, Leonardo e Roberto: F5 na Dash, e-mail do
+  trabalho + senha provisória, senha nova. Conferir em `wpf_acesso`
+  (`precisa_trocar_senha = false` pros 4).
   - *Aberto em:* 2026-09-21
 
-- [ ] **Agente: Read AI conectado (21/09, 15h21) — conferir 1ª renovação
-  do token; instalar o script do Gmail** — robô já sabe ler reuniões e
-  e-mails. Read AI: a Karina conectou; confirmar que `readai_tokens` foi
-  renovado depois das 16h05 SP. Gmail: falta ela instalar
-  `worker/gmail-script.gs` (com o token de `gmail_token`) e rodar
-  `configurar`. Referência antiga: abrir o link `/readai/conectar` e seguir
-  os passos (se o convite vencer, gerar outro em `wpf_agente_config`,
-  chave `readai_convite`, `{codigo, expira ISO}`). Depois: script do Google
-  no Gmail dela — regras aprovadas: avisar só o relevante (pede
-  resposta/decisão com prazo; contrato/pagamento/dinheiro; marco importante
-  de algo da Tasks; parado sem resposta há 3 dias úteis); SÓ a Karina é
-  avisada (trancado no código em 21/09); entra no limite de 3/dia, salvo muito importante
-  (vai na hora); só e-mails novos, caixa Principal, sem newsletter.
-  - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-21
+- [ ] **Daily Digest: confirmar que foi desligado** — Karina pediu pra
+  cancelar (21/09). Com o login ele já não lê mais a Dash, mas o web app
+  continua publicado como "qualquer pessoa" e manda e-mail pela conta
+  Google dela pra quem tiver o endereço. Falta: script.google.com → projeto
+  → apagar acionadores (relógio) e Implantar → Gerenciar implantações →
+  Arquivar. O código de envio segue em Settings (escondido).
+  - *Aberto em:* 2026-09-21
+
+- [ ] **Opcional: proteção contra senha vazada no Supabase** — aviso do
+  próprio Supabase (Authentication → Sign In / Providers). Pode ser recurso
+  só de plano pago. Também opcional: mínimo de 8 caracteres no Auth (a Dash
+  já exige 8).
+  - *Aberto em:* 2026-09-21
+
+- [ ] **Planilha de Marketing é pública** — a Dash lê a planilha do Google
+  como CSV público (link "qualquer pessoa"), e o ID está no `index.html`
+  público. Risco baixo (são KPIs), mas qualquer um lê. Fechar exigiria a
+  Dash ler por outro caminho (ex. o robô copiar pro Supabase).
+  - *Onde:* `index.html`, leitura `gviz/tq?tqx=out:csv`.
+  - *Aberto em:* 2026-09-21
 
 - [ ] **Agente: todo mundo mandar o primeiro "oi" + template aprovado** —
   o check-in diário (21/09) só alcança quem já falou com o robô (janela
@@ -95,7 +87,11 @@ reconstruir o raciocínio.
     tirar `#nav-settings` da regra CSS de 16/09 (ou abrir via console:
     `document.getElementById("nav-settings").click()`).
   - *Onde:* `index.html`, CSS ao lado de `#nav-marketing`.
-  - *Aberto em:* 2026-09-16
+  - *21/09:* **usuários e senhas não são mais da Dash.** Com o login do
+    Supabase, a lista de usuários em Settings não controla mais quem entra:
+    dar/tirar acesso = usuário em Authentication → Users **e** linha em
+    `wpf_acesso` (ver LEIA-PRIMEIRO). Backup e versões continuam valendo.
+  - *Aberto em:* 2026-09-16 · *revisado em:* 2026-09-21
 
 - [ ] **Metas automáticas da Tasks congelam sem a Goals** — "acessos no
   site", "seguidores Instagram", "CPC" e "gasto AdWords" leem a entrada mais
@@ -113,19 +109,6 @@ reconstruir o raciocínio.
     metas automáticas (item acima), a semeadura da Tasks 2 a partir de
     `tasksData` (`seedFromRealTasks`) e o Slack, que usa `tasksData`.
   - *Onde:* `index.html`.
-  - *Aberto em:* 2026-09-16
-
-- [ ] **Confirmar de onde vem `operations.worldpokerfederation.workers.dev`**
-  — Karina usa esse endereço (Cloudflare Workers), mas as publicações vão
-  pro repo `karinabupp/wpf` / GitHub Pages.
-  - *Contexto:* em 16/09, depois de publicar `06e64b8`, os únicos checks
-    do commit no GitHub são os do Pages (`build`, `deploy`,
-    `report-build-status`), sem nenhum check do Cloudflare, e o token não
-    lê webhooks (403). O endereço também não é acessível de dentro da
-    sessão. Se o Worker não puxa do repo, as correções de 15/09 (sync) e
-    16/09 (filtro) não chegam lá. Teste simples: dar F5 ali e ver se a
-    setinha fecha com filtro ativo.
-  - *Onde:* hospedagem / Cloudflare.
   - *Aberto em:* 2026-09-16
 
 - [ ] **Sync: mesmo campo da mesma linha editado ao mesmo tempo** — continua
@@ -154,31 +137,6 @@ reconstruir o raciocínio.
   - *Onde:* `registrarVersaoGeral`, `enviarAgora`.
   - *Aberto em:* 2026-09-15
 
-- [ ] **Liberar escrita no repo para as sessões do Claude** — pra não depender
-  de upload manual a cada mudança.
-  - *Contexto:* em 11/09 o push **continuou bloqueado nesta sessão**, com a
-    mesma mensagem do proxy: `karinabupp/wpf is not in this session's
-    authorized repository set`. Mas **outras sessões publicaram direto** no
-    mesmo dia (commits das 17:32 às 19:05 UTC, ex. `a943bd5`). Ou seja, o
-    token funciona; o que decide é se o repo está nas **fontes da sessão**
-    quando ela é aberta. Caminho provável: abrir a tarefa com o repo
-    `karinabupp/wpf` adicionado como fonte (como as sessões que conseguiram
-    publicar foram abertas) e testar com `git push --dry-run` logo no início.
-  - *11/09 (3ª sessão):* testado de novo com o token das instruções —
-    mesmo bloqueio. O token nem chega a ser usado: o proxy da sessão barra
-    qualquer repo fora das fontes da tarefa, e a documentação do proxy manda
-    **não contornar** esse bloqueio (é política). Então não há nada a fazer
-    de dentro de uma sessão aberta sem o repo; a solução é **abrir a tarefa
-    com `karinabupp/wpf` selecionado como repositório**.
-  - *Plano B:* dirigir o navegador embutido do Claude no PC da Karina (já
-    logado no GitHub) e fazer o upload pela interface web, com ela
-    autorizando e acompanhando. Ainda não foi usado.
-  - *15/09:* nesta sessão o `git push --dry-run` **passou** — o repo estava
-    nas fontes da sessão. Confirma que o caminho é abrir com o repo
-    selecionado.
-  - *Onde:* configuração de ambiente, fora do dashboard.
-  - *Aberto em:* 2026-08-31 · *revisado em:* 2026-09-15
-
 - [ ] **Uma sessão por vez mexendo na Dash** — em 11/09 duas sessões
   implementaram o mesmo pedido (arrastar pra baixo) em paralelo, de jeitos
   diferentes, e uma teve que substituir a outra.
@@ -199,14 +157,6 @@ reconstruir o raciocínio.
     linha. Achado em 11/09, **não corrigido** (fora do pedido; precisa de OK).
   - *Onde:* `index.html`, bloco Tasks 2, listener de `tasks2-bulk-colar`.
   - *Aberto em:* 2026-09-11
-
-- [ ] **Trocar o token do GitHub que está nas instruções do projeto** — está
-  em texto puro, legível por qualquer sessão do projeto.
-  - *Contexto:* levantado em 31/08, segue pendente. Preferir fine-grained com
-    escopo só em `karinabupp/wpf` (Contents + Metadata) e expiração curta.
-    Bom momento pra fazer isso é junto com a liberação de escrita acima.
-  - *Onde:* instruções do projeto WPF Dash.
-  - *Aberto em:* 2026-08-31
 
 - [ ] **Decidir se o rascunho vira a versão oficial ou é descartado** — a aba
   Tasks 2 é código duplicado; quanto mais tempo ela viver, mais ela diverge
@@ -236,6 +186,13 @@ reconstruir o raciocínio.
   - *Aberto em:* 2026-09-01
 
 ## Observado, sem ação necessária agora
+
+- **Workers na conta Cloudflare (21/09):** `wpf-whatsapp-bridge` (robô,
+  repo `worker/`), `wpf-slack-bridge` (Slack, repo `worker-slack/`, rotas da
+  Dash exigem login), `operations` (espelho do GitHub Pages). Apagados em
+  21/09: `wpf-whatsapp-webhook` (robô antigo, com `/send` aberto) e
+  `yellow-smoke-f7d6` (IA da Social, aberto pra qualquer um — a IA da
+  Social ficou desligada na Dash; religar = recriar o Worker trancado).
 
 - **Dados do Agente de Gestão (WhatsApp), pra não caçar de novo.** App ID
   `1138081025211466`; número do robô `+55 11 97261-7434`; Phone Number ID
@@ -303,6 +260,22 @@ reconstruir o raciocínio.
 ---
 
 ## Concluídos
+
+- [x] **Login de verdade na Dash (Supabase Auth)** — feito em 21/09 (ver
+  Changelog, 11ª). Dash, Slack e respostas de formulário só pra equipe
+  logada; senhas antigas apagadas do banco e dos navegadores.
+- [x] **Agente: primeiro teste de verdade no WhatsApp** — Karina testou em
+  21/09: tudo certo.
+- [x] **Agente: Read AI (renovação do token) e script do Gmail** —
+  confirmados pela Karina em 21/09.
+- [x] **Trocar o token do GitHub das instruções** — feito em 21/09
+  (fine-grained, só `karinabupp/wpf`, Contents + Workflows); o antigo foi
+  revogado. As sessões publicam direto com ele.
+- [x] **De onde vem `operations.worldpokerfederation.workers.dev`** — é um
+  Worker que só espelha o GitHub Pages (`karinabupp.github.io/wpf/`). Tudo
+  que é publicado no repo chega lá. (21/09)
+- [x] **Liberar escrita no repo** — resolvido: o token novo publica direto
+  (21/09).
 
 - [x] **Publicar a correção do abrir/fechar com filtro (16/09)** — commit
   `06e64b8` publicado, sha256 `d8eba116…7698` confere, Pages `built`.

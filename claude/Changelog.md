@@ -12,6 +12,57 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (11ª) — Login de verdade na Dash + fechar o que estava aberto
+
+Aprovado por Karina (plano de segurança completo, "aprovo"; troca "agora";
+passo sem volta depois de testar: "testei tudo e está ótimo").
+
+- **Pente-fino (só leitura):** Supabase (políticas, logs), os 5 Workers da
+  conta Cloudflare, `index.html` e todo o histórico do repo. Nenhum segredo
+  vazado no git. Abertos: Dash (anon lia/gravava tudo, senhas em texto puro
+  em `users` **e** nos retratos de `historicoGeral`), `wpf_forms`,
+  `wpf_form_responses`, `wpf_slack_messages` sem RLS; Worker
+  `yellow-smoke-f7d6` (atalho aberto pra API da Anthropic); Worker antigo
+  `wpf-whatsapp-webhook` (`/send` aberto, webhook sem assinatura); rotas da
+  Dash no `wpf-slack-bridge` abertas; Daily Digest (Apps Script "qualquer
+  pessoa") lendo a Dash com a chave anon.
+- **Dash (commit `da89060`):** login por e-mail/senha pelo Supabase Auth
+  (supabase-js 2.116.0 via jsdelivr, só pro login); troca obrigatória no 1º
+  acesso (mín. 8); sessão fica ao recarregar; nada é lido antes do login;
+  sessão antiga (`wpf_auth_session`) não vale mais. Toda chamada ao banco e
+  aos Workers vai com o token de quem entrou (`tokenFresco`,
+  `headersLogado`, `headersWorker`). Senhas nunca mais: `ensureUserDefaults`
+  e toda gravação de usuários tiram `password`; retratos do histórico
+  também; a rotina `migrateOrphanAssigneesToUsers` criava usuários com
+  "wpf2026" — tirado.
+- **Banco (`sql/2026-09-21_login_1_regras.sql`):** tabela `wpf_acesso`
+  (e-mail, login, nome, papel, `precisa_trocar_senha`) com os 4; funções
+  `wpf_tem_acesso`, `wpf_meu_acesso`, `wpf_senha_trocada` (security
+  definer, só `authenticated`). `wpf_dashboard_data` e `wpf_slack_messages`
+  só pra equipe logada; formulários: público vê só publicado e só **envia**
+  resposta (pra formulário publicado); equipe faz tudo. Conferido com papéis
+  simulados: anônimo não lê/grava; logado fora da lista não lê; Karina lê as
+  22 seções. Os 3 erros do advisor sumiram.
+- **Senhas antigas apagadas** (`sql/2026-09-21_login_2_apagar_senhas.sql`),
+  depois do OK da Karina: 0 de 22 seções com `password`.
+- **Workers:** `wpf-slack-bridge` agora está no repo (`worker-slack/`,
+  publicado pelo Actions); `/notify`, `/backfill`, `/channels`, `/users`
+  exigem login (confere o token com `wpf_tem_acesso`); `/events` segue só
+  com a assinatura do Slack. Robô: rota `/enviar` removida (ninguém usava).
+  Karina apagou `wpf-whatsapp-webhook` e `yellow-smoke-f7d6`.
+- **IA da Social desligada** (pedido da Karina): `IA_SOCIAL_LIGADA = false`;
+  o painel mostra o nível já salvo e o botão virou "Salvar" (guarda só os
+  links, rede pelo endereço, sem mexer nos números).
+- **Leonardo:** "Leonardo Martins" → "Leonardo Cavarge" em toda a Dash (488
+  ocorrências, inclusive históricos), igual ao robô
+  (`sql/2026-09-21_leonardo_cavarge.sql`).
+- **Verificação:** 36 testes da Dash no Chromium (Supabase e Workers
+  simulados) + 28 dos Workers; `index.html` no ar = testado (sha256
+  `55042335…`), Pages `built`, deploys dos 2 Workers `success`.
+- **Volta (só servia antes do passo 2):** `sql/2026-09-21_login_volta.sql`.
+
+---
+
 ## 2026-09-21 (10ª) — Auditoria de segurança + robô vira "Carinha"
 
 Pedido da Karina: "verifica tudo e arruma o que precisar"; nome "Carinha",

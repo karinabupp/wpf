@@ -22,11 +22,27 @@ dois arquivos antes de propor qualquer coisa**:
 
 - `index.html` — a Dash inteira (um arquivo só), publicada pelo GitHub Pages.
 - `privacy.html` — política de privacidade do app "Agente de Gestão" (WhatsApp).
-- Worker `wpf-whatsapp-bridge` (Cloudflare) — ponte do WhatsApp. **O código
-  dele não está neste repo**; vive no painel do Cloudflare.
+- `worker/` — robô do WhatsApp (`wpf-whatsapp-bridge`). `worker-slack/` —
+  ponte do Slack (`wpf-slack-bridge`). Push nessas pastas publica sozinho
+  (GitHub Actions). Segredos ficam só no Cloudflare.
+- `sql/` — scripts aplicados no Supabase, com data.
 - Supabase, projeto "operation dashboard" — dados da Dash
   (`wpf_dashboard_data`), mensagens (`wpf_whatsapp_messages`) e pessoas do
   agente (`wpf_agente_pessoas`).
+
+## Login da Dash (desde 21/09)
+
+- Login pelo **Supabase Auth**. Quem pode entrar = usuário em
+  Authentication → Users **e** linha na tabela `wpf_acesso` (papel adm/colab
+  e `nome` igual ao da Tasks). A lista de usuários em Settings não controla
+  mais o acesso. Os dados da Dash só abrem pra quem está nas duas.
+- **Esqueci a senha:** a pessoa fala com a Karina, que abre uma sessão. O
+  Claude reseta pelo conector do Supabase (a Karina passa uma provisória):
+  `update auth.users set encrypted_password = extensions.crypt('<provisória>',
+  extensions.gen_salt('bf')) where email = '<e-mail>';` e
+  `update wpf_acesso set precisa_trocar_senha = true where email = '<e-mail>';`
+  Na próxima entrada a Dash obriga a trocar.
+- **Nunca** colocar senha, token ou chave secreta neste repo: ele é público.
 
 ## O que o Claude NÃO consegue fazer sozinho
 
