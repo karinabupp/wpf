@@ -12,6 +12,21 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (9ª) — Script do Gmail funcionando
+
+- **Diagnóstico:** a caixa da Karina não usa abas → `category:primary`
+  voltava vazio. Script passou a buscar `in:inbox` (filtros de newsletter/
+  automático mantidos). Commit `853aca0`.
+- **Formulário do site** (`info@worldpokerfederation.org`) liberado
+  (`SEMPRE_PASSA`), a pedido da Karina — antes era barrado como automático.
+  Commit `80e64df`.
+- **Verificação real:** e-mail "teste 2 - certo" chegou ao robô às 15h51
+  e foi classificado corretamente como "não importante" (sem aviso).
+- Karina precisa aplicar as duas mudanças no script dela (repo tem a
+  versão atual, sem o token).
+
+---
+
 ## 2026-09-21 (8ª) — Avisos de e-mail trancados só pra Karina
 
 Pedido da Karina ("tranca isso no código").
