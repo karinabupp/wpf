@@ -4600,6 +4600,36 @@
     min-height: 130px; max-height: 60vh; padding: 10px 12px;
   }
   .tasks2-contexto-dica { font-size: 11px; color: var(--text-muted); padding: 0 12px 9px; }
+  /* ── Presença (21/09): quem está na Dash e onde, como nas planilhas do
+     Google. Bolinhas no topo + borda com o nome na célula da pessoa. ── */
+  /* Fica na barra lateral, acima do Sair: no topo cobria botões (ex. o
+     Mapa/Planilha do CRM). */
+  #presenca-bolhas {
+    margin-top: auto; margin-bottom: 6px;
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  #presenca-bolhas:empty { margin-bottom: 0; }
+  .presenca-bolha {
+    position: relative; pointer-events: auto; cursor: default;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em;
+    border: 2px solid var(--bg, #fff); box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    transition: opacity .2s;
+  }
+  .presenca-bolha.ausente { opacity: .38; }
+  .presenca-bolha:hover::after {
+    content: attr(data-tip); position: absolute; left: 36px; top: 50%; transform: translateY(-50%);
+    background: #1d1c19; color: #fff; font-size: 11.5px; font-weight: 500;
+    padding: 5px 8px; border-radius: 6px; white-space: nowrap; z-index: 2;
+  }
+  .presenca-marca { position: relative; box-shadow: inset 0 0 0 2px var(--presenca-cor) !important; border-radius: 4px; }
+  .presenca-etiqueta {
+    position: absolute; top: -8px; right: 2px; z-index: 6; pointer-events: none;
+    font-size: 10px; font-weight: 600; line-height: 1; white-space: nowrap;
+    padding: 2px 5px; border-radius: 5px; color: #fff;
+  }
+  .presenca-etiqueta.ausente { opacity: .5; }
 </style>
 
 </head>
@@ -5815,11 +5845,12 @@ const SUPABASE_HEADERS = {
 // abre mais nada. A sessao fica com o supabase-js, que renova o token sozinho.
 // Senhas NAO ficam mais na Dash: quem cuida delas e o Supabase Auth.
 // ══════════════════════════════════════════════════════════
-const sbAuth = (window.supabase && window.supabase.createClient)
+const sbCliente = (window.supabase && window.supabase.createClient)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "wpf_sb_auth" }
-    }).auth
+    })
   : null;
+const sbAuth = sbCliente ? sbCliente.auth : null;
 let sbToken = null;
 let loginConcluido = false;
 function usarToken(sessao) {
@@ -7012,6 +7043,7 @@ function concluirLogin(acesso) {
   hideLoginGate();
   applyRolePermissions();
   resolverLoginFeito();
+  iniciarPresenca();
 }
 
 // Primeiro acesso (ou senha resetada): a pessoa define a senha dela.
@@ -16092,7 +16124,7 @@ applyRolePermissions();
     const aviso = document.createElement("div");
     aviso.id = "members2-migracao-aviso";
     aviso.style.cssText = "position:fixed;right:18px;bottom:18px;z-index:950;max-width:360px;background:#fff;color:#2c2c2a;border:1px solid #d3d1c7;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:14px 16px;font-size:13px;line-height:1.45;";
-    aviso.innerHTML = `<b>Members 2 · Membros - Federações</b><br>Status copiados da Members: ${total} ${total === 1 ? "país" : "países"}${partes.length ? " (" + partes.join(", ") + ")" : ""}.<div style="text-align:right;margin-top:8px"><button type="button" style="border:1px solid #d3d1c7;background:#f5f4ef;border-radius:6px;padding:4px 10px;cursor:pointer">OK</button></div>`;
+    aviso.innerHTML = `<b>CRM · Membros - Federações</b><br>Status copiados da Members: ${total} ${total === 1 ? "país" : "países"}${partes.length ? " (" + partes.join(", ") + ")" : ""}.<div style="text-align:right;margin-top:8px"><button type="button" style="border:1px solid #d3d1c7;background:#f5f4ef;border-radius:6px;padding:4px 10px;cursor:pointer">OK</button></div>`;
     aviso.querySelector("button").addEventListener("click", () => aviso.remove());
     document.body.appendChild(aviso);
   }
@@ -19733,6 +19765,183 @@ applyRolePermissions();
   // quando a tabela esta vazia.
 })(() => tasksData, () => goalsData, () => countryData, () => committeeCountryData);
 
+// ══════════════════════════════════════════════════════════
+// PRESENÇA (21/09, Karina): quem está usando a Dash e onde, como nas
+// planilhas do Google. Bolinhas no topo (nome + aba no mouse) e, na Tasks e
+// na planilha do CRM, borda na cor da pessoa com o nome na célula em que
+// ela clicou ou está editando. Nada é gravado no banco: é o "Presence" do
+// Supabase Realtime, num canal PRIVADO — só a equipe logada entra (regra em
+// realtime.messages, sql/2026-09-21_presenca.sql).
+// ══════════════════════════════════════════════════════════
+const PRESENCA_CORES = { karina: "#7b4fe0", isabela: "#d6457a", leonardo: "#1f9d74", roberto: "#e08a12" };
+const PRESENCA_OUTRAS_CORES = ["#2f7fd6", "#b8860b", "#c0392b", "#16a085"];
+const PRESENCA_AUSENTE_MS = 5 * 60 * 1000;
+const presencaAba = Math.random().toString(36).slice(2, 10);
+let presencaCanal = null, presencaUltimoEnvio = "", presencaOutros = [];
+let presencaFoco = null, presencaUltimaAtividade = Date.now(), presencaAusente = false;
+
+function corDaPessoa(login) {
+  if (PRESENCA_CORES[login]) return PRESENCA_CORES[login];
+  let h = 0; for (const c of String(login)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return PRESENCA_OUTRAS_CORES[h % PRESENCA_OUTRAS_CORES.length];
+}
+function iniciaisDe(nome) {
+  const p = String(nome || "?").trim().split(/\s+/);
+  return (((p[0] || "")[0] || "") + ((p.length > 1 ? p[p.length - 1] : "")[0] || "")).toUpperCase() || "?";
+}
+// Onde a pessoa está (texto da bolinha).
+function presencaOnde() {
+  const v = document.querySelector(".content-view:not(.hidden)");
+  const id = v ? v.id : "";
+  const org = typeof ORG_ATUAL !== "undefined" ? ORG_ATUAL : "wpf";
+  if (id === "tasks2-view") return "Tasks" + (org !== "wpf" ? ` (${String(org).toUpperCase()})` : "");
+  if (id === "members2-view") {
+    const pl = document.getElementById("planilha2-wrap");
+    return "CRM › " + (pl && !pl.classList.contains("hidden") ? "Planilha" : "Mapa");
+  }
+  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing" }[id] || "Dash";
+}
+// Em que célula a pessoa clicou/está editando.
+function presencaFocoDe(el) {
+  if (!el || !el.closest) return null;
+  const linha = el.closest("#tasks2-view .tasks2-row[data-id]");
+  if (linha) {
+    const cel = el.closest("[data-fill-field]");
+    return { view: "tasks", rowId: linha.dataset.id, campo: cel ? cel.dataset.fillField : null };
+  }
+  const td = el.closest("#planilha2-wrap td");
+  if (td) {
+    const x = el.closest("[data-pais]") || td.querySelector("[data-pais]");
+    if (x) return { view: "crm", pais: x.dataset.pais, col: x.dataset.col || null };
+  }
+  return null;
+}
+function presencaEstado() {
+  return {
+    login: currentUser.login || currentUser.username, nome: currentUser.username,
+    aba: presencaOnde(), empresa: typeof ORG_ATUAL !== "undefined" ? ORG_ATUAL : "wpf",
+    foco: presencaFoco, ausente: presencaAusente
+  };
+}
+async function presencaEnviar(forcar) {
+  if (!presencaCanal || !currentUser) return;
+  const e = presencaEstado(), j = JSON.stringify(e);
+  if (!forcar && j === presencaUltimoEnvio) return;
+  presencaUltimoEnvio = j;
+  try { await presencaCanal.track(e); } catch (err) { console.warn("presença (envio):", err); }
+}
+let presencaTimerEnvio = null;
+function presencaAgendar() { clearTimeout(presencaTimerEnvio); presencaTimerEnvio = setTimeout(() => presencaEnviar(), 300); }
+function presencaAtividade() {
+  presencaUltimaAtividade = Date.now();
+  if (presencaAusente && !document.hidden) { presencaAusente = false; presencaAgendar(); }
+}
+function presencaVerificarAusencia() {
+  const ausente = document.hidden || Date.now() - presencaUltimaAtividade > PRESENCA_AUSENTE_MS;
+  if (ausente !== presencaAusente) { presencaAusente = ausente; presencaAgendar(); }
+}
+document.addEventListener("pointerdown", e => { presencaAtividade(); presencaFoco = presencaFocoDe(e.target); presencaAgendar(); }, true);
+document.addEventListener("focusin", e => { const f = presencaFocoDe(e.target); if (f) { presencaFoco = f; presencaAgendar(); } }, true);
+document.addEventListener("keydown", presencaAtividade, true);
+let presencaUltimoMouse = 0;
+document.addEventListener("mousemove", () => { const t = Date.now(); if (t - presencaUltimoMouse > 5000) { presencaUltimoMouse = t; presencaAtividade(); } }, true);
+document.addEventListener("visibilitychange", () => { if (document.hidden) presencaVerificarAusencia(); else presencaAtividade(); });
+setInterval(presencaVerificarAusencia, 30000);
+
+// Estado do canal → lista das OUTRAS pessoas (cada aba aberta conta).
+function lerPresenca(estado) {
+  const eu = currentUser && (currentUser.login || currentUser.username);
+  const out = [];
+  Object.values(estado || {}).forEach(lista => (lista || []).forEach(p => {
+    if (!p || !p.login || p.login === eu) return;
+    out.push({ ...p, cor: corDaPessoa(p.login) });
+  }));
+  return out;
+}
+function desenharBolhas() {
+  let caixa = document.getElementById("presenca-bolhas");
+  if (!caixa) {
+    caixa = document.createElement("div"); caixa.id = "presenca-bolhas";
+    const sair = document.getElementById("nav-logout-btn");
+    if (sair && sair.parentElement) { sair.parentElement.insertBefore(caixa, sair); sair.style.marginTop = "0"; }
+    else document.body.appendChild(caixa);
+  }
+  const porPessoa = {};
+  presencaOutros.forEach(p => { const a = porPessoa[p.login]; if (!a || (a.ausente && !p.ausente)) porPessoa[p.login] = p; });
+  caixa.textContent = "";
+  Object.values(porPessoa).sort((a, b) => String(a.nome).localeCompare(String(b.nome))).forEach(p => {
+    const b = document.createElement("span");
+    b.className = "presenca-bolha" + (p.ausente ? " ausente" : "");
+    b.style.background = p.cor;
+    b.textContent = iniciaisDe(p.nome);
+    b.dataset.login = p.login;
+    b.dataset.tip = `${p.nome} · ${p.aba}${p.ausente ? " (ausente)" : ""}`;
+    caixa.appendChild(b);
+  });
+}
+// Borda + nome na célula de cada pessoa. A tabela se redesenha o tempo todo;
+// um observador repinta depois de cada redesenho.
+let presencaObservador = null;
+function pintarPresenca() {
+  document.querySelectorAll(".presenca-etiqueta").forEach(el => el.remove());
+  document.querySelectorAll(".presenca-marca").forEach(el => { el.classList.remove("presenca-marca"); el.style.removeProperty("--presenca-cor"); });
+  const org = typeof ORG_ATUAL !== "undefined" ? ORG_ATUAL : "wpf";
+  presencaOutros.forEach(p => {
+    const f = p.foco;
+    if (!f || p.empresa !== org) return;
+    let alvo = null;
+    if (f.view === "tasks" && f.rowId) {
+      const linha = document.querySelector(`#tasks2-view .tasks2-row[data-id="${CSS.escape(f.rowId)}"]`);
+      if (linha) alvo = (f.campo && linha.querySelector(`[data-fill-field="${CSS.escape(f.campo)}"]`)) || linha;
+    } else if (f.view === "crm" && f.pais) {
+      const x = document.querySelector(`#planilha2-wrap [data-pais="${CSS.escape(f.pais)}"]${f.col ? `[data-col="${CSS.escape(f.col)}"]` : ""}`);
+      alvo = x ? (x.closest("td") || x) : null;
+    }
+    if (!alvo || alvo.querySelector(`.presenca-etiqueta[data-login="${CSS.escape(p.login)}"]`)) return;
+    alvo.classList.add("presenca-marca");
+    alvo.style.setProperty("--presenca-cor", p.cor);
+    const et = document.createElement("span");
+    et.className = "presenca-etiqueta" + (p.ausente ? " ausente" : "");
+    et.dataset.login = p.login;
+    et.style.background = p.cor;
+    et.textContent = String(p.nome || "").split(" ")[0];
+    alvo.appendChild(et);
+  });
+  if (presencaObservador) presencaObservador.takeRecords(); // ignora a própria pintura
+}
+let presencaPinturaAgendada = false;
+function agendarPintura() {
+  if (presencaPinturaAgendada) return;
+  presencaPinturaAgendada = true;
+  requestAnimationFrame(() => { presencaPinturaAgendada = false; pintarPresenca(); });
+}
+function desenharPresenca() { desenharBolhas(); agendarPintura(); }
+
+async function iniciarPresenca() {
+  if (presencaCanal || !currentUser) return;
+  try {
+    const criar = window.__wpfCanalPresenca || ((nome, cfg) => sbCliente.channel(nome, cfg));
+    if (!window.__wpfCanalPresenca) {
+      if (!sbCliente) return;
+      await sbCliente.realtime.setAuth(await tokenFresco());
+    }
+    presencaCanal = criar("wpf-presenca", { config: { private: true, presence: { key: (currentUser.login || currentUser.username) + ":" + presencaAba } } });
+    presencaCanal.on("presence", { event: "sync" }, () => {
+      presencaOutros = lerPresenca(presencaCanal.presenceState());
+      desenharPresenca();
+    });
+    presencaCanal.subscribe(status => {
+      if (status === "SUBSCRIBED") presencaEnviar(true);
+      else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") console.warn("presença:", status);
+    });
+    presencaObservador = new MutationObserver(() => { if (presencaOutros.some(p => p.foco)) agendarPintura(); });
+    ["tasks2-view", "members2-view"].forEach(id => { const el = document.getElementById(id); if (el) presencaObservador.observe(el, { childList: true, subtree: true }); });
+    // Trocar de aba (clique no menu, Mapa/Planilha, empresa) também conta.
+    document.addEventListener("click", () => presencaAgendar(), true);
+  } catch (e) {
+    console.warn("presença indisponível:", e);
+  }
+}
 </script>
 
 </body>

@@ -15,6 +15,14 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Presença: conferir com duas pessoas de verdade** — publicada em
+  21/09 (Changelog, 14ª). Testada só com canal simulado. Se as bolinhas não
+  aparecerem: console do navegador ("presença: CHANNEL_ERROR") e logs do
+  Realtime no Supabase; conferir as 2 regras em `realtime.messages`.
+  Opcional (endurecer): Supabase → Project Settings → Realtime → desligar
+  "Allow public access" (a Dash não usa canal público).
+  - *Aberto em:* 2026-09-21
+
 - [ ] **Robô: conferir os avisos novos na prática** — publicados em 21/09
   (Changelog, 12ª). Olhar nos próximos dias: se está avisando pouco demais
   (as réguas: atraso "recente" = 2 dias úteis; Deadline só hoje/amanhã com

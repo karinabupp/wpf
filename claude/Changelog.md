@@ -12,6 +12,39 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (14ª) — Presença: quem está na Dash e onde
+
+Pedido da Karina ("como nas planilhas do Sheets"), aprovado com as duas
+partes ("faz ambos").
+
+- **Bolinhas:** cada pessoa com a Dash aberta aparece como bolinha com as
+  iniciais e cor fixa (Karina roxo, Isabela rosa, Leonardo verde, Roberto
+  laranja), na **barra lateral, acima do Sair** — no topo ela cobria o
+  botão Mapa/Planilha do CRM. No mouse: nome e onde está ("Tasks", "Tasks
+  (CBTH)", "CRM › Planilha", "CRM › Mapa", "Slack", "Forms"). Parada há 5
+  min ou com a aba em segundo plano: apagadinha "(ausente)". Duas abas da
+  mesma pessoa = uma bolinha. Fechou: some. A própria pessoa não se vê.
+- **Na tabela:** na Tasks e na planilha do CRM, a célula em que a pessoa
+  clicou/está editando ganha borda na cor dela e etiqueta com o nome (só pra
+  quem está na mesma empresa). Segue a pessoa e sobrevive aos redesenhos da
+  tabela (observador que repinta).
+- **Como:** Supabase Realtime **Presence**, canal privado `wpf-presenca`;
+  nada é gravado em tabela. Regras em `realtime.messages`
+  (`sql/2026-09-21_presenca.sql`): só logado + na lista de acesso entra,
+  vê e anuncia. Se o canal falhar, a Dash segue normal (só não mostra).
+  `sbCliente` (cliente completo) passou a ficar guardado; `sbAuth` segue
+  igual.
+- **Onde:** `index.html` — CSS `#presenca-bolhas`, `.presenca-*`; bloco JS
+  "PRESENÇA" no fim do script; `iniciarPresenca()` no `concluirLogin`.
+- **Verificação:** 18 testes com duas pessoas ao mesmo tempo no Chromium
+  (canal simulado): bolinhas, cor, sem a própria, célula certa, borda,
+  sobrevive a redesenho, acompanha troca de linha, troca de aba, CRM,
+  ausente/volta, duas abas = 1 bolinha, saída + 36 do login + 12 de 21/09.
+  O canal real do Supabase não é alcançável daqui: 1ª conferência é com a
+  equipe usando.
+
+---
+
 ## 2026-09-21 (13ª) — Cancelado em cascata, CRM, menu e robô sem **
 
 Aprovado por Karina ("perfeito / isso / Members 2 vira CRM / de resto pode
