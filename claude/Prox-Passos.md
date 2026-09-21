@@ -15,6 +15,28 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **🔴 PRIORIDADE: login de verdade na Dash (Supabase Auth)** — aprovado
+  por Karina em 21/09. Hoje qualquer um com a chave anon (pública no site e
+  no repo público) lê e altera toda a Dash, inclusive as senhas em texto
+  puro da seção `users`.
+  - *Decisões dela:* logins = karina@, isabela@, leonardo@,
+    roberto@worldpokerfederation.org (só esses 4). Primeira senha =
+    **provisória** combinada com ela no chat de 21/09 (NÃO registrar aqui:
+    este repo é público), com **troca obrigatória no primeiro acesso**.
+  - *Plano:* criar os 4 no Supabase Auth; tabela de permitidos/papéis (Adm
+    Karina, Colab os outros, mesmas permissões de hoje); RLS em
+    `wpf_dashboard_data` só pra autenticado da lista; Dash usa supabase-js
+    (CDN jsdelivr) com `signInWithPassword`, sessão e "esqueci a senha";
+    `wpf_forms` leitura pública só do necessário + `wpf_form_responses` só
+    INSERT anon (Dash autenticada lê); `wpf_slack_messages` com RLS
+    (conferir antes como o `wpf-slack-bridge` grava — se usar anon, trocar
+    pra secret key); apagar senhas da seção `users`. Robô não muda (usa
+    secret key).
+  - *Como:* testar tudo no Chromium com Supabase simulado; troca em horário
+    combinado; script de volta (políticas antigas) pronto.
+  - *Aberto em:* 2026-09-21
+
+
 - [ ] **Agente: primeiro teste de verdade no WhatsApp** — o modo
   conversacional econômico está no ar desde 21/09 (ver Changelog), mas
   ainda não recebeu nenhuma mensagem real.

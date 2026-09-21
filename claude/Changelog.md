@@ -12,6 +12,42 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (10ª) — Auditoria de segurança + robô vira "Carinha"
+
+Pedido da Karina: "verifica tudo e arruma o que precisar"; nome "Carinha",
+masculino.
+
+- **Achados críticos:**
+  1. **Dash aberta:** `wpf_dashboard_data` tem políticas "qualquer um lê,
+     insere e atualiza" pra anon; a chave anon está no site e o repo é
+     **público**. Seção `users` guarda as **senhas dos 4 em texto puro**.
+     `wpf_slack_messages`, `wpf_forms`, `wpf_form_responses` estão **sem
+     RLS**. → Correção = login de verdade (Supabase Auth), aprovada; fica
+     pra sessão dedicada (ver Prox Passos).
+  2. **Webhook do WhatsApp sem assinatura:** qualquer um com o endereço do
+     robô podia se passar por alguém da equipe e mandar "sim". → Corrigido:
+     o robô confere `X-Hub-Signature-256` com `META_APP_SECRET` (segredo
+     criado pela Karina no Cloudflare). Sem o segredo, recusa tudo.
+  3. **Token do GitHub** nas instruções do projeto → Karina gerou um novo
+     (fine-grained, só `karinabupp/wpf`, Contents + Workflows) e revogou o
+     antigo em 21/09. Sessões novas usam o novo.
+- **Corrigido agora:** política de leitura anon de
+  `wpf_whatsapp_statuses` apagada (RLS ligado); telefone da Karina saiu do
+  código público (agora `wpf_agente_config.gmail_dono`); textos que o robô
+  grava na Dash (nome, contexto, partner, colunas) sem `<` `>`.
+- **Carinha:** se apresenta como Carinha, masculino, e diz que "cuida da
+  gestão do trabalho pra você poder ficar tranquila/o", sem falar de abas.
+- **Publicação:** com o token antigo revogado, esta sessão não conseguiu
+  dar push; a Karina subiu `worker/whatsapp-bridge.js` pela interface do
+  GitHub (commit "Robô: assinatura da Meta e Carinha") e o robô respondeu
+  como Carinha às 18h04 → assinatura funcionando. A versão com a
+  apresentação nova também foi subida por ela junto com estes docs.
+- **Verificação:** 209 testes (webhook sem assinatura/errada/sem segredo
+  recusado; HTML removido; Carinha; e-mail sem dono configurado não avisa
+  ninguém).
+
+---
+
 ## 2026-09-21 (9ª) — Script do Gmail funcionando
 
 - **Diagnóstico:** a caixa da Karina não usa abas → `category:primary`
