@@ -12,6 +12,44 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (4ª) — Robô avisa por conta própria
+
+Aprovado por Karina (regras: sem mensagem diária, só quando precisa;
+9h25; régua de 3 tarefas abertas; várias mensagens só se necessário;
+se precisar em dias seguidos, tentar dentro da janela de 24h).
+
+- **O que mudou (Worker, commit `5cc4591`):**
+  - **Agendamento** (`wrangler.toml` `[triggers]`): `25 12 * * 1-5`
+    (9h25 SP, dias úteis) e `5 * * * *` (de hora em hora, resgate).
+  - **O que vira aviso** (decidido em código, sem Claude): linha da pessoa
+    que virou Late; entregável vencendo em até 3 dias com **3+ tarefas
+    abertas** (avisa quem tem tarefa aberta dentro, e a Karina); linha
+    nova atribuída; pra Karina, Entregável/Projeto/Meta de outra pessoa em
+    Late ou Deadline. Cada assunto uma vez (volta só se piorar, ex.
+    Deadline → Late). Na 1ª rodada de cada pessoa tudo o que já existe
+    vira "base" — conta a partir de agora. Pendente que se resolve antes
+    do aviso sai da fila.
+  - **Como manda:** às 9h25, janela aberta → Haiku escreve (1 mensagem;
+    até 3 se for muito/complexo), com opções clicáveis; janela fechada →
+    template `aviso_dash` ("Oi {{1}}, tenho {{2}} da Dash…" + botão *Ver
+    agora*), 1 por dia; tocar *Ver agora* manda o detalhe. De hora em hora
+    (8h–21h SP): se há pendente e a janela vai fechar em até 75 min, manda
+    antes de fechar. Máx. 2 mensagens por conta própria por dia. Se a
+    pessoa conversar antes, os pendentes entram na resposta e saem da fila.
+  - **Quem recebe:** coluna nova `proativo` em `wpf_agente_pessoas` (só a
+    Karina ligada por enquanto) + `recebe_avisos` (SAIR/VOLTAR).
+- **Supabase:** tabela `wpf_agente_avisos` (RLS, sem política); colunas
+  `proativo` (pessoas) e `proativa` (mensagens).
+- **Pendente da Karina:** criar o template `aviso_dash` no WhatsApp
+  Manager. Até ser aprovado, com a janela fechada o aviso fica esperando
+  (o envio recusado é só registrado no log).
+- **Verificação:** 162 testes (base silenciosa, janela aberta/fechada,
+  template e parâmetros, Ver agora, template recusado, resolvido some,
+  resgate, madrugada, régua de 3, 2 mensagens, limite de 2/dia, conversa
+  zera pendente, sem Claude manda lista crua).
+
+---
+
 ## 2026-09-21 (3ª) — Robô: respostas como opções clicáveis
 
 Aprovado por Karina ("pode").
