@@ -29,8 +29,12 @@ reconstruir o raciocínio.
     consumo real pedir.
   - *Aberto em:* 2026-09-21
 
-- [ ] **Agente: conectar Read AI e montar o Gmail** — robô já sabe ler
-  reuniões (21/09); falta a Karina abrir o link `/readai/conectar` e seguir
+- [ ] **Agente: Read AI conectado (21/09, 15h21) — conferir 1ª renovação
+  do token; instalar o script do Gmail** — robô já sabe ler reuniões e
+  e-mails. Read AI: a Karina conectou; confirmar que `readai_tokens` foi
+  renovado depois das 16h05 SP. Gmail: falta ela instalar
+  `worker/gmail-script.gs` (com o token de `gmail_token`) e rodar
+  `configurar`. Referência antiga: abrir o link `/readai/conectar` e seguir
   os passos (se o convite vencer, gerar outro em `wpf_agente_config`,
   chave `readai_convite`, `{codigo, expira ISO}`). Depois: script do Google
   no Gmail dela — regras aprovadas: avisar só o relevante (pede

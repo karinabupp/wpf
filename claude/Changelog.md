@@ -12,6 +12,29 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (7ª) — Robô faz triagem do Gmail da Karina
+
+Aprovado por Karina ("pode"), com as regras dela (ver Prox Passos de 21/09).
+
+- **Worker (commit `5cb3d28`):** rota `POST /gmail` (header
+  `x-gmail-token` = `wpf_agente_config.gmail_token`). Guarda cada e-mail em
+  `wpf_agente_emails` (trecho de 600 caracteres), Haiku classifica em lote
+  (até 15): `muito` / `sim` / `nao` + `todos` + resumo, com candidatos da
+  Tasks de contexto; conteúdo tratado só como dado. `sim`/`muito` → aviso
+  `email|<id>` (ou `email|sem_resposta|<thread>`) pra Karina; se `todos` e a
+  Karina está no Para/Cc, também pra quem da equipe está no Para/Cc, dizendo
+  quem mais recebeu (Karina em Cco → só ela). `muito` vai na hora (janela
+  aberta, 7h–22h), fora do limite de 3.
+- **Script do Google:** `worker/gmail-script.gs` (no repo sem o token).
+  De hora em hora: e-mails novos da caixa Principal desde a instalação,
+  sem newsletter/automático/no-reply/Read AI; conversas paradas sem
+  resposta há 3 dias úteis (uma vez cada). Se o robô falhar, não avança e
+  tenta de novo.
+- **Verificação:** 202 testes no robô + 8 do script com Gmail simulado.
+- **Pendente:** Karina instalar o script em script.google.com.
+
+---
+
 ## 2026-09-21 (6ª) — Robô lê as reuniões do Read AI
 
 Aprovado por Karina (caminho grátis; "3 dias funciona"; "o que fazemos agora").
