@@ -5,7 +5,7 @@
 //                    trata a conversa em segundo plano (ctx.waitUntil)
 //
 // O que o agente olha: SÓ a aba Tasks (seções tasks2 / tasks2__xxx) e a
-// Members 2 (members2 / members2__xxx), de todas as empresas.
+// CRM (members2 / members2__xxx), de todas as empresas.
 //
 // Como economiza (decidido pela Karina em 21/09):
 //  - O Claude NÃO recebe a Dash inteira a cada mensagem. Recebe:
@@ -160,9 +160,21 @@ async function gravarMensagem(env, linha) {
   return r.ok && Array.isArray(r.dados) && r.dados.length > 0;
 }
 
+// O Claude escreve Markdown (**negrito**, ### título); o WhatsApp usa
+// *negrito* de um asterisco e mostra o resto cru — sobravam asteriscos na
+// tela (Karina, 21/09). Converte tudo no envio.
+function paraWhats(t) {
+  return String(t ?? "")
+    .replace(/\*{3,}/g, "**")
+    .replace(/\*\*\s*([^*\n]+?)\s*\*\*/g, "*$1*")
+    .replace(/__([^_\n]+?)__/g, "_$1_")
+    .replace(/~~([^~\n]+?)~~/g, "~$1~")
+    .replace(/^[ \t]{0,3}#{1,6}[ \t]+(.+?)[ \t]*#*[ \t]*$/gm, "*$1*");
+}
+
 // consumo = { modelo, tokens_entrada, tokens_saida, tokens_cache, analise_geral }
 async function enviarTexto(env, para, texto, consumo) {
-  texto = corta(texto, 4000);
+  texto = corta(paraWhats(texto), 4000);
   const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
@@ -200,7 +212,7 @@ function corpoInterativo(para, f) {
   return { messaging_product: "whatsapp", to: para, type: "interactive", interactive };
 }
 async function enviarComOpcoes(env, para, texto, opcoes, consumo) {
-  texto = corta(texto, 4000);
+  texto = corta(paraWhats(texto), 4000);
   const f = formatoOpcoes(texto, opcoes);
   if (f.tipo === "texto") return enviarTexto(env, para, texto, consumo);
   if (f.tipo === "numerado") return enviarTexto(env, para, f.texto, { ...(consumo || {}), opcoes: f.opcoes });
@@ -231,7 +243,7 @@ function separarOpcoes(texto) {
   return { texto: texto.slice(0, m.index).trim(), opcoes: m[1].split("|").map(o => o.trim()).filter(Boolean) };
 }
 
-// ─── Dados da Dash (só Tasks e Members 2) ────────────────────────────────
+// ─── Dados da Dash (só Tasks e CRM) ────────────────────────────────
 async function carregarDash(env) {
   const r = await sb(env, `${TAB_DASH}?select=section,data,updated_at&or=(section.like.tasks2*,section.like.members2*)`);
   if (!r.ok || !Array.isArray(r.dados)) throw new Error("não consegui ler a Dash");
@@ -334,7 +346,7 @@ function retratar(empresas, members) {
 // a ser) dela e mudou, foi criada, virou Late/Deadline. Pra admin, além
 // disso: Entregável/Projeto/Meta de qualquer pessoa que acabou de virar
 // Late ou Deadline. Cada coisa aparece uma vez (a base anda a cada
-// resposta). O resto (Members 2, mudanças alheias) é descartado aqui,
+// resposta). O resto (CRM, mudanças alheias) é descartado aqui,
 // antes de chegar ao Claude.
 function mudancasDesde(antes, agora, pessoa, indice) {
   const linhas = [], nome = pessoa.nome_tasks;
@@ -401,7 +413,7 @@ function quadroCompleto(empresas, members, indice, pessoa) {
     });
     if (ocultas) linhas.push(`(${ocultas} concluídas/canceladas ocultas)`);
   });
-  if (pessoa.admin) members.forEach(mb => linhas.push(`### Members 2 ${mb.nome}`, resumoMembers(mb, null)));
+  if (pessoa.admin) members.forEach(mb => linhas.push(`### CRM ${mb.nome}`, resumoMembers(mb, null)));
   return linhas.join("\n");
 }
 function resumoMembers(mb, quadroId) {
@@ -460,9 +472,9 @@ function buscarTasks(entrada, indice, pessoa, hoje) {
   return res.slice(0, MAX_RESULTADOS_BUSCA).map(i => linhaTexto(i, true, 200)).join("\n") + (res.length > MAX_RESULTADOS_BUSCA ? `\n…e mais ${res.length - MAX_RESULTADOS_BUSCA}; refine a busca.` : "");
 }
 function buscarMembers(entrada, members, pessoa) {
-  if (!pessoa.admin) return "Members 2 é só pra admin.";
+  if (!pessoa.admin) return "CRM é só pra admin.";
   const lista = members.filter(mb => !entrada.empresa || mb.nome === String(entrada.empresa).toUpperCase());
-  if (!lista.length) return "Não achei Members 2 dessa empresa.";
+  if (!lista.length) return "Não achei CRM dessa empresa.";
   if (entrada.pais) {
     const alvo = normalizar(entrada.pais), out = [];
     lista.forEach(mb => {
@@ -559,7 +571,7 @@ function validarContexto(entrada, indice, pessoa) {
   };
 }
 
-// Members 2: status de um país num quadro, tipo de membro, partner, ou o
+// CRM: status de um país num quadro, tipo de membro, partner, ou o
 // valor de uma coluna da planilha. Só admin.
 function paisesConhecidos(mb) {
   const s = new Set();
@@ -568,9 +580,9 @@ function paisesConhecidos(mb) {
   return s;
 }
 function validarMembers(entrada, members, pessoa, todosPaises) {
-  if (!pessoa.admin) return { erro: "Só a Karina pode mudar o Members 2." };
+  if (!pessoa.admin) return { erro: "Só a Karina pode mudar o CRM." };
   const mb = members.find(m => m.nome === String(entrada.empresa || "WPF").toUpperCase());
-  if (!mb) return { erro: `Não achei o Members 2 da empresa ${entrada.empresa}.` };
+  if (!mb) return { erro: `Não achei o CRM da empresa ${entrada.empresa}.` };
   const pais = String(entrada.pais || "").trim();
   if (!pais) return { erro: "Falta o país." };
   if (!todosPaises.has(pais)) return { erro: `Não conheço o país "${pais}". Use o nome em inglês como está no mapa (busque com buscar_members).` };
@@ -610,7 +622,7 @@ function validarMembers(entrada, members, pessoa, todosPaises) {
     acao.quadro = q.id; acao.registro = novo;
   }
   if (!itens.length) return { erro: "Nada mudaria com isso." };
-  return { acao, resumo: `*Members 2 ${mb.nome} › ${pais}*\n` + itens.map(i => "• " + i).join("\n") };
+  return { acao, resumo: `*CRM ${mb.nome} › ${pais}*\n` + itens.map(i => "• " + i).join("\n") };
 }
 
 // Aplica a ação num retrato fresco da seção. Devolve {linhaId, antes, depois} ou erro.
@@ -649,7 +661,7 @@ function aplicarAcao(dados, acao, pessoa) {
     return { linhaId: no.id, antes, depois: { contexto: acao.texto } };
   }
   if (acao.tipo === "members") {
-    if (!pessoa.admin) return { erro: "só a Karina pode mudar o Members 2" };
+    if (!pessoa.admin) return { erro: "só a Karina pode mudar o CRM" };
     const antes = {}, depois = {};
     if (acao.coluna) {
       if (!dados.paises || typeof dados.paises !== "object") dados.paises = {};
@@ -714,7 +726,7 @@ const F_BUSCAR = {
     incluir_concluidas: { type: "boolean" } } }
 };
 const F_BUSCAR_MEMBERS = {
-  name: "buscar_members", description: "Consulta a aba Members 2 (quadros de países por status). Sem país: resumo dos quadros. Com país: tudo daquele país.",
+  name: "buscar_members", description: "Consulta a aba CRM (quadros de países por status). Sem país: resumo dos quadros. Com país: tudo daquele país.",
   input_schema: { type: "object", properties: { empresa: { type: "string" }, quadro: { type: "string" }, pais: { type: "string" } } }
 };
 const F_MUDANCA = {
@@ -736,7 +748,7 @@ const F_CRIACAO = {
     required: ["pai", "tipo", "nome"] }
 };
 const F_MEMBERS = {
-  name: "propor_members", description: "Propõe mudar a aba Members 2 de um país: status num quadro (e tipo de membro / partner), ou o valor de uma coluna da planilha. Não grava: o sistema pede confirmação.",
+  name: "propor_members", description: "Propõe mudar a aba CRM de um país: status num quadro (e tipo de membro / partner), ou o valor de uma coluna da planilha. Não grava: o sistema pede confirmação.",
   input_schema: { type: "object", properties: {
     empresa: { type: "string", description: "WPF, CBTH… (padrão WPF)" },
     pais: { type: "string", description: "nome em inglês como no mapa" },
@@ -765,13 +777,13 @@ const F_SONNET = {
   input_schema: { type: "object", properties: { motivo: { type: "string" } }, required: ["motivo"] }
 };
 const F_ANALISE = {
-  name: "analise_geral", description: "Lê a aba Tasks inteira (e o Members 2) de uma vez. Caro: só quando a pessoa pedir análise ou panorama geral. Limite de 1 por dia por pessoa.",
+  name: "analise_geral", description: "Lê a aba Tasks inteira (e o CRM) de uma vez. Caro: só quando a pessoa pedir análise ou panorama geral. Limite de 1 por dia por pessoa.",
   input_schema: { type: "object", properties: {} }
 };
 
 function instrucoes(modelo) {
   return `Você é o *Carinha*, o agente de gestão da Dash da Karina, no WhatsApp. Você é homem: ao falar de si, use o masculino ("fiquei de olho", "obrigado", "estou atento"). Se perguntarem seu nome, é Carinha.
-Ao se apresentar (ou se perguntarem quem você é / o que você faz): diga que é o Carinha e que cuida da gestão do trabalho pra pessoa poder ficar tranquila (use "tranquila" ou "tranquilo" conforme a pessoa). Curto e simpático. NÃO fale de abas, Dash, Tasks, Members, ferramentas nem de como você funciona por dentro. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *Members 2* (quadros de países por status).
+Ao se apresentar (ou se perguntarem quem você é / o que você faz): diga que é o Carinha e que cuida da gestão do trabalho pra pessoa poder ficar tranquila (use "tranquila" ou "tranquilo" conforme a pessoa). Curto e simpático. NÃO fale de abas, Dash, Tasks, Members, ferramentas nem de como você funciona por dentro. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *CRM* (quadros de países por status).
 
 Como conversar:
 - Português do Brasil, jeito de WhatsApp. Respostas curtas a médias: em geral até 6 linhas, no máximo umas 12 quando a pergunta pedir. Negrito só com *asteriscos*; sem títulos nem tabelas.
@@ -790,7 +802,7 @@ Mudanças:
 - Sugestões vindas de reunião (a Karina respondeu "Criar tarefa", "Criar 1"… a uma mensagem sobre itens de reunião): ache o lugar certo com buscar e use propor_criacao; se não houver lugar óbvio, pergunte onde. "Já existe" / "Ignorar": só confirme em uma linha.
 - Contexto: só Meta e Projeto têm. Quando a pessoa contar algo relevante sobre uma Meta/Projeto (decisão, parceiro, motivo, prazo combinado) que não está no contexto, ofereça registrar com propor_contexto.
 - Tasks: status que dá pra escolher são Not Started, In Progress, Done, On Hold, Cancelled (Late e Deadline são automáticos pelas datas). Linhas [agrupa] têm status e datas calculados: mude as de baixo. Não existe apagar (só pela Dash). Pra criar, escolha o lugar certo na hierarquia; se não houver lugar óbvio, pergunte antes. Meta nova só se a pessoa pedir ou concordar.
-- Members 2: status de cada quadro (os do próprio quadro), tipo de membro Observador/Afiliado só com o último status (Membro), partner, e colunas da planilha. O quadro Avisos Gerais tem status calculado. Países com o nome em inglês, como no mapa.
+- CRM (a antiga aba Members 2; se falarem "Members 2" ou "members", é o CRM): status de cada quadro (os do próprio quadro), tipo de membro Observador/Afiliado só com o último status (Membro), partner, e colunas da planilha. O quadro Avisos Gerais tem status calculado. Países com o nome em inglês, como no mapa.
 - Datas relativas ("sexta", "semana que vem") contam a partir de hoje; nas ferramentas use AAAA-MM-DD.
 ${modelo === HAIKU ? "\n- Se o pedido exigir análise geral, planejamento de várias linhas ou raciocínio mais pesado, chame chamar_sonnet em vez de tentar sozinho. No resto, resolva você." : "\n- Você é o modelo mais forte, chamado pra um pedido que precisa de mais cuidado. Se a pessoa pediu análise ou panorama geral, use analise_geral (1 por dia)."}`;
 }
@@ -1718,7 +1730,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const avisosPend = pessoa.proativo ? await pendentesDe(env, tel) : [];
 
   const contexto = [
-    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive Members 2)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê Members 2)"}.`,
+    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive CRM)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê CRM)"}.`,
     `Hoje: ${diaSemanaSP()}, ${hoje}.`,
     `Responsáveis válidos: ${[...nomesConhecidos].join(", ")}.`,
     `Empresas: ${empresas.map(e => e.nome).join(", ")}.`,
@@ -1896,5 +1908,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

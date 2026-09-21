@@ -3294,6 +3294,11 @@
      nuvem (as metas automaticas da Tasks leem goalsData). Voltar uma aba e
      tirar o id daqui. */
   #nav-geral, #nav-goals, #nav-tasks, #nav-settings { display: none !important; }
+  /* 21/09 (Karina): Members e Committee saem do menu. Os dados de Members
+     (torneios, trading, links, checklist) foram copiados pra planilha do
+     CRM (antiga Members 2). Os dados antigos continuam na nuvem
+     (federations, committee...) como seguranca; o codigo fica pra limpeza. */
+  #nav-members, #nav-committee { display: none !important; }
   /* Card "Tasks do Slack" gravava na Tasks original, que saiu do menu. */
   #slack-side-col { display: none !important; }
   /* Numero de tarefas em cima do pais no quadro Avisos Gerais (Members 2). */
@@ -4567,7 +4572,7 @@
   .tasks2-contexto-btn {
     flex-shrink: 0; align-self: center;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 22px; height: 22px; padding: 0; margin-left: 2px;
+    width: 22px; height: 22px; padding: 0; margin: 0 2px 0 0;
     background: transparent; border: 0; border-radius: 6px;
     color: var(--text); opacity: 0.16; cursor: pointer;
     transition: opacity 0.15s, background 0.15s;
@@ -4658,8 +4663,9 @@
   </button>
   <button class="nav-icon-btn active" id="nav-tasks2" data-tooltip="Tasks" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="4,13 9,18 20,6"/>
-      <polyline points="4,19 7,22 12,16" opacity="0.45"/>
+      <circle cx="12" cy="12" r="8.5"/>
+      <circle cx="12" cy="12" r="4.5"/>
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
     </svg>
   </button>
   <button class="nav-icon-btn" id="nav-members" data-tooltip="Members" type="button">
@@ -4668,7 +4674,7 @@
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
     </svg>
   </button>
-  <button class="nav-icon-btn" id="nav-members2" data-tooltip="Members 2" type="button">
+  <button class="nav-icon-btn" id="nav-members2" data-tooltip="CRM" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="8" r="4"/>
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
@@ -16314,7 +16320,8 @@ applyRolePermissions();
   //    Azul (In Progress) andando, verde (Done) concluido, vermelho (Late)
   //    se ha algo atrasado embaixo.
   //  - entregavel/tarefa : os seis status de sempre
-  const STATUS_CALCULADO = ["Not Started", "In Progress", "Deadline", "Late", "Done"];
+  // Cancelled entra so quando TUDO abaixo esta cancelado (21/09, Karina).
+  const STATUS_CALCULADO = ["Not Started", "In Progress", "Deadline", "Late", "Done", "Cancelled"];
   const STATUS_BY_TYPE = {
     objetivo:   STATUS_CALCULADO,
     meta:       STATUS_CALCULADO,
@@ -16414,6 +16421,9 @@ applyRolePermissions();
   }
 
   function computeRollupStatus(t) {
+    // Tudo abaixo cancelado => a de cima tambem. Basta uma linha nao
+    // cancelada pra voltar ao calculo normal.
+    if (t.subtasks.length && t.subtasks.every(x => x.status === "Cancelled")) return "Cancelled";
     if (temAtrasoAbaixo(t)) return "Late";
     if (temDeadlineAbaixo(t)) return "Deadline";
     const live = t.subtasks.filter(x => x.status !== "Cancelled");
@@ -17740,10 +17750,10 @@ applyRolePermissions();
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
             <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
+            ${contextoBtnMarkup(t)}
             <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
             ${objetivoResumoMarkup(t)}
             ${metaProgressoMarkup(t)}
-            ${contextoBtnMarkup(t)}
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
           </div>
           ${mentionsChipsMarkup(t)}

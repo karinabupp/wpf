@@ -12,6 +12,42 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (13ª) — Cancelado em cascata, CRM, menu e robô sem **
+
+Aprovado por Karina ("perfeito / isso / Members 2 vira CRM / de resto pode
+fazer"). Daily Digest: cancelado por ela no Google (21/09).
+
+- **Tasks — Cancelled em cascata:** se TODAS as linhas abaixo estão
+  Cancelled, a de cima também fica (Objetivo, Meta, Projeto e Entregável
+  com linhas). Basta uma não cancelada pra voltar ao cálculo normal. Antes
+  aparecia "Not Started". (`STATUS_CALCULADO` ganhou "Cancelled";
+  `computeRollupStatus`.)
+- **Ícone da Tasks no menu:** o alvo, igual ao ícone de Objetivo.
+- **Botão de contexto:** antes do nome da Meta/Projeto (logo depois do
+  ícone da categoria), não mais depois.
+- **Members → CRM:** tudo o que a aba Members tinha por país foi pra
+  planilha do CRM (`sql/2026-09-21_members_para_crm.sql`): colunas novas
+  Principais torneios (22 países), Trading (6), Rede social (1), Website
+  (0), Mídia ativa (21), Campeão nacional (22), Seleção nacional (3),
+  Representante feminina (3) — 48 países com algo. Status já tinham sido
+  copiados em 16/09 (conferido: batem com a regra da época; Needed/Not
+  Started ficaram de fora de propósito). Social (análise de links) estava
+  vazia. Pará (único estado do Brasil com dados) não tem lugar numa planilha
+  por país e ficou só no banco.
+- **Menu:** Members e Committee saíram (CSS, como em 16/09); dados antigos
+  (`federations`, `committee`, estados…) continuam na nuvem como segurança;
+  código fica pro item de limpeza. **Members 2 agora se chama CRM** (menu e
+  robô). O nome técnico continua `members2`.
+- **Robô:** `paraWhats` converte o Markdown do Claude pro WhatsApp em todo
+  envio (`**x**` → `*x*`, `### título` → `*título*`, `__x__`, `~~x~~`) —
+  sobravam asteriscos na tela. Textos do robô dizem "CRM" (entende "Members
+  2" como sinônimo).
+- **Verificação:** 12 testes novos no Chromium (menu, ícone, cascata do
+  Cancelled, posição do botão, colunas e valores no CRM) + 36 do login + 41
+  do robô + 28 dos Workers + 8 casos da conversão de asteriscos.
+
+---
+
 ## 2026-09-21 (12ª) — Robô: avisos curtos, só o pertinente, botões que agem
 
 Pedido da Karina depois do 1º aviso real (19h05: mensagem enorme com 27

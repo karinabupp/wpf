@@ -30,14 +30,6 @@ reconstruir o raciocínio.
   (`precisa_trocar_senha = false` pros 4).
   - *Aberto em:* 2026-09-21
 
-- [ ] **Daily Digest: confirmar que foi desligado** — Karina pediu pra
-  cancelar (21/09). Com o login ele já não lê mais a Dash, mas o web app
-  continua publicado como "qualquer pessoa" e manda e-mail pela conta
-  Google dela pra quem tiver o endereço. Falta: script.google.com → projeto
-  → apagar acionadores (relógio) e Implantar → Gerenciar implantações →
-  Arquivar. O código de envio segue em Settings (escondido).
-  - *Aberto em:* 2026-09-21
-
 - [ ] **Opcional: proteção contra senha vazada no Supabase** — aviso do
   próprio Supabase (Authentication → Sign In / Providers). Pode ser recurso
   só de plano pago. Também opcional: mínimo de 8 caracteres no Auth (a Dash
@@ -96,8 +88,9 @@ reconstruir o raciocínio.
   - *Onde:* `index.html`, Tasks 2, `METAS_AUTOMATICAS` / `kpiDoMarketing`.
   - *Aberto em:* 2026-09-16
 
-- [ ] **Apagar de verdade o código de Geral, Goals, Tasks original e o card
-  do Slack** — hoje só escondidos.
+- [ ] **Apagar de verdade o código de Geral, Goals, Tasks original, Members,
+  Committee, Social e o card do Slack** — hoje só escondidos (Members e
+  Committee desde 21/09; os dados de Members já estão no CRM).
   - *Contexto:* decisão de 16/09 foi ocultar. Antes de apagar: resolver as
     metas automáticas (item acima), a semeadura da Tasks 2 a partir de
     `tasksData` (`seedFromRealTasks`) e o Slack, que usa `tasksData`.
@@ -253,6 +246,8 @@ reconstruir o raciocínio.
 ---
 
 ## Concluídos
+
+- [x] **Daily Digest desligado** — Karina cancelou no Google em 21/09.
 
 - [x] **Login de verdade na Dash (Supabase Auth)** — feito em 21/09 (ver
   Changelog, 11ª). Dash, Slack e respostas de formulário só pra equipe
