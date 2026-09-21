@@ -1,40 +1,59 @@
-// Ponte do WhatsApp da Dash — Agente de Gestão (modo conversacional).
+// Ponte do WhatsApp da Dash — Agente de Gestão (modo conversacional econômico).
 //
 //  GET  /webhook   → verificação da Meta
 //  POST /webhook   → mensagem recebida: grava, responde 200 na hora e
 //                    trata a conversa em segundo plano (ctx.waitUntil)
 //  POST /enviar    → envia mensagem avulsa, exige o token no header
 //
-// Como a conversa funciona:
-//  1. Identifica a pessoa pelo telefone (wpf_agente_pessoas).
-//  2. Lê as tarefas de TODAS as empresas (toda seção tasks2 / tasks2__xxx).
-//  3. Se havia mudança esperando confirmação e a pessoa disse "sim" ou
-//     "não", resolve isso em código, sem passar pelo Claude.
-//  4. Senão, manda pro Claude o quadro resumido + a conversa recente. O
-//     Claude só CONVERSA e PROPÕE (ferramentas propor_mudanca /
-//     propor_criacao). Quem valida, monta o resumo da confirmação e, depois
-//     do "sim", grava na Dash é este código.
-//  5. Nunca apaga linha. Pessoa comum só mexe no que é dela; admin em tudo.
-//  6. Se a API do Claude falhar, responde com um resumo simples do quadro.
+// O que o agente olha: SÓ a aba Tasks (seções tasks2 / tasks2__xxx) e a
+// Members 2 (members2 / members2__xxx), de todas as empresas.
 //
-// Segredos no Cloudflare: WHATSAPP_TOKEN, WHATSAPP_PHONE_ID,
-// WHATSAPP_VERIFY_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY.
+// Como economiza (decidido pela Karina em 21/09):
+//  - O Claude NÃO recebe a Dash inteira a cada mensagem. Recebe:
+//      · as últimas modificações desde a mensagem anterior desta pessoa
+//        (comparação com um retrato guardado em wpf_agente_snapshot);
+//      · o resumo de alertas (Late / Deadline / vence em 7 dias) só na
+//        primeira mensagem do dia;
+//      · as últimas 6 mensagens da conversa.
+//    O resto ele busca com ferramentas, só a parte que precisa.
+//  - Haiku atende. Ele pode subir pro Sonnet (ferramenta chamar_sonnet)
+//    em tarefa que precise; limite de SONNET_POR_DIA por pessoa.
+//  - Leitura da Dash inteira (analise_geral) só no Sonnet, 1 por dia por
+//    pessoa.
+//  - Parte fixa (instruções + ferramentas) vai marcada pra cache.
+//  - Respostas curtas a médias (max_tokens baixo).
+//  - Cada resposta grava modelo e tokens gastos na tabela de mensagens.
+//
+// Mudanças: o Claude só PROPÕE; o código valida, mostra o resumo, espera o
+// "sim" e grava. Nunca apaga. Pessoa comum só mexe no que é dela.
 
 const TAB_MSG = "wpf_whatsapp_messages";
 const TAB_PESSOAS = "wpf_agente_pessoas";
 const TAB_PEND = "wpf_agente_pendencias";
 const TAB_AUDIT = "wpf_agente_auditoria";
+const TAB_SNAP = "wpf_agente_snapshot";
 const TAB_DASH = "wpf_dashboard_data";
 
-const MODELO = "claude-sonnet-5";
-const HISTORICO_MSGS = 12;        // mensagens anteriores mandadas ao Claude
-const LIMITE_POR_HORA = 40;       // mensagens recebidas por número por hora
+const HAIKU = "claude-haiku-4-5-20251001";
+const SONNET = "claude-sonnet-5";
+const SONNET_POR_DIA = 10;
+const ANALISE_POR_DIA = 1;
+const HISTORICO_MSGS = 6;
+const MAX_TOKENS = 500;
+const MAX_RODADAS = 5;
+const LIMITE_POR_HORA = 40;
 const TENTATIVAS_GRAVAR = 3;
+const MAX_LINHAS_MUDANCAS = 30;
+const MAX_LINHAS_ALERTA = 25;
+const MAX_RESULTADOS_BUSCA = 25;
 
 const STATUS_MANUAIS = ["Not Started", "In Progress", "Done", "On Hold", "Cancelled"];
 const TIPOS = ["objetivo", "meta", "projeto", "entregavel", "tarefa"];
 const TIPO_LABEL = { objetivo: "Objetivo", meta: "Meta", projeto: "Projeto", entregavel: "Entregável", tarefa: "Tarefa" };
 const TIPO_RANK = { objetivo: 0, meta: 1, projeto: 2, entregavel: 3, tarefa: 4 };
+const TIPO_MEMBRO_OPCOES = ["Observador", "Afiliado"];
+const RE_TASKS = /^tasks2(__[a-z0-9_]+)?$/i;
+const RE_MEMBERS = /^members2(__[a-z0-9_]+)?$/i;
 
 // ─── Utilidades ──────────────────────────────────────────────────────────
 function hojeSP() {
@@ -42,6 +61,10 @@ function hojeSP() {
 }
 function diaSemanaSP() {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "long" }).format(new Date());
+}
+// Início do dia de hoje em São Paulo, em UTC (SP é UTC-3 o ano todo).
+function inicioDoDiaSP() {
+  return new Date(Date.parse(hojeSP() + "T03:00:00Z")).toISOString();
 }
 function somaDias(iso, n) {
   return new Date(Date.parse(iso + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
@@ -61,6 +84,10 @@ function normalizar(txt) {
 function corta(s, n) {
   s = String(s || "");
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
+}
+function nomeEmpresa(secao) {
+  const suf = (String(secao).match(/__(.+)$/) || [])[1];
+  return suf ? suf.toUpperCase() : "WPF";
 }
 
 const SIM = new Set(["sim", "s", "ss", "sim sim", "confirmo", "confirma", "confirmado", "pode", "pode sim", "sim pode",
@@ -98,14 +125,12 @@ async function sb(env, caminho, opcoes = {}) {
 
 // Grava a mensagem. Devolve true só se for NOVA (a Meta às vezes reenvia).
 async function gravarMensagem(env, linha) {
-  const r = await sb(env, TAB_MSG, {
-    method: "POST", body: [linha],
-    prefer: "resolution=ignore-duplicates,return=representation"
-  });
+  const r = await sb(env, TAB_MSG, { method: "POST", body: [linha], prefer: "resolution=ignore-duplicates,return=representation" });
   return r.ok && Array.isArray(r.dados) && r.dados.length > 0;
 }
 
-async function enviarTexto(env, para, texto) {
+// consumo = { modelo, tokens_entrada, tokens_saida, tokens_cache, analise_geral }
+async function enviarTexto(env, para, texto, consumo) {
   texto = corta(texto, 4000);
   const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
     method: "POST",
@@ -118,76 +143,39 @@ async function enviarTexto(env, para, texto) {
   if (res.ok) {
     await gravarMensagem(env, {
       wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: para,
-      msg_type: "text", body: texto, sent_at: new Date().toISOString(), raw: corpo
+      msg_type: "text", body: texto, sent_at: new Date().toISOString(), raw: corpo, ...(consumo || {})
     });
   }
   return { ok: res.ok, id, corpo };
 }
 
-// ─── Dados da Dash ───────────────────────────────────────────────────────
-function nomeEmpresa(secao) {
-  const suf = (secao.match(/^tasks2__(.+)$/) || [])[1];
-  if (!suf) return "WPF";
-  return suf.toUpperCase();
-}
-
-// Lê a Dash inteira de uma vez. Ficam de fora só:
-//  - os históricos de versões (historicoGeral, tasks2Historico*): são cópias
-//    de segurança de dados que já vêm aqui, e passam de 6 MB;
-//  - "tasks", a aba Tasks antiga (aguardando decisão da Karina, ver
-//    Prox Passos).
-const SECOES_FORA = new Set(["tasks"]);
+// ─── Dados da Dash (só Tasks e Members 2) ────────────────────────────────
 async function carregarDash(env) {
-  const r = await sb(env, `${TAB_DASH}?select=section,data,updated_at&section=not.ilike.*historico*`);
+  const r = await sb(env, `${TAB_DASH}?select=section,data,updated_at&or=(section.like.tasks2*,section.like.members2*)`);
   if (!r.ok || !Array.isArray(r.dados)) throw new Error("não consegui ler a Dash");
-  const linhas = r.dados.filter(l => !SECOES_FORA.has(l.section));
-  const empresas = linhas
-    .filter(l => /^tasks2(__[a-z0-9_]+)?$/i.test(l.section) && Array.isArray(l.data))
-    .sort((a, b) => (a.section === "tasks2" ? -1 : b.section === "tasks2" ? 1 : a.section.localeCompare(b.section)))
-    .map(l => ({ secao: l.section, nome: nomeEmpresa(l.section), dados: l.data, updated_at: l.updated_at }));
-  const outras = linhas
-    .filter(l => !/^tasks2(__[a-z0-9_]+)?$/i.test(l.section))
-    .sort((a, b) => a.section.localeCompare(b.section));
-  return { empresas, outras };
+  const ordem = (a, b) => (nomeEmpresa(a.secao) === "WPF" ? -1 : nomeEmpresa(b.secao) === "WPF" ? 1 : a.secao.localeCompare(b.secao));
+  const empresas = r.dados.filter(l => RE_TASKS.test(l.section) && Array.isArray(l.data))
+    .map(l => ({ secao: l.section, nome: nomeEmpresa(l.section), dados: l.data, updated_at: l.updated_at })).sort(ordem);
+  const members = r.dados.filter(l => RE_MEMBERS.test(l.section) && l.data && typeof l.data === "object")
+    .map(l => ({ secao: l.section, nome: nomeEmpresa(l.section), dados: l.data, updated_at: l.updated_at })).sort(ordem);
+  return { empresas, members };
 }
 
-// Senha e login nunca vão pro Claude.
-const CHAVES_SECRETAS = new Set(["password", "senha", "login", "mustchangepassword", "token"]);
-function semSegredos(v) {
-  if (Array.isArray(v)) return v.map(semSegredos);
-  if (v && typeof v === "object") {
-    const o = {};
-    Object.keys(v).forEach(k => { if (!CHAVES_SECRETAS.has(k.toLowerCase())) o[k] = semSegredos(v[k]); });
-    return o;
-  }
-  return v;
-}
-const LIMITE_POR_ABA = 25000;
-function montarOutrasAbas(outras) {
-  const vazio = v => v === null || v === undefined || (Array.isArray(v) && !v.length) || (typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length);
-  const blocos = outras.filter(l => !vazio(l.data)).map(l => {
-    const j = JSON.stringify(semSegredos(l.data));
-    return `### ${l.section} (atualizada ${String(l.updated_at).slice(0, 10)})\n${j.length > LIMITE_POR_ABA ? j.slice(0, LIMITE_POR_ABA) + " …(cortado)" : j}`;
-  });
-  return blocos.length ? "\n\nOutras abas da Dash (só leitura, dados crus em JSON; use pra responder perguntas, nunca pra propor mudanças):\n" + blocos.join("\n") : "";
-}
-
-// Dá um apelido curto a cada linha (WPF-12, CBTH-340) pra o Claude citar,
-// e guarda caminho/pai de cada uma.
+// Apelido estável por linha (sai do id, não da posição), ex. WPF-897435.
 function indexar(empresas) {
   const porApelido = {}, porId = {};
   empresas.forEach(emp => {
-    let n = 0;
-    (function andar(lista, pai, caminho, prof) {
+    (function andar(lista, pai, caminho) {
       lista.forEach(no => {
-        n++;
-        const apelido = `${emp.nome}-${n}`;
-        const info = { apelido, empresa: emp, no, pai, caminho, prof };
+        const base = `${emp.nome}-${String(no.id || "").replace(/^task-/, "").slice(-6) || "x"}`;
+        let apelido = base, k = 2;
+        while (porApelido[apelido.toUpperCase()]) apelido = base + "-" + (k++);
+        const info = { apelido, empresa: emp, no, pai, caminho };
         porApelido[apelido.toUpperCase()] = info;
         porId[emp.secao + "|" + no.id] = info;
-        andar(no.subtasks || [], no, caminho.concat(no.name || "(sem nome)"), prof + 1);
+        andar(no.subtasks || [], no, caminho.concat(no.name || "(sem nome)"));
       });
-    })(emp.dados, null, [], 0);
+    })(emp.dados, null, []);
   });
   return { porApelido, porId };
 }
@@ -202,51 +190,194 @@ const ehDono = (no, nome) => doResponsavel(no, nome) && (no.rowType === "meta" |
 function algumAbaixo(no, teste) {
   return (no.subtasks || []).some(f => teste(f) || algumAbaixo(f, teste));
 }
-
-// Quadro em texto pro Claude. Esconde o que está Done/Cancelled.
-// Pessoa comum vê só as linhas dela, com o caminho acima como contexto.
-function montarQuadro(empresas, indice, pessoa) {
-  const linhas = [];
-  empresas.forEach(emp => {
-    let ocultas = 0;
-    const saida = [];
-    (function andar(lista, prof, dentroDaPessoa) {
-      lista.forEach(no => {
-        const fechado = no.status === "Done" || no.status === "Cancelled";
-        const minha = ehDono(no, pessoa.nome_tasks);
-        const visivel = pessoa.admin || dentroDaPessoa || minha || algumAbaixo(no, f => doResponsavel(f, pessoa.nome_tasks));
-        if (!visivel) return;
-        if (fechado) { ocultas++; return; }
-        const info = indice.porId[emp.secao + "|" + no.id];
-        const datas = no.startDate && no.endDate ? `${br(no.startDate)}→${br(no.endDate)}` : no.endDate ? `até ${br(no.endDate)}` : "sem data";
-        const resp = (no.assignees || []).length ? no.assignees.join(", ") : "sem responsável";
-        saida.push(`${"  ".repeat(prof)}${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 90)} | ${no.status} | ${datas} | ${resp}${temFilhos(no) ? " [agrupa]" : ""}`);
-        andar(no.subtasks || [], prof + 1, dentroDaPessoa || minha);
-      });
-    })(emp.dados, 0, false);
-    linhas.push(`### ${emp.nome}${saida.length ? "" : " (nada em aberto)"}`);
-    linhas.push(...saida);
-    if (ocultas) linhas.push(`(${ocultas} linhas concluídas ou canceladas ocultas)`);
-  });
-  return linhas.join("\n");
+// Pessoa comum enxerga as linhas dela, o que está dentro delas e o caminho acima.
+function visivelPara(info, pessoa, indice) {
+  if (pessoa.admin) return true;
+  const nome = pessoa.nome_tasks;
+  if (ehDono(info.no, nome) || algumAbaixo(info.no, f => ehDono(f, nome))) return true;
+  let p = info.pai;
+  while (p) {
+    if (ehDono(p, nome)) return true;
+    const ip = indice.porId[info.empresa.secao + "|" + p.id];
+    p = ip && ip.pai;
+  }
+  return false;
 }
-
+function linhaTexto(info, comCaminho) {
+  const no = info.no;
+  const datas = no.startDate && no.endDate ? `${br(no.startDate)}→${br(no.endDate)}` : no.endDate ? `até ${br(no.endDate)}` : "sem data";
+  const resp = (no.assignees || []).length ? no.assignees.join(", ") : "sem responsável";
+  const caminho = comCaminho && info.caminho.length ? ` (em ${info.caminho.map(c => corta(c, 30)).join(" › ")})` : "";
+  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 80)} | ${no.status} | ${datas} | ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}`;
+}
 function caminhoTexto(info) {
   return [info.empresa.nome].concat(info.caminho.map(c => corta(c, 40)), [corta(info.no.name, 60)]).join(" › ");
 }
 
-// Grava UMA seção só se ninguém gravou depois da leitura (updated_at igual).
-async function gravarSecao(env, secao, dados, updatedAtLido) {
-  const r = await sb(env, `${TAB_DASH}?section=eq.${encodeURIComponent(secao)}&updated_at=eq.${encodeURIComponent(updatedAtLido)}`, {
-    method: "PATCH", body: { data: dados, updated_at: new Date().toISOString() }, prefer: "return=representation"
+// ─── Retrato compacto (base das "últimas modificações") ──────────────────
+function retratar(empresas, members) {
+  const out = { tasks: {}, members: {} };
+  empresas.forEach(emp => {
+    const m = out.tasks[emp.secao] = {};
+    (function andar(lista, paiId) {
+      lista.forEach(no => {
+        m[no.id] = { n: no.name || "", s: no.status || "", i: no.startDate || "", f: no.endDate || "", a: (no.assignees || []).join(", "), t: no.rowType || "", p: paiId };
+        andar(no.subtasks || [], no.id);
+      });
+    })(emp.dados, null);
   });
-  return r.ok && Array.isArray(r.dados) && r.dados.length === 1;
+  members.forEach(mb => {
+    const m = out.members[mb.secao] = {};
+    const spq = mb.dados.statusPorQuadro || {};
+    Object.keys(spq).forEach(q => Object.keys(spq[q] || {}).forEach(pais => {
+      const r = spq[q][pais] || {};
+      m[q + "|" + pais] = [r.status || "", r.tipoMembro || "", r.partner || ""].join("¦");
+    }));
+    const pa = mb.dados.paises || {};
+    Object.keys(pa).forEach(pais => Object.keys(pa[pais] || {}).forEach(col => {
+      m["col|" + pais + "|" + col] = String(pa[pais][col] ?? "");
+    }));
+  });
+  return out;
+}
+
+function mudancasDesde(antes, agora, pessoa, indice) {
+  const linhas = [];
+  Object.keys(agora.tasks).forEach(secao => {
+    const a = (antes.tasks || {})[secao] || {}, b = agora.tasks[secao];
+    const emp = nomeEmpresa(secao);
+    Object.keys(b).forEach(id => {
+      const info = indice.porId[secao + "|" + id];
+      if (!info || !visivelPara(info, pessoa, indice)) return;
+      const x = a[id], y = b[id];
+      if (!x) { linhas.push(`+ ${emp} nova ${TIPO_LABEL[y.t] || y.t}: ${linhaTexto(info, true)}`); return; }
+      const dif = [];
+      if (x.n !== y.n) dif.push(`nome "${corta(x.n, 40)}"→"${corta(y.n, 40)}"`);
+      if (x.s !== y.s) dif.push(`status ${x.s}→${y.s}`);
+      if (x.i !== y.i) dif.push(`início ${br(x.i)}→${br(y.i)}`);
+      if (x.f !== y.f) dif.push(`fim ${br(x.f)}→${br(y.f)}`);
+      if (x.a !== y.a) dif.push(`resp. ${x.a || "ninguém"}→${y.a || "ninguém"}`);
+      if (dif.length) linhas.push(`~ ${emp} ${info.apelido} ${corta(y.n, 60)}: ${dif.join("; ")}`);
+    });
+    if (pessoa.admin) Object.keys(a).forEach(id => { if (!b[id]) linhas.push(`- ${emp} saiu da Dash: ${corta(a[id].n, 60)}`); });
+  });
+  if (pessoa.admin) Object.keys(agora.members).forEach(secao => {
+    const a = (antes.members || {})[secao] || {}, b = agora.members[secao];
+    const emp = nomeEmpresa(secao);
+    new Set([...Object.keys(a), ...Object.keys(b)]).forEach(k => {
+      if (a[k] === b[k]) return;
+      if (k.startsWith("col|")) { const [, pais, col] = k.split("|"); linhas.push(`~ ${emp} Members ${pais} coluna ${col}: "${corta(a[k] || "", 30)}"→"${corta(b[k] || "", 30)}"`); return; }
+      const [q, pais] = k.split("|");
+      const [s1] = (a[k] || "").split("¦"), [s2, t2, p2] = (b[k] || "").split("¦");
+      linhas.push(`~ ${emp} Members quadro ${q}, ${pais}: ${s1 || "sem status"}→${s2 || "sem status"}${t2 ? " (" + t2 + ")" : ""}${p2 ? " partner " + p2 : ""}`);
+    });
+  });
+  if (linhas.length > MAX_LINHAS_MUDANCAS) {
+    const resto = linhas.length - MAX_LINHAS_MUDANCAS;
+    return linhas.slice(0, MAX_LINHAS_MUDANCAS).join("\n") + `\n…e mais ${resto} mudanças (use buscar pra ver detalhes).`;
+  }
+  return linhas.join("\n");
+}
+
+// ─── Resumo de alertas (1ª mensagem do dia) ──────────────────────────────
+function resumoAlertas(empresas, indice, pessoa, hoje) {
+  const lim = somaDias(hoje, 7), itens = [];
+  Object.values(indice.porId).forEach(info => {
+    const no = info.no;
+    if (temFilhos(no) || ["Done", "Cancelled"].includes(no.status) || !no.endDate) return;
+    if (!(pessoa.admin || ehDono(no, pessoa.nome_tasks))) return;
+    if (no.status === "Late" || no.status === "Deadline" || no.endDate <= lim) itens.push(info);
+  });
+  itens.sort((a, b) => (a.no.endDate < b.no.endDate ? -1 : 1));
+  const late = itens.filter(i => i.no.status === "Late").length;
+  const topo = `${late} atrasadas, ${itens.length - late} vencendo até ${br(lim)}.`;
+  return topo + (itens.length ? "\n" + itens.slice(0, MAX_LINHAS_ALERTA).map(i => linhaTexto(i, true)).join("\n") : "")
+    + (itens.length > MAX_LINHAS_ALERTA ? `\n…e mais ${itens.length - MAX_LINHAS_ALERTA} (use buscar).` : "");
+}
+
+// ─── Leitura completa (só Sonnet, 1 por dia) ─────────────────────────────
+function quadroCompleto(empresas, members, indice, pessoa) {
+  const linhas = [];
+  empresas.forEach(emp => {
+    let ocultas = 0;
+    linhas.push(`### Tasks ${emp.nome}`);
+    Object.values(indice.porId).filter(i => i.empresa === emp).forEach(info => {
+      if (!visivelPara(info, pessoa, indice)) return;
+      if (["Done", "Cancelled"].includes(info.no.status)) { ocultas++; return; }
+      linhas.push("  ".repeat(info.caminho.length) + linhaTexto(info, false));
+    });
+    if (ocultas) linhas.push(`(${ocultas} concluídas/canceladas ocultas)`);
+  });
+  if (pessoa.admin) members.forEach(mb => linhas.push(`### Members 2 ${mb.nome}`, resumoMembers(mb, null)));
+  return linhas.join("\n");
+}
+function resumoMembers(mb, quadroId) {
+  const out = [];
+  (mb.dados.boards || []).forEach(b => {
+    if (quadroId && b.id !== quadroId) return;
+    const d = (mb.dados.statusPorQuadro || {})[b.id] || {};
+    const porStatus = {};
+    Object.keys(d).forEach(p => { const s = d[p].status || "sem status"; (porStatus[s] = porStatus[s] || []).push(p + (d[p].tipoMembro ? ` (${d[p].tipoMembro})` : "") + (d[p].partner ? ` [partner ${d[p].partner}]` : "")); });
+    out.push(`Quadro ${b.id} "${b.nome}" (status: ${(b.status || []).join(", ")}${b.temTipoMembro ? "; Membro tem tipo Observador/Afiliado" : ""}):`);
+    Object.keys(porStatus).forEach(s => out.push(`  ${s} (${porStatus[s].length}): ${porStatus[s].join(", ")}`));
+  });
+  const cols = (mb.dados.colunas || []).map(c => `${c.id} "${c.nome}" (${c.tipo}${c.opcoes ? ": " + c.opcoes.join("/") : ""})`);
+  if (cols.length) out.push(`Colunas da planilha: ${cols.join("; ")}`);
+  const pa = mb.dados.paises || {};
+  const comDados = Object.keys(pa).filter(p => Object.values(pa[p] || {}).some(v => v !== "" && v != null));
+  if (comDados.length) out.push(`Países com dados nas colunas: ${comDados.join(", ")} (use buscar_members com o país pra ver)`);
+  return out.join("\n");
+}
+
+// ─── Busca (ferramentas) ─────────────────────────────────────────────────
+function buscarTasks(entrada, indice, pessoa, hoje) {
+  const alvo = entrada.apelido ? indice.porApelido[String(entrada.apelido).toUpperCase()] : null;
+  if (entrada.apelido) {
+    if (!alvo || !visivelPara(alvo, pessoa, indice)) return "Não achei essa linha.";
+    const filhos = [];
+    (function andar(no, prof) { (no.subtasks || []).forEach(f => { const i = indice.porId[alvo.empresa.secao + "|" + f.id]; if (filhos.length < 40) filhos.push("  ".repeat(prof) + linhaTexto(i, false)); andar(f, prof + 1); }); })(alvo.no, 1);
+    return [linhaTexto(alvo, true)].concat(filhos).join("\n") + (filhos.length >= 40 ? "\n…(cortado)" : "");
+  }
+  const termo = normalizar(entrada.texto || "");
+  const palavras = termo ? termo.split(" ") : [];
+  const res = Object.values(indice.porId).filter(info => {
+    const no = info.no;
+    if (!visivelPara(info, pessoa, indice)) return false;
+    if (entrada.empresa && info.empresa.nome !== String(entrada.empresa).toUpperCase()) return false;
+    if (entrada.status && no.status !== entrada.status) return false;
+    if (!entrada.status && !entrada.incluir_concluidas && ["Done", "Cancelled"].includes(no.status)) return false;
+    if (entrada.responsavel && !normalizar((no.assignees || []).join(" ")).includes(normalizar(entrada.responsavel))) return false;
+    if (entrada.vence_ate && !(no.endDate && no.endDate <= entrada.vence_ate)) return false;
+    if (palavras.length) {
+      const alvoTxt = normalizar(no.name + " " + info.caminho.join(" "));
+      if (!palavras.every(p => alvoTxt.includes(p))) return false;
+    }
+    return true;
+  });
+  if (!res.length) return "Nada encontrado com esses filtros.";
+  return res.slice(0, MAX_RESULTADOS_BUSCA).map(i => linhaTexto(i, true)).join("\n") + (res.length > MAX_RESULTADOS_BUSCA ? `\n…e mais ${res.length - MAX_RESULTADOS_BUSCA}; refine a busca.` : "");
+}
+function buscarMembers(entrada, members, pessoa) {
+  if (!pessoa.admin) return "Members 2 é só pra admin.";
+  const lista = members.filter(mb => !entrada.empresa || mb.nome === String(entrada.empresa).toUpperCase());
+  if (!lista.length) return "Não achei Members 2 dessa empresa.";
+  if (entrada.pais) {
+    const alvo = normalizar(entrada.pais), out = [];
+    lista.forEach(mb => {
+      Object.keys(mb.dados.statusPorQuadro || {}).forEach(q => Object.keys(mb.dados.statusPorQuadro[q] || {}).forEach(p => {
+        if (normalizar(p).includes(alvo)) { const r = mb.dados.statusPorQuadro[q][p]; out.push(`${mb.nome} quadro ${q}: ${p} = ${r.status || "sem status"}${r.tipoMembro ? " (" + r.tipoMembro + ")" : ""}${r.partner ? " partner " + r.partner : ""}`); }
+      }));
+      Object.keys(mb.dados.paises || {}).forEach(p => { if (normalizar(p).includes(alvo)) out.push(`${mb.nome} colunas de ${p}: ${JSON.stringify(mb.dados.paises[p])}`); });
+    });
+    return out.length ? out.slice(0, 40).join("\n") : "Esse país não aparece em nenhum quadro (confira o nome em inglês, como está no mapa).";
+  }
+  return lista.map(mb => `### ${mb.nome}\n` + resumoMembers(mb, entrada.quadro || null)).join("\n");
 }
 
 // ─── Propostas: validação e resumo (tudo em código) ──────────────────────
 function validarMudanca(entrada, indice, pessoa, hoje) {
   const info = indice.porApelido[String(entrada.linha || "").toUpperCase()];
-  if (!info) return { erro: `Linha ${entrada.linha} não existe no quadro.` };
+  if (!info) return { erro: `Linha ${entrada.linha} não existe. Use buscar pra achar o apelido certo.` };
   const no = info.no;
   if (!pessoa.admin && !ehDono(no, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} não é responsável por essa linha; só pode mudar as próprias.` };
   const mud = {}, itens = [];
@@ -255,8 +386,8 @@ function validarMudanca(entrada, indice, pessoa, hoje) {
     if (!nome) return { erro: "O nome novo está vazio." };
     if (nome !== no.name) { mud.name = nome; itens.push(`Nome: ${corta(no.name, 50)} → ${nome}`); }
   }
-  const mexeDatasOuStatus = entrada.status !== undefined || entrada.inicio !== undefined || entrada.fim !== undefined;
-  if (mexeDatasOuStatus && temFilhos(no)) return { erro: "Essa linha agrupa outras: status e datas dela são calculados pela Dash a partir das linhas de baixo. Mude as de baixo." };
+  const mexe = entrada.status !== undefined || entrada.inicio !== undefined || entrada.fim !== undefined;
+  if (mexe && temFilhos(no)) return { erro: "Essa linha agrupa outras: status e datas dela são calculados pela Dash. Mude as de baixo." };
   if (entrada.status !== undefined) {
     if (!STATUS_MANUAIS.includes(entrada.status)) return { erro: `Status "${entrada.status}" não pode ser escolhido (Late e Deadline são automáticos pelas datas).` };
     if (entrada.status !== no.status) { mud.status = entrada.status; itens.push(`Status: ${no.status} → ${entrada.status}`); }
@@ -270,8 +401,7 @@ function validarMudanca(entrada, indice, pessoa, hoje) {
   const ini = mud.startDate !== undefined ? mud.startDate : no.startDate;
   const fim = mud.endDate !== undefined ? mud.endDate : no.endDate;
   if (ini && fim && ini > fim) return { erro: `O início (${br(ini)}) ficaria depois do fim (${br(fim)}).` };
-  // Linha atrasada com o fim empurrado pra frente: a Dash não tira o Late
-  // sozinha, então volta pra In Progress (aparece no resumo pra pessoa ver).
+  // Atrasada com o fim empurrado pra frente: a Dash não tira o Late sozinha.
   if (mud.status === undefined && no.status === "Late" && mud.endDate && mud.endDate >= hoje) {
     mud.status = "In Progress"; itens.push(`Status: Late → In Progress`);
   }
@@ -284,9 +414,8 @@ function validarMudanca(entrada, indice, pessoa, hoje) {
 
 function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
   const info = indice.porApelido[String(entrada.pai || "").toUpperCase()];
-  if (!info) return { erro: `Linha ${entrada.pai} (onde colocar) não existe no quadro.` };
-  const pai = info.no;
-  const tipo = entrada.tipo;
+  if (!info) return { erro: `Linha ${entrada.pai} (onde colocar) não existe. Use buscar.` };
+  const pai = info.no, tipo = entrada.tipo;
   if (!TIPOS.includes(tipo) || tipo === "objetivo") return { erro: `Tipo "${tipo}" não pode ser criado por aqui.` };
   const rp = TIPO_RANK[pai.rowType], rf = TIPO_RANK[tipo];
   if (rp === undefined || rf < rp || (rf === rp && !["projeto", "entregavel", "tarefa"].includes(tipo)))
@@ -309,7 +438,61 @@ function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
   };
 }
 
-// Aplica a ação num retrato fresco da seção. Devolve {antes, depois} ou erro.
+// Members 2: status de um país num quadro, tipo de membro, partner, ou o
+// valor de uma coluna da planilha. Só admin.
+function paisesConhecidos(mb) {
+  const s = new Set();
+  Object.values(mb.dados.statusPorQuadro || {}).forEach(d => Object.keys(d || {}).forEach(p => s.add(p)));
+  Object.keys(mb.dados.paises || {}).forEach(p => s.add(p));
+  return s;
+}
+function validarMembers(entrada, members, pessoa, todosPaises) {
+  if (!pessoa.admin) return { erro: "Só a Karina pode mudar o Members 2." };
+  const mb = members.find(m => m.nome === String(entrada.empresa || "WPF").toUpperCase());
+  if (!mb) return { erro: `Não achei o Members 2 da empresa ${entrada.empresa}.` };
+  const pais = String(entrada.pais || "").trim();
+  if (!pais) return { erro: "Falta o país." };
+  if (!todosPaises.has(pais)) return { erro: `Não conheço o país "${pais}". Use o nome em inglês como está no mapa (busque com buscar_members).` };
+  const itens = [], acao = { tipo: "members", secao: mb.secao, pais };
+  if (entrada.coluna !== undefined) {
+    const col = (mb.dados.colunas || []).find(c => c.id === entrada.coluna || normalizar(c.nome) === normalizar(entrada.coluna));
+    if (!col) return { erro: `Coluna "${entrada.coluna}" não existe. Colunas: ${(mb.dados.colunas || []).map(c => c.nome).join(", ")}.` };
+    const v = String(entrada.valor ?? "");
+    if (col.tipo === "select" && v && !(col.opcoes || []).includes(v)) return { erro: `Na coluna ${col.nome} as opções são: ${(col.opcoes || []).join(", ")}.` };
+    const atual = String(((mb.dados.paises || {})[pais] || {})[col.id] ?? "");
+    if (v === atual) return { erro: "Nada mudaria: o valor já é esse." };
+    acao.coluna = col.id; acao.valor = v;
+    itens.push(`${col.nome}: ${atual || "vazio"} → ${v || "vazio"}`);
+  }
+  if (entrada.quadro !== undefined || entrada.status !== undefined || entrada.tipo_membro !== undefined || entrada.partner !== undefined) {
+    const q = (mb.dados.boards || []).find(b => b.id === entrada.quadro || normalizar(b.nome) === normalizar(entrada.quadro));
+    if (!q) return { erro: `Quadro "${entrada.quadro}" não existe. Quadros: ${(mb.dados.boards || []).map(b => `${b.id} (${b.nome})`).join(", ")}.` };
+    if (q.id === "avisos-gerais" && entrada.status !== undefined) return { erro: "O status do quadro Avisos Gerais é calculado pela Dash; não dá pra mudar à mão." };
+    const atual = ((mb.dados.statusPorQuadro || {})[q.id] || {})[pais] || { status: "", partner: "", tipoMembro: "" };
+    const novo = { status: atual.status || "", partner: atual.partner || "", tipoMembro: atual.tipoMembro || "" };
+    if (entrada.status !== undefined) {
+      if (!(q.status || []).includes(entrada.status)) return { erro: `No quadro ${q.nome} os status são: ${(q.status || []).join(", ")}.` };
+      novo.status = entrada.status;
+    }
+    if (entrada.partner !== undefined) novo.partner = String(entrada.partner);
+    const ultimo = (q.status || [])[(q.status || []).length - 1];
+    if (entrada.tipo_membro !== undefined) {
+      if (!q.temTipoMembro) return { erro: `O quadro ${q.nome} não tem tipo de membro.` };
+      if (entrada.tipo_membro && !TIPO_MEMBRO_OPCOES.includes(entrada.tipo_membro)) return { erro: "Tipo de membro é Observador ou Afiliado." };
+      if (entrada.tipo_membro && novo.status !== ultimo) return { erro: `Tipo de membro só vale com status ${ultimo}.` };
+      novo.tipoMembro = entrada.tipo_membro || "";
+    }
+    if (novo.status !== ultimo) novo.tipoMembro = ""; // mesma regra da Dash
+    if (novo.status !== atual.status) itens.push(`${q.nome} › status: ${atual.status || "sem status"} → ${novo.status}`);
+    if (novo.tipoMembro !== (atual.tipoMembro || "")) itens.push(`${q.nome} › tipo: ${atual.tipoMembro || "—"} → ${novo.tipoMembro || "—"}`);
+    if (novo.partner !== (atual.partner || "")) itens.push(`${q.nome} › partner: ${atual.partner || "—"} → ${novo.partner || "—"}`);
+    acao.quadro = q.id; acao.registro = novo;
+  }
+  if (!itens.length) return { erro: "Nada mudaria com isso." };
+  return { acao, resumo: `*Members 2 ${mb.nome} › ${pais}*\n` + itens.map(i => "• " + i).join("\n") };
+}
+
+// Aplica a ação num retrato fresco da seção. Devolve {linhaId, antes, depois} ou erro.
 function aplicarAcao(dados, acao, pessoa) {
   const achar = (lista, id) => { for (const t of lista) { if (t.id === id) return t; const f = achar(t.subtasks || [], id); if (f) return f; } return null; };
   if (acao.tipo === "mudanca") {
@@ -336,7 +519,34 @@ function aplicarAcao(dados, acao, pessoa) {
     pai.subtasks.push(nova);
     return { linhaId: nova.id, antes: null, depois: nova };
   }
+  if (acao.tipo === "members") {
+    if (!pessoa.admin) return { erro: "só a Karina pode mudar o Members 2" };
+    const antes = {}, depois = {};
+    if (acao.coluna) {
+      if (!dados.paises || typeof dados.paises !== "object") dados.paises = {};
+      if (!dados.paises[acao.pais]) dados.paises[acao.pais] = {};
+      antes.coluna = { [acao.coluna]: dados.paises[acao.pais][acao.coluna] ?? null };
+      dados.paises[acao.pais][acao.coluna] = acao.valor;
+      depois.coluna = { [acao.coluna]: acao.valor };
+    }
+    if (acao.quadro) {
+      if (!(dados.boards || []).some(b => b.id === acao.quadro)) return { erro: "o quadro não existe mais" };
+      if (!dados.statusPorQuadro) dados.statusPorQuadro = {};
+      if (!dados.statusPorQuadro[acao.quadro]) dados.statusPorQuadro[acao.quadro] = {};
+      antes.registro = dados.statusPorQuadro[acao.quadro][acao.pais] || null;
+      dados.statusPorQuadro[acao.quadro][acao.pais] = { ...(antes.registro || {}), ...acao.registro };
+      depois.registro = dados.statusPorQuadro[acao.quadro][acao.pais];
+    }
+    return { linhaId: acao.pais + (acao.quadro ? " @ " + acao.quadro : ""), antes, depois };
+  }
   return { erro: "ação desconhecida" };
+}
+
+async function gravarSecao(env, secao, dados, updatedAtLido) {
+  const r = await sb(env, `${TAB_DASH}?section=eq.${encodeURIComponent(secao)}&updated_at=eq.${encodeURIComponent(updatedAtLido)}`, {
+    method: "PATCH", body: { data: dados, updated_at: new Date().toISOString() }, prefer: "return=representation"
+  });
+  return r.ok && Array.isArray(r.dados) && r.dados.length === 1;
 }
 
 async function executarPendencia(env, pend, pessoa, tel) {
@@ -364,70 +574,82 @@ async function marcarPendencia(env, id, status) {
 }
 
 // ─── Claude ──────────────────────────────────────────────────────────────
-const FERRAMENTAS = [
-  {
-    name: "propor_mudanca",
-    description: "Propõe mudar UMA linha existente do quadro. Não grava nada: o sistema mostra o resumo e pede confirmação à pessoa. Informe só os campos que mudam.",
-    input_schema: {
-      type: "object",
-      properties: {
-        linha: { type: "string", description: "Apelido da linha, ex. WPF-12 ou CBTH-340" },
-        status: { type: "string", enum: STATUS_MANUAIS },
-        inicio: { type: "string", description: "AAAA-MM-DD, ou \"\" pra tirar a data" },
-        fim: { type: "string", description: "AAAA-MM-DD, ou \"\" pra tirar a data" },
-        nome: { type: "string" }
-      },
-      required: ["linha"]
-    }
-  },
-  {
-    name: "propor_criacao",
-    description: "Propõe criar UMA linha nova dentro de uma linha existente. Não grava nada: o sistema pede confirmação.",
-    input_schema: {
-      type: "object",
-      properties: {
-        pai: { type: "string", description: "Apelido da linha onde a nova entra" },
-        tipo: { type: "string", enum: ["meta", "projeto", "entregavel", "tarefa"] },
-        nome: { type: "string" },
-        inicio: { type: "string", description: "AAAA-MM-DD (opcional)" },
-        fim: { type: "string", description: "AAAA-MM-DD (opcional)" },
-        responsaveis: { type: "array", items: { type: "string" }, description: "Nomes exatamente como na Dash. Se omitir, fica quem está falando." }
-      },
-      required: ["pai", "tipo", "nome"]
-    }
-  }
-];
+const F_BUSCAR = {
+  name: "buscar", description: "Busca linhas da aba Tasks. Use pra qualquer coisa que não esteja nas mudanças/alertas que você já recebeu. Passe apelido pra ver uma linha e o que está dentro dela.",
+  input_schema: { type: "object", properties: {
+    texto: { type: "string", description: "palavras do nome da linha ou do caminho acima dela" },
+    apelido: { type: "string", description: "ex. WPF-897435: mostra a linha e as de dentro" },
+    empresa: { type: "string" }, responsavel: { type: "string" },
+    status: { type: "string", enum: ["Not Started", "In Progress", "Deadline", "Late", "Done", "On Hold", "Cancelled"] },
+    vence_ate: { type: "string", description: "AAAA-MM-DD" },
+    incluir_concluidas: { type: "boolean" } } }
+};
+const F_BUSCAR_MEMBERS = {
+  name: "buscar_members", description: "Consulta a aba Members 2 (quadros de países por status). Sem país: resumo dos quadros. Com país: tudo daquele país.",
+  input_schema: { type: "object", properties: { empresa: { type: "string" }, quadro: { type: "string" }, pais: { type: "string" } } }
+};
+const F_MUDANCA = {
+  name: "propor_mudanca", description: "Propõe mudar UMA linha da aba Tasks. Não grava: o sistema mostra o resumo e pede confirmação. Informe só o que muda.",
+  input_schema: { type: "object", properties: {
+    linha: { type: "string", description: "apelido, ex. WPF-897435" },
+    status: { type: "string", enum: STATUS_MANUAIS },
+    inicio: { type: "string", description: "AAAA-MM-DD, ou \"\" pra tirar" },
+    fim: { type: "string", description: "AAAA-MM-DD, ou \"\" pra tirar" },
+    nome: { type: "string" } }, required: ["linha"] }
+};
+const F_CRIACAO = {
+  name: "propor_criacao", description: "Propõe criar UMA linha nova na aba Tasks dentro de uma linha existente. Não grava: o sistema pede confirmação.",
+  input_schema: { type: "object", properties: {
+    pai: { type: "string", description: "apelido da linha onde a nova entra" },
+    tipo: { type: "string", enum: ["meta", "projeto", "entregavel", "tarefa"] },
+    nome: { type: "string" }, inicio: { type: "string" }, fim: { type: "string" },
+    responsaveis: { type: "array", items: { type: "string" }, description: "nomes exatos; se omitir, quem está falando" } },
+    required: ["pai", "tipo", "nome"] }
+};
+const F_MEMBERS = {
+  name: "propor_members", description: "Propõe mudar a aba Members 2 de um país: status num quadro (e tipo de membro / partner), ou o valor de uma coluna da planilha. Não grava: o sistema pede confirmação.",
+  input_schema: { type: "object", properties: {
+    empresa: { type: "string", description: "WPF, CBTH… (padrão WPF)" },
+    pais: { type: "string", description: "nome em inglês como no mapa" },
+    quadro: { type: "string", description: "id ou nome do quadro" }, status: { type: "string" },
+    tipo_membro: { type: "string", enum: ["Observador", "Afiliado", ""] }, partner: { type: "string" },
+    coluna: { type: "string", description: "id ou nome da coluna da planilha" }, valor: { type: "string" } },
+    required: ["pais"] }
+};
+const F_SONNET = {
+  name: "chamar_sonnet", description: "Passa esta conversa pro modelo mais forte. Use SÓ quando precisar: análise/panorama geral, planejar ou reorganizar várias linhas, pedido ambíguo com várias partes, decidir onde encaixar algo novo. Pergunta simples, atualização de status e busca você resolve sozinho.",
+  input_schema: { type: "object", properties: { motivo: { type: "string" } }, required: ["motivo"] }
+};
+const F_ANALISE = {
+  name: "analise_geral", description: "Lê a aba Tasks inteira (e o Members 2) de uma vez. Caro: só quando a pessoa pedir análise ou panorama geral. Limite de 1 por dia por pessoa.",
+  input_schema: { type: "object", properties: {} }
+};
 
-function promptSistema(pessoa, hoje, pendAnterior, nomesConhecidos) {
-  return `Você é o Agente de Gestão da Dash (o quadro de tarefas da WPF e das outras empresas da Karina), falando pelo WhatsApp com ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e pode mudar tudo)" : " (vê e muda só o que é dela/dele)"}.
-Hoje é ${diaSemanaSP()}, ${hoje}.
+function instrucoes(modelo) {
+  return `Você é o Agente de Gestão da Dash da Karina, no WhatsApp. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *Members 2* (quadros de países por status).
 
 Como conversar:
-- Português do Brasil, jeito de WhatsApp: curto, direto, simpático. Normalmente até 6 linhas. Negrito só com *asteriscos*; nada de títulos ou tabelas.
-- Fale no nível do entregável/projeto/objetivo, não despeje listas de tarefas. Ex.: "O Ladies Weekend tem 2 entregas vencendo sexta. O material de divulgação já começou?"
-- Quando perguntarem como estão as coisas, destaque o que está Late ou Deadline (vence em até 3 dias) e o que vence nos próximos dias, e pergunte do andamento.
-- Use só o que está no quadro abaixo. Nunca invente linha, data, status ou pessoa. Se não achar, diga que não achou.
+- Português do Brasil, jeito de WhatsApp. Respostas curtas a médias: em geral até 6 linhas, no máximo umas 12 quando a pergunta pedir. Negrito só com *asteriscos*; sem títulos nem tabelas.
+- Fale no nível do entregável/projeto/objetivo; não despeje listas de tarefas. Ex.: "O Ladies Weekend tem 2 entregas vencendo sexta. O material de divulgação já começou?"
+- Em "como estão as coisas", destaque o que está Late ou Deadline (vence em até 3 dias) e o que vence nos próximos dias, e pergunte do andamento.
+- Use só o que está nos dados que você recebeu ou buscou. Nunca invente linha, data, status, país ou pessoa. Se precisar de algo que não está aqui, use buscar / buscar_members antes de responder.
+- Não cite apelidos (WPF-123456) na conversa; eles são só pras ferramentas.
 - Diga a empresa quando houver mais de uma envolvida.
 
-Mudanças na Dash:
-- Pra mudar ou criar algo, chame propor_mudanca ou propor_criacao. Uma proposta por vez.
-- Você NUNCA grava nada e NUNCA diz que já mudou. O sistema mostra o resumo e pergunta "Confirma?" sozinho, então junto da ferramenta escreva no máximo uma frase curta (ou nada), sem pedir confirmação.
-- Status que dá pra escolher: Not Started, In Progress, Done, On Hold, Cancelled. Late e Deadline são automáticos pelas datas.
-- Linhas marcadas [agrupa] têm status e datas calculados a partir das de baixo: não proponha mudar status/datas nelas.
-- Não existe apagar. Se pedirem, diga que isso é só pela Dash.
-- Pra criar, escolha o lugar certo na hierarquia (Objetivo › Meta › Projeto › Entregável › Tarefa). Se não houver lugar óbvio, pergunte onde colocar antes de propor. Meta nova só se a pessoa pedir ou concordar.
-- Datas relativas ("sexta", "semana que vem") são a partir de hoje; na ferramenta use AAAA-MM-DD.
-- Nomes de responsáveis válidos: ${[...nomesConhecidos].join(", ")}.
-${pendAnterior ? `\nAtenção: havia esta mudança esperando confirmação, e a pessoa respondeu outra coisa, então ela foi descartada:\n${pendAnterior}\nSe a mensagem nova ajusta essa mudança, proponha de novo já ajustada.` : ""}
-
-Quadro (linhas em aberto; cite pelo apelido só nas ferramentas, não na conversa):`;
+Mudanças:
+- Pra mudar ou criar, chame propor_mudanca, propor_criacao ou propor_members. Uma proposta por vez.
+- Você NUNCA grava e NUNCA diz que já mudou. O sistema mostra o resumo e pergunta "Confirma?" sozinho; junto da ferramenta escreva no máximo uma frase curta, sem pedir confirmação.
+- Tasks: status que dá pra escolher são Not Started, In Progress, Done, On Hold, Cancelled (Late e Deadline são automáticos pelas datas). Linhas [agrupa] têm status e datas calculados: mude as de baixo. Não existe apagar (só pela Dash). Pra criar, escolha o lugar certo na hierarquia; se não houver lugar óbvio, pergunte antes. Meta nova só se a pessoa pedir ou concordar.
+- Members 2: status de cada quadro (os do próprio quadro), tipo de membro Observador/Afiliado só com o último status (Membro), partner, e colunas da planilha. O quadro Avisos Gerais tem status calculado. Países com o nome em inglês, como no mapa.
+- Datas relativas ("sexta", "semana que vem") contam a partir de hoje; nas ferramentas use AAAA-MM-DD.
+${modelo === HAIKU ? "\n- Se o pedido exigir análise geral, planejamento de várias linhas ou raciocínio mais pesado, chame chamar_sonnet em vez de tentar sozinho. No resto, resolva você." : "\n- Você é o modelo mais forte, chamado pra um pedido que precisa de mais cuidado. Se a pessoa pediu análise ou panorama geral, use analise_geral (1 por dia)."}`;
 }
 
-async function chamarClaude(env, system, mensagens) {
+async function chamarClaude(env, modelo, system, ferramentas, mensagens) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: MODELO, max_tokens: 1024, system, tools: FERRAMENTAS, messages: mensagens })
+    body: JSON.stringify({ model: modelo, max_tokens: MAX_TOKENS, system, tools: ferramentas, messages: mensagens })
   });
   const corpo = await res.json().catch(() => null);
   if (!res.ok) throw new Error("Claude " + res.status + " " + JSON.stringify(corpo).slice(0, 300));
@@ -440,7 +662,7 @@ async function historico(env, tel, idAtual) {
   const msgs = [];
   linhas.forEach(l => {
     const role = l.direction === "in" ? "user" : "assistant";
-    const texto = l.body || "(sem texto)";
+    const texto = corta(l.body || "(sem texto)", 600);
     if (msgs.length && msgs[msgs.length - 1].role === role) msgs[msgs.length - 1].content += "\n" + texto;
     else msgs.push({ role, content: texto });
   });
@@ -448,18 +670,19 @@ async function historico(env, tel, idAtual) {
   return msgs;
 }
 
+async function contarHoje(env, tel, filtro) {
+  const r = await sb(env, `${TAB_MSG}?select=id&direction=eq.out&to_number=eq.${tel}&created_at=gte.${encodeURIComponent(inicioDoDiaSP())}&${filtro}`);
+  return r.ok && Array.isArray(r.dados) ? r.dados.length : 0;
+}
+
 // ─── Resposta de emergência (API do Claude fora) ─────────────────────────
-function resumoSimples(empresas, pessoa, hoje) {
+function resumoSimples(indice, pessoa, hoje) {
   const lim = somaDias(hoje, 7), itens = [];
-  empresas.forEach(emp => (function andar(lista) {
-    lista.forEach(no => {
-      const folha = !temFilhos(no);
-      const minha = pessoa.admin || doResponsavel(no, pessoa.nome_tasks);
-      if (folha && minha && !["Done", "Cancelled"].includes(no.status) && no.endDate && no.endDate <= lim)
-        itens.push(`• ${no.endDate < hoje ? "⚠️ " : ""}${corta(no.name, 60)} (${emp.nome}, ${br(no.endDate)})`);
-      andar(no.subtasks || []);
-    });
-  })(emp.dados));
+  Object.values(indice.porId).forEach(info => {
+    const no = info.no;
+    if (!temFilhos(no) && (pessoa.admin || ehDono(no, pessoa.nome_tasks)) && !["Done", "Cancelled"].includes(no.status) && no.endDate && no.endDate <= lim)
+      itens.push(`• ${no.endDate < hoje ? "⚠️ " : ""}${corta(no.name, 60)} (${info.empresa.nome}, ${br(no.endDate)})`);
+  });
   const topo = "Estou com um problema pra conversar agora 😕 Tente de novo daqui a pouco.";
   if (!itens.length) return topo + "\nPelo quadro, nada seu vence nos próximos 7 dias.";
   return topo + "\nEnquanto isso, o que vence até " + br(lim) + ":\n" + itens.slice(0, 10).join("\n") + (itens.length > 10 ? `\n…e mais ${itens.length - 10}.` : "");
@@ -470,12 +693,8 @@ async function tratarMensagem(env, msg, texto) {
   const tel = msg.from;
   const rp = await sb(env, `${TAB_PESSOAS}?select=*&telefone=eq.${tel}`);
   const pessoa = rp.ok && rp.dados && rp.dados[0];
-  if (!pessoa) {
-    await enviarTexto(env, tel, "Oi! Este número ainda não está cadastrado no Agente de Gestão. Fale com a Karina pra liberar.");
-    return;
-  }
+  if (!pessoa) { await enviarTexto(env, tel, "Oi! Este número ainda não está cadastrado no Agente de Gestão. Fale com a Karina pra liberar."); return; }
 
-  // Limite por hora (protege a conta da API).
   const umaHora = new Date(Date.now() - 3600000).toISOString();
   const rc = await sb(env, `${TAB_MSG}?select=id&direction=eq.in&from_number=eq.${tel}&created_at=gte.${encodeURIComponent(umaHora)}`);
   const qtd = rc.ok && Array.isArray(rc.dados) ? rc.dados.length : 0;
@@ -483,7 +702,6 @@ async function tratarMensagem(env, msg, texto) {
     if (qtd === LIMITE_POR_HORA + 1) await enviarTexto(env, tel, "Recebi muitas mensagens na última hora. Dou uma pausa e volto a responder daqui a pouco.");
     return;
   }
-
   if (!texto) { await enviarTexto(env, tel, "Por enquanto eu só entendo mensagens de texto 🙂"); return; }
 
   const cmd = normalizar(texto);
@@ -495,67 +713,113 @@ async function tratarMensagem(env, msg, texto) {
     return;
   }
 
-  // Mudança esperando o "sim"?
-  const agora = new Date().toISOString();
+  // Mudança esperando o "sim"? Resolve em código, sem gastar Claude.
   const rpd = await sb(env, `${TAB_PEND}?select=*&telefone=eq.${tel}&status=eq.aguardando&order=criado_em.desc&limit=1`);
   let pend = rpd.ok && rpd.dados && rpd.dados[0];
-  if (pend && Date.parse(pend.expira_em) < Date.parse(agora)) { await marcarPendencia(env, pend.id, "expirada"); pend = null; }
+  if (pend && Date.parse(pend.expira_em) < Date.now()) { await marcarPendencia(env, pend.id, "expirada"); pend = null; }
   if (pend && ehSim(texto)) {
     const r = await executarPendencia(env, pend, pessoa, tel);
     await marcarPendencia(env, pend.id, r.ok ? "confirmada" : "falhou");
     await enviarTexto(env, tel, r.ok ? "Feito ✅ Já está na Dash (quem estiver com ela aberta vê em até 15s)." : `Não consegui gravar: ${r.erro}. Nada foi mudado.`);
     return;
   }
-  if (pend && ehNao(texto)) {
-    await marcarPendencia(env, pend.id, "cancelada");
-    await enviarTexto(env, tel, "Ok, não mudei nada.");
-    return;
-  }
+  if (pend && ehNao(texto)) { await marcarPendencia(env, pend.id, "cancelada"); await enviarTexto(env, tel, "Ok, não mudei nada."); return; }
   let pendAnterior = null;
   if (pend) { await marcarPendencia(env, pend.id, "cancelada"); pendAnterior = pend.resumo; }
 
   const hoje = hojeSP();
-  let empresas, outras;
-  try { ({ empresas, outras } = await carregarDash(env)); }
+  let empresas, members;
+  try { ({ empresas, members } = await carregarDash(env)); }
   catch (e) { await enviarTexto(env, tel, "Não consegui ler a Dash agora. Tente de novo em instantes."); return; }
   const indice = indexar(empresas);
   const rn = await sb(env, `${TAB_PESSOAS}?select=nome_tasks`);
   const nomesConhecidos = new Set((rn.ok && rn.dados ? rn.dados : []).map(p => p.nome_tasks).filter(Boolean));
-  Object.values(indice.porApelido).forEach(i => (i.no.assignees || []).forEach(n => nomesConhecidos.add(n)));
+  Object.values(indice.porId).forEach(i => (i.no.assignees || []).forEach(n => nomesConhecidos.add(n)));
+  const todosPaises = new Set(); members.forEach(mb => paisesConhecidos(mb).forEach(p => todosPaises.add(p)));
 
-  const system = [
-    { type: "text", text: promptSistema(pessoa, hoje, pendAnterior, nomesConhecidos) },
-    { type: "text", text: montarQuadro(empresas, indice, pessoa) + (pessoa.admin ? montarOutrasAbas(outras) : ""), cache_control: { type: "ephemeral" } }
-  ];
+  // Últimas modificações desde a mensagem anterior desta pessoa.
+  const agoraRetrato = retratar(empresas, members);
+  const rs = await sb(env, `${TAB_SNAP}?select=dados,tirado_em&telefone=eq.${tel}`);
+  const base = rs.ok && rs.dados && rs.dados[0];
+  const mudancas = base ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
+  const primeiraDoDia = (await contarHoje(env, tel, "modelo=not.is.null")) === 0;
+
+  const contexto = [
+    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive Members 2)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê Members 2)"}.`,
+    `Hoje: ${diaSemanaSP()}, ${hoje}.`,
+    `Responsáveis válidos: ${[...nomesConhecidos].join(", ")}.`,
+    `Empresas: ${empresas.map(e => e.nome).join(", ")}.`,
+    base ? `Últimas modificações na Dash desde ${String(base.tirado_em).slice(0, 16).replace("T", " ")} UTC:\n${mudancas || "nenhuma"}` : "Primeira conversa: ainda não há base pra comparar modificações.",
+    primeiraDoDia ? `Resumo de alertas de hoje:\n${resumoAlertas(empresas, indice, pessoa, hoje)}` : "",
+    pendAnterior ? `Havia esta mudança esperando confirmação, e a pessoa respondeu outra coisa, então ela foi descartada:\n${pendAnterior}\nSe a mensagem nova ajusta essa mudança, proponha de novo já ajustada.` : ""
+  ].filter(Boolean).join("\n\n");
+
   const mensagens = await historico(env, tel, msg.id);
-  if (mensagens.length && mensagens[mensagens.length - 1].role === "user") mensagens[mensagens.length - 1].content += "\n" + texto;
-  else mensagens.push({ role: "user", content: texto });
+  const atual = `[Contexto do sistema]\n${contexto}\n\n[Mensagem]\n${texto}`;
+  if (mensagens.length && mensagens[mensagens.length - 1].role === "user") mensagens[mensagens.length - 1].content += "\n\n" + atual;
+  else mensagens.push({ role: "user", content: atual });
+
+  let modelo = HAIKU, analiseFeita = false;
+  const uso = { tokens_entrada: 0, tokens_saida: 0, tokens_cache: 0 };
+  const somarUso = u => { if (!u) return; uso.tokens_entrada += (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0); uso.tokens_saida += u.output_tokens || 0; uso.tokens_cache += u.cache_read_input_tokens || 0; };
+  const consumo = () => ({ modelo, ...uso, analise_geral: analiseFeita });
+  const responder = async txt => { await enviarTexto(env, tel, txt, consumo()); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
 
   try {
-    for (let rodada = 0; rodada < 2; rodada++) {
-      const resp = await chamarClaude(env, system, mensagens);
+    for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
+      const ferramentas = modelo === HAIKU
+        ? [F_BUSCAR, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_SONNET]
+        : [F_BUSCAR, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_ANALISE];
+      ferramentas[ferramentas.length - 1] = { ...ferramentas[ferramentas.length - 1], cache_control: { type: "ephemeral" } };
+      const system = [{ type: "text", text: instrucoes(modelo), cache_control: { type: "ephemeral" } }];
+      const resp = await chamarClaude(env, modelo, system, ferramentas, mensagens);
+      somarUso(resp.usage);
       const textoClaude = (resp.content || []).filter(b => b.type === "text").map(b => b.text).join("\n").trim();
-      const uso = (resp.content || []).find(b => b.type === "tool_use");
-      if (!uso) { await enviarTexto(env, tel, textoClaude || "Não entendi. Pode repetir de outro jeito?"); return; }
-      const v = uso.name === "propor_mudanca" ? validarMudanca(uso.input || {}, indice, pessoa, hoje)
-              : uso.name === "propor_criacao" ? validarCriacao(uso.input || {}, indice, pessoa, nomesConhecidos)
-              : { erro: "ferramenta desconhecida" };
-      if (v.erro) {
-        // Devolve o erro pro Claude explicar ou corrigir (uma vez só).
-        mensagens.push({ role: "assistant", content: resp.content });
-        mensagens.push({ role: "user", content: (resp.content || []).filter(b => b.type === "tool_use").map(b => ({
-          type: "tool_result", tool_use_id: b.id, is_error: true, content: b.id === uso.id ? v.erro : "Uma proposta por vez."
-        })) });
+      const usos = (resp.content || []).filter(b => b.type === "tool_use");
+      if (!usos.length) { await responder(textoClaude || "Não entendi. Pode repetir de outro jeito?"); return; }
+
+      // Subir pro Sonnet: refaz a conversa com o modelo forte.
+      const sobe = usos.find(u => u.name === "chamar_sonnet");
+      if (sobe && modelo === HAIKU) {
+        if ((await contarHoje(env, tel, `modelo=eq.${SONNET}`)) >= SONNET_POR_DIA) {
+          mensagens.push({ role: "assistant", content: resp.content });
+          mensagens.push({ role: "user", content: usos.map(u => ({ type: "tool_result", tool_use_id: u.id, is_error: true, content: u === sobe ? "Limite diário do modelo forte atingido; resolva você mesmo, do jeito mais simples." : "Uma coisa por vez." })) });
+          continue;
+        }
+        modelo = SONNET;
         continue;
       }
-      await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: v.acao, resumo: v.resumo }] });
-      await enviarTexto(env, tel, (textoClaude ? textoClaude + "\n\n" : "") + v.resumo + "\n\nConfirma? Responda *sim* ou *não*.");
-      return;
+
+      // Uma ferramenta por vez: responde a primeira e marca as outras.
+      const u = usos[0];
+      let resultado = null, proposta = null;
+      if (u.name === "buscar") resultado = buscarTasks(u.input || {}, indice, pessoa, hoje);
+      else if (u.name === "buscar_members") resultado = buscarMembers(u.input || {}, members, pessoa);
+      else if (u.name === "analise_geral") {
+        if (modelo !== SONNET) resultado = "Indisponível.";
+        else if ((await contarHoje(env, tel, "analise_geral=eq.true")) >= ANALISE_POR_DIA) resultado = "Limite de 1 análise geral por dia já usado hoje. Responda com o que dá pra buscar.";
+        else { resultado = quadroCompleto(empresas, members, indice, pessoa); analiseFeita = true; }
+      }
+      else if (u.name === "propor_mudanca") proposta = validarMudanca(u.input || {}, indice, pessoa, hoje);
+      else if (u.name === "propor_criacao") proposta = validarCriacao(u.input || {}, indice, pessoa, nomesConhecidos);
+      else if (u.name === "propor_members") proposta = validarMembers(u.input || {}, members, pessoa, todosPaises);
+      else resultado = "Ferramenta desconhecida.";
+
+      if (proposta && !proposta.erro) {
+        await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: proposta.acao, resumo: proposta.resumo }] });
+        await responder((textoClaude ? textoClaude + "\n\n" : "") + proposta.resumo + "\n\nConfirma? Responda *sim* ou *não*.");
+        return;
+      }
+      mensagens.push({ role: "assistant", content: resp.content });
+      mensagens.push({ role: "user", content: usos.map(x => ({
+        type: "tool_result", tool_use_id: x.id,
+        ...(x === u ? (proposta ? { is_error: true, content: proposta.erro } : { content: resultado }) : { is_error: true, content: "Uma ferramenta por vez." })
+      })) });
     }
-    await enviarTexto(env, tel, "Não consegui montar essa mudança. Pode me dizer de outro jeito?");
+    await responder("Não consegui resolver isso agora. Pode me dizer de outro jeito?");
   } catch (e) {
     console.log("erro Claude:", e && e.message);
-    await enviarTexto(env, tel, resumoSimples(empresas, pessoa, hoje));
+    await enviarTexto(env, tel, resumoSimples(indice, pessoa, hoje), consumo());
   }
 }
 
@@ -614,4 +878,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { semSegredos, montarOutrasAbas, ehSim, ehNao, normalizar, indexar, montarQuadro, validarMudanca, validarCriacao, aplicarAcao, nomeEmpresa, hojeSP };
+export const _teste = { ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+  validarMudanca, validarCriacao, validarMembers, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
