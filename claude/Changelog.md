@@ -12,6 +12,46 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 — Agente de Gestão: modo conversacional econômico no ar
+
+Aprovado por Karina ("pode subir tudo"), com as decisões dela sobre custo.
+
+- **O que mudou (Worker `wpf-whatsapp-bridge`, publicado pelo robô,
+  commit `8c503b5`):** o eco saiu; entrou o agente conversacional.
+  - **Escopo:** só a aba **Tasks** (seções `tasks2*`) e a **Members 2**
+    (`members2*`), de todas as empresas (WPF, CBTH e as que entrarem).
+    Nenhuma outra aba é lida.
+  - **Economia:** o Claude não recebe a Dash inteira. A cada mensagem vão
+    só as **últimas modificações** desde a mensagem anterior da pessoa
+    (retrato em `wpf_agente_snapshot`), o **resumo de alertas** só na 1ª
+    mensagem do dia, as últimas **6** mensagens e as instruções. O resto
+    ele busca com as ferramentas `buscar` / `buscar_members`.
+  - **Modelos:** **Haiku 4.5** atende; ele pode subir pro **Sonnet 5**
+    (`chamar_sonnet`) em tarefa que precise — limite 10/dia por pessoa.
+    **Análise geral** (Dash inteira, `analise_geral`) só no Sonnet,
+    **1 por dia por pessoa**. Respostas curtas a médias (max 500 tokens).
+  - **Edição:** Tasks (status, datas, nome, criar linha) e **Members 2**
+    (status por quadro, tipo Observador/Afiliado, partner, colunas da
+    planilha; Avisos Gerais protegido). Sempre: propõe → "sim" → código
+    grava com `updated_at` novo e conflito resolvido relendo → auditoria.
+    Members 2 só pra admin.
+  - **Consumo:** cada resposta grava `modelo`, `tokens_entrada`,
+    `tokens_saida`, `tokens_cache` e `analise_geral` em
+    `wpf_whatsapp_messages`.
+- **Supabase:** tabela nova `wpf_agente_snapshot` (RLS, sem política);
+  colunas de consumo em `wpf_whatsapp_messages`.
+- **Versão intermediária (não usada):** às 12:20 foi publicada uma versão
+  que mandava a Dash inteira (e outras abas) a cada mensagem; nenhuma
+  mensagem passou por ela. Substituída às 12:39 por esta.
+- **Verificação:** 85 testes com Meta/Supabase/Claude simulados. Tamanho
+  medido com Dash de 1.000 linhas + 250 países: mensagem comum **~1,9 mil
+  tokens** (~2 mil com 5 mudanças), 1ª do dia **~4 mil**, análise geral
+  **~37 mil**. Parte fixa ~1,8 mil tokens — abaixo do mínimo de cache do
+  Haiku, então o cache só deve atuar no Sonnet.
+- **Por quê:** Karina achou a versão que lia tudo cara demais.
+
+---
+
 ## 2026-09-18 (2ª) — Worker do WhatsApp no repo + publicação automática
 
 Aprovado por Karina ("robo deploy: pode"; "pode apagar essa regra").

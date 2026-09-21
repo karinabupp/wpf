@@ -15,41 +15,31 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Agente do WhatsApp: construir o modo conversacional** — hoje ele
-  responde por palavra-chave; o pedido da Karina é outro.
-  - *Como deve funcionar (definido em 17/09):* o agente fala no nível do
-    **objetivo/entregável**, não lista tarefa solta. Ex.: em vez de "você tem
-    'pegar receita', 'separar ingredientes' pendentes", ele escreve "vi que o
-    bolo é até sexta, já começou? em que estágio está?". A partir da resposta
-    dela em linguagem normal, ele **atualiza a Dash** (status, datas) e
-    **cria** tarefas/entregáveis. Mão dupla: "preciso mandar os documentos
-    pra Armênia até quinta" vira linha na Dash.
-  - *Decisões da Karina:* (a) fala primeiro **uma vez por dia**, e **só pra
-    Karina** por enquanto (fora da janela de 24h cada toque custa ~R$ 0,04);
-    (b) **sempre confirma antes** de criar ou alterar qualquer coisa,
-    inclusive **onde** colocar a tarefa/entregável e se cria meta nova;
-    (c) visibilidade: **Karina vê as tarefas de todos**, os demais veem só
-    as próprias; (d) nunca apagar linha, nunca mexer em tarefa de outra
-    pessoa.
-  - *Como escrever:* o Claude passa a **decidir** (não só redigir), recebendo
-    a pergunta, o histórico recente de `wpf_whatsapp_messages` e os fatos da
-    Dash calculados em código. Números sempre do código; se a API falhar,
-    cai nas regras atuais. Escrever na Dash = ler a seção `tasks2` de
-    `wpf_dashboard_data`, alterar e gravar com `updated_at` novo (a Dash dos
-    navegadores junta em até 15s pelo sync de 15/09).
-  - *Onde:* Worker `wpf-whatsapp-bridge` (Cloudflare).
-  - *Aberto em:* 2026-09-17
+- [ ] **Agente: primeiro teste de verdade no WhatsApp** — o modo
+  conversacional econômico está no ar desde 21/09 (ver Changelog), mas
+  ainda não recebeu nenhuma mensagem real.
+  - *Conferir no teste:* resposta chega; `modelo`/`tokens_*` gravados em
+    `wpf_whatsapp_messages`; mudança com "sim" aparece na Dash em até 15s;
+    auditoria em `wpf_agente_auditoria`. Olhar os logs do Worker se não
+    responder (risco: limite de CPU se a conta Cloudflare for do plano
+    grátis — ler a Dash inteira pode estourar).
+  - *Ajustes prováveis:* calibrar quando o Haiku chama o Sonnet (ver
+    consumo real); o cache da parte fixa não deve atuar no Haiku (parte
+    fixa ~1,8 mil tokens, abaixo do mínimo) — só vale a pena mexer se o
+    consumo real pedir.
+  - *Aberto em:* 2026-09-21
 
-- [ ] **Agente: o que ficou faltando antes de conversar de verdade**
-  - Escrever de volta na Dash (hoje o agente só lê).
-  - Toque diário só pra Karina: precisa de **template aprovado** na Meta
-    (mensagem iniciada pela empresa fora da janela de 24h) e de um
-    agendamento (cron do Cloudflare ou Edge Function no Supabase).
-  - Registrar quem pediu cada alteração (auditoria) e limite de mensagens
-    por hora.
-  - O agente ignora as próprias mensagens (`direction = out`) pra não
-    conversar sozinho.
-  - *Aberto em:* 2026-09-17
+- [ ] **Agente: toque diário (ele falar primeiro)** — decisão da Karina em
+  17/09: uma vez por dia, só pra Karina. Precisa de **template aprovado**
+  na Meta (mensagem fora da janela de 24h, ~R$ 0,04 cada) e de um
+  agendamento (cron do Cloudflare no próprio Worker). Não começado.
+  - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-21
+
+- [ ] **Agente: aba Tasks antiga e históricos ficaram de fora** — por
+  decisão de custo (21/09) o agente lê só `tasks2*` e `members2*`. Se um dia
+  quiser "o que mudou esta semana" com mais alcance, dá pra resumir os
+  históricos em código antes de mandar. Nada a fazer agora.
+  - *Aberto em:* 2026-09-21
 
 - [ ] **O que só a Karina consegue fazer (nas próximas sessões)** — desde
   18/09 o Claude publica o **Worker** sozinho (push em `worker/` dispara o
