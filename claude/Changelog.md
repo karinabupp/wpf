@@ -12,6 +12,38 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (6ª) — Robô lê as reuniões do Read AI
+
+Aprovado por Karina (caminho grátis; "3 dias funciona"; "o que fazemos agora").
+
+- **Descoberta:** webhook do Read AI é só no plano pago, mas a **API pública
+  (open beta) vale pra todos os planos**. OAuth 2.1, access token de 10 min,
+  refresh token que gira a cada uso. Plano Free: 5 relatórios/mês, 1h/reunião.
+- **O que mudou (Worker, commit `6c7be64`):**
+  - Página `/readai/conectar?c=<convite>`: registra o cliente OAuth (1 vez),
+    mostra Client ID/Secret e o passo a passo em `api.read.ai/oauth/ui`;
+    a Karina cola o "Copy Command" e o robô troca por tokens. Convite de uso
+    único, guardado em `wpf_agente_config` (`readai_convite`).
+  - De hora em hora (cron `5 * * * *`, antes da rodada proativa): renova o
+    token, busca reuniões que começaram **depois da conexão**
+    (`readai_desde`), com `summary` e `action_items`. Espera até 6h pelo
+    relatório; depois marca `sem_relatorio`.
+  - Compara os itens de ação com a Tasks: o código acha até 3 candidatos por
+    item; o Haiku decide o que falta (ignora trivial) e devolve JSON. O que
+    falta vira aviso `reuniao|<id>|<n>` só pra admin, com lugar provável;
+    entregue no check-in/aviso com [Criar tarefa] [Já existe] [Ignorar].
+  - Ferramenta `buscar_reunioes` na conversa (quem não participou não vê).
+  - Se a cadeia de tokens quebrar: avisa a Karina com link novo.
+- **Supabase:** `wpf_agente_config`, `wpf_agente_reunioes`, coluna `email`
+  em `wpf_agente_pessoas` (preenchida pros 4).
+- **Verificação:** 188 testes (troca de código, renovação girando o token,
+  só reuniões novas, espera relatório, comparação, aviso só admin, não
+  reprocessa, entrega com opções, busca por participante, reconexão).
+- **Pendente:** Karina abrir o link de conexão (convite vale 2 dias);
+  depois, a parte do Gmail (script do Google).
+
+---
+
 ## 2026-09-21 (5ª) — Robô mantém a conversa viva (check-in diário)
 
 Aprovado por Karina (ligar pra todos; até 3 avisos/dia fora o check-in;

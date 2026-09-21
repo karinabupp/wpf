@@ -29,13 +29,17 @@ reconstruir o raciocínio.
     consumo real pedir.
   - *Aberto em:* 2026-09-21
 
-- [ ] **Agente: transcrições das reuniões** — Karina vai passar acesso às
-  gravações/transcrições. Objetivo (21/09): o robô ser o secretário da
-  equipe. Regra dela: o que sair da reunião e parecer tarefa, mas **não
-  estiver na Tasks**, o robô avisa **só a Karina** (ela decide se vira
-  linha). Contar a partir de agora, sem retroativo. Desenhar quando o
-  acesso chegar (de onde vêm, como o robô lê sem ficar caro).
-  - *Aberto em:* 2026-09-21
+- [ ] **Agente: conectar Read AI e montar o Gmail** — robô já sabe ler
+  reuniões (21/09); falta a Karina abrir o link `/readai/conectar` e seguir
+  os passos (se o convite vencer, gerar outro em `wpf_agente_config`,
+  chave `readai_convite`, `{codigo, expira ISO}`). Depois: script do Google
+  no Gmail dela — regras aprovadas: avisar só o relevante (pede
+  resposta/decisão com prazo; contrato/pagamento/dinheiro; marco importante
+  de algo da Tasks; parado sem resposta há 3 dias úteis); normalmente só
+  Karina; outros do Para/Cc só se relevante pra todos (dizendo quem mais
+  recebeu; Cco nunca); entra no limite de 3/dia, salvo muito importante
+  (vai na hora); só e-mails novos, caixa Principal, sem newsletter.
+  - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-21
 
 - [ ] **Agente: todo mundo mandar o primeiro "oi" + template aprovado** —
   o check-in diário (21/09) só alcança quem já falou com o robô (janela
