@@ -39,9 +39,8 @@ reconstruir o raciocínio.
   chave `readai_convite`, `{codigo, expira ISO}`). Depois: script do Google
   no Gmail dela — regras aprovadas: avisar só o relevante (pede
   resposta/decisão com prazo; contrato/pagamento/dinheiro; marco importante
-  de algo da Tasks; parado sem resposta há 3 dias úteis); normalmente só
-  Karina; outros do Para/Cc só se relevante pra todos (dizendo quem mais
-  recebeu; Cco nunca); entra no limite de 3/dia, salvo muito importante
+  de algo da Tasks; parado sem resposta há 3 dias úteis); SÓ a Karina é
+  avisada (trancado no código em 21/09); entra no limite de 3/dia, salvo muito importante
   (vai na hora); só e-mails novos, caixa Principal, sem newsletter.
   - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-21
 

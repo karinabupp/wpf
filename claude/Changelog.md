@@ -12,6 +12,22 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (8ª) — Avisos de e-mail trancados só pra Karina
+
+Pedido da Karina ("tranca isso no código").
+
+- **O que mudou (Worker, commit `a1313da`):** aviso de e-mail é criado
+  **só** pro número da Karina (`DONO_GMAIL_TEL`), sem exceção — não depende
+  mais de "admin" nem do campo "todos" (removido da triagem). A mensagem
+  pode citar quem da equipe também está no Para/Cc, deixando claro que não
+  foram avisados. "Muito importante" imediato também só pra ela.
+- **Substitui** a regra da entrada (7ª) de avisar outros no Para/Cc.
+- **Verificação:** 202 testes (inclui: equipe no Para/Cc não recebe nada;
+  outro admin não recebe; nenhuma mensagem sai pra outro número).
+- Script do Gmail reinstalado pela Karina na conta do trabalho (21/09).
+
+---
+
 ## 2026-09-21 (7ª) — Robô faz triagem do Gmail da Karina
 
 Aprovado por Karina ("pode"), com as regras dela (ver Prox Passos de 21/09).
