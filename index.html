@@ -4607,8 +4607,8 @@
 
     <div id="login-gate-login-fields">
       <div class="login-gate-field">
-        <label for="login-gate-username">Usuário</label>
-        <input type="text" id="login-gate-username" autocomplete="username">
+        <label for="login-gate-username">E-mail</label>
+        <input type="email" id="login-gate-username" autocomplete="username" placeholder="nome@worldpokerfederation.org">
       </div>
       <div class="login-gate-field">
         <label for="login-gate-password">Senha</label>
@@ -5581,6 +5581,7 @@
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════
 // Seletor de empresa (logo clicável) — World Poker Federation / CBTH
@@ -5800,6 +5801,67 @@ const SUPABASE_HEADERS = {
   "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json"
 };
+
+// ══════════════════════════════════════════════════════════
+// LOGIN DE VERDADE (Supabase Auth) — 21/09
+// A Dash so le e grava na nuvem com o token de quem entrou. O banco confere
+// o token e a lista de acesso (tabela wpf_acesso); a chave anon sozinha nao
+// abre mais nada. A sessao fica com o supabase-js, que renova o token sozinho.
+// Senhas NAO ficam mais na Dash: quem cuida delas e o Supabase Auth.
+// ══════════════════════════════════════════════════════════
+const sbAuth = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "wpf_sb_auth" }
+    }).auth
+  : null;
+let sbToken = null;
+let loginConcluido = false;
+function usarToken(sessao) {
+  sbToken = sessao && sessao.access_token ? sessao.access_token : null;
+  SUPABASE_HEADERS.Authorization = `Bearer ${sbToken || SUPABASE_ANON_KEY}`;
+}
+// Antes de cada chamada: pega a sessao valida (renova se o token venceu, ex.
+// PC que dormiu). Sem sessao, nao chama -- ler sem login volta vazio e a Dash
+// acharia que a nuvem esta vazia.
+async function tokenFresco() {
+  if (!sbAuth) throw new Error("login indisponivel");
+  const { data } = await sbAuth.getSession();
+  usarToken(data && data.session);
+  if (!sbToken) throw new Error("sem login");
+  return sbToken;
+}
+// Para o banco (Supabase REST).
+async function headersLogado(extra) {
+  const t = await tokenFresco();
+  return { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${t}`, ...(extra || {}) };
+}
+// Para os Workers (Slack, IA da Social): eles conferem esse token no banco.
+async function headersWorker(extra) {
+  const t = await tokenFresco();
+  return { Authorization: `Bearer ${t}`, ...(extra || {}) };
+}
+async function sbRpc(nome, corpo) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${nome}`, {
+    method: "POST",
+    headers: await headersLogado({ "Content-Type": "application/json" }),
+    body: JSON.stringify(corpo || {})
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const texto = await res.text(); // funcao sem retorno responde 204, vazio
+  return texto ? JSON.parse(texto) : null;
+}
+// So resolve quando alguem terminou de entrar (inclusive a troca de senha
+// do 1o acesso). A carga da nuvem espera por ela.
+let resolverLoginFeito;
+const loginFeito = new Promise(r => { resolverLoginFeito = r; });
+if (sbAuth) {
+  sbAuth.onAuthStateChange((evento, sessao) => {
+    usarToken(sessao);
+    // Saiu em outra aba (ou a sessao foi revogada): recomeca do zero.
+    if (evento === "SIGNED_OUT" && loginConcluido) location.reload();
+  });
+}
+
 // Every section stored as its own row in Supabase (federations, tasks,
 // goals, users, etc) — collectAllData()'s shape stays the same in memory,
 // this list is just how it maps onto rows when reading/writing.
@@ -5859,7 +5921,7 @@ function collectAllData() {
     brazilStates: brazilStateData,
     goals: goalsData,
     tasks: tasksData,
-    users: usersList,
+    users: usersList.map(ensureUserDefaults), // nunca leva senha
     social: socialData,
     socialBR: socialDataBR,
     affiliations: affiliationsCountryData,
@@ -5911,7 +5973,7 @@ function applyAllData(data) {
   // o objetivo aqui e nao perder.
   if (Array.isArray(data.historicoGeral) && data.historicoGeral.length) {
     const vistos = {};
-    historicoGeral = historicoGeral.concat(data.historicoGeral)
+    historicoGeral = historicoGeral.concat(data.historicoGeral.map(retratoSemSenhas))
       .filter(v => v && v.ts && !vistos[v.ts] && (vistos[v.ts] = true))
       .sort((a, b) => (a.ts < b.ts ? 1 : -1))
       .slice(0, HISTORICO_GERAL_MAX);
@@ -5924,7 +5986,7 @@ function applyAllData(data) {
   localStorage.setItem(BRAZIL_STATE_STORAGE_KEY, JSON.stringify(brazilStateData));
   localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goalsData));
   localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList));
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList.map(ensureUserDefaults)));
   localStorage.setItem(SOCIAL_STORAGE_KEY, JSON.stringify(socialData));
   localStorage.setItem(SOCIAL_STORAGE_KEY_BR, JSON.stringify(socialDataBR));
   localStorage.setItem(AFFILIATIONS_STORAGE_KEY, JSON.stringify(affiliationsCountryData));
@@ -5962,10 +6024,23 @@ const HISTORICO_GERAL_MAX = 10;
 // Secoes cujo esvaziamento e suspeito.
 const SECOES_NUNCA_VAZIAS = ["goals", "tasks", "users", "federations", "tasks2"];
 
+// Retratos antigos guardavam a lista de usuarios com as senhas (login antigo).
+// Tira a senha de qualquer retrato que passar por aqui.
+function retratoSemSenhas(v) {
+  if (v && v.data && Array.isArray(v.data.users)) {
+    v.data.users = v.data.users.map(u => {
+      if (!u || typeof u !== "object") return u;
+      const { password, mustChangePassword, ...resto } = u;
+      return resto;
+    });
+  }
+  return v;
+}
 let historicoGeral = [];
 try {
   const g = JSON.parse(localStorage.getItem(HISTORICO_GERAL_KEY) || "null");
-  if (Array.isArray(g)) historicoGeral = g;
+  if (Array.isArray(g)) historicoGeral = g.map(retratoSemSenhas);
+  localStorage.setItem(HISTORICO_GERAL_KEY, JSON.stringify(historicoGeral));
 } catch (e) { historicoGeral = []; }
 
 function tamanhoSecao(v) {
@@ -6367,7 +6442,7 @@ function rebasearDaMemoria(secoes) {
 }
 
 function cloudFetch(query, opcoes) {
-  return fetch(`${SUPABASE_TABLE_URL}?${query}`, { headers: SUPABASE_HEADERS, cache: "no-store", ...(opcoes || {}) })
+  return tokenFresco().then(() => fetch(`${SUPABASE_TABLE_URL}?${query}`, { headers: SUPABASE_HEADERS, cache: "no-store", ...(opcoes || {}) }))
     .then(async res => {
       if (!res.ok) {
         let detail = "";
@@ -6491,6 +6566,7 @@ async function enviarAgora(opcoes) {
       }));
       const corpo = JSON.stringify(rows);
       const enviado = JSON.parse(corpo);
+      await tokenFresco();
       const res = await fetch(`${SUPABASE_TABLE_URL}?select=section,updated_at`, {
         method: "POST",
         headers: { ...SUPABASE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation" },
@@ -6538,6 +6614,7 @@ function scheduleCloudSave(opcoes) {
 
 // ─── Carga inicial ────────────────────────────────────────────────────────
 async function loadFromCloud() {
+  if (!loginConcluido) return; // sem login o banco devolve vazio
   if (cloudCarregando) return;
   cloudCarregando = true;
   setCloudStatus("loading");
@@ -6589,6 +6666,7 @@ async function loadFromCloud() {
 
 // ─── Atualizacao automatica ───────────────────────────────────────────────
 async function buscarAtualizacoesDaNuvem() {
+  if (!loginConcluido) return;
   if (!cloudCarregou) { if (!document.hidden) loadFromCloud(); return; }
   if (cloudBuscando || cloudEnviando || document.hidden) return;
   // Edicao aqui ainda nao enviada (ou envio que falhou): o envio ja junta
@@ -6633,9 +6711,9 @@ const USERS_STORAGE_KEY = "wpf_users_data";
 const AUTH_SESSION_KEY = "wpf_auth_session";
 // First-run seed so nobody gets locked out — log in with one of these once,
 // then create the real accounts in Settings and delete/rename these.
+// (Sem senha: desde 21/09 o login e pelo Supabase Auth.)
 const USERS_SEED = [
-  { username: "admin", password: "wpf2026", role: "adm" },
-  { username: "karina", password: "bupp", role: "adm" }
+  { username: "karina", role: "adm" }
 ];
 
 // --- Per-user colab permissions — each colab account carries its own
@@ -6677,6 +6755,9 @@ const COLAB_PERMISSIONS_DEFAULT = {
 // Fills in permissions/mustChangePassword on any user record that predates
 // those fields, so older saved data (local or cloud) doesn't break.
 function ensureUserDefaults(u) {
+  // Senhas nao ficam mais aqui (nem na nuvem): o login e pelo Supabase Auth.
+  const { password, mustChangePassword, ...semSenha } = u || {};
+  u = semSenha;
   return {
     ...u,
     login: u.login || u.username,
@@ -6716,7 +6797,7 @@ function colabCan(key) {
 }
 
 function saveUsersList() {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList));
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList.map(ensureUserDefaults)));
   scheduleCloudSave();
 }
 
@@ -6727,7 +6808,7 @@ function saveUsersList() {
 // the cloud right away instead, and reports back whether it actually
 // worked — callers show this on screen rather than letting it fail silently.
 async function saveUsersListNow() {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList));
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(usersList.map(ensureUserDefaults)));
   bumpLocalRevision();
   cloudEdicoes++;
   marcarPendente(true);
@@ -6846,7 +6927,8 @@ document.getElementById("backup-arquivo").addEventListener("change", e => {
   e.target.value = "";
 });
 
-const initialCloudLoadPromise = loadFromCloud();
+// Carrega da nuvem so depois que alguem entrou.
+const initialCloudLoadPromise = loginFeito.then(() => loadFromCloud());
 
 function showLoginGate() {
   pendingPasswordChangeUsername = null;
@@ -6865,27 +6947,48 @@ function hideLoginGate() {
 // in — set by attemptLogin() when that account's password is provisional,
 // cleared once the new password is saved (or the gate is shown again).
 let pendingPasswordChangeUsername = null;
-
-let cloudUsersLoaded = false;
-initialCloudLoadPromise.then(() => { cloudUsersLoaded = true; }).catch(() => { cloudUsersLoaded = true; });
+// Quem entrou com a senha provisoria e ainda precisa trocar.
+let acessoPendente = null;
 
 async function attemptLogin() {
-  const login = document.getElementById("login-gate-username").value.trim();
+  const errEl = document.getElementById("login-gate-error");
+  const email = document.getElementById("login-gate-username").value.trim().toLowerCase();
   const password = document.getElementById("login-gate-password").value;
-  // On a device that's never opened the dashboard before, this runs before
-  // the cloud fetch (accounts/resets made on other devices) has landed —
-  // wait for it once, so a fast click doesn't fail against stale seed data.
-  if (!cloudUsersLoaded) {
-    document.getElementById("login-gate-error").textContent = "Carregando dados… um instante.";
-    await initialCloudLoadPromise.catch(() => {});
-  }
-  const match = usersList.find(u => (u.login || u.username || "").toLowerCase() === login.toLowerCase() && u.password === password);
-  if (!match) {
-    document.getElementById("login-gate-error").textContent = "Usuário ou senha incorretos.";
+  if (!sbAuth) { errEl.textContent = "Não consegui carregar o login. Recarregue a página."; return; }
+  if (!email || !password) { errEl.textContent = "Preencha e-mail e senha."; return; }
+  errEl.textContent = "Entrando…";
+  let erro = null;
+  try { ({ error: erro } = await sbAuth.signInWithPassword({ email, password })); }
+  catch (e) { erro = e; }
+  if (erro) {
+    errEl.textContent = (erro.status === 400 || /invalid/i.test(erro.message || ""))
+      ? "E-mail ou senha incorretos."
+      : "Não consegui entrar agora. Confira a internet e tente de novo.";
     return;
   }
-  if (match.mustChangePassword) {
-    pendingPasswordChangeUsername = match.username;
+  document.getElementById("login-gate-password").value = "";
+  await continuarLogin();
+}
+
+// Depois de ter uma sessao: confere se o e-mail esta na lista de acesso e
+// se ainda precisa trocar a senha provisoria.
+async function continuarLogin() {
+  const errEl = document.getElementById("login-gate-error");
+  let acesso = null;
+  try {
+    const r = await sbRpc("wpf_meu_acesso");
+    acesso = Array.isArray(r) ? r[0] : r;
+  } catch (e) {
+    errEl.textContent = "Não consegui conferir seu acesso agora. Tente de novo.";
+    return;
+  }
+  if (!acesso || !acesso.papel) {
+    try { await sbAuth.signOut(); } catch (e) {}
+    errEl.textContent = "Este e-mail não tem acesso à Dash. Fale com a Karina.";
+    return;
+  }
+  if (acesso.precisa_trocar_senha) {
+    acessoPendente = acesso;
     document.getElementById("login-gate-login-fields").classList.add("hidden");
     document.getElementById("login-gate-pw-fields").classList.remove("hidden");
     document.getElementById("login-gate-pw-error").textContent = "";
@@ -6894,47 +6997,46 @@ async function attemptLogin() {
     document.getElementById("login-gate-new-password").focus();
     return;
   }
-  currentUser = { username: match.username, role: match.role };
-  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: currentUser.username, role: currentUser.role, savedAt: Date.now() }));
-  hideLoginGate();
-  applyRolePermissions();
+  concluirLogin(acesso);
 }
 
-// First login with a temporary/reset password (mustChangePassword: true) —
-// this is what lets Adm create accounts and reset passwords without ever
-// knowing the person's real, final password: the account only finishes
-// logging in once the person sets their own here.
+function concluirLogin(acesso) {
+  currentUser = { username: acesso.nome, role: acesso.papel, login: acesso.login };
+  loginConcluido = true;
+  hideLoginGate();
+  applyRolePermissions();
+  resolverLoginFeito();
+}
+
+// Primeiro acesso (ou senha resetada): a pessoa define a senha dela.
 async function submitPasswordChange() {
   const pw1 = document.getElementById("login-gate-new-password").value;
   const pw2 = document.getElementById("login-gate-new-password-confirm").value;
   const errEl = document.getElementById("login-gate-pw-error");
-  if (!pw1 || pw1.length < 4) { errEl.textContent = "A senha precisa ter pelo menos 4 caracteres."; return; }
+  if (!acessoPendente) { errEl.textContent = "Sessão expirada — recarregue a página e entre de novo."; return; }
+  if (!pw1 || pw1.length < 8) { errEl.textContent = "A senha precisa ter pelo menos 8 caracteres."; return; }
   if (pw1 !== pw2) { errEl.textContent = "As senhas não coincidem."; return; }
-  const u = usersList.find(x => x.username === pendingPasswordChangeUsername);
-  if (!u) { errEl.textContent = "Sessão expirada — tenta entrar de novo."; return; }
-  const oldPassword = u.password;
-  u.password = pw1;
-  u.mustChangePassword = false;
   errEl.textContent = "Salvando…";
-  const result = await saveUsersListNow();
-  if (!result.ok) {
-    u.password = oldPassword;
-    u.mustChangePassword = true;
-    errEl.textContent = `Não consegui salvar a senha nova na nuvem (${result.error}). Tenta de novo — sem isso, essa senha só vai funcionar neste computador.`;
+  let erro = null;
+  try { ({ error: erro } = await sbAuth.updateUser({ password: pw1 })); }
+  catch (e) { erro = e; }
+  // same_password: ja tinha trocado numa tentativa anterior que caiu no meio.
+  if (erro && erro.code !== "same_password") {
+    errEl.textContent = /weak|short|characters/i.test(erro.message || "")
+      ? "Senha fraca demais. Use pelo menos 8 caracteres, misturando letras e números."
+      : "Não consegui salvar a senha nova. Tente de novo.";
     return;
   }
-  currentUser = { username: u.username, role: u.role };
-  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: currentUser.username, role: currentUser.role, savedAt: Date.now() }));
-  pendingPasswordChangeUsername = null;
-  hideLoginGate();
-  applyRolePermissions();
+  try { await sbRpc("wpf_senha_trocada"); }
+  catch (e) { errEl.textContent = "A senha foi trocada, mas não consegui registrar. Clique de novo."; return; }
+  const acesso = acessoPendente;
+  acessoPendente = null;
+  concluirLogin({ ...acesso, precisa_trocar_senha: false });
 }
 
-function doLogout() {
-  currentUser = null;
-  localStorage.removeItem(AUTH_SESSION_KEY);
-  document.body.classList.remove("role-colab");
-  showLoginGate();
+async function doLogout() {
+  try { if (sbAuth) await sbAuth.signOut(); } catch (e) {}
+  location.reload();
 }
 
 document.getElementById("login-gate-submit").addEventListener("click", attemptLogin);
@@ -6962,23 +7064,18 @@ if (loginGateLogoImg && document.getElementById("logo")) {
 // every single time even right after logging in. Sessions now last 30
 // days, and using the dashboard refreshes that window each time (rolling),
 // so an active user is never logged out mid-use.
-const AUTH_SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
-function restoreSession() {
-  let saved = null;
-  try { saved = JSON.parse(localStorage.getItem(AUTH_SESSION_KEY) || "null"); } catch (e) { saved = null; }
-  if (!saved || !saved.username || !saved.savedAt) return false;
-  if (Date.now() - saved.savedAt > AUTH_SESSION_MAX_AGE_MS) {
-    localStorage.removeItem(AUTH_SESSION_KEY);
-    return false;
-  }
-  currentUser = { username: saved.username, role: saved.role };
-  saved.savedAt = Date.now(); // rolling window: being active resets the clock
-  localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(saved));
-  hideLoginGate();
-  return true;
-}
-if (!restoreSession()) {
-  showLoginGate();
+localStorage.removeItem(AUTH_SESSION_KEY);
+showLoginGate();
+if (sbAuth) {
+  sbAuth.getSession().then(({ data }) => {
+    if (data && data.session) {
+      usarToken(data.session);
+      document.getElementById("login-gate-error").textContent = "Entrando…";
+      continuarLogin();
+    }
+  }).catch(() => {});
+} else {
+  document.getElementById("login-gate-error").textContent = "Não consegui carregar o login. Recarregue a página.";
 }
 // applyRolePermissions() also runs once the rest of the page's render
 // functions exist — see the bottom of the file, right after first paint.
@@ -7214,7 +7311,7 @@ document.getElementById("settings-add-user-btn").addEventListener("click", async
   // knows it. Nome (display/assignee name) and login start the same — Adm
   // can split them apart afterward in the row (e.g. rename the login to
   // something shorter without touching the name used on tasks).
-  usersList.push({ username, login: username, password: "wpf2026", role, email: "", permissions: { ...COLAB_PERMISSIONS_DEFAULT }, mustChangePassword: true });
+  usersList.push({ username, login: username, role, email: "", permissions: { ...COLAB_PERMISSIONS_DEFAULT }, mustChangePassword: true });
   errEl.textContent = "Salvando…";
   const result = await saveUsersListNow();
   if (!result.ok) {
@@ -8637,7 +8734,6 @@ function migrateOrphanAssigneesToUsers() {
     usersList.push({
       username: name,
       login: name,
-      password: "wpf2026",
       role: "colab",
       email: "",
       permissions: { ...COLAB_PERMISSIONS_DEFAULT },
@@ -12222,11 +12318,37 @@ function loadSocialPanelFields(name) {
 // country, sets the resulting activity level + a short summary, and
 // updates the map/summary once it lands. Re-run every time the country
 // panel opens (and after a link is edited), so it's always current.
+// IA da Social DESLIGADA em 21/09 (pedido da Karina): o Worker que guardava a
+// chave da Anthropic (yellow-smoke-f7d6) foi apagado. Sem IA, o painel mostra o
+// nivel ja salvo e o botao do modal so guarda os links. Religar = recriar o
+// Worker trancado por login (codigo no Changelog de 21/09) e trocar pra true.
+const IA_SOCIAL_LIGADA = false;
+// Sem IA, a rede de cada link sai do endereco.
+function redeDoLink(url) {
+  let h = "";
+  try { h = new URL(/^https?:\/\//i.test(url) ? url : "https://" + url).hostname.toLowerCase(); } catch (e) { h = ""; }
+  if (!h) return null;
+  if (/(^|\.)instagram\.com$/.test(h)) return "instagram";
+  if (/(^|\.)(facebook|fb)\.com$/.test(h)) return "facebook";
+  if (/(^|\.)(x|twitter)\.com$/.test(h)) return "x";
+  if (/(^|\.)tiktok\.com$/.test(h)) return "tiktok";
+  return "website";
+}
+if (!IA_SOCIAL_LIGADA) {
+  const botaoSalvarSocial = document.getElementById("social-edit-save");
+  if (botaoSalvarSocial) botaoSalvarSocial.textContent = "Salvar";
+}
+
 async function analyzeCountrySocialLinks(name) {
   const requestId = ++socialAnalysisRequestId;
   const rec = getRecord(name);
   const websiteUrl = (rec.website || "").trim();
   const socialUrl = (rec.social || "").trim();
+  if (!IA_SOCIAL_LIGADA) {
+    setSocialAiBlock("website", websiteUrl ? (rec.websiteActivity || "") : "empty", websiteUrl ? "Análise com IA desligada." : "Nenhum link cadastrado.");
+    setSocialAiBlock("social", socialUrl ? (rec.socialActivity || "") : "empty", socialUrl ? "Análise com IA desligada." : "Nenhum link cadastrado.");
+    return;
+  }
 
   if (!websiteUrl) setSocialAiBlock("website", "empty", "Nenhum link cadastrado.");
   else setSocialAiBlock("website", "loading", "Analisando com IA...");
@@ -12284,7 +12406,7 @@ Responda APENAS com um JSON válido, sem markdown, sem texto antes ou depois. Om
 
   const response = await fetch(SOCIAL_AI_PROXY_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await headersWorker({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       max_tokens: 700,
@@ -12537,7 +12659,7 @@ Responda APENAS com um array JSON válido, sem markdown, sem texto antes ou depo
 
   const response = await fetch(SOCIAL_AI_PROXY_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await headersWorker({ "Content-Type": "application/json" }),
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       max_tokens: 1000,
@@ -12577,6 +12699,22 @@ document.getElementById("social-edit-save").addEventListener("click", async () =
   const statusEl = document.getElementById("social-analyze-status");
   if (!urls.length) {
     statusEl.textContent = "Cole pelo menos um link antes de salvar.";
+    return;
+  }
+  if (!IA_SOCIAL_LIGADA) {
+    // Sem IA: guarda so os links, sem mexer nos numeros ja salvos.
+    const rec = getSocialRecord(name);
+    let guardados = 0;
+    urls.forEach(u => {
+      const k = redeDoLink(u);
+      if (!k || !rec.networks[k]) return;
+      rec.networks[k] = { ...rec.networks[k], url: u };
+      guardados++;
+    });
+    if (!guardados) { statusEl.textContent = "Não reconheci nenhum desses links."; return; }
+    setSocialRecord(name, { networks: rec.networks });
+    closeSocialEditModal();
+    renderSocialTable();
     return;
   }
   const saveBtn = document.getElementById("social-edit-save");
@@ -13329,7 +13467,7 @@ function slackChannelUnreadCount(channelId) {
 
 async function loadSlackChannelsList() {
   try {
-    const res = await fetch(`${slackWorkerUrl()}/channels`);
+    const res = await fetch(`${slackWorkerUrl()}/channels`, { headers: await headersWorker() });
     const data = await res.json();
     if (data.ok) slackAllChannels = data.channels;
   } catch (err) {
@@ -13386,7 +13524,7 @@ async function openSlackChannel(channelId, channelName) {
 
   try {
     const res = await fetch(`${SLACK_TABLE_URL}?channel=eq.${encodeURIComponent(channelId)}&select=*&order=ts.asc&limit=500`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
     slackChannelDetailMessages = res.ok ? await res.json() : [];
   } catch (err) {
@@ -13481,7 +13619,7 @@ async function loadSlackMessages() {
   loadSlackChannelsList(); // parallel — re-renders the grid on its own when it lands
   try {
     const res = await fetch(`${SLACK_TABLE_URL}?select=*&order=ts.desc&limit=300`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     slackMessages = await res.json();
@@ -13489,7 +13627,7 @@ async function loadSlackMessages() {
     if (slackActiveChannel) {
       // Keep an open thread live too, without losing place mid-read.
       const res2 = await fetch(`${SLACK_TABLE_URL}?channel=eq.${encodeURIComponent(slackActiveChannel.id)}&select=*&order=ts.asc&limit=500`, {
-        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+        headers: await headersLogado()
       });
       if (res2.ok) {
         slackChannelDetailMessages = await res2.json();
@@ -13615,7 +13753,7 @@ document.getElementById("slack-backfill-btn").addEventListener("click", async ()
   btn.disabled = true;
   btn.innerHTML = "⏳ Importando (pode levar um tempinho)…";
   try {
-    const res = await fetch(`${slackWorkerUrl()}/backfill`, { method: "POST" });
+    const res = await fetch(`${slackWorkerUrl()}/backfill`, { method: "POST", headers: await headersWorker() });
     const data = await res.json();
     if (data.ok || data.messagesSaved > 0) {
       statusEl.textContent = `✅ Importado: ${data.messagesSaved} mensagens de ${data.channels} canal(is).`;
@@ -13646,7 +13784,7 @@ document.getElementById("slack-compose-send-btn").addEventListener("click", asyn
   try {
     const res = await fetch(`${slackWorkerUrl()}/notify`, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids a CORS preflight the Worker can't answer
+      headers: await headersWorker({ "Content-Type": "text/plain;charset=utf-8" }),
       body: JSON.stringify({ channel: slackActiveChannel.id, text })
     });
     const data = await res.json().catch(() => ({}));
@@ -13667,7 +13805,7 @@ document.getElementById("slack-compose-send-btn").addEventListener("click", asyn
 
 async function loadSlackUsersList() {
   try {
-    const res = await fetch(`${slackWorkerUrl()}/users`);
+    const res = await fetch(`${slackWorkerUrl()}/users`, { headers: await headersWorker() });
     const data = await res.json();
     if (data.ok) slackAllUsers = data.users;
   } catch (err) {
@@ -13855,7 +13993,7 @@ async function loadFormsList() {
   statusEl.textContent = "☁️ Updating…";
   try {
     const res = await fetch(`${FORMS_TABLE_URL}?select=*&order=updated_at.desc`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     formsList = await res.json();
@@ -13873,7 +14011,7 @@ async function loadFormResponseCounts() {
   formsResponseRows = [];
   try {
     const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?select=form_id,submitted_at`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
     if (!res.ok) return;
     const rows = await res.json();
@@ -13932,7 +14070,7 @@ async function deleteFormById(id, title) {
   try {
     await fetch(`${FORMS_TABLE_URL}?id=eq.${encodeURIComponent(id)}`, {
       method: "DELETE",
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
   } catch (err) { /* best effort */ }
   if (formsActiveId === id) {
@@ -14102,8 +14240,7 @@ async function saveFormToSupabase(statusOverride) {
     const res = await fetch(`${FORMS_TABLE_URL}?on_conflict=id`, {
       method: "POST",
       headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+        ...(await headersLogado()),
         "Content-Type": "application/json",
         "Prefer": "resolution=merge-duplicates,return=minimal"
       },
@@ -14339,7 +14476,7 @@ async function openFormResponses(id) {
   formsShowMode("responses");
   try {
     const res = await fetch(`${FORM_RESPONSES_TABLE_URL}?form_id=eq.${encodeURIComponent(id)}&select=*&order=submitted_at.desc`, {
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
     const rows = res.ok ? await res.json() : [];
     formsResponsesData = rows;
@@ -14373,7 +14510,7 @@ async function deleteFormResponse(responseId) {
   try {
     await fetch(`${FORM_RESPONSES_TABLE_URL}?id=eq.${encodeURIComponent(responseId)}`, {
       method: "DELETE",
-      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }
+      headers: await headersLogado()
     });
   } catch (err) { /* best effort */ }
   formsResponsesData = formsResponsesData.filter(r => String(r.id) !== String(responseId));
@@ -17031,7 +17168,6 @@ applyRolePermissions();
       usersList.push({
         username: name,
         login: name,
-        password: "wpf2026",
         role: "colab",
         email: "",
         permissions: { ...COLAB_PERMISSIONS_DEFAULT },

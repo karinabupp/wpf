@@ -3,7 +3,6 @@
 //  GET  /webhook   → verificação da Meta
 //  POST /webhook   → mensagem recebida: grava, responde 200 na hora e
 //                    trata a conversa em segundo plano (ctx.waitUntil)
-//  POST /enviar    → envia mensagem avulsa, exige o token no header
 //
 // O que o agente olha: SÓ a aba Tasks (seções tasks2 / tasks2__xxx) e a
 // Members 2 (members2 / members2__xxx), de todas as empresas.
@@ -1586,17 +1585,6 @@ export default {
       const trabalho = processarEmails(env, dados.emails).catch(e => console.log("erro nos e-mails:", e && e.message));
       if (ctx && ctx.waitUntil) ctx.waitUntil(trabalho); else await trabalho;
       return new Response(JSON.stringify({ ok: true, recebidos: dados.emails.length }), { status: 200, headers: { "Content-Type": "application/json" } });
-    }
-
-    if (url.pathname === "/enviar" && request.method === "POST") {
-      if (request.headers.get("x-agente-token") !== env.WHATSAPP_VERIFY_TOKEN) return new Response("forbidden", { status: 403 });
-      let dados = null;
-      try { dados = await request.json(); } catch (e) { dados = null; }
-      if (!dados || !dados.para || !dados.texto) {
-        return new Response(JSON.stringify({ ok: false, erro: "informe para e texto" }), { status: 400, headers: { "Content-Type": "application/json" } });
-      }
-      const r = await enviarTexto(env, String(dados.para), String(dados.texto));
-      return new Response(JSON.stringify({ ok: r.ok, id: r.id }), { status: r.ok ? 200 : 502, headers: { "Content-Type": "application/json" } });
     }
 
     return new Response("wpf-whatsapp-bridge ok", { status: 200 });

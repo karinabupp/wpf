@@ -1,0 +1,7 @@
+# Publicado pelo GitHub Actions (.github/workflows/deploy-worker-slack.yml) a cada
+# mudança nesta pasta. Segredos ficam no Cloudflare e NÃO são tocados.
+name = "wpf-slack-bridge"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+keep_vars = true
