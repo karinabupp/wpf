@@ -111,6 +111,8 @@ function normalizar(txt) {
   return String(txt || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
 }
+// Texto que vai ser gravado na Dash: tira < e > (defesa contra HTML/script).
+const limpo = t => String(t ?? "").replace(/[<>]/g, "").trim();
 function corta(s, n) {
   s = String(s || "");
   return s.length > n ? s.slice(0, n - 1) + "…" : s;
@@ -483,7 +485,7 @@ function validarMudanca(entrada, indice, pessoa, hoje) {
   if (!pessoa.admin && !ehDono(no, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} não é responsável por essa linha; só pode mudar as próprias.` };
   const mud = {}, itens = [];
   if (entrada.nome !== undefined) {
-    const nome = String(entrada.nome).trim();
+    const nome = limpo(entrada.nome);
     if (!nome) return { erro: "O nome novo está vazio." };
     if (nome !== no.name) { mud.name = nome; itens.push(`Nome: ${corta(no.name, 50)} → ${nome}`); }
   }
@@ -522,7 +524,7 @@ function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
   if (rp === undefined || rf < rp || (rf === rp && !["projeto", "entregavel", "tarefa"].includes(tipo)))
     return { erro: `Não dá pra colocar ${TIPO_LABEL[tipo]} dentro de ${TIPO_LABEL[pai.rowType] || pai.rowType}.` };
   if (!pessoa.admin && !doResponsavel(pai, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} só pode criar dentro de linhas em que é responsável.` };
-  const nome = String(entrada.nome || "").trim();
+  const nome = limpo(entrada.nome);
   if (!nome) return { erro: "Falta o nome da linha nova." };
   const ini = entrada.inicio ? String(entrada.inicio) : "", fim = entrada.fim ? String(entrada.fim) : "";
   if (ini && !dataValida(ini)) return { erro: `Início "${ini}" inválido (use AAAA-MM-DD).` };
@@ -546,7 +548,7 @@ function validarContexto(entrada, indice, pessoa) {
   const no = info.no;
   if (!TIPOS_COM_CONTEXTO[no.rowType]) return { erro: "Só Meta e Projeto têm contexto." };
   if (!pessoa.admin && !doResponsavel(no, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} só pode escrever no contexto de Metas/Projetos em que está.` };
-  const texto = String(entrada.texto || "").trim();
+  const texto = limpo(entrada.texto);
   if (!texto) return { erro: "Falta o texto do contexto." };
   const modo = entrada.modo === "substituir" ? "substituir" : "acrescentar";
   const atual = String(no.contexto || "");
@@ -577,7 +579,7 @@ function validarMembers(entrada, members, pessoa, todosPaises) {
   if (entrada.coluna !== undefined) {
     const col = (mb.dados.colunas || []).find(c => c.id === entrada.coluna || normalizar(c.nome) === normalizar(entrada.coluna));
     if (!col) return { erro: `Coluna "${entrada.coluna}" não existe. Colunas: ${(mb.dados.colunas || []).map(c => c.nome).join(", ")}.` };
-    const v = String(entrada.valor ?? "");
+    const v = limpo(entrada.valor);
     if (col.tipo === "select" && v && !(col.opcoes || []).includes(v)) return { erro: `Na coluna ${col.nome} as opções são: ${(col.opcoes || []).join(", ")}.` };
     const atual = String(((mb.dados.paises || {})[pais] || {})[col.id] ?? "");
     if (v === atual) return { erro: "Nada mudaria: o valor já é esse." };
@@ -594,7 +596,7 @@ function validarMembers(entrada, members, pessoa, todosPaises) {
       if (!(q.status || []).includes(entrada.status)) return { erro: `No quadro ${q.nome} os status são: ${(q.status || []).join(", ")}.` };
       novo.status = entrada.status;
     }
-    if (entrada.partner !== undefined) novo.partner = String(entrada.partner);
+    if (entrada.partner !== undefined) novo.partner = limpo(entrada.partner);
     const ultimo = (q.status || [])[(q.status || []).length - 1];
     if (entrada.tipo_membro !== undefined) {
       if (!q.temTipoMembro) return { erro: `O quadro ${q.nome} não tem tipo de membro.` };
@@ -769,7 +771,7 @@ const F_ANALISE = {
 };
 
 function instrucoes(modelo) {
-  return `Você é o Agente de Gestão da Dash da Karina, no WhatsApp. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *Members 2* (quadros de países por status).
+  return `Você é o *Carinha*, o agente de gestão da Dash da Karina, no WhatsApp. Você é homem: ao falar de si, use o masculino ("fiquei de olho", "obrigado", "estou atento"). Se perguntarem seu nome, é Carinha. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *Members 2* (quadros de países por status).
 
 Como conversar:
 - Português do Brasil, jeito de WhatsApp. Respostas curtas a médias: em geral até 6 linhas, no máximo umas 12 quando a pergunta pedir. Negrito só com *asteriscos*; sem títulos nem tabelas.
@@ -899,7 +901,7 @@ async function marcarAvisados(env, tel, via) {
 // Haiku escreve o aviso. Uma mensagem; até 3 se o assunto for muito ou
 // complexo (separadas por uma linha com ---). Pergunta no fim, com opções.
 async function escreverAvisos(env, pessoa, pendentes, hoje) {
-  const system = [{ type: "text", text: `Você é o Agente de Gestão da Dash da Karina, escrevendo POR CONTA PRÓPRIA no WhatsApp pra ${pessoa.nome_tasks} sobre assuntos que pedem ação. Hoje: ${diaSemanaSP()}, ${hoje}.
+  const system = [{ type: "text", text: `Você é o Carinha (homem; use o masculino ao falar de si), o agente de gestão da Dash da Karina, escrevendo POR CONTA PRÓPRIA no WhatsApp pra ${pessoa.nome_tasks} sobre assuntos que pedem ação. Hoje: ${diaSemanaSP()}, ${hoje}.
 - Português do Brasil, tom de colega prestativo, direto. Fale no nível do entregável/projeto; cite datas.
 - Uma mensagem só. Só se forem muitos assuntos ou assuntos bem diferentes e complexos, divida em até 3 mensagens, separadas por uma linha contendo apenas ---. Cada mensagem até ~8 linhas.
 - Termine cada mensagem com UMA pergunta de acompanhamento e sugira respostas na última linha assim: [[opções: Já comecei | Ainda não | Adiar]] (até 3 opções de até 20 caracteres, ou até 10 de até 24).
@@ -1225,7 +1227,7 @@ async function readaiRodada(env) {
 //    pagamento, dinheiro; marco importante de algo da Tasks; parado sem
 //    resposta. Coisa pequena não.
 //  - SÓ a Karina é avisada, sempre (decidido por ela em 21/09). O destino
-//    está preso ao número dela (DONO_GMAIL_TEL), não à marcação de admin:
+//    está preso ao número dela (config gmail_dono), não à marcação de admin:
 //    ninguém mais recebe nada sobre esses e-mails. A mensagem pode dizer
 //    quem da equipe também está no Para/Cc, mas essas pessoas não são
 //    notificadas.
@@ -1234,7 +1236,8 @@ async function readaiRodada(env) {
 // O conteúdo dos e-mails é tratado só como informação: o robô nunca faz o
 // que um e-mail pede.
 const TAB_EMAILS = "wpf_agente_emails";
-const DONO_GMAIL_TEL = "5513997290197"; // Karina — única pessoa que recebe avisos de e-mail
+// O número da Karina (única pessoa que recebe avisos de e-mail) fica em
+// wpf_agente_config, chave gmail_dono — não no código, que é público.
 const MAX_EMAILS_LOTE = 15;
 const extrairEmails = t => (String(t || "").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || []).map(e => e.toLowerCase());
 const nomeDoRemetente = de => (String(de || "").replace(/<[^>]*>/, "").replace(/"/g, "").trim()) || String(de || "");
@@ -1284,7 +1287,9 @@ async function processarEmails(env, emails) {
   if (!novos.length) return { recebidos: 0 };
   const rp = await sb(env, `${TAB_PESSOAS}?select=*`);
   const pessoas = (rp.ok && rp.dados) || [];
-  const dono = pessoas.find(p => p.telefone === DONO_GMAIL_TEL);
+  const donoCfg = await cfgGet(env, "gmail_dono");
+  const DONO_GMAIL_TEL = donoCfg && donoCfg.telefone;
+  const dono = DONO_GMAIL_TEL && pessoas.find(p => p.telefone === DONO_GMAIL_TEL);
   if (!dono) return { recebidos: novos.length };
   const indice = indexar((await carregarDash(env)).empresas);
   let urgente = false;
@@ -1495,6 +1500,23 @@ async function tratarMensagem(env, msg, textoRecebido) {
   }
 }
 
+// ─── Assinatura da Meta ──────────────────────────────────────────────────
+// Sem isso, qualquer um que soubesse o endereço do robô poderia fingir ser
+// uma pessoa da equipe e mexer na Dash. Exige o segredo META_APP_SECRET
+// (App Secret do app na Meta) configurado no Cloudflare.
+async function assinaturaMetaOk(env, cabecalho, bruto) {
+  if (!env.META_APP_SECRET) { console.log("ATENÇÃO: META_APP_SECRET não configurado — webhook recusado"); return false; }
+  const m = String(cabecalho || "").match(/^sha256=([0-9a-f]{64})$/i);
+  if (!m) return false;
+  const chave = await crypto.subtle.importKey("raw", new TextEncoder().encode(env.META_APP_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const assinatura = new Uint8Array(await crypto.subtle.sign("HMAC", chave, new TextEncoder().encode(bruto)));
+  const esperado = Array.from(assinatura, b => b.toString(16).padStart(2, "0")).join("");
+  const recebido = m[1].toLowerCase();
+  let dif = 0;
+  for (let i = 0; i < 64; i++) dif |= esperado.charCodeAt(i) ^ recebido.charCodeAt(i);
+  return dif === 0;
+}
+
 // ─── Entrada ─────────────────────────────────────────────────────────────
 export default {
   async scheduled(event, env, ctx) {
@@ -1517,8 +1539,15 @@ export default {
     }
 
     if (url.pathname === "/webhook" && request.method === "POST") {
+      // Só aceita o que vem mesmo da Meta: confere a assinatura
+      // X-Hub-Signature-256 (HMAC-SHA256 do corpo com o App Secret).
+      const bruto = await request.text();
+      if (!(await assinaturaMetaOk(env, request.headers.get("x-hub-signature-256"), bruto))) {
+        console.log("webhook recusado: assinatura inválida");
+        return new Response("forbidden", { status: 403 });
+      }
       let corpo = null;
-      try { corpo = await request.json(); } catch (e) { corpo = null; }
+      try { corpo = JSON.parse(bruto); } catch (e) { corpo = null; }
       // Responde 200 sempre e rápido: se a Meta não receber 200, ela reenvia.
       try {
         const mudanca = corpo?.entry?.[0]?.changes?.[0]?.value;
@@ -1574,5 +1603,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
