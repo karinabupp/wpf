@@ -12,6 +12,31 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (3ª) — Robô: respostas como opções clicáveis
+
+Aprovado por Karina ("pode").
+
+- **O que mudou (Worker, commit `d9a4451`):**
+  - **Confirmações** vêm com botões *Sim* / *Não* (montados pelo código).
+    Tocar chega como "Sim" e grava igual a digitar.
+  - **Perguntas do robô** trazem as respostas prováveis como opções: o
+    Claude termina com `[[opções: A | B | C]]` e o código transforma em
+    **botões** (até 3, ≤ 20 caracteres), **lista** "Ver opções" (até 10,
+    ≤ 24) ou, se não couber (texto > 1.024 ou opção longa), **texto com
+    opções numeradas** — responder "2" vira o texto da opção 2. Se a Meta
+    recusar o formato interativo, cai no numerado.
+  - Opções oferecidas ficam na coluna nova `opcoes` (jsonb) de
+    `wpf_whatsapp_messages` e no corpo gravado (`[opções: …]`), pro
+    Claude ver o que ofereceu.
+- **Custo:** grátis no WhatsApp (dentro da janela de 24h, como texto). No
+  Claude, ~130 tokens a mais de instrução por mensagem + as opções na
+  saída (~0,02 centavo). Mensagem comum medida: ~2,5 mil tokens.
+- **Verificação:** 134 testes (formato de botão e lista da Meta, toque no
+  botão e na lista, número, plano B quando a Meta recusa, texto longo,
+  sem pergunta = sem botões).
+
+---
+
 ## 2026-09-21 (2ª) — Contexto em Meta/Projeto + robô só com o que pede ação
 
 Aprovado por Karina (regras 1–4 "ok", contexto "ok", robô escrever no
