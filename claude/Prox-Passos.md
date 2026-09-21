@@ -29,6 +29,14 @@ reconstruir o raciocínio.
     consumo real pedir.
   - *Aberto em:* 2026-09-21
 
+- [ ] **Agente: transcrições das reuniões** — Karina vai passar acesso às
+  gravações/transcrições. Objetivo (21/09): o robô ser o secretário da
+  equipe. Regra dela: o que sair da reunião e parecer tarefa, mas **não
+  estiver na Tasks**, o robô avisa **só a Karina** (ela decide se vira
+  linha). Contar a partir de agora, sem retroativo. Desenhar quando o
+  acesso chegar (de onde vêm, como o robô lê sem ficar caro).
+  - *Aberto em:* 2026-09-21
+
 - [ ] **Agente: toque diário (ele falar primeiro)** — decisão da Karina em
   17/09: uma vez por dia, só pra Karina. Precisa de **template aprovado**
   na Meta (mensagem fora da janela de 24h, ~R$ 0,04 cada) e de um

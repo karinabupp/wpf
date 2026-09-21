@@ -12,6 +12,58 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (2ª) — Contexto em Meta/Projeto + robô só com o que pede ação
+
+Aprovado por Karina (regras 1–4 "ok", contexto "ok", robô escrever no
+contexto "ok, mas robô também pode propor").
+
+### Dash — aba Tasks (WPF e CBTH, mesmo código)
+- **O que mudou:** ícone discreto (nota, opacidade 0,16; 0,38 quando já
+  tem texto) logo depois do nome, **só em Meta e Projeto**. Clicar abre uma
+  caixinha pra escrever o contexto; salva sozinho ao fechar (clicar fora,
+  ×, Esc). Guarda em `t.contexto`, sobe pra nuvem como qualquer edição.
+  Texto vazio remove o campo. Se a linha deixar de ser Meta/Projeto, o
+  texto fica guardado e só some da tela.
+- **Onde:** `index.html`, só dentro do bloco Tasks: CSS
+  `tasks2-contexto-*` e `#tasks2-contexto-painel`; `contextoBtnMarkup`,
+  `abrirContextoPainel`, `fecharContextoPainel` (antes de
+  `contarMetasEProjetos`); botão no `renderTaskRow` depois de
+  `metaProgressoMarkup`; listener junto do da pontuação; clique fora no
+  mesmo `document` click do painel de pontuação. 117 linhas inseridas,
+  nenhuma removida.
+- **Verificação:** JS válido, CSS 1240/1240. 35 testes no Chromium
+  headless (WPF e CBTH): ícone só em Meta/Projeto, discreto, abre, foca,
+  salva ao clicar fora, Backspace não mexe na tabela, Esc salva, clicar de
+  novo fecha, abrir sem escrever não cria campo, apagar remove, sem
+  seleção azul, sem erro de página, trocar categoria esconde sem apagar.
+
+### Robô (Worker)
+- **Novidades só com ação:** cada mensagem leva só o que pede ação de quem
+  fala (linha dela criada/atribuída/mudou/virou Late ou Deadline), desde a
+  conversa anterior, uma vez cada. Pra Karina também: Entregável, Projeto
+  ou Meta de qualquer pessoa que acabou de virar Late ou Deadline. Mudanças
+  alheias e Members 2 não entram. Filtro em código (`mudancasDesde`).
+- **Panorama só quando pedem:** saiu o resumo automático da 1ª mensagem
+  do dia; virou a ferramenta `resumo_alertas`.
+- **Contexto:** busca mostra o contexto de Meta/Projeto (200 caracteres);
+  olhar uma linha traz o contexto dela e das Metas/Projetos acima; análise
+  geral traz todos (400). Ferramenta nova `propor_contexto` (acrescentar
+  ou substituir) — o robô usa quando pedem e também **oferece sozinho**
+  quando a pessoa conta algo relevante. Mesmo fluxo: propõe → "sim" →
+  grava → auditoria (`acao = contexto`).
+- **Correção:** o robô escrevia "Pronto!" antes do "sim" (só a palavra;
+  nada era gravado antes). Instrução reforçada e o código tira
+  "pronto/feito/atualizei…" do começo de qualquer proposta.
+- **Verificação:** 102 testes. Tamanho com Dash de 1.000 linhas: mensagem
+  comum ~2,4 mil tokens; panorama pedido ~4,5 mil; análise geral ~37,6 mil.
+- **Consumo real do 1º teste (21/09, antes desta mudança):** 4,9 mil,
+  7,9 mil e 10,1 mil tokens de entrada no Haiku.
+
+**Publicação:** commit `08cde78` (Dash + Worker). Worker publicado pelo
+robô; sha256 do `index.html` no repo = `cfa30819fe5e588a…`.
+
+---
+
 ## 2026-09-21 — Agente de Gestão: modo conversacional econômico no ar
 
 Aprovado por Karina ("pode subir tudo"), com as decisões dela sobre custo.
