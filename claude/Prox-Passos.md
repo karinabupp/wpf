@@ -37,12 +37,11 @@ reconstruir o raciocínio.
   acesso chegar (de onde vêm, como o robô lê sem ficar caro).
   - *Aberto em:* 2026-09-21
 
-- [ ] **Agente: template `aviso_dash` e ligar pros outros** — o robô já
-  avisa por conta própria (21/09), mas com a janela de 24h fechada precisa
-  do template aprovado na Meta (categoria Utilidade, pt_BR, nome
-  `aviso_dash`, 2 variáveis: primeiro nome e "N assuntos", botão de
-  resposta rápida "Ver agora"). Depois: decidir se liga `proativo` pra
-  Isabela, Leonardo e Roberto (hoje só Karina).
+- [ ] **Agente: todo mundo mandar o primeiro "oi" + template aprovado** —
+  o check-in diário (21/09) só alcança quem já falou com o robô (janela
+  aberta). Isabela, Leonardo e Roberto precisam mandar uma mensagem pro
+  número do robô uma vez. Conferir a aprovação do template `aviso_dash`
+  na Meta (sem ele, janela fechada + assunto = espera).
   - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-21
 
 - [ ] **Agente: aba Tasks antiga e históricos ficaram de fora** — por

@@ -12,6 +12,39 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-21 (5ª) — Robô mantém a conversa viva (check-in diário)
+
+Aprovado por Karina (ligar pra todos; até 3 avisos/dia fora o check-in;
+sem nada no fim de semana). Substitui a lógica de envio da entrada (4ª).
+
+- **Ideia (dela):** todo mundo manda um "oi" pro robô uma vez; depois o
+  robô mantém a janela de 24h aberta (mensagem livre e grátis). Só a
+  resposta da pessoa renova a janela, então o check-in pede um toque.
+- **O que mudou (Worker, commit `6c11ccf`):**
+  - **Check-in 9h25 (dias úteis):** com assunto, o Haiku escreve; sem
+    nada, o código manda "Bom dia, X! Nada em aberto hoje pra você. Do seu
+    lado, tem algo?" com [Tudo certo] [Tenho algo] — custo zero. Tocar
+    *Tudo certo* → 👍 do código; *Tenho algo* → "Manda aí 🙂" (sem Claude).
+  - **Durante o dia** (de hora em hora, 9h30–21h, dias úteis): assunto
+    novo com janela aberta é avisado na hora; máx. 3 por dia.
+  - **Resgate:** janela fechando em até 75 min e nada nas últimas 3h →
+    check-in antes de fechar (saudação conforme a hora). Máx. 2 check-ins/dia.
+  - **Janela fechada** (ex. segunda): com assunto → template `aviso_dash`
+    (1/dia) + *Ver agora*; sem assunto → não manda.
+  - **Fim de semana:** nada.
+  - Coluna nova `tipo_proativa` (checkin / aviso / template /
+    aviso_detalhe) em `wpf_whatsapp_messages`.
+  - `proativo = true` pra Karina, Isabela, Leonardo e Roberto.
+- **Template:** Karina enviou `aviso_dash` pra análise da Meta em 21/09
+  (Utility, pt_BR, "Oi {{1}}! Separei {{2}} da Dash pra você dar uma
+  olhada." + quick reply "Ver agora").
+- **Verificação:** 167 testes (check-in vazio e com assunto, 1 por dia,
+  respostas de um toque sem Claude, aviso na hora, espera o check-in antes
+  das 9h30, limite de 3, resgate, template/Ver agora/recusado, madrugada,
+  fim de semana, régua de 3 tarefas).
+
+---
+
 ## 2026-09-21 (4ª) — Robô avisa por conta própria
 
 Aprovado por Karina (regras: sem mensagem diária, só quando precisa;
