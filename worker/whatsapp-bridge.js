@@ -48,7 +48,9 @@ const MAX_LINHAS_MUDANCAS = 30;
 const MAX_LINHAS_ALERTA = 25;
 const MAX_RESULTADOS_BUSCA = 25;
 const TIPOS_COM_CONTEXTO = { meta: true, projeto: true };
-const TIPOS_GRANDES = { entregavel: true, projeto: true, meta: true };
+// 22/09 (Karina): o atraso nunca é do objetivo/meta/projeto — o que se avisa
+// é o entregável (quando o problema é o conjunto) ou a tarefa.
+const TIPOS_GRANDES = { entregavel: true };
 const TAB_AVISOS = "wpf_agente_avisos";
 
 // ─── Conversa por conta própria (decidido pela Karina em 21/09) ──────────
@@ -389,8 +391,9 @@ function resumoAlertas(empresas, indice, pessoa, hoje) {
   const lim = somaDias(hoje, 7), itens = [];
   Object.values(indice.porId).forEach(info => {
     const no = info.no;
-    if (temFilhos(no) || ["Done", "Cancelled"].includes(no.status) || !no.endDate) return;
-    if (!(pessoa.admin || ehDono(no, pessoa.nome_tasks))) return;
+    if (no.rowType !== "entregavel" && no.rowType !== "tarefa") return; // objetivo/meta/projeto só refletem o de baixo
+    if (["Done", "Cancelled"].includes(no.status) || !no.endDate) return;
+    if (!(pessoa.admin || ehDono(no, pessoa.nome_tasks) || (temFilhos(no) && algumAbaixo(no, f => ehDono(f, pessoa.nome_tasks))))) return;
     if (no.status === "Late" || no.status === "Deadline" || no.endDate <= lim) itens.push(info);
   });
   // O que ainda dá pra salvar (vence hoje/nos próximos dias) vem antes das
@@ -401,16 +404,16 @@ function resumoAlertas(empresas, indice, pessoa, hoje) {
   // Claude chegou a dizer pra Karina que 24 atrasadas da Isabela eram dela).
   const nome = pessoa.nome_tasks;
   const conta = l => { const late = l.filter(i => i.no.status === "Late").length; return `${late} atrasada(s), ${l.length - late} vencendo até ${br(lim)}`; };
-  const minhas = itens.filter(i => ehDono(i.no, nome));
+  const minhas = condensarEntregaveis(itens.filter(i => ehDono(i.no, nome) || (i.no.rowType === "entregavel" && temFilhos(i.no) && algumAbaixo(i.no, f => ehDono(f, nome)))), indice, nome);
   let txt = `SUAS LINHAS (responsável: ${nome}): ${conta(minhas)}.` + (minhas.length ? "\n" + minhas.slice(0, MAX_LINHAS_ALERTA).map(i => linhaTexto(i, true)).join("\n") : "")
     + (minhas.length > MAX_LINHAS_ALERTA ? `\n…e mais ${minhas.length - MAX_LINHAS_ALERTA} suas (use buscar com responsavel).` : "");
   if (!pessoa.admin) return txt;
-  const outras = itens.filter(i => !ehDono(i.no, nome));
+  const outras = condensarEntregaveis(itens.filter(i => !ehDono(i.no, nome) && !(i.no.rowType === "entregavel" && temFilhos(i.no) && algumAbaixo(i.no, f => ehDono(f, nome)))), indice, null);
   if (!outras.length) return txt + `\n\nDA EQUIPE: nada atrasado nem vencendo até ${br(lim)}.`;
   const porPessoa = {};
   outras.forEach(i => ((i.no.assignees || []).length ? i.no.assignees : ["sem responsável"]).forEach(n => { if (n !== nome) (porPessoa[n] = porPessoa[n] || []).push(i); }));
   const resto = Math.max(MAX_LINHAS_ALERTA - Math.min(minhas.length, MAX_LINHAS_ALERTA), 5);
-  txt += `\n\nDA EQUIPE — NÃO são de ${nome.split(" ")[0]}; ao citar, diga sempre de quem é:\n`
+  txt += `\n\nDA EQUIPE — NÃO são de ${nome.split(" ")[0]}. SÓ cite se ela perguntar da equipe ou de alguém; e aí diga sempre de quem é:\n`
     + Object.entries(porPessoa).sort((a, b) => b[1].length - a[1].length).map(([n, l]) => `• ${n}: ${conta(l)}`).join("\n")
     + "\n" + outras.slice(0, resto).map(i => linhaTexto(i, true)).join("\n")
     + (outras.length > resto ? `\n…e mais ${outras.length - resto} da equipe (use buscar).` : "");
@@ -452,6 +455,21 @@ function resumoMembers(mb, quadroId) {
 }
 
 // ─── Busca (ferramentas) ─────────────────────────────────────────────────
+// Entregável com filhos só entra quando o problema é o CONJUNTO (3+ tarefas
+// dele na lista); aí as tarefas dele saem, pra não repetir. Senão fica só a
+// tarefa. (Karina, 22/09: "acha onde está a coisa a fazer".)
+function condensarEntregaveis(itens, indice, dono) {
+  const ehDele = typeof dono === "function" ? dono : dono ? (no => ehDono(no, dono)) : null;
+  const ids = new Set(itens.map(i => i.empresa.secao + "|" + i.no.id));
+  const tirar = new Set(), fora = new Set();
+  itens.forEach(i => {
+    if (i.no.rowType !== "entregavel" || !temFilhos(i.no)) return;
+    const filhas = itens.filter(x => x.pai && x.pai.id === i.no.id && x.empresa === i.empresa && (!ehDele || ehDele(x.no)));
+    if (filhas.length >= MIN_TAREFAS_ABERTAS) filhas.forEach(f => tirar.add(f.empresa.secao + "|" + f.no.id));
+    else fora.add(i.empresa.secao + "|" + i.no.id);
+  });
+  return itens.filter(i => { const k = i.empresa.secao + "|" + i.no.id; return ids.has(k) && !tirar.has(k) && !fora.has(k); });
+}
 function buscarTasks(entrada, indice, pessoa, hoje) {
   const alvo = entrada.apelido ? indice.porApelido[String(entrada.apelido).toUpperCase()] : null;
   if (entrada.apelido) {
@@ -471,13 +489,25 @@ function buscarTasks(entrada, indice, pessoa, hoje) {
   }
   const termo = normalizar(entrada.texto || "");
   const palavras = termo ? termo.split(" ") : [];
+  // Busca por status/prazo = "o que está pra fazer": só entregável e tarefa
+  // (objetivo, meta e projeto só refletem o que está embaixo). E, sem
+  // responsavel nem equipe=true, só as linhas da própria pessoa (22/09).
+  const porSituacao = !!(entrada.status || entrada.vence_ate);
+  const soMinhas = porSituacao && !entrada.responsavel && !entrada.equipe && !entrada.apelido;
   const res = Object.values(indice.porId).filter(info => {
     const no = info.no;
     if (!visivelPara(info, pessoa, indice)) return false;
+    if (porSituacao && no.rowType !== "entregavel" && no.rowType !== "tarefa") return false;
+    if (soMinhas && !ehDono(no, pessoa.nome_tasks) && !(no.rowType === "entregavel" && temFilhos(no) && algumAbaixo(no, f => ehDono(f, pessoa.nome_tasks)))) return false;
     if (entrada.empresa && info.empresa.nome !== String(entrada.empresa).toUpperCase()) return false;
     if (entrada.status && no.status !== entrada.status) return false;
     if (!entrada.status && !entrada.incluir_concluidas && ["Done", "Cancelled"].includes(no.status)) return false;
-    if (entrada.responsavel && !normalizar((no.assignees || []).join(" ")).includes(normalizar(entrada.responsavel))) return false;
+    if (entrada.responsavel) {
+      const resp = normalizar(entrada.responsavel);
+      const bate = n => normalizar((n.assignees || []).join(" ")).includes(resp);
+      // Entregável com tarefas: vale se alguma tarefa dele é da pessoa.
+      if (!bate(no) && !(porSituacao && no.rowType === "entregavel" && temFilhos(no) && algumAbaixo(no, bate))) return false;
+    }
     if (entrada.vence_ate && !(no.endDate && no.endDate <= entrada.vence_ate)) return false;
     if (palavras.length) {
       const alvoTxt = normalizar(no.name + " " + info.caminho.join(" "));
@@ -485,8 +515,10 @@ function buscarTasks(entrada, indice, pessoa, hoje) {
     }
     return true;
   });
-  if (!res.length) return "Nada encontrado com esses filtros.";
-  return res.slice(0, MAX_RESULTADOS_BUSCA).map(i => linhaTexto(i, true, 200)).join("\n") + (res.length > MAX_RESULTADOS_BUSCA ? `\n…e mais ${res.length - MAX_RESULTADOS_BUSCA}; refine a busca.` : "");
+  const donoBusca = soMinhas ? pessoa.nome_tasks : entrada.responsavel ? (n => normalizar((n.assignees || []).join(" ")).includes(normalizar(entrada.responsavel))) : null;
+  const lista = porSituacao ? condensarEntregaveis(res, indice, donoBusca) : res;
+  if (!lista.length) return soMinhas ? `Nada seu com esses filtros (responsável: ${pessoa.nome_tasks}).` : "Nada encontrado com esses filtros.";
+  return lista.slice(0, MAX_RESULTADOS_BUSCA).map(i => linhaTexto(i, true, 200)).join("\n") + (res.length > MAX_RESULTADOS_BUSCA ? `\n…e mais ${res.length - MAX_RESULTADOS_BUSCA}; refine a busca.` : "");
 }
 function buscarMembers(entrada, members, pessoa) {
   if (!pessoa.admin) return "CRM é só pra admin.";
@@ -740,6 +772,7 @@ const F_BUSCAR = {
     empresa: { type: "string" }, responsavel: { type: "string" },
     status: { type: "string", enum: ["Not Started", "In Progress", "Deadline", "Late", "Done", "On Hold", "Cancelled"] },
     vence_ate: { type: "string", description: "AAAA-MM-DD" },
+    equipe: { type: "boolean", description: "true SÓ quando a pessoa pediu sobre outra pessoa ou sobre a equipe. Sem isso (e sem responsavel), a busca por status/prazo devolve só as linhas da própria pessoa." },
     incluir_concluidas: { type: "boolean" } } }
 };
 const F_BUSCAR_MEMBERS = {
@@ -811,7 +844,8 @@ Como conversar:
 - Quando terminar com uma pergunta que tenha respostas previsíveis, sugira as respostas na ÚLTIMA linha, assim: [[opções: Já comecei | Ainda não | Adiar]]. De 2 a 3 opções curtas (até 20 caracteres cada); se precisar escolher entre mais coisas (projetos, países…), até 10 opções de até 24 caracteres. Não repita as opções no texto. Sem pergunta, sem opções. Nunca ponha opções junto de uma proposta (o sistema já põe Sim/Não).
 - Use só o que está nos dados que você recebeu ou buscou. Nunca invente linha, data, status, país ou pessoa. Se precisar de algo que não está aqui, use buscar / buscar_members antes de responder.
 - Não cite apelidos (WPF-123456) na conversa; eles são só pras ferramentas.
-- De quem é: "minha", "meu", "eu", "pra mim" = só as linhas em que a pessoa com quem você fala é o responsável ("responsável: <nome dela>"). Pra buscar só as dela, use buscar com responsavel = nome dela. Se não houver nada dela, diga isso claramente ("Nada seu em deadline hoje"); se for a admin e ajudar, cite em 1 linha o que é da equipe, dizendo de quem é.
+- De quem é: por padrão você fala SÓ das linhas da pessoa com quem conversa ("responsável: <nome dela>") — mesmo com a admin. As dos outros só quando ela PEDIR ("e a Isabela?", "como está o time?"): aí use buscar com responsavel ou equipe=true e diga de quem é. Se não houver nada dela, diga isso ("Nada seu em deadline hoje") e pare — não puxe o que é dos outros por conta própria.
+- O que está atrasado/vencendo é sempre um ENTREGÁVEL (quando o problema é o conjunto de tarefas dele) ou uma TAREFA. Nunca apresente objetivo, meta ou projeto como "em atraso/deadline": o status deles só reflete o que está embaixo. Ache a coisa a fazer.
 - Linha de outra pessoa: diga SEMPRE de quem é ("a Isabela tem 24 atrasadas…"). Nunca apresente como se fosse da pessoa com quem você fala.
 - Empresa: a WPF é subentendida — não escreva "WPF". Só diga a empresa quando for outra (ex.: "na CBTH").
 
@@ -915,7 +949,8 @@ function donosTexto(no) {
 }
 function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
   const nome = pessoa.nome_tasks, amanha = somaDias(hoje, 1), recente = diasUteisAtras(hoje, DIAS_UTEIS_ATRASO_RECENTE), itens = [];
-  const add = (chave, info, rotulo, extra) => itens.push({ chave, descricao: descricaoAviso(rotulo, info, extra) });
+  const ancestrais = info => { const l = []; let p = info.pai; while (p) { l.push(info.empresa.secao + "|" + p.id + "|"); const ip = indice.porId[info.empresa.secao + "|" + p.id]; p = ip && ip.pai; } return l; };
+  const add = (chave, info, rotulo, extra) => itens.push({ chave, descricao: descricaoAviso(rotulo, info, extra), ancestrais: ancestrais(info) });
   const acabouDeAtrasar = no => no.status === "Late" && dataValida(no.endDate) && no.endDate >= recente && no.endDate < hoje;
   const venceLogo = no => dataValida(no.endDate) && no.endDate >= hoje && no.endDate <= amanha;
   const quando = no => (no.endDate === hoje ? "hoje" : "amanhã");
@@ -940,12 +975,22 @@ function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
     if (pessoa.admin && TIPOS_GRANDES[no.rowType] && !ehDono(no, nome) && !dentroDeMarcado(info)) {
       if (acabouDeAtrasar(no)) {
         const n = folhasAbaixo(no, f => f.status === "Late").length;
-        add(base + "grande_late", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} acabou de atrasar`, n ? ` | ${n} linha(s) atrasada(s) dentro` : "");
+        // Entregável com filhos só vira assunto quando o problema é o
+        // conjunto (3+ tarefas atrasadas); senão cada tarefa fala por si.
+        if (temFilhos(no) && n < MIN_TAREFAS_ABERTAS) return;
+        add(base + "grande_late", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} acabou de atrasar`, n ? ` | ${n} tarefa(s) atrasada(s) dentro` : "");
         marcados.add(id);
       } else if (no.rowType !== "entregavel" && venceLogo(no)) {
         const n = folhasAbaixo(no, aberta).length;
         if (n >= MIN_TAREFAS_ABERTAS) { add(base + "grande_deadline", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
       }
+    }
+    // 3b. Admin: tarefa de outra pessoa que acabou de atrasar, sem estar
+    //     dentro de um entregável já avisado (o problema é a tarefa).
+    if (pessoa.admin && no.rowType === "tarefa" && !temFilhos(no) && !ehDono(no, nome) && acabouDeAtrasar(no) && !dentroDeMarcado(info)) {
+      const pai = info.pai;
+      const irmasLate = pai ? (pai.subtasks || []).filter(x => x.status === "Late" && !temFilhos(x)).length : 0;
+      if (irmasLate < MIN_TAREFAS_ABERTAS) add(base + "grande_late", info, `Da equipe (de ${donosTexto(no)}, não seu) — Tarefa acabou de atrasar`);
     }
     // 4. Linha nova atribuída à pessoa.
     if (snap && ehDono(no, nome)) {
@@ -971,7 +1016,8 @@ async function sincronizarAvisos(env, tel, itens) {
     return [];
   }
   const dispensados = new Set(existentes.filter(e => e.via === "dispensado").map(e => prefixoNo(e.chave)).filter(Boolean));
-  itens = itens.filter(i => !dispensados.has(prefixoNo(i.chave)));
+  // Dispensado vale pra linha e pra tudo que está dentro dela.
+  itens = itens.filter(i => !dispensados.has(prefixoNo(i.chave)) && !(i.ancestrais || []).some(a => dispensados.has(a)));
   const conhecidas = new Set(existentes.map(e => e.chave)), atuais = new Set(itens.map(i => i.chave));
   const novas = itens.filter(i => !conhecidas.has(i.chave));
   if (novas.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
@@ -1020,7 +1066,7 @@ function agruparAvisos(pendentes, indice) {
   pendentes.forEach(p => {
     const tipo = tipoDaChave(p);
     let chaveGrupo = p.chave;
-    if ((tipo === "late" || tipo === "atribuida") && indice) {
+    if ((tipo === "late" || tipo === "atribuida" || tipo === "grande_late") && indice) {
       const [secao, id] = String(p.chave).split("|");
       const info = indice.porId[secao + "|" + id];
       if (info && info.pai) chaveGrupo = `grupo|${tipo}|${secao}|${info.pai.id}`;
@@ -1035,7 +1081,12 @@ function descricaoGrupo(g, indice) {
   const [, tipo, secao, paiId] = g.chave.split("|");
   const pai = indice && indice.porId[secao + "|" + paiId];
   const nomePai = pai ? `${TIPO_LABEL[pai.no.rowType] || ""} "${corta(pai.no.name, 80)}"${naEmpresa(pai)}` : "um mesmo lugar";
-  return `${g.itens.length} linhas suas ${tipo === "late" ? "acabaram de atrasar" : "novas"} em ${nomePai}: ${g.itens.map(i => (i.descricao.match(/"([^"]+)"/) || [])[1]).filter(Boolean).slice(0, 4).join("; ")}${g.itens.length > 4 ? "…" : ""}`;
+  const nomes = g.itens.map(i => (i.descricao.match(/"([^"]+)"/) || [])[1]).filter(Boolean).slice(0, 4).join("; ") + (g.itens.length > 4 ? "…" : "");
+  if (tipo === "grande_late") {
+    const donos = pai ? donosTexto(pai.no) : "alguém da equipe";
+    return `Da equipe (de ${donos}, não seu) — ${g.itens.length} linhas acabaram de atrasar em ${nomePai}: ${nomes}`;
+  }
+  return `${g.itens.length} linhas suas ${tipo === "late" ? "acabaram de atrasar" : "novas"} em ${nomePai}: ${nomes}`;
 }
 
 // A linha (ou grupo) de uma chave, e de quem é.
@@ -1067,7 +1118,7 @@ function opcoesDoAviso(g, pessoa, indice, cadastro) {
   const alvo = indice && alvoDaChave(g.chave, indice);
   if (g.tipo === "recado") return alvo ? [OP_DETALHES, OP_JA_VI] : [OP_JA_VI];
   if (!alvo) return [OP_JA_VI];
-  const minhaAqui = alvo.grupo || ehDono(alvo.info.no, pessoa.nome_tasks) || folhasAbaixo(alvo.info.no, f => aberta(f) && ehDono(f, pessoa.nome_tasks)).length > 0;
+  const minhaAqui = (alvo.grupo && alvo.grupo !== "grande_late") || ehDono(alvo.info.no, pessoa.nome_tasks) || folhasAbaixo(alvo.info.no, f => aberta(f) && ehDono(f, pessoa.nome_tasks)).length > 0;
   if (minhaAqui || !pessoa.admin) return minhaAqui ? [OP_DETALHES, OP_PRAZO, OP_JA_VI] : [OP_DETALHES, OP_JA_VI];
   const outros = donosDoAlvo(alvo, pessoa).filter(n => cadastro.some(c => c.nome_tasks === n && c.telefone));
   const falar = outros.length === 1 ? `Falar com ${primeiroNome(outros[0])}` : outros.length > 1 ? OP_AVISAR_TODOS : null;
@@ -1212,6 +1263,7 @@ function textoDetalhes(chave, indice, pessoa) {
   const linha = f => `• ${corta(f.name, 60)} — ${(f.assignees || []).map(primeiroNome).join(", ") || "sem responsável"} — ${f.endDate ? "fim " + br(f.endDate) : "sem data"} — ${f.status}`;
   let folhas;
   if (grupo === "late") folhas = folhasAbaixo(no, f => f.status === "Late" && ehDono(f, pessoa.nome_tasks));
+  else if (grupo === "grande_late") folhas = folhasAbaixo(no, f => f.status === "Late");
   else if (grupo === "atribuida") folhas = folhasAbaixo(no, f => aberta(f) && ehDono(f, pessoa.nome_tasks));
   else if (!temFilhos(no)) folhas = [no];
   else folhas = folhasAbaixo(no, aberta);
@@ -1227,7 +1279,8 @@ function textoDetalhes(chave, indice, pessoa) {
 }
 
 async function dispensarAssunto(env, tel, chave) {
-  const pre = prefixoNo(chave);
+  const c = String(chave || "");
+  const pre = c.startsWith("grupo|") ? (() => { const [, , secao, paiId] = c.split("|"); return secao && paiId ? secao + "|" + paiId + "|" : null; })() : prefixoNo(chave);
   if (!pre) return;
   await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
     body: [{ telefone: tel, chave: pre + "dispensado", descricao: "dispensado pela pessoa", avisado_em: new Date().toISOString(), via: "dispensado" }] });
@@ -2010,5 +2063,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

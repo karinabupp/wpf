@@ -12,6 +12,34 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (9ª) — Robô: só entregável/tarefa; só o que é seu, salvo se pedir
+
+Pedido da Karina (print: ele listou um objetivo, um projeto e um entregável
+como "em Deadline", nenhum dela). Decisão dela: os avisos automáticos "Da
+equipe" **continuam** chegando pra ela; na conversa, o robô fala só das
+linhas da própria pessoa e das dos outros só quando ela pedir.
+
+- **Só entregável e tarefa.** Objetivo, Meta e Projeto nunca aparecem como
+  "em atraso/deadline" (o status deles só reflete o de baixo). O entregável
+  com tarefas só entra quando o problema é o **conjunto** (3+ tarefas dele na
+  mesma situação) — e aí as tarefas dele saem, pra não repetir; senão fica a
+  tarefa (`condensarEntregaveis`). Vale na busca por status/prazo
+  (`buscarTasks`), no resumo (`resumoAlertas`) e nos avisos
+  (`TIPOS_GRANDES` só entregável; tarefa de outro que acabou de atrasar
+  vira aviso quando o entregável não é o problema; entregáveis irmãos que
+  atrasaram juntos viram **um** assunto do projeto, com "Já vi, deixa
+  comigo" valendo pro grupo inteiro — os itens levam os ancestrais).
+- **Só a pessoa por padrão.** `buscar` por status/prazo sem `responsavel`
+  devolve só as linhas da própria pessoa (inclusive pra admin); param novo
+  `equipe: true` só quando ela pediu sobre outros. `responsavel` também
+  pega entregável cujas tarefas são da pessoa. O bloco DA EQUIPE do resumo
+  diz "SÓ cite se ela perguntar". Regras de conversa reescritas.
+- **Verificação:** 32 (de quem é / entregável-tarefa) + 41 (avisos) + 16
+  (Slack) + 28 (Workers). A resposta real do Claude só se confere no
+  WhatsApp: repetir "tem alguma tarefa minha em deadline ou late?".
+
+---
+
 ## 2026-09-22 (8ª) — CRM: título do pipeline sem borda e alinhado
 
 Pedido da Karina.
