@@ -12,6 +12,18 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (8ª) — CRM: título do pipeline sem borda e alinhado
+
+Pedido da Karina.
+
+- O `<select>` do pipeline perdeu a borda/fundo que ganhou mais cedo hoje e
+  ficou com `padding-left: 0`, então o **texto** começa na mesma linha
+  vertical da borda do buscador e das linhas da legenda (medido no teste).
+- **Onde:** `index.html`, `#board2-select`.
+- **Verificação:** 32 testes da legenda/CRM.
+
+---
+
 ## 2026-09-22 (7ª) — Slack vira aviso do robô; cor clicável; letra do CRM
 
 Pedidos da Karina, com as decisões dela: ela recebe tudo do Slack; os outros

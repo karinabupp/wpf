@@ -2690,18 +2690,20 @@
     text-transform: uppercase;
     letter-spacing: 0.03em;
   }
+  /* 22/09 (Karina): sem borda; o texto começa na mesma linha vertical da
+     borda do buscador (por isso padding-left 0). */
   #board2-select {
-    margin: 0 0 4px;
+    margin: 0 0 6px;
     font-size: 12px;
     font-weight: 700;
-    padding: 9px 10px;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    background: var(--bg);
+    padding: 4px 18px 4px 0;
+    border: none;
+    background: none;
+    color: var(--text);
     cursor: pointer;
     max-width: 100%;
   }
-  #board2-select:hover { border-color: var(--border-strong); }
+  #board2-select:hover { color: var(--accent); }
   #board2-modal-overlay {
     position: fixed; inset: 0; z-index: 1000;
     background: rgba(0,0,0,0.35);
