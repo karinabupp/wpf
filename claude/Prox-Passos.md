@@ -15,6 +15,14 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Slack: conferir o 1º aviso de verdade** — publicado em 22/09
+  (Changelog, 7ª). Mandar uma mensagem num canal onde o bot está e ver se
+  chega no WhatsApp em até ~5 min, com os botões Criar tarefa / Ver
+  mensagens / Já vi. Se não chegar: conferir se a ponte ainda grava em
+  `wpf_slack_messages` (a última era de 19/09) e o marcador
+  `slack_visto_<tel>` em `wpf_agente_config`.
+  - *Aberto em:* 2026-09-22
+
 - [ ] **Robô: repetir a pergunta do print** — depois de 22/09 (Changelog,
   2ª de 22/09): Karina manda "Tem alguma tarefa minha em deadline hj? Ou
   late?" e confere que ele responde só as dela e cita a equipe com nome.
@@ -102,7 +110,7 @@ reconstruir o raciocínio.
   - *Aberto em:* 2026-09-16
 
 - [ ] **Apagar de verdade o código de Geral, Goals, Tasks original, Members,
-  Committee, Social e o card do Slack** — hoje só escondidos (Members e
+  Committee, Social, a aba Slack e o card do Slack** — hoje só escondidos (Members e
   Committee desde 21/09; os dados de Members já estão no CRM).
   - *Contexto:* decisão de 16/09 foi ocultar. Antes de apagar: resolver as
     metas automáticas (item acima), a semeadura da Tasks 2 a partir de

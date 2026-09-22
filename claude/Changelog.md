@@ -12,6 +12,45 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (7ª) — Slack vira aviso do robô; cor clicável; letra do CRM
+
+Pedidos da Karina, com as decisões dela: ela recebe tudo do Slack; os outros
+recebem tudo menos o que é direto pra ela; Slack segue as mesmas regras dos
+outros avisos (limite por dia, horários).
+
+- **Slack no WhatsApp, e a aba sai da Dash.** A ponte continua gravando em
+  `wpf_slack_messages`; a cada rodada o robô olha o que é novo **desde a
+  última rodada daquela pessoa** (marcador `slack_visto_<tel>` em
+  `wpf_agente_config`) e monta **um assunto por canal** ("Slack #canal: 3
+  mensagens novas de Luana, Maureen — trechos"). Ignora as mensagens do
+  próprio robô e as da própria pessoa. Na 1ª vez só marca onde parou.
+  Botões: **Criar tarefa · Ver mensagens · Já vi** ("Ver mensagens" lista as
+  8 últimas do canal, sem gastar Claude; "Criar tarefa" cai na conversa
+  normal, que acha o lugar na Tasks e pede OK antes de gravar).
+  Quem recebe: admin recebe tudo; os outros não recebem conversa privada
+  nem mensagem que **menciona** a admin (`@{Karina Bupp|U…}`). Bug pego no
+  teste: a comparação usava `normalizar()`, que apaga "@" e "{" — um "a
+  karina disse" qualquer viraria mensagem direta. Agora só conta com @.
+  Prioridade entre e-mail e reunião. `#nav-slack` saiu do menu.
+- **Cor dos status: quadradinho clicável.** Abre um seletor próprio
+  (degradê + barra de matiz) ligado ao mesmo campo hex — escolher no
+  degradê escreve o hex, digitar/colar o hex move o degradê. Sem R/G/B em
+  lugar nenhum.
+- **Letra do CRM:** nome do pipeline e Mapa/Planilha agora usam exatamente a
+  letra do cabeçalho da Tasks (`.tasks2-head-row`: 12px, 700, 0.03em, caixa
+  alta) — e não mais monoespaçada. O `<select>` precisou de
+  `font-family: inherit` (ele caía no Arial do navegador) e o botão ativo
+  do Mapa/Planilha foi de 600 pra 700.
+- **Onde:** `worker/whatsapp-bridge.js` (bloco "Slack", `avisosDoSlack`,
+  `textoMensagensSlack`, `ehDiretoPraAdmin`, `opcoesDoAviso`, rodada e
+  botões); `index.html` (`#cores2-picker` e o JS do seletor,
+  `#board2-select`, `#members2-switch button`, `#nav-slack`).
+- **Verificação:** 16 testes novos do Slack + 32 da legenda/CRM (5 novos do
+  seletor de cor e da letra) + 41 dos avisos + 24 do "de quem é" + 28 dos
+  Workers + 36 login + 12 + 18 presença.
+
+---
+
 ## 2026-09-22 (6ª) — CRM: cor num campo só e Mapa/Planilha na letra do pipeline
 
 Pedidos da Karina, na sequência do card da legenda.

@@ -879,9 +879,10 @@ function resumoSimples(indice, pessoa, hoje) {
 // pessoa, já vi).
 const MAX_ASSUNTOS_RODADA = 2;
 const DIAS_UTEIS_ATRASO_RECENTE = 2;
-const RE_EXTERNO = /^(reuniao|sistema|email|recado)\|/;
+const RE_EXTERNO = /^(reuniao|sistema|email|recado|slack)\|/;
 const OP_DETALHES = "Ver detalhes", OP_JA_VI = "Já vi", OP_JA_VI_OUTRO = "Já vi, deixa comigo", OP_PRAZO = "Mudar prazo";
 const OP_ENVIAR = "Enviar", OP_CANCELAR = "Cancelar", OP_AVISAR_TODOS = "Avisar responsáveis";
+const OP_MENSAGENS = "Ver mensagens";
 
 function diasUteisAtras(hoje, n) {
   let d = hoje, k = 0;
@@ -1006,7 +1007,7 @@ async function marcarChaves(env, tel, chaves, via) {
 
 // Junta o que é do mesmo lugar: várias linhas da pessoa que atrasaram (ou
 // chegaram) no mesmo entregável viram um assunto só.
-const PRIORIDADE = { sistema: 0, recado: 1, email_muito: 2, deadline_aberta: 3, late: 4, grande_late: 5, grande_deadline: 5, atribuida: 6, email: 7, reuniao: 8 };
+const PRIORIDADE = { sistema: 0, recado: 1, email_muito: 2, deadline_aberta: 3, late: 4, grande_late: 5, grande_deadline: 5, atribuida: 6, email: 7, slack: 7.5, reuniao: 8 };
 function tipoDaChave(p) {
   const c = String(p.chave || "");
   if (c.startsWith("email|")) return /atenção imediata/.test(p.descricao || "") ? "email_muito" : "email";
@@ -1062,6 +1063,7 @@ function opcoesDoAviso(g, pessoa, indice, cadastro) {
   if (g.tipo === "sistema") return [];
   if (g.tipo === "reuniao") return ["Criar tarefa", "Já existe", "Ignorar"];
   if (g.tipo === "email" || g.tipo === "email_muito") return [OP_JA_VI, "Me lembra depois", "Criar tarefa"];
+  if (g.tipo === "slack") return ["Criar tarefa", OP_MENSAGENS, OP_JA_VI];
   const alvo = indice && alvoDaChave(g.chave, indice);
   if (g.tipo === "recado") return alvo ? [OP_DETALHES, OP_JA_VI] : [OP_JA_VI];
   if (!alvo) return [OP_JA_VI];
@@ -1083,6 +1085,7 @@ Escreva UMA mensagem curta por assunto, na ordem recebida. Responda SÓ com um a
 - De quem é: assunto que começa com "Da equipe (de Fulana…)" é de OUTRA pessoa — escreva deixando isso claro ("O projeto X, da Isabela, acabou de atrasar"), nunca "seu"/"sua"/"pra você". "Sua linha…" é da própria pessoa.
 - Não faça perguntas com opções nem escreva opções: os botões são colocados depois.
 - Reunião ("Não achei na Tasks"): diga o item e pergunte se quer criar a tarefa.
+- Slack: diga o canal, quem falou e o assunto em 1–2 linhas, sem repetir tudo; se parecer coisa que vira tarefa, diga isso numa frase curta.
 - E-mail: de quem é, o que pede e o prazo; inclua o link se veio.
 - Assunto "sistema": repasse o link exatamente como veio.
 - Use só o que está no assunto. Não invente nada. Não diga que mudou nada na Dash.` }];
@@ -1141,6 +1144,62 @@ async function mandarAvisos(env, pessoa, pendentes, via, tipo, indice) {
   }
   await marcarChaves(env, pessoa.telefone, grupos.flatMap(g => g.itens.map(i => i.chave)), via);
   return true;
+}
+
+// ─── Slack (22/09): a aba saiu da Dash; o que chega vira aviso ───────────
+// A ponte do Slack continua gravando tudo em wpf_slack_messages. Aqui o
+// robô olha o que é novo desde a última rodada DAQUELA pessoa e monta um
+// assunto por canal. Karina recebe tudo; os outros recebem tudo menos o que
+// é direto pra ela (conversa privada ou mensagem que cita ela).
+const TAB_SLACK = "wpf_slack_messages";
+const SLACK_MAX_TRECHOS = 3;
+const ehBot = m => !m.user_name || /bot$/i.test(m.user_name);
+const semAcento = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function ehDiretoPraAdmin(m, admins) {
+  if (String(m.channel || "").startsWith("D")) return true;      // conversa privada
+  // O texto guardado traz a menção como "@{Karina Bupp|U123}". Aqui NÃO dá
+  // pra usar normalizar(): ele tira o "@" e o "{", que são justamente o que
+  // diferencia uma menção de um "a karina disse" qualquer.
+  const t = semAcento(m.text);
+  return admins.some(nome => {
+    const p = semAcento(String(nome).split(" ")[0]);
+    return p && new RegExp("@\\{?\\s*" + p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).test(t);
+  });
+}
+async function avisosDoSlack(env, pessoa, cadastro) {
+  const chaveCfg = `slack_visto_${pessoa.telefone}`;
+  const visto = await cfgGet(env, chaveCfg);
+  const r = await sb(env, `${TAB_SLACK}?select=channel,channel_name,user_name,text,ts&order=ts.desc&limit=60`);
+  if (!r.ok || !Array.isArray(r.dados) || !r.dados.length) return [];
+  const maisNovo = r.dados[0].ts;
+  // Primeira vez: marca onde parou e não avisa nada do passado.
+  if (!visto || !visto.ts) { await cfgSet(env, chaveCfg, { ts: maisNovo }); return []; }
+  const admins = (cadastro || []).filter(p => p.admin).map(p => p.nome_tasks);
+  const novas = r.dados.filter(m => m && m.ts > visto.ts && !ehBot(m)
+    && normalizar(m.user_name || "") !== normalizar(pessoa.nome_tasks)
+    && (pessoa.admin || !ehDiretoPraAdmin(m, admins)));
+  await cfgSet(env, chaveCfg, { ts: maisNovo });
+  if (!novas.length) return [];
+  const porCanal = {};
+  novas.slice().reverse().forEach(m => (porCanal[m.channel] = porCanal[m.channel] || { canal: m.channel_name || m.channel, msgs: [] }).msgs.push(m));
+  return Object.entries(porCanal).map(([id, c]) => {
+    const quem = [...new Set(c.msgs.map(m => String(m.user_name).split(" ")[0]))];
+    const trechos = c.msgs.slice(-SLACK_MAX_TRECHOS).map(m => `${String(m.user_name).split(" ")[0]}: "${corta(String(m.text || "").replace(/\s+/g, " "), 160)}"`).join(" | ");
+    return {
+      chave: `slack|${id}|${c.msgs[c.msgs.length - 1].ts}`,
+      descricao: `Slack #${c.canal}: ${c.msgs.length} mensagem(ns) nova(s) de ${quem.join(", ")} — ${trechos}`
+    };
+  });
+}
+// Botão "Ver mensagens": as últimas daquele canal, direto do banco.
+async function textoMensagensSlack(env, chave) {
+  const canal = String(chave).split("|")[1];
+  if (!canal) return null;
+  const r = await sb(env, `${TAB_SLACK}?select=channel_name,user_name,text,ts&channel=eq.${encodeURIComponent(canal)}&order=ts.desc&limit=8`);
+  if (!r.ok || !Array.isArray(r.dados) || !r.dados.length) return "Não achei as mensagens desse canal.";
+  const linhas = r.dados.slice().reverse();
+  return `*#${linhas[0].channel_name || canal}* — últimas ${linhas.length}\n` +
+    linhas.map(m => `• ${String(m.user_name || "?").split(" ")[0]}: ${corta(String(m.text || "").replace(/\s+/g, " "), 220)}`).join("\n");
 }
 
 // ─── Botões dos avisos ───────────────────────────────────────────────────
@@ -1267,7 +1326,8 @@ async function rodadaProativa(env, cron, agoraMs) {
     const tel = pessoa.telefone;
     const rs = await sb(env, `${TAB_SNAP}?select=dados&telefone=eq.${tel}`);
     const snap = rs.ok && rs.dados && rs.dados[0] ? rs.dados[0].dados : null;
-    let pendentes = await sincronizarAvisos(env, tel, detectarAvisos(empresas, indice, pessoa, snap, hoje));
+    const doSlack = await avisosDoSlack(env, pessoa, pessoas).catch(() => []);
+    let pendentes = await sincronizarAvisos(env, tel, detectarAvisos(empresas, indice, pessoa, snap, hoje).concat(doSlack));
     // Segunda: a equipe revisa a Dash na reunião; assuntos da Dash não viram aviso.
     if (diaSP === 1) {
       const daDash = pendentes.filter(p => !RE_EXTERNO.test(p.chave));
@@ -1694,7 +1754,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   }
 
   // Botões dos avisos: amarrados à mensagem tocada (ou à última, se veio número).
-  const BOTOES = ["ver detalhes", "ja vi", "ja vi deixa comigo", "mudar prazo", "avisar responsaveis"];
+  const BOTOES = ["ver detalhes", "ver mensagens", "ja vi", "ja vi deixa comigo", "mudar prazo", "avisar responsaveis"];
   if (BOTOES.includes(cmd) || cmd.startsWith("falar com ")) {
     const ctxId = msg.context && msg.context.id;
     const rm = ctxId
@@ -1706,6 +1766,10 @@ async function tratarMensagem(env, msg, textoRecebido) {
         await dispensarAssunto(env, tel, chave);
         await enviarTexto(env, tel, cmd === "ja vi" ? "👍" : "👍 Deixo com você.");
         return;
+      }
+      if (cmd === "ver mensagens" && String(chave).startsWith("slack|")) {
+        const t = await textoMensagensSlack(env, chave);
+        if (t) { await enviarComOpcoes(env, tel, t, ["Criar tarefa", OP_JA_VI], { aviso_chave: chave }); return; }
       }
       const idx = await carregarIndice(env);
       if (idx) {
@@ -1946,5 +2010,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

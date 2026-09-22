@@ -2309,15 +2309,16 @@
     background: none;
     border: none;
     padding: 7px 18px;
-    /* mesma letra do nome do pipeline (22/09, Karina) */
-    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    /* mesma letra do cabeçalho da Tasks (22/09, Karina) */
+    font-family: inherit;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-size: 12.5px;
+    letter-spacing: 0.03em;
+    font-weight: 700;
+    font-size: 12px;
     cursor: pointer;
     color: var(--text-muted);
   }
-  #members2-switch button.is-ativo { background: var(--accent); color: #fff; font-weight: 600; }
+  #members2-switch button.is-ativo { background: var(--accent); color: #fff; font-weight: 700; }
   #members2-switch button:not(.is-ativo):hover { background: var(--land-default); }
 
   /* Planilha: so os paises que a Karina ja adicionou neste quadro. */
@@ -2421,6 +2422,7 @@
     display: flex; align-items: center; justify-content: center;
   }
   #pais2-overlay.hidden, #cores2-overlay.hidden { display: none; }
+  #cores2-modal { position: relative; }
   #pais2-modal, #cores2-modal {
     background: #fff; border-radius: 12px; padding: 22px; width: 420px;
     max-width: 92vw; max-height: 80vh; overflow-y: auto;
@@ -2446,7 +2448,35 @@
      janelinha do Chrome (R/G/B) saiu de cena. */
   .cores2-amostra {
     width: 38px; height: 32px; border: 1px solid var(--border);
-    border-radius: 6px; flex-shrink: 0;
+    border-radius: 6px; flex-shrink: 0; cursor: pointer; padding: 0;
+  }
+  .cores2-amostra:hover { border-color: var(--border-strong); }
+  /* Seletor próprio (22/09): degradê + matiz, ligado ao mesmo campo hex.
+     Nada de R/G/B — a janelinha do Chrome não entra mais. */
+  #cores2-picker {
+    position: absolute; z-index: 5; width: 188px; padding: 10px;
+    background: var(--panel); border: 1px solid var(--border-strong);
+    border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+  }
+  #cores2-picker.hidden { display: none; }
+  #cores2-area {
+    position: relative; height: 118px; border-radius: 7px; cursor: crosshair;
+    background-image: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent);
+    touch-action: none;
+  }
+  #cores2-ponto {
+    position: absolute; width: 12px; height: 12px; margin: -6px 0 0 -6px;
+    border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px rgba(0,0,0,.4);
+    pointer-events: none;
+  }
+  #cores2-matiz {
+    width: 100%; margin: 10px 0 0; height: 12px; -webkit-appearance: none; appearance: none;
+    border-radius: 6px; cursor: pointer;
+    background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+  }
+  #cores2-matiz::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%;
+    background: #fff; border: 1px solid rgba(0,0,0,.35); cursor: pointer;
   }
   .cores2-hex {
     width: 104px; flex-shrink: 0; font-family: ui-monospace, Menlo, Consolas, monospace;
@@ -2653,16 +2683,16 @@
   }
   /* 22/09 (Karina): cara de botão de verdade e alinhado com o resto do
      card (o "241 países", a busca e as linhas da legenda). */
+  /* 22/09 (Karina): nome do pipeline e Mapa/Planilha com a MESMA letra do
+     cabeçalho da Tasks (.tasks2-head-row): caixa alta, 700, 0.03em. */
   #board2-select, #board2-select option {
-    /* 22/09 (Karina): nome do pipeline com cara "tech" — tudo em caixa
-       alta, monoespaçada, sem diferença entre maiúscula e minúscula. */
-    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-family: inherit; /* select não herda a fonte da página sozinho */
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
   }
   #board2-select {
     margin: 0 0 4px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 700;
     padding: 9px 10px;
     border: 1px solid var(--border);
@@ -3335,6 +3365,8 @@
      CRM (antiga Members 2). Os dados antigos continuam na nuvem
      (federations, committee...) como seguranca; o codigo fica pra limpeza. */
   #nav-members, #nav-committee { display: none !important; }
+  /* 22/09 (Karina): o Slack virou aviso do robô no WhatsApp; a aba saiu. */
+  #nav-slack { display: none !important; }
   /* Card "Tasks do Slack" gravava na Tasks original, que saiu do menu. */
   #slack-side-col { display: none !important; }
   /* Numero de tarefas em cima do pais no quadro Avisos Gerais (Members 2). */
@@ -5479,6 +5511,10 @@
     <h3>Cores dos status</h3>
     <div id="cores2-nome"></div>
     <div id="cores2-linhas"></div>
+    <div id="cores2-picker" class="hidden">
+      <div id="cores2-area"><span id="cores2-ponto"></span></div>
+      <input type="range" id="cores2-matiz" min="0" max="360" value="0" aria-label="Matiz">
+    </div>
     <div id="cores2-acoes">
       <button type="button" id="cores2-cancelar">Cancelar</button>
       <button type="button" id="cores2-salvar">Salvar cores</button>
@@ -15951,7 +15987,7 @@ applyRolePermissions();
     document.getElementById("cores2-nome").textContent = b.nome;
     document.getElementById("cores2-linhas").innerHTML = b.status.map(st => `
       <div class="cores2-linha">
-        <span class="cores2-amostra" style="background:${corDoStatus2(b, st)}"></span>
+        <button type="button" class="cores2-amostra" style="background:${corDoStatus2(b, st)}" title="Escolher a cor"></button>
         <input type="text" class="cores2-hex" data-status="${esc2(st)}" value="${corDoStatus2(b, st).toUpperCase()}"
                spellcheck="false" autocomplete="off" placeholder="#RRGGBB" title="Digite ou cole a cor (ex.: #7C9A5E)">
         <span>${esc2(st)}</span>
@@ -15965,14 +16001,83 @@ applyRolePermissions();
     if (/^[0-9a-fA-F]{6}$/.test(t)) return "#" + t.toLowerCase();
     return null;
   }
+  // ── Seletor de cor próprio ──────────────────────────────────────────
+  const corPicker = document.getElementById("cores2-picker");
+  const corArea = document.getElementById("cores2-area");
+  const corPonto = document.getElementById("cores2-ponto");
+  const corMatiz = document.getElementById("cores2-matiz");
+  let corAlvo = null, corHSV = { h: 0, s: 1, v: 1 };
+  const hex2 = n => Math.round(n * 255).toString(16).padStart(2, "0");
+  function hsvParaHex(h, sat, v) {
+    const c = v * sat, x = c * (1 - Math.abs(((h / 60) % 2) - 1)), m = v - c;
+    const t = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+    return "#" + t.map(n => hex2(n + m)).join("");
+  }
+  function hexParaHSV(hex) {
+    const n = corHexValida(hex) || "#000000";
+    const r = parseInt(n.slice(1, 3), 16) / 255, g = parseInt(n.slice(3, 5), 16) / 255, b = parseInt(n.slice(5, 7), 16) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    let h = 0;
+    if (d) h = mx === r ? 60 * (((g - b) / d) % 6) : mx === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+    if (h < 0) h += 360;
+    return { h, s: mx ? d / mx : 0, v: mx };
+  }
+  function desenharPicker() {
+    corArea.style.backgroundColor = hsvParaHex(corHSV.h, 1, 1);
+    corPonto.style.left = corHSV.s * 100 + "%";
+    corPonto.style.top = (1 - corHSV.v) * 100 + "%";
+    corMatiz.value = Math.round(corHSV.h);
+  }
+  function aplicarCorEscolhida() {
+    if (!corAlvo) return;
+    const cor = hsvParaHex(corHSV.h, corHSV.s, corHSV.v);
+    const campo = corAlvo.querySelector(".cores2-hex");
+    campo.value = cor.toUpperCase();
+    campo.classList.remove("invalida");
+    corAlvo.querySelector(".cores2-amostra").style.background = cor;
+  }
+  function abrirPicker(linha) {
+    corAlvo = linha;
+    corHSV = hexParaHSV(linha.querySelector(".cores2-hex").value);
+    desenharPicker();
+    const modal = document.getElementById("cores2-modal").getBoundingClientRect();
+    const amostra = linha.querySelector(".cores2-amostra").getBoundingClientRect();
+    corPicker.style.left = Math.max(8, amostra.left - modal.left) + "px";
+    corPicker.style.top = (amostra.bottom - modal.top + 6) + "px";
+    corPicker.classList.remove("hidden");
+  }
+  function fecharPicker() { corPicker.classList.add("hidden"); corAlvo = null; }
+  function pegarNaArea(ev) {
+    const r = corArea.getBoundingClientRect();
+    corHSV.s = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+    corHSV.v = 1 - Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height));
+    desenharPicker();
+    aplicarCorEscolhida();
+  }
+  corArea.addEventListener("pointerdown", ev => { corArea.setPointerCapture(ev.pointerId); pegarNaArea(ev); });
+  corArea.addEventListener("pointermove", ev => { if (ev.buttons === 1) pegarNaArea(ev); });
+  corMatiz.addEventListener("input", () => { corHSV.h = Number(corMatiz.value); desenharPicker(); aplicarCorEscolhida(); });
+  document.getElementById("cores2-linhas").addEventListener("click", e => {
+    const amostra = e.target.closest(".cores2-amostra");
+    if (amostra) { const linha = amostra.closest(".cores2-linha"); if (corAlvo === linha) fecharPicker(); else abrirPicker(linha); return; }
+    fecharPicker();
+  });
+  document.getElementById("cores2-modal").addEventListener("click", e => {
+    if (!e.target.closest("#cores2-picker") && !e.target.closest(".cores2-amostra")) fecharPicker();
+  });
+
   document.getElementById("cores2-linhas").addEventListener("input", e => {
     const inp = e.target.closest(".cores2-hex");
     if (!inp) return;
     const cor = corHexValida(inp.value);
     inp.classList.toggle("invalida", !cor);
-    if (cor) inp.closest(".cores2-linha").querySelector(".cores2-amostra").style.background = cor;
+    if (cor) {
+      inp.closest(".cores2-linha").querySelector(".cores2-amostra").style.background = cor;
+      // Digitou/colou com o seletor aberto: o degradê acompanha.
+      if (corAlvo === inp.closest(".cores2-linha")) { corHSV = hexParaHSV(cor); desenharPicker(); }
+    }
   });
-  function fecharEditorCores2() { cores2Overlay.classList.add("hidden"); }
+  function fecharEditorCores2() { cores2Overlay.classList.add("hidden"); fecharPicker(); }
   document.getElementById("board2-cores").addEventListener("click", abrirEditorCores2);
   document.getElementById("cores2-cancelar").addEventListener("click", fecharEditorCores2);
   cores2Overlay.addEventListener("click", e => { if (e.target === cores2Overlay) fecharEditorCores2(); });
