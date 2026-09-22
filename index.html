@@ -1895,6 +1895,11 @@
   }
   #map { width: 100%; height: auto; display: block; background: var(--water); border-radius: 8px; }
   .map-search-bar { margin: 10px 0 14px; }
+  /* A mensagem da busca ocupava espaço mesmo vazia (22/09, Karina: sobra
+     entre o buscador e os status). */
+  .map-search-msg:empty { display: none; }
+  #legend2-view .map-search-bar { margin: 8px 0 4px; }
+  #legend2-rows > .legend-row-wrap:first-child > .legend-row { padding-top: 8px; }
   .map-search-wrap {
     position: relative;
     display: flex;
@@ -2636,11 +2641,18 @@
   }
   /* 22/09 (Karina): cara de botão de verdade e alinhado com o resto do
      card (o "241 países", a busca e as linhas da legenda). */
+  #board2-select, #board2-select option {
+    /* 22/09 (Karina): nome do pipeline com cara "tech" — tudo em caixa
+       alta, monoespaçada, sem diferença entre maiúscula e minúscula. */
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
   #board2-select {
     margin: 0 0 4px;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
-    padding: 8px 10px;
+    padding: 9px 10px;
     border: 1px solid var(--border);
     border-radius: 7px;
     background: var(--bg);

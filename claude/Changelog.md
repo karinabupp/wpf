@@ -12,6 +12,24 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (5ª) — CRM: espaço do card e nome do pipeline "tech"
+
+Pedidos da Karina, aprovados ("pode publicar assim").
+
+- **Sobra entre a busca e os status (45px → 12px):** a mensagem da busca
+  ocupava 17px mesmo vazia (`.map-search-msg:empty { display: none }`), a
+  margem de baixo da busca caiu de 14 para 4px e o respiro do 1º status de
+  14 para 8px (só no card do CRM).
+- **Nome do pipeline:** caixa alta monoespaçada (`text-transform:
+  uppercase`, família mono, `letter-spacing .07em`, 14px), no seletor e nas
+  opções dele.
+- **Onde:** `index.html` — `#board2-select`, `#legend2-view
+  .map-search-bar`, `#legend2-rows … :first-child`, `.map-search-msg:empty`.
+- **Verificação:** 18 testes da legenda (2 novos: vão medido e letra) + 36
+  login + 12 + 18 presença.
+
+---
+
 ## 2026-09-22 (4ª) — CRM: card da legenda arrumado
 
 Pedido da Karina, aprovado ("faz do jeito que você sugeriu mesmo").
