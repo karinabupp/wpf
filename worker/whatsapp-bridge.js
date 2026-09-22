@@ -599,6 +599,8 @@ function validarMudanca(entrada, indice, pessoa, hoje) {
 }
 
 function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
+  // Karina (22/09): SEMPRE confirmar onde a linha entra, antes de propor.
+  if (!entrada.local_confirmado) return { erro: "Antes de propor, pergunte à pessoa ONDE a linha entra: liste 2–3 lugares possíveis (ache com buscar; nomeie o entregável/projeto e o caminho) como [[opções: …]] e espere a escolha. Só depois chame propor_criacao de novo com local_confirmado=true e o pai escolhido." };
   const info = indice.porApelido[String(entrada.pai || "").toUpperCase()];
   if (!info) return { erro: `Linha ${entrada.pai} (onde colocar) não existe. Use buscar.` };
   const pai = info.no, tipo = entrada.tipo;
@@ -817,7 +819,8 @@ const F_CRIACAO = {
     pai: { type: "string", description: "apelido da linha onde a nova entra" },
     tipo: { type: "string", enum: ["meta", "projeto", "entregavel", "tarefa"] },
     nome: { type: "string" }, inicio: { type: "string" }, fim: { type: "string" },
-    responsaveis: { type: "array", items: { type: "string" }, description: "nomes exatos; se omitir, quem está falando" } },
+    responsaveis: { type: "array", items: { type: "string" }, description: "nomes exatos; se omitir, quem está falando" },
+    local_confirmado: { type: "boolean", description: "true SÓ depois que a pessoa escolheu o lugar: você perguntou 'Onde entra?' com 2–3 opções (linhas encontradas com buscar) e ela respondeu. Sem isso a proposta é recusada." } },
     required: ["pai", "tipo", "nome"] }
 };
 const F_MEMBERS = {
@@ -875,9 +878,10 @@ Como conversar:
 Mudanças:
 - Pra mudar ou criar, chame propor_mudanca, propor_criacao, propor_members ou propor_contexto. Uma proposta por vez.
 - Você NUNCA grava e NUNCA diz que já mudou ("pronto", "feito", "atualizei" são proibidos antes do sim). O sistema mostra o resumo e pergunta "Confirma?" sozinho; junto da ferramenta escreva no máximo uma frase curta tipo "Posso deixar assim:", sem pedir confirmação.
-- Sugestões vindas de reunião (a Karina respondeu "Criar tarefa", "Criar 1"… a uma mensagem sobre itens de reunião): ache o lugar certo com buscar e use propor_criacao; se não houver lugar óbvio, pergunte onde. "Já existe" / "Ignorar": só confirme em uma linha.
+- Sugestões vindas de reunião ou de aviso (a pessoa respondeu "Criar tarefa", "Criar 1"…): ache 2–3 lugares possíveis com buscar, pergunte onde (opções) e só então use propor_criacao. "Já existe" / "Ignorar": só confirme em uma linha.
 - Contexto: só Meta e Projeto têm. Quando a pessoa contar algo relevante sobre uma Meta/Projeto (decisão, parceiro, motivo, prazo combinado) que não está no contexto, ofereça registrar com propor_contexto.
-- Tasks: status que dá pra escolher são Not Started, In Progress, Done, On Hold, Cancelled (Late e Deadline são automáticos pelas datas). Linhas [agrupa] têm status e datas calculados: mude as de baixo. Não existe apagar (só pela Dash). Pra criar, escolha o lugar certo na hierarquia; se não houver lugar óbvio, pergunte antes. Meta nova só se a pessoa pedir ou concordar.
+- Criar linha: SEMPRE pergunte onde ela entra, mesmo que pareça óbvio — uma mensagem curta com 2–3 lugares possíveis como opções (ex.: [[opções: Kit boas-vindas | Ladies Weekend | Outro lugar]]). Só depois da escolha chame propor_criacao com local_confirmado=true. Nunca invente o lugar.
+- Tasks: status que dá pra escolher são Not Started, In Progress, Done, On Hold, Cancelled (Late e Deadline são automáticos pelas datas). Linhas [agrupa] têm status e datas calculados: mude as de baixo. Não existe apagar (só pela Dash). Pra criar, veja a regra 'Criar linha' acima (sempre perguntar onde). Meta nova só se a pessoa pedir ou concordar.
 - CRM (a antiga aba Members 2; se falarem "Members 2" ou "members", é o CRM): status de cada quadro (os do próprio quadro), tipo de membro Observador/Afiliado só com o último status (Membro), partner, e colunas da planilha. O quadro Avisos Gerais tem status calculado. Países com o nome em inglês, como no mapa.
 - Datas relativas ("sexta", "semana que vem") contam a partir de hoje; nas ferramentas use AAAA-MM-DD.
 ${modelo === HAIKU ? "\n- Se o pedido exigir análise geral, planejamento de várias linhas ou raciocínio mais pesado, chame chamar_sonnet em vez de tentar sozinho. No resto, resolva você." : "\n- Você é o modelo mais forte, chamado pra um pedido que precisa de mais cuidado. Se a pessoa pediu análise ou panorama geral, use analise_geral (1 por dia)."}`;
@@ -2088,5 +2092,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

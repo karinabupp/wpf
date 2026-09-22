@@ -12,6 +12,24 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (12ª) — Robô: criar linha só depois de confirmar ONDE
+
+Pedido da Karina (ele criou uma tarefa "em qualquer parte" sem confirmar o
+lugar).
+
+- `propor_criacao` ganhou `local_confirmado`; sem ele, `validarCriacao`
+  **recusa** e manda o robô perguntar onde a linha entra, com 2–3 lugares
+  possíveis como opções, e só então propor de novo. Regra de conversa
+  reescrita: SEMPRE perguntar onde, mesmo que pareça óbvio; vale também
+  pra "Criar tarefa" vindo de reunião, e-mail ou Slack. O resumo continua
+  mostrando o caminho completo antes do "Confirma?".
+- **Onde:** `worker/whatsapp-bridge.js` — `F_CRIAR`, `validarCriacao`,
+  instruções.
+- **Verificação:** 2 testes novos (recusa sem confirmar; propõe com o
+  lugar) + 41 + 32 + 16 + 5.
+
+---
+
 ## 2026-09-22 (11ª) — Presença: bolinha sumia (limite do Supabase)
 
 Karina testou em duas máquinas: a bolinha apareceu e sumiu em seguida.
