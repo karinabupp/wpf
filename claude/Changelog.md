@@ -12,6 +12,20 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 — Tasks: botão de contexto antes da setinha
+
+Pedido da Karina (print), aprovado ("pode").
+
+- **O que mudou:** nas linhas de Meta e Projeto a ordem ficou 📄 contexto →
+  setinha ▶ → ícone da categoria → nome (em 21/09 tinha ido pra depois do
+  ícone; ela queria antes da setinha).
+- **Onde:** `index.html`, `renderTaskRow` (Tasks 2): `contextoBtnMarkup(t)`
+  antes do `.tasks2-toggle`.
+- **Verificação:** teste de ordem atualizado (12/12) + presença (18) +
+  login (36).
+
+---
+
 ## 2026-09-21 (14ª) — Presença: quem está na Dash e onde
 
 Pedido da Karina ("como nas planilhas do Sheets"), aprovado com as duas
