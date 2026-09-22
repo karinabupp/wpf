@@ -12,6 +12,25 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (4ª) — CRM: card da legenda arrumado
+
+Pedido da Karina, aprovado ("faz do jeito que você sugeriu mesmo").
+
+- **Seletor de pipeline** (era um `<select>` com borda invisível, fora do
+  alinhamento): ganhou borda, fundo e cantos como botão, e a caixa começa na
+  mesma linha da busca e das linhas da legenda (medido no teste).
+- **🎨 virou ícone** (SVG de paleta, no tom dos outros ícones).
+- **"241 países" saiu** do topo do card (`#legend2-total` removido do HTML e
+  do `renderLegend2`). A porcentagem de cada status já é sobre os países com
+  status do pipeline (22/09, 3ª).
+- **Onde:** `index.html` — `#board2-linha`, `#board2-select`,
+  `#board2-cores` (CSS e HTML), `renderLegend2`.
+- **Verificação:** 16 testes da legenda (3 novos: alinhamento com borda,
+  ausência do "241 países", ícone no lugar do emoji) + 36 login + 12 + 18
+  presença.
+
+---
+
 ## 2026-09-22 (3ª) — CRM: filtrar o mapa pela cor, lista de países na legenda e % certa
 
 Pedido da Karina (print do Avisos Gerais), aprovado ("mete bala"), com a
