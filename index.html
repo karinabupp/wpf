@@ -2431,7 +2431,6 @@
   }
   .tasks2-forms-abrir svg { width: 13px; height: 13px; }
   .tasks2-forms-abrir:hover { border-color: var(--accent); }
-  .tasks2-type-icon[data-type="forms"] { color: var(--accent); }
   #forms-popup-overlay {
     position: fixed; inset: 0; z-index: 960; background: rgba(20,20,18,.42);
     display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -2450,7 +2449,17 @@
   #forms-popup-fechar:hover { color: var(--text); }
   #forms-popup-body { padding: 16px 18px; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }
   #forms-popup-body #forms-builder-mode { flex: 0 0 auto; overflow: visible; }
-  #forms-popup-body #forms-back-btn { display: none; }
+  #forms-popup-body #forms-back-btn, #forms-popup-body #forms-responses-back-btn { display: none; }
+  #forms-popup-body #forms-responses-mode { overflow: visible; flex: 0 0 auto; }
+  #forms-popup-body #forms-responses-table-wrap, #forms-popup-body #forms-responses-list { flex: 0 0 auto; max-height: 64vh; overflow: auto; }
+  #forms-popup-cabeca { justify-content: flex-start; }
+  #forms-popup-titulo { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #forms-popup-abas { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+  #forms-popup-abas button {
+    border: none; background: none; padding: 6px 14px; cursor: pointer; color: var(--text-muted);
+    font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase;
+  }
+  #forms-popup-abas button.ativa { background: var(--accent); color: #fff; }
   #cores2-modal { position: relative; }
   #pais2-modal, #cores2-modal {
     background: #fff; border-radius: 12px; padding: 22px; width: 420px;
@@ -3398,6 +3407,9 @@
   #nav-members, #nav-committee { display: none !important; }
   /* 22/09 (Karina): o Slack virou aviso do robô no WhatsApp; a aba saiu. */
   #nav-slack { display: none !important; }
+  /* 22/09: formulários agora vivem nas tarefas "Forms" (popup com
+     Formulário + Respostas). A aba sai do menu; código e dados ficam. */
+  #nav-forms { display: none !important; }
   /* Card "Tasks do Slack" gravava na Tasks original, que saiu do menu. */
   #slack-side-col { display: none !important; }
   /* Numero de tarefas em cima do pais no quadro Avisos Gerais (Members 2). */
@@ -5720,6 +5732,10 @@
   <div id="forms-popup">
     <div id="forms-popup-cabeca">
       <span id="forms-popup-titulo"></span>
+      <div id="forms-popup-abas">
+        <button type="button" data-aba="builder" class="ativa">Formulário</button>
+        <button type="button" data-aba="respostas">Respostas <span id="forms-popup-n"></span></button>
+      </div>
       <button type="button" id="forms-popup-fechar" aria-label="Fechar">✕</button>
     </div>
     <div id="forms-popup-body"></div>
@@ -14643,6 +14659,7 @@ async function openFormResponses(id) {
   }
 }
 document.getElementById("forms-responses-back-btn").addEventListener("click", () => {
+  if (window.formsPopupEstaAberto && window.formsPopupEstaAberto()) { window.fecharPopupForms(); return; }
   closeResponseDetail();
   formsActiveId = null;
   formsResponsesForm = null;
@@ -16499,7 +16516,7 @@ applyRolePermissions();
   // fica neutra: a linha dela inteira ja e pintada com o status no fundo,
   // repetir no icone so poluiria.
   function typeIconColor(t) {
-    if (t.rowType === "tarefa") return "var(--text)";
+    if (t.rowType === "tarefa" && !t.ehForms) return "var(--text)";
     return STATUS_ICON_COLORS[t.status] || STATUS_ICON_COLORS["Not Started"];
   }
 
@@ -16507,7 +16524,7 @@ applyRolePermissions();
   // cor e o que torna ela obvia — traco fino sozinho nao resolve. Rotina
   // nao ganha chip, senao brigaria com a cor da propria linha.
   function typeIconChip(t) {
-    if (t.rowType === "tarefa") return "transparent";
+    if (t.rowType === "tarefa" && !t.ehForms) return "transparent";
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
@@ -16587,15 +16604,47 @@ applyRolePermissions();
       formsShowMode("builder");
     }
     const ov = popupFormsEl();
-    document.getElementById("forms-popup-body").appendChild(document.getElementById("forms-builder-mode"));
+    const corpo = document.getElementById("forms-popup-body");
+    corpo.appendChild(document.getElementById("forms-builder-mode"));
+    corpo.appendChild(document.getElementById("forms-responses-mode"));
     document.getElementById("forms-popup-titulo").textContent = t.name || "Formulário";
     ov.classList.remove("hidden");
     formsPopupAberto = true; formsPopupTarefaId = t.id;
+    formsPopupFormId = formsCurrentBuilder && formsCurrentBuilder.id;
+    marcarAbaPopup("builder");
+    // quantas respostas (as respostas ficam na aba "Respostas" do popup)
+    try { await loadFormResponseCounts(); } catch (e) {}
+    const n = formsResponseCounts[formsPopupFormId] || 0;
+    document.getElementById("forms-popup-n").textContent = n ? `(${n})` : "";
   }
+  let formsPopupFormId = null;
+  function marcarAbaPopup(aba) {
+    document.querySelectorAll("#forms-popup-abas button").forEach(b => b.classList.toggle("ativa", b.dataset.aba === aba));
+  }
+  document.getElementById("forms-popup-abas").addEventListener("click", async e => {
+    const b = e.target.closest("button[data-aba]");
+    if (!b || !formsPopupAberto) return;
+    marcarAbaPopup(b.dataset.aba);
+    if (b.dataset.aba === "respostas") {
+      if (!formsList.find(f => f.id === formsPopupFormId)) {
+        document.getElementById("forms-responses-title").textContent = "";
+        document.getElementById("forms-responses-list").innerHTML = `<div class="forms-responses-empty">Salve o formulário primeiro — ainda não há respostas.</div>`;
+        document.getElementById("forms-responses-list").classList.remove("hidden");
+        document.getElementById("forms-responses-table-wrap").classList.add("hidden");
+        formsShowMode("responses");
+        return;
+      }
+      await openFormResponses(formsPopupFormId);
+    } else {
+      openFormBuilder(formsPopupFormId) ;
+      if (!formsList.find(f => f.id === formsPopupFormId)) formsShowMode("builder");
+    }
+  });
   function fecharPopupForms() {
     if (!formsPopupAberto) return;
     const detalhe = document.getElementById("forms-detail");
-    detalhe.insertBefore(document.getElementById("forms-builder-mode"), document.getElementById("forms-responses-mode"));
+    detalhe.appendChild(document.getElementById("forms-builder-mode"));
+    detalhe.appendChild(document.getElementById("forms-responses-mode"));
     popupFormsEl().classList.add("hidden");
     formsPopupAberto = false; formsPopupTarefaId = null;
     formsCurrentBuilder = null; formsActiveId = null;

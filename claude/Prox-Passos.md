@@ -110,7 +110,8 @@ reconstruir o raciocínio.
   - *Aberto em:* 2026-09-16
 
 - [ ] **Apagar de verdade o código de Geral, Goals, Tasks original, Members,
-  Committee, Social, a aba Slack e o card do Slack** — hoje só escondidos (Members e
+  Committee, Social, a aba Slack, o card do Slack e a aba Forms** (o editor
+  e as respostas do Forms continuam usados pelo popup das tarefas Forms) — hoje só escondidos (Members e
   Committee desde 21/09; os dados de Members já estão no CRM).
   - *Contexto:* decisão de 16/09 foi ocultar. Antes de apagar: resolver as
     metas automáticas (item acima), a semeadura da Tasks 2 a partir de

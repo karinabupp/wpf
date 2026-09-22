@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (14ª) — Forms: cor, formulários associados, respostas no popup; aba Forms sai
+
+Pedidos da Karina.
+
+- **Cor:** o ícone da tarefa Forms agora segue o status (chip pastel +
+  cor), como as outras categorias; só a Tarefa comum fica neutra.
+- **Associações (banco, `tasks2`):** "Formulario de Observer" →
+  **WPF Affiliation Submission** (`form-1785361051984-tu9za`; tinha um
+  formulário vazio, nunca salvo, criado pelo botão); "Details Submission" →
+  **WPF Ladies Weekend 2026 — Details Submission**
+  (`form-1785354007575-dlazn`). Update conferindo o id de cada tarefa.
+- **Respostas no popup:** abas **Formulário | Respostas (N)** no cabeçalho;
+  "Respostas" abre a mesma tabela da antiga aba Forms (filtros, excluir)
+  dentro do popup. O editor e as respostas são movidos pro popup e
+  devolvidos ao fechar. A tabela ganhou altura própria no popup (herdava
+  `flex: 1 1 0` e ficava achatada — pego no teste pela foto).
+- **Aba Forms fora do menu** (`#nav-forms`); código e dados ficam.
+- **Onde:** `index.html` — `typeIconColor/typeIconChip`, HTML/CSS do
+  `#forms-popup-abas`, `abrirFormsDaTarefa`, `fecharPopupForms`, botão
+  Close das respostas.
+- **Verificação:** 27 testes (7 novos: cor, abre o associado com a
+  contagem, respostas no popup, altura da tabela, volta, fechar devolve,
+  menu) + 36 + 20 + 32.
+
+---
+
 ## 2026-09-22 (13ª) — Tasks: categoria "Forms" (tarefa com formulário em popup)
 
 Pedido da Karina: depois de Entregável e Tarefa, uma categoria "Forms" —
