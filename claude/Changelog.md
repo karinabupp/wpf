@@ -12,6 +12,26 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (11ª) — Presença: bolinha sumia (limite do Supabase)
+
+Karina testou em duas máquinas: a bolinha apareceu e sumiu em seguida.
+
+- **Causa (logs do Realtime):** `ClientPresenceRateLimitReached` — a Dash
+  mandava um sinal de presença a cada clique/foco (debounce de 300 ms); o
+  Supabase derruba o canal por excesso e a pessoa some do outro lado.
+- **Correção:** no máximo **um envio a cada 2,5 s** (junta o que mudou no
+  meio); reenvio de segurança a cada 90 s; e se o canal cair
+  (`CLOSED`/`CHANNEL_ERROR`/`TIMED_OUT`) a Dash **recria o canal sozinha**
+  (espera crescente 3 s → 60 s) e volta a anunciar. Efeito visível: a
+  marca na célula do outro demora até ~2,5 s pra acompanhar.
+- **Onde:** `index.html`, bloco PRESENÇA (`presencaAgendar`,
+  `reiniciarPresenca`, `subscribe`).
+- **Verificação:** 20 testes de presença (2 novos: 15 cliques em 2 s ≤ 2
+  envios; canal derrubado → recria e reaparece) + 36 login + 12 + 32 CRM.
+  Falta ver com duas pessoas de verdade de novo.
+
+---
+
 ## 2026-09-22 (10ª) — Robô: pergunta no fim sempre com botões de ação
 
 Pedido da Karina (print: resposta boa, mas terminava em pergunta sem botões).

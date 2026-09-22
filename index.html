@@ -20024,8 +20024,19 @@ async function presencaEnviar(forcar) {
   presencaUltimoEnvio = j;
   try { await presencaCanal.track(e); } catch (err) { console.warn("presença (envio):", err); }
 }
-let presencaTimerEnvio = null;
-function presencaAgendar() { clearTimeout(presencaTimerEnvio); presencaTimerEnvio = setTimeout(() => presencaEnviar(), 300); }
+// 22/09: o Supabase limita a quantidade de sinais de presença por segundo
+// (ClientPresenceRateLimitReached derrubava o canal e a bolinha sumia).
+// Então: no máximo UM envio a cada 2,5 s, juntando o que mudou no meio.
+const PRESENCA_INTERVALO_MS = 2500;
+let presencaTimerEnvio = null, presencaUltimoEnvioEm = 0;
+function presencaAgendar() {
+  if (presencaTimerEnvio) return;
+  const espera = Math.max(400, PRESENCA_INTERVALO_MS - (Date.now() - presencaUltimoEnvioEm));
+  presencaTimerEnvio = setTimeout(() => { presencaTimerEnvio = null; presencaUltimoEnvioEm = Date.now(); presencaEnviar(); }, espera);
+}
+// De vez em quando reenvia mesmo sem mudança (o servidor pode ter
+// esquecido a gente depois de uma reconexão).
+setInterval(() => { if (presencaCanal && !document.hidden) presencaEnviar(true); }, 90000);
 function presencaAtividade() {
   presencaUltimaAtividade = Date.now();
   if (presencaAusente && !document.hidden) { presencaAusente = false; presencaAgendar(); }
@@ -20111,6 +20122,22 @@ function agendarPintura() {
 }
 function desenharPresenca() { desenharBolhas(); agendarPintura(); }
 
+// Canal caiu (limite de envios, rede, token): recria depois de um tempo,
+// esperando mais a cada tentativa seguida.
+let presencaTentativas = 0, presencaTimerReinicio = null;
+function reiniciarPresenca() {
+  if (presencaTimerReinicio || presencaEncerrando) return;
+  const espera = Math.min(60000, 3000 * Math.pow(2, presencaTentativas++));
+  presencaTimerReinicio = setTimeout(async () => {
+    presencaTimerReinicio = null;
+    const antigo = presencaCanal;
+    presencaCanal = null;
+    try { if (antigo && !window.__wpfCanalPresenca) await sbCliente.removeChannel(antigo); } catch (e) {}
+    iniciarPresenca();
+  }, espera);
+}
+let presencaEncerrando = false;
+window.addEventListener("pagehide", () => { presencaEncerrando = true; });
 async function iniciarPresenca() {
   if (presencaCanal || !currentUser) return;
   try {
@@ -20125,13 +20152,18 @@ async function iniciarPresenca() {
       desenharPresenca();
     });
     presencaCanal.subscribe(status => {
-      if (status === "SUBSCRIBED") presencaEnviar(true);
-      else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") console.warn("presença:", status);
+      if (status === "SUBSCRIBED") { presencaTentativas = 0; presencaUltimoEnvio = ""; presencaEnviar(true); }
+      else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        console.warn("presença:", status);
+        reiniciarPresenca();
+      }
     });
-    presencaObservador = new MutationObserver(() => { if (presencaOutros.some(p => p.foco)) agendarPintura(); });
-    ["tasks2-view", "members2-view"].forEach(id => { const el = document.getElementById(id); if (el) presencaObservador.observe(el, { childList: true, subtree: true }); });
-    // Trocar de aba (clique no menu, Mapa/Planilha, empresa) também conta.
-    document.addEventListener("click", () => presencaAgendar(), true);
+    if (!presencaObservador) {
+      presencaObservador = new MutationObserver(() => { if (presencaOutros.some(p => p.foco)) agendarPintura(); });
+      ["tasks2-view", "members2-view"].forEach(id => { const el = document.getElementById(id); if (el) presencaObservador.observe(el, { childList: true, subtree: true }); });
+      // Trocar de aba (clique no menu, Mapa/Planilha, empresa) também conta.
+      document.addEventListener("click", () => presencaAgendar(), true);
+    }
   } catch (e) {
     console.warn("presença indisponível:", e);
   }
