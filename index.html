@@ -18091,7 +18091,9 @@ applyRolePermissions();
     const isSub = depth > 0; // structural: nested under another row (drag/select stay tied to this)
     // Só tarefa ganha a cor do status no fundo — mesma regra que valia pra
     // subtask antes das quatro categorias.
-    const isTarefa = t.rowType === "tarefa";
+    // Tarefa comum tem a linha pintada com o status; a Forms fica branca
+    // como as outras categorias (22/09, Karina).
+    const isTarefa = t.rowType === "tarefa" && !t.ehForms;
     const rowStyle = isTarefa ? ` style="background:${colors.bg}"` : "";
     const type = TASK_TYPES[tipoVisual(t)] || TASK_TYPES.objetivo;
     const selected = tasksSelectedIds.has(t.id);

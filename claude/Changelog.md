@@ -12,6 +12,17 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (15ª) — Forms: linha branca como as outras categorias
+
+Karina (print): a linha da Forms seguia pintada com a cor do status, como a
+Tarefa comum. Era isso que ela queria tirar (na 14ª eu mexi no ícone).
+
+- `renderTaskRow`: o fundo por status (`rowStyle`) vale só pra Tarefa
+  comum (`rowType === "tarefa" && !ehForms`). A Forms fica branca.
+- **Verificação:** 28 testes (1 novo: Forms sem fundo, Tarefa com fundo).
+
+---
+
 ## 2026-09-22 (14ª) — Forms: cor, formulários associados, respostas no popup; aba Forms sai
 
 Pedidos da Karina.
