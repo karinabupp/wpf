@@ -12,6 +12,44 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (2ª) — Robô: "seu" é só seu; o que é da equipe vem com o nome
+
+Pedido da Karina (print: perguntou "tem tarefa minha em deadline/late?" e o
+robô respondeu com as 24 atrasadas e o deadline da Isabela como se fossem
+dela; depois se corrigiu). Aprovado ("pode fazer"), com um acréscimo: a
+apresentação do Carinha pra quem fala pela 1ª vez diz que ele acompanha a
+gestão de projetos, e-mails recebidos e transcrições de reuniões.
+
+- **Causa:** o resumo que o admin recebe juntava as linhas de todo mundo sob
+  um cabeçalho único ("24 atrasadas…") e o dono ia solto no fim da linha.
+- **`resumoAlertas`:** dividido em **SUAS LINHAS (responsável: …)** e **DA
+  EQUIPE — NÃO são de Karina; diga sempre de quem é** (contagem por pessoa +
+  linhas). Não-admin só recebe o próprio bloco. O que vence hoje/nos
+  próximos dias vem antes das atrasadas (antes, com muita coisa atrasada, o
+  deadline de hoje ficava fora da lista).
+- **`linhaTexto`:** toda linha diz "responsável: …".
+- **Regras de conversa (`instrucoes`):** "minha/meu/eu" = só onde a pessoa é
+  responsável (buscar com responsavel = nome dela); sem nada dela, dizer
+  isso; linha de outra pessoa sempre com o nome; não escrever "WPF" (só a
+  empresa quando for outra).
+- **Apresentação / 1ª conversa:** o contexto marca "PRIMEIRA CONVERSA" (quem
+  nunca mandou mensagem) e diz o que o Carinha acompanha pra pessoa. Gestão
+  de projetos pra todos; **e-mails e reuniões só pra quem tem os seus
+  ligados** — hoje o Gmail e o Read AI são os da Karina (admin), então pros
+  outros ele não promete isso. Trocar = `acompanhaEmailsReunioes` em
+  `tratarMensagem`.
+- **Avisos pra Karina sobre os outros:** "Da equipe (de Isabela, não seu) —
+  Projeto acabou de atrasar…"; entregável com tarefa dela: "Entregável com N
+  tarefa(s) sua(s) vence…". O Haiku dos avisos tem regra pra escrever "o
+  projeto X, da Isabela…", nunca "seu".
+- **Resumo de emergência (Claude fora):** só as linhas da pessoa (antes o
+  admin via as da equipe como "seu"); sem "WPF".
+- **Verificação:** 24 testes novos com o cenário do print + 41 dos avisos +
+  28 dos Workers. A resposta final do Claude real só dá pra conferir no
+  WhatsApp (a chave fica no Cloudflare).
+
+---
+
 ## 2026-09-22 — Tasks: botão de contexto antes da setinha
 
 Pedido da Karina (print), aprovado ("pode").

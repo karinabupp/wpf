@@ -309,7 +309,7 @@ function linhaTexto(info, comCaminho, limiteContexto) {
   const resp = (no.assignees || []).length ? no.assignees.join(", ") : "sem responsável";
   const caminho = comCaminho && info.caminho.length ? ` (em ${info.caminho.map(c => corta(c, 30)).join(" › ")})` : "";
   const ctx = limiteContexto ? contextoDe(no, limiteContexto) : "";
-  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 80)} | ${no.status} | ${datas} | ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}${ctx ? ` | contexto: ${ctx}` : ""}`;
+  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 80)} | ${no.status} | ${datas} | responsável: ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}${ctx ? ` | contexto: ${ctx}` : ""}`;
 }
 function caminhoTexto(info) {
   return [info.empresa.nome].concat(info.caminho.map(c => corta(c, 40)), [corta(info.no.name, 60)]).join(" › ");
@@ -393,11 +393,28 @@ function resumoAlertas(empresas, indice, pessoa, hoje) {
     if (!(pessoa.admin || ehDono(no, pessoa.nome_tasks))) return;
     if (no.status === "Late" || no.status === "Deadline" || no.endDate <= lim) itens.push(info);
   });
-  itens.sort((a, b) => (a.no.endDate < b.no.endDate ? -1 : 1));
-  const late = itens.filter(i => i.no.status === "Late").length;
-  const topo = `${late} atrasadas, ${itens.length - late} vencendo até ${br(lim)}.`;
-  return topo + (itens.length ? "\n" + itens.slice(0, MAX_LINHAS_ALERTA).map(i => linhaTexto(i, true)).join("\n") : "")
-    + (itens.length > MAX_LINHAS_ALERTA ? `\n…e mais ${itens.length - MAX_LINHAS_ALERTA} (use buscar).` : "");
+  // O que ainda dá pra salvar (vence hoje/nos próximos dias) vem antes das
+  // atrasadas — senão, com muita coisa atrasada, o deadline de hoje ficava
+  // fora da lista.
+  itens.sort((a, b) => ((a.no.status === "Late") - (b.no.status === "Late")) || (a.no.endDate < b.no.endDate ? -1 : 1));
+  // 22/09: separa o que é DA PESSOA do que é da equipe (o admin vê tudo e o
+  // Claude chegou a dizer pra Karina que 24 atrasadas da Isabela eram dela).
+  const nome = pessoa.nome_tasks;
+  const conta = l => { const late = l.filter(i => i.no.status === "Late").length; return `${late} atrasada(s), ${l.length - late} vencendo até ${br(lim)}`; };
+  const minhas = itens.filter(i => ehDono(i.no, nome));
+  let txt = `SUAS LINHAS (responsável: ${nome}): ${conta(minhas)}.` + (minhas.length ? "\n" + minhas.slice(0, MAX_LINHAS_ALERTA).map(i => linhaTexto(i, true)).join("\n") : "")
+    + (minhas.length > MAX_LINHAS_ALERTA ? `\n…e mais ${minhas.length - MAX_LINHAS_ALERTA} suas (use buscar com responsavel).` : "");
+  if (!pessoa.admin) return txt;
+  const outras = itens.filter(i => !ehDono(i.no, nome));
+  if (!outras.length) return txt + `\n\nDA EQUIPE: nada atrasado nem vencendo até ${br(lim)}.`;
+  const porPessoa = {};
+  outras.forEach(i => ((i.no.assignees || []).length ? i.no.assignees : ["sem responsável"]).forEach(n => { if (n !== nome) (porPessoa[n] = porPessoa[n] || []).push(i); }));
+  const resto = Math.max(MAX_LINHAS_ALERTA - Math.min(minhas.length, MAX_LINHAS_ALERTA), 5);
+  txt += `\n\nDA EQUIPE — NÃO são de ${nome.split(" ")[0]}; ao citar, diga sempre de quem é:\n`
+    + Object.entries(porPessoa).sort((a, b) => b[1].length - a[1].length).map(([n, l]) => `• ${n}: ${conta(l)}`).join("\n")
+    + "\n" + outras.slice(0, resto).map(i => linhaTexto(i, true)).join("\n")
+    + (outras.length > resto ? `\n…e mais ${outras.length - resto} da equipe (use buscar).` : "");
+  return txt;
 }
 
 // ─── Leitura completa (só Sonnet, 1 por dia) ─────────────────────────────
@@ -783,7 +800,7 @@ const F_ANALISE = {
 
 function instrucoes(modelo) {
   return `Você é o *Carinha*, o agente de gestão da Dash da Karina, no WhatsApp. Você é homem: ao falar de si, use o masculino ("fiquei de olho", "obrigado", "estou atento"). Se perguntarem seu nome, é Carinha.
-Ao se apresentar (ou se perguntarem quem você é / o que você faz): diga que é o Carinha e que cuida da gestão do trabalho pra pessoa poder ficar tranquila (use "tranquila" ou "tranquilo" conforme a pessoa). Curto e simpático. NÃO fale de abas, Dash, Tasks, Members, ferramentas nem de como você funciona por dentro. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *CRM* (quadros de países por status).
+Ao se apresentar (ou se perguntarem quem você é / o que você faz): diga que é o Carinha e o que você acompanha pra pessoa — a gestão dos projetos e, SE o contexto disser que você acompanha os dela, os e-mails recebidos e as transcrições das reuniões — pra ela poder ficar tranquila (use "tranquila" ou "tranquilo" conforme a pessoa). Curto e simpático. NÃO fale de abas, Dash, Tasks, Members, ferramentas nem de como você funciona por dentro. Você cuida de duas abas da Dash, de todas as empresas (WPF, CBTH e outras que aparecerem): *Tasks* (hierarquia Objetivo › Meta › Projeto › Entregável › Tarefa) e *CRM* (quadros de países por status).
 
 Como conversar:
 - Português do Brasil, jeito de WhatsApp. Respostas curtas a médias: em geral até 6 linhas, no máximo umas 12 quando a pergunta pedir. Negrito só com *asteriscos*; sem títulos nem tabelas.
@@ -794,7 +811,9 @@ Como conversar:
 - Quando terminar com uma pergunta que tenha respostas previsíveis, sugira as respostas na ÚLTIMA linha, assim: [[opções: Já comecei | Ainda não | Adiar]]. De 2 a 3 opções curtas (até 20 caracteres cada); se precisar escolher entre mais coisas (projetos, países…), até 10 opções de até 24 caracteres. Não repita as opções no texto. Sem pergunta, sem opções. Nunca ponha opções junto de uma proposta (o sistema já põe Sim/Não).
 - Use só o que está nos dados que você recebeu ou buscou. Nunca invente linha, data, status, país ou pessoa. Se precisar de algo que não está aqui, use buscar / buscar_members antes de responder.
 - Não cite apelidos (WPF-123456) na conversa; eles são só pras ferramentas.
-- Diga a empresa quando houver mais de uma envolvida.
+- De quem é: "minha", "meu", "eu", "pra mim" = só as linhas em que a pessoa com quem você fala é o responsável ("responsável: <nome dela>"). Pra buscar só as dela, use buscar com responsavel = nome dela. Se não houver nada dela, diga isso claramente ("Nada seu em deadline hoje"); se for a admin e ajudar, cite em 1 linha o que é da equipe, dizendo de quem é.
+- Linha de outra pessoa: diga SEMPRE de quem é ("a Isabela tem 24 atrasadas…"). Nunca apresente como se fosse da pessoa com quem você fala.
+- Empresa: a WPF é subentendida — não escreva "WPF". Só diga a empresa quando for outra (ex.: "na CBTH").
 
 Mudanças:
 - Pra mudar ou criar, chame propor_mudanca, propor_criacao, propor_members ou propor_contexto. Uma proposta por vez.
@@ -842,12 +861,13 @@ function resumoSimples(indice, pessoa, hoje) {
   const lim = somaDias(hoje, 7), itens = [];
   Object.values(indice.porId).forEach(info => {
     const no = info.no;
-    if (!temFilhos(no) && (pessoa.admin || ehDono(no, pessoa.nome_tasks)) && !["Done", "Cancelled"].includes(no.status) && no.endDate && no.endDate <= lim)
-      itens.push(`• ${no.endDate < hoje ? "⚠️ " : ""}${corta(no.name, 60)} (${info.empresa.nome}, ${br(no.endDate)})`);
+    // Só o que é da pessoa (22/09: antes o admin via a equipe inteira como "seu").
+    if (!temFilhos(no) && ehDono(no, pessoa.nome_tasks) && !["Done", "Cancelled"].includes(no.status) && no.endDate && no.endDate <= lim)
+      itens.push(`• ${no.endDate < hoje ? "⚠️ " : ""}${corta(no.name, 60)} (${info.empresa.nome !== "WPF" ? info.empresa.nome + ", " : ""}${br(no.endDate)})`);
   });
   const topo = "Estou com um problema pra conversar agora 😕 Tente de novo daqui a pouco.";
   if (!itens.length) return topo + "\nPelo quadro, nada seu vence nos próximos 7 dias.";
-  return topo + "\nEnquanto isso, o que vence até " + br(lim) + ":\n" + itens.slice(0, 10).join("\n") + (itens.length > 10 ? `\n…e mais ${itens.length - 10}.` : "");
+  return topo + "\nEnquanto isso, o que é seu e vence até " + br(lim) + ":\n" + itens.slice(0, 10).join("\n") + (itens.length > 10 ? `\n…e mais ${itens.length - 10}.` : "");
 }
 
 // ─── Avisos: detectar, guardar, mandar ───────────────────────────────────
@@ -884,6 +904,14 @@ function folhasAbaixo(no, teste) {
   return out;
 }
 
+// Quem cuida de uma linha: responsáveis dela ou, se não tiver, de quem tem
+// linha aberta lá dentro.
+function donosTexto(no) {
+  const nomes = new Set(no.assignees || []);
+  if (!nomes.size) folhasAbaixo(no, aberta).forEach(f => (f.assignees || []).forEach(n => nomes.add(n)));
+  const l = [...nomes].map(n => String(n).split(" ")[0]);
+  return l.length ? (l.length > 2 ? l.slice(0, 2).join(", ") + " e outros" : l.join(" e ")) : "sem responsável";
+}
 function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
   const nome = pessoa.nome_tasks, amanha = somaDias(hoje, 1), recente = diasUteisAtras(hoje, DIAS_UTEIS_ATRASO_RECENTE), itens = [];
   const add = (chave, info, rotulo, extra) => itens.push({ chave, descricao: descricaoAviso(rotulo, info, extra) });
@@ -902,17 +930,20 @@ function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
     if (no.rowType === "entregavel" && temFilhos(no) && venceLogo(no) && !dentroDeMarcado(info)) {
       const n = folhasAbaixo(no, aberta).length;
       const minhas = folhasAbaixo(no, f => aberta(f) && ehDono(f, nome)).length;
-      if (n >= MIN_TAREFAS_ABERTAS && (minhas || pessoa.admin)) { add(base + "deadline_aberta", info, `Entregável vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
+      if (n >= MIN_TAREFAS_ABERTAS && (minhas || pessoa.admin)) {
+        const rot = minhas ? `Entregável com ${minhas} tarefa(s) sua(s) vence ${quando(no)} (${n} abertas no total)` : `Da equipe (de ${donosTexto(no)}, não seu) — Entregável vence ${quando(no)} com ${n} tarefas abertas`;
+        add(base + "deadline_aberta", info, rot); marcados.add(id);
+      }
     }
     // 3. Admin: Meta/Projeto/Entregável de outra pessoa.
     if (pessoa.admin && TIPOS_GRANDES[no.rowType] && !ehDono(no, nome) && !dentroDeMarcado(info)) {
       if (acabouDeAtrasar(no)) {
         const n = folhasAbaixo(no, f => f.status === "Late").length;
-        add(base + "grande_late", info, `${TIPO_LABEL[no.rowType]} acabou de atrasar`, n ? ` | ${n} linha(s) atrasada(s) dentro` : "");
+        add(base + "grande_late", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} acabou de atrasar`, n ? ` | ${n} linha(s) atrasada(s) dentro` : "");
         marcados.add(id);
       } else if (no.rowType !== "entregavel" && venceLogo(no)) {
         const n = folhasAbaixo(no, aberta).length;
-        if (n >= MIN_TAREFAS_ABERTAS) { add(base + "grande_deadline", info, `${TIPO_LABEL[no.rowType]} vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
+        if (n >= MIN_TAREFAS_ABERTAS) { add(base + "grande_deadline", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
       }
     }
     // 4. Linha nova atribuída à pessoa.
@@ -1049,6 +1080,7 @@ Escreva UMA mensagem curta por assunto, na ordem recebida. Responda SÓ com um a
 - Português do Brasil, tom de colega prestativo. Cada mensagem com no máximo 3 linhas curtas. ${saudar}
 - Nunca liste item por item: resuma com números ("27 entregáveis atrasados dentro").
 - Empresa: só diga a empresa quando o assunto trouxer "(na CBTH)" ou outra; nunca escreva "WPF".
+- De quem é: assunto que começa com "Da equipe (de Fulana…)" é de OUTRA pessoa — escreva deixando isso claro ("O projeto X, da Isabela, acabou de atrasar"), nunca "seu"/"sua"/"pra você". "Sua linha…" é da própria pessoa.
 - Não faça perguntas com opções nem escreva opções: os botões são colocados depois.
 - Reunião ("Não achei na Tasks"): diga o item e pergunte se quer criar a tarefa.
 - E-mail: de quem é, o que pede e o prazo; inclua o link se veio.
@@ -1729,8 +1761,14 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const mudancas = base ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
   const avisosPend = pessoa.proativo ? await pendentesDe(env, tel) : [];
 
+  const rPrim = await sb(env, `${TAB_MSG}?select=id&from_number=eq.${tel}&direction=eq.in&limit=2`);
+  const primeiraConversa = rPrim.ok && Array.isArray(rPrim.dados) && rPrim.dados.length <= 1;
+  // E-mails (Gmail) e reuniões (Read AI) ligados hoje são os da admin.
+  const acompanhaEmailsReunioes = !!pessoa.admin;
   const contexto = [
-    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive CRM)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê CRM)"}.`,
+    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive CRM; o que é da equipe NÃO é dela)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê CRM)"}.`,
+    `Você acompanha pra esta pessoa: a gestão dos projetos (Tasks)${acompanhaEmailsReunioes ? ", os e-mails recebidos e as transcrições das reuniões" : " (e-mails e reuniões dela não são acompanhados)"}.`,
+    primeiraConversa ? "PRIMEIRA CONVERSA com esta pessoa: comece se apresentando em 1–2 linhas (veja \"Ao se apresentar\") e depois responda o que ela mandou." : "",
     `Hoje: ${diaSemanaSP()}, ${hoje}.`,
     `Responsáveis válidos: ${[...nomesConhecidos].join(", ")}.`,
     `Empresas: ${empresas.map(e => e.nome).join(", ")}.`,
@@ -1908,5 +1946,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

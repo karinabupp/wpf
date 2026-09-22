@@ -15,6 +15,11 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Robô: repetir a pergunta do print** — depois de 22/09 (Changelog,
+  2ª de 22/09): Karina manda "Tem alguma tarefa minha em deadline hj? Ou
+  late?" e confere que ele responde só as dela e cita a equipe com nome.
+  - *Aberto em:* 2026-09-22
+
 - [ ] **Presença: conferir com duas pessoas de verdade** — publicada em
   21/09 (Changelog, 14ª). Testada só com canal simulado. Se as bolinhas não
   aparecerem: console do navegador ("presença: CHANNEL_ERROR") e logs do
