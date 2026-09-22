@@ -12,6 +12,22 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (10ª) — Robô: pergunta no fim sempre com botões de ação
+
+Pedido da Karina (print: resposta boa, mas terminava em pergunta sem botões).
+
+- A regra do `[[opções: …]]` virou **OBRIGATÓRIO** nas instruções, e o
+  código garante: se a resposta termina em "?" e o Claude não mandou
+  opções, uma chamada curta ao Haiku (`opcoesParaPergunta`, ~120 tokens)
+  gera 2–3 botões de AÇÃO ("Detalhar a Angola", "Focar nos Stops",
+  "Depois"). Resposta sem pergunta continua sem botões; quando o Claude já
+  manda as opções, usa as dele.
+- **Onde:** `worker/whatsapp-bridge.js` — `terminaEmPergunta`,
+  `opcoesParaPergunta`, envio da resposta em `tratarMensagem`, instruções.
+- **Verificação:** 5 testes novos + 41 + 32 + 16 + 28.
+
+---
+
 ## 2026-09-22 (9ª) — Robô: só entregável/tarefa; só o que é seu, salvo se pedir
 
 Pedido da Karina (print: ele listou um objetivo, um projeto e um entregável

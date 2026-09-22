@@ -238,6 +238,29 @@ async function enviarComOpcoes(env, para, texto, opcoes, consumo) {
   });
   return { ok: true, id, corpo };
 }
+// Karina (22/09): resposta que termina em pergunta TEM que vir com 2–3
+// botões de ação. Se o Claude esqueceu, uma chamada curta ao Haiku sugere.
+function terminaEmPergunta(texto) {
+  const t = String(texto || "").trim().replace(/[*_~\s"”)]+$/g, "");
+  return /\?$/.test(t);
+}
+async function opcoesParaPergunta(env, texto) {
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: HAIKU, max_tokens: 120,
+        system: `A mensagem abaixo, de um assistente de gestão no WhatsApp, termina com uma pergunta. Escreva de 2 a 3 respostas curtas que a pessoa poderia tocar como botão, cada uma uma AÇÃO ou escolha concreta (ex.: "Detalhar a Angola", "Focar nos Stops", "Depois"). Até 20 caracteres cada, português do Brasil, sem pontuação final. Responda SÓ com um array JSON de strings.`,
+        messages: [{ role: "user", content: corta(String(texto || ""), 1500) }] })
+    });
+    const corpo = await res.json().catch(() => null);
+    const t = res.ok && corpo ? (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim() : "";
+    const m = t.match(/\[[\s\S]*\]/);
+    const arr = JSON.parse(m ? m[0] : t);
+    const ops = (Array.isArray(arr) ? arr : []).map(o => corta(String(o).trim().replace(/[.!]+$/, ""), 20)).filter(Boolean).slice(0, 3);
+    return ops.length >= 2 ? ops : [];
+  } catch (e) { return []; }
+}
 // O Claude termina a resposta com [[opções: A | B | C]] quando faz pergunta.
 function separarOpcoes(texto) {
   const m = String(texto || "").match(/\[\[\s*op[çc][õo]es\s*:\s*([^\]]*)\]\]\s*$/i);
@@ -841,7 +864,7 @@ Como conversar:
 - Panorama/resumo geral só quando a pessoa pedir ("como estão as coisas?"): aí use resumo_alertas e destaque o que está Late ou Deadline.
 - Novidades: quando o sistema mandar "Novidades que pedem ação", comente em 1–3 linhas no começo da resposta, só o que importa, e siga com o que a pessoa perguntou. Se não houver novidades, não mencione.
 - Linhas com "contexto:" trazem o porquê daquela Meta/Projeto; use isso pra entender e conversar melhor.
-- Quando terminar com uma pergunta que tenha respostas previsíveis, sugira as respostas na ÚLTIMA linha, assim: [[opções: Já comecei | Ainda não | Adiar]]. De 2 a 3 opções curtas (até 20 caracteres cada); se precisar escolher entre mais coisas (projetos, países…), até 10 opções de até 24 caracteres. Não repita as opções no texto. Sem pergunta, sem opções. Nunca ponha opções junto de uma proposta (o sistema já põe Sim/Não).
+- OBRIGATÓRIO: toda resposta que terminar com pergunta traz, na ÚLTIMA linha, de 2 a 3 opções de resposta que sejam AÇÕES (ex.: [[opções: Detalhar a Angola | Focar nos Stops | Depois]]), assim: [[opções: Já comecei | Ainda não | Adiar]]. De 2 a 3 opções curtas (até 20 caracteres cada); se precisar escolher entre mais coisas (projetos, países…), até 10 opções de até 24 caracteres. Não repita as opções no texto. Sem pergunta, sem opções. Nunca ponha opções junto de uma proposta (o sistema já põe Sim/Não).
 - Use só o que está nos dados que você recebeu ou buscou. Nunca invente linha, data, status, país ou pessoa. Se precisar de algo que não está aqui, use buscar / buscar_members antes de responder.
 - Não cite apelidos (WPF-123456) na conversa; eles são só pras ferramentas.
 - De quem é: por padrão você fala SÓ das linhas da pessoa com quem conversa ("responsável: <nome dela>") — mesmo com a admin. As dos outros só quando ela PEDIR ("e a Isabela?", "como está o time?"): aí use buscar com responsavel ou equipe=true e diga de quem é. Se não houver nada dela, diga isso ("Nada seu em deadline hoje") e pare — não puxe o que é dos outros por conta própria.
@@ -1918,6 +1941,8 @@ async function tratarMensagem(env, msg, textoRecebido) {
       const usos = (resp.content || []).filter(b => b.type === "tool_use");
       if (!usos.length) {
         const sep = separarOpcoes(textoClaude);
+        // Terminou em pergunta sem botões: gera 2–3 opções de ação (22/09).
+        if (!sep.opcoes.length && terminaEmPergunta(sep.texto)) sep.opcoes = await opcoesParaPergunta(env, sep.texto);
         await responder(sep.texto || "Não entendi. Pode repetir de outro jeito?", sep.opcoes);
         return;
       }
@@ -2063,5 +2088,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
