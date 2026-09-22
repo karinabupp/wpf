@@ -12,6 +12,31 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (13ª) — Tasks: categoria "Forms" (tarefa com formulário em popup)
+
+Pedido da Karina: depois de Entregável e Tarefa, uma categoria "Forms" —
+tarefa normal, mas clicável, que abre a tela de formulário em popup.
+
+- **Como é por dentro:** rowType continua `"tarefa"` + `ehForms: true`
+  (mesma hierarquia, status, regras e visão do robô, que só ganha "(forms)"
+  no texto da linha). A categoria "forms" existe no seletor e no ícone
+  (`TASK_TYPES.forms`, `TIPOS_SELETOR`, `tipoVisual(t)`). Trocar de volta pra
+  Tarefa tira a marca.
+- **Botão "Formulário"** ao lado do nome: abre o editor da aba Forms num
+  popup (`#forms-popup-overlay`, fora das telas — o `#forms-builder-mode`
+  é movido pra dentro do popup e devolvido ao fechar, então Save/Publish/
+  Delete são os mesmos). 1ª vez: cria um formulário com o nome da tarefa e
+  guarda `t.formId`; depois reabre o mesmo. Fecha no ✕, no Esc ou clicando
+  fora. Os dados do formulário continuam em `wpf_forms`.
+- **Onde:** `index.html` — bloco "Popup do formulário de uma tarefa Forms",
+  `renderTaskRow`, handler do `.tasks2-type-select`, CSS `.tasks2-forms-abrir`
+  e `#forms-popup*`; `worker/whatsapp-bridge.js` (`linhaTexto`).
+- **Verificação:** 8 testes novos (seletor termina em Forms; por dentro é
+  tarefa; popup abre com o nome; guarda o id; visível; fechar devolve o
+  editor; reabrir usa o mesmo; voltar pra Tarefa) + 36 + 20 + 32 + robô.
+
+---
+
 ## 2026-09-22 (12ª) — Robô: criar linha só depois de confirmar ONDE
 
 Pedido da Karina (ele criou uma tarefa "em qualquer parte" sem confirmar o

@@ -2422,6 +2422,35 @@
     display: flex; align-items: center; justify-content: center;
   }
   #pais2-overlay.hidden, #cores2-overlay.hidden { display: none; }
+  /* Tarefa "Forms": botao ao lado do nome e popup com o editor da aba Forms */
+  .tasks2-forms-abrir {
+    display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+    margin-left: 6px; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--accent);
+    font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .tasks2-forms-abrir svg { width: 13px; height: 13px; }
+  .tasks2-forms-abrir:hover { border-color: var(--accent); }
+  .tasks2-type-icon[data-type="forms"] { color: var(--accent); }
+  #forms-popup-overlay {
+    position: fixed; inset: 0; z-index: 960; background: rgba(20,20,18,.42);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  #forms-popup-overlay.hidden { display: none; }
+  #forms-popup {
+    background: var(--panel); border-radius: 14px; width: min(920px, 100%);
+    max-height: 92vh; display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0,0,0,.28); overflow: hidden;
+  }
+  #forms-popup-cabeca {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border); font-weight: 600;
+  }
+  #forms-popup-fechar { border: none; background: none; font-size: 16px; cursor: pointer; color: var(--text-muted); }
+  #forms-popup-fechar:hover { color: var(--text); }
+  #forms-popup-body { padding: 16px 18px; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }
+  #forms-popup-body #forms-builder-mode { flex: 0 0 auto; overflow: visible; }
+  #forms-popup-body #forms-back-btn { display: none; }
   #cores2-modal { position: relative; }
   #pais2-modal, #cores2-modal {
     background: #fff; border-radius: 12px; padding: 22px; width: 420px;
@@ -5687,6 +5716,15 @@
   </div>
 </div>
 
+<div id="forms-popup-overlay" class="hidden">
+  <div id="forms-popup">
+    <div id="forms-popup-cabeca">
+      <span id="forms-popup-titulo"></span>
+      <button type="button" id="forms-popup-fechar" aria-label="Fechar">✕</button>
+    </div>
+    <div id="forms-popup-body"></div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -14219,6 +14257,7 @@ function openFormBuilder(id) {
 }
 
 document.getElementById("forms-back-btn").addEventListener("click", () => {
+  if (window.formsPopupEstaAberto && window.formsPopupEstaAberto()) { window.fecharPopupForms(); return; }
   formsCurrentBuilder = null;
   formsActiveId = null;
   renderFormsGrid();
@@ -16472,7 +16511,15 @@ applyRolePermissions();
     const c = TASK_STATUS_COLORS[t.status] || TASK_STATUS_COLORS["Not Started"];
     return c.bg;
   }
+  // "Forms" (22/09, Karina): e uma TAREFA comum (mesma hierarquia, status e
+  // regras; o robo a ve como tarefa) que carrega um formulario. Por dentro
+  // fica rowType "tarefa" + ehForms = true; a categoria "forms" existe so
+  // no seletor e no icone. Clicar no icone abre o editor de formularios num
+  // popup.
+  TASK_TYPES.forms = { label: "Forms", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.2"/><line x1="8.5" y1="8.5" x2="15.5" y2="8.5"/><line x1="8.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="15.5" x2="12.5" y2="15.5"/></svg>` };
   const TASK_TYPE_ORDER = ["objetivo", "meta", "projeto", "entregavel", "tarefa"];
+  const TIPOS_SELETOR = TASK_TYPE_ORDER.concat(["forms"]);
+  const tipoVisual = t => (t && t.ehForms && t.rowType === "tarefa" ? "forms" : t.rowType);
   // O "+" de uma linha cria o nivel logo abaixo dela na hierarquia:
   // objetivo → meta → projeto → entregavel → tarefa. Sai da propria
   // TASK_TYPE_ORDER, entao mexer na ordem das categorias ja acerta isto
@@ -16520,9 +16567,50 @@ applyRolePermissions();
     };
   }
 
+  // ── Popup do formulário de uma tarefa "Forms" ─────────────────────
+  // Move o editor da aba Forms (#forms-builder-mode) pra dentro do popup
+  // enquanto ele esta aberto e devolve ao fechar: Save/Publish/Delete
+  // continuam os mesmos.
+  let formsPopupAberto = false, formsPopupTarefaId = null;
+  function popupFormsEl() { return document.getElementById("forms-popup-overlay"); }
+  async function abrirFormsDaTarefa(t) {
+    if (!formsList.length) { try { await loadFormsList(); } catch (e) {} }
+    const existente = t.formId && formsList.find(f => f.id === t.formId);
+    if (existente) {
+      openFormBuilder(existente.id);
+    } else {
+      formsCurrentBuilder = { id: t.formId || ("form-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7)), title: t.name || "", description: "", questions: [], status: "draft" };
+      t.formId = formsCurrentBuilder.id;
+      saveTasksData();
+      formsActiveId = null;
+      renderFormBuilder();
+      formsShowMode("builder");
+    }
+    const ov = popupFormsEl();
+    document.getElementById("forms-popup-body").appendChild(document.getElementById("forms-builder-mode"));
+    document.getElementById("forms-popup-titulo").textContent = t.name || "Formulário";
+    ov.classList.remove("hidden");
+    formsPopupAberto = true; formsPopupTarefaId = t.id;
+  }
+  function fecharPopupForms() {
+    if (!formsPopupAberto) return;
+    const detalhe = document.getElementById("forms-detail");
+    detalhe.insertBefore(document.getElementById("forms-builder-mode"), document.getElementById("forms-responses-mode"));
+    popupFormsEl().classList.add("hidden");
+    formsPopupAberto = false; formsPopupTarefaId = null;
+    formsCurrentBuilder = null; formsActiveId = null;
+    formsShowMode("empty");
+    try { renderFormsGrid(); } catch (e) {}
+  }
+  window.fecharPopupForms = fecharPopupForms;
+  window.formsPopupEstaAberto = () => formsPopupAberto;
+  document.getElementById("forms-popup-fechar").addEventListener("click", fecharPopupForms);
+  document.getElementById("forms-popup-overlay").addEventListener("click", e => { if (e.target === e.currentTarget) fecharPopupForms(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && formsPopupAberto) fecharPopupForms(); });
+
   function taskTypeOptionsMarkup(selected) {
     // Sem icone aqui de proposito: <option> nativo nao renderiza SVG.
-    return TASK_TYPE_ORDER.map(k =>
+    return TIPOS_SELETOR.map(k =>
       `<option value="${k}" ${selected === k ? "selected" : ""}>${TASK_TYPES[k].label}</option>`
     ).join("");
   }
@@ -17956,7 +18044,7 @@ applyRolePermissions();
     // subtask antes das quatro categorias.
     const isTarefa = t.rowType === "tarefa";
     const rowStyle = isTarefa ? ` style="background:${colors.bg}"` : "";
-    const type = TASK_TYPES[t.rowType] || TASK_TYPES.objetivo;
+    const type = TASK_TYPES[tipoVisual(t)] || TASK_TYPES.objetivo;
     const selected = tasksSelectedIds.has(t.id);
     const canDates = colabCan("tasksEditDates");
     const canAssignee = colabCan("tasksEditAssignee");
@@ -17976,8 +18064,9 @@ applyRolePermissions();
             ${isSub ? `<span class="tasks2-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
             ${contextoBtnMarkup(t)}
             <button class="tasks2-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
-            <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${t.rowType}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${t.rowType}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(t.rowType)}</select></span>
+            <span class="tasks2-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasks2-type-icon" data-type="${tipoVisual(t)}">${type.icon}</span><span class="tasks2-tipo-rotulo" data-type="${tipoVisual(t)}">${type.label}</span><select class="tasks2-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(tipoVisual(t))}</select></span>
             <span class="tasks2-name-wrap"><textarea rows="1" class="tasks2-name-input ${depth === 0 ? "tasks2-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasks2-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
+            ${tipoVisual(t) === "forms" ? `<button type="button" class="tasks2-forms-abrir" data-id="${t.id}" title="Abrir o formulário desta tarefa">${TASK_TYPES.forms.icon}<span>Formulário</span></button>` : ""}
             ${objetivoResumoMarkup(t)}
             ${metaProgressoMarkup(t)}
             <span class="tasks2-fill-handle" data-id="${t.id}" data-field="name" title="Arraste para copiar o nome para as linhas ao lado"></span>
@@ -18511,11 +18600,15 @@ applyRolePermissions();
           window.alert('Toda Meta precisa de um número no nome antes de virar Meta. Ajuste o nome primeiro.');
           return;
         }
-        t.rowType = select.value;
+        if (select.value === "forms") { t.rowType = "tarefa"; t.ehForms = true; }
+        else { t.rowType = select.value; delete t.ehForms; }
         coerceStatus(t);
         saveTasksData();
         renderTasksTable();
       });
+    });
+    body.querySelectorAll(".tasks2-forms-abrir").forEach(btn => {
+      btn.addEventListener("click", e => { e.stopPropagation(); const t = findTaskById(tasksData, btn.dataset.id); if (t) abrirFormsDaTarefa(t); });
     });
     body.querySelectorAll('.tasks2-action-btn[data-action="add"]').forEach(btn => {
       btn.addEventListener("click", () => {

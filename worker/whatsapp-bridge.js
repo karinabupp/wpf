@@ -334,7 +334,7 @@ function linhaTexto(info, comCaminho, limiteContexto) {
   const resp = (no.assignees || []).length ? no.assignees.join(", ") : "sem responsável";
   const caminho = comCaminho && info.caminho.length ? ` (em ${info.caminho.map(c => corta(c, 30)).join(" › ")})` : "";
   const ctx = limiteContexto ? contextoDe(no, limiteContexto) : "";
-  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}: ${corta(no.name, 80)} | ${no.status} | ${datas} | responsável: ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}${ctx ? ` | contexto: ${ctx}` : ""}`;
+  return `${info.apelido} ${TIPO_LABEL[no.rowType] || no.rowType}${no.ehForms ? " (forms)" : ""}: ${corta(no.name, 80)} | ${no.status} | ${datas} | responsável: ${resp}${temFilhos(no) ? " [agrupa]" : ""}${caminho}${ctx ? ` | contexto: ${ctx}` : ""}`;
 }
 function caminhoTexto(info) {
   return [info.empresa.nome].concat(info.caminho.map(c => corta(c, 40)), [corta(info.no.name, 60)]).join(" › ");
