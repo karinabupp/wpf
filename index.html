@@ -2042,6 +2042,14 @@
   .legend-subrow { padding: 10px 0; font-size: 14px; }
   .legend-subrow .legend-left { font-size: 14px; }
   .legend-subrow .legend-dot { width: 12px; height: 12px; }
+  .legend2-dot-btn { border: none; padding: 0; cursor: pointer; transition: transform .1s; }
+  .legend2-dot-btn:hover { transform: scale(1.15); }
+  .legend2-filtrada .legend2-dot-btn { outline: 2px solid var(--text); outline-offset: 2px; }
+  .legend-row.legend2-apagada { opacity: .42; }
+  .legend2-seta { border: none; background: none; cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 2px 4px; margin-left: -2px; border-radius: 4px; }
+  .legend2-seta:hover:not(:disabled) { background: var(--bg); color: var(--text); }
+  .legend2-seta:disabled { opacity: .3; cursor: default; }
+  .legend2-tipo { color: var(--text-muted); font-size: 12px; }
   .legend-subrow .legend-pct { font-size: 14px; min-width: 40px; }
   .legend-subrow .legend-count { min-width: 56px; }
   .legend-subrows .legend-dropdown { padding-left: 24px; }
@@ -14783,8 +14791,15 @@ applyRolePermissions();
     countryData2[name] = Object.assign(getRecord2(name), patch);
     saveData2();
   }
+  // Legenda (22/09, Karina): clicar no quadradinho de cor deixa só aquele
+  // status colorido no mapa; a setinha abre a lista de países dele. Só
+  // visual, de cada um — não grava nada. Volta a "tudo" ao trocar de quadro.
+  let legend2Filtro = null;
+  const legend2Abertos = new Set();
   function fillFor2(name) {
-    return corDoStatus2(boardAtual(), statusExibido2(name));
+    const st = statusExibido2(name);
+    if (legend2Filtro && st !== legend2Filtro) return CINZA_SEM_CLASSIFICACAO;
+    return corDoStatus2(boardAtual(), st);
   }
 
   // ─── Avisos Gerais automatico (16/09) ─────────────────────────────────
@@ -15043,7 +15058,7 @@ applyRolePermissions();
       };
       const rotulos = allCountries2
         .map(f => ({ f, a: avisoDoPais2(f.properties.name) }))
-        .filter(x => x.a && x.a.numero > 0);
+        .filter(x => x.a && x.a.numero > 0 && (!legend2Filtro || statusExibido2(x.f.properties.name) === legend2Filtro));
       const selos = svg2.append("g")
         .attr("id", "avisos2-numeros")
         .selectAll("g")
@@ -15090,6 +15105,8 @@ applyRolePermissions();
 
   function trocarQuadro2(novoId) {
     activeBoardId2 = novoId;
+    legend2Filtro = null;
+    legend2Abertos.clear();
     localStorage.setItem(ACTIVE_BOARD_KEY, novoId);
     carregarDadosDoBoard();
     // Fecha o painel — a selecao de pais era do quadro anterior, e o
@@ -15233,7 +15250,6 @@ applyRolePermissions();
   // status do quadro (Membro, nos quadros padrao) e clicavel — abre a
   // proporcao entre Observador e Afiliado, em numero e em % DENTRO do
   // total daquele status (nao do total de paises). ───────────────────────
-  let legend2UltimoAberto = false;
   function renderLegend2() {
     const rowsEl = document.getElementById("legend2-rows");
     const totalEl = document.getElementById("legend2-total");
@@ -15243,50 +15259,79 @@ applyRolePermissions();
     const statusOptions = statusOptionsAtuais();
     const ultimoStatus = statusOptions[statusOptions.length - 1];
     const mostraTipoMembro = !!board.temTipoMembro;
-    const counts = {};
-    statusOptions.forEach(s => { counts[s] = 0; });
+    if (legend2Filtro && !statusOptions.includes(legend2Filtro)) legend2Filtro = null;
+    const counts = {}, paises = {};
+    statusOptions.forEach(s => { counts[s] = 0; paises[s] = []; });
     const tipoMembroCounts = { "Observador": 0, "Afiliado": 0, "": 0 };
     allCountries2.forEach(f => {
-      const rec = Object.assign({}, getRecord2(f.properties.name), { status: statusExibido2(f.properties.name) });
+      const nome = f.properties.name;
+      const rec = Object.assign({}, getRecord2(nome), { status: statusExibido2(nome) });
       // Pais sem classificação nao entra em contagem nenhuma — de
-      // proposito nao tem linha propria na legenda (ficava com ~100% e so
-      // ocupava espaco); ele aparece so no mapa, no cinza neutro.
+      // proposito nao tem linha propria na legenda; aparece so no mapa,
+      // no cinza neutro.
       if (!rec.status) return;
       counts[rec.status] = (counts[rec.status] || 0) + 1;
+      (paises[rec.status] = paises[rec.status] || []).push({ nome, tipo: rec.tipoMembro || "" });
       if (mostraTipoMembro && rec.status === ultimoStatus) {
         const t = rec.tipoMembro || "";
         tipoMembroCounts[t] = (tipoMembroCounts[t] || 0) + 1;
       }
     });
+    // % sobre os países COM status neste quadro (Karina, 22/09) — não sobre
+    // os 241 do mapa.
+    const comStatus = statusOptions.reduce((soma, s) => soma + (counts[s] || 0), 0);
     const totalUltimo = counts[ultimoStatus] || 0;
     rowsEl.innerHTML = statusOptions.map(s => {
-      const pct = total ? Math.round((counts[s] / total) * 100) : 0;
+      const n = counts[s] || 0;
+      const pct = comStatus ? Math.round((n / comStatus) * 100) : 0;
       const color = corDoStatus2(board, s);
-      const clicavel = mostraTipoMembro && s === ultimoStatus;
-      const linha = `<div class="legend-row${clicavel ? " legend-row-clickable" : ""}"${clicavel ? ' data-legend2-ultimo="1"' : ""}>
-          <div class="legend-left"><span class="legend-dot" style="background:${color}"></span>${s}</div>
-          <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${counts[s]} ${plural2()}</span></div>
+      const aberto = legend2Abertos.has(s);
+      const classe = legend2Filtro === s ? " legend2-filtrada" : legend2Filtro ? " legend2-apagada" : "";
+      const linha = `<div class="legend-row${classe}">
+          <div class="legend-left"><button type="button" class="legend-dot legend2-dot-btn" data-filtro="${esc2(s)}" style="background:${color}" title="${legend2Filtro === s ? "Mostrar todos de novo" : "Mostrar só " + esc2(s) + " no mapa"}"></button>${esc2(s)}</div>
+          <div class="legend-stats"><span class="legend-pct">${pct}%</span><span class="legend-count">${n} ${plural2()}</span><button type="button" class="legend2-seta" data-abrir="${esc2(s)}" ${n ? "" : "disabled"} title="${aberto ? "Fechar a lista" : "Ver os países"}">${aberto ? "▾" : "▸"}</button></div>
         </div>`;
-      let breakdown = "";
-      if (clicavel && legend2UltimoAberto) {
-        breakdown = TIPO_MEMBRO_OPCOES.map(t => {
-          const n = tipoMembroCounts[t] || 0;
-          const p = totalUltimo ? Math.round((n / totalUltimo) * 100) : 0;
-          return `<div class="legend-row legend-subrow">
-            <div class="legend-left">${s} ${t}</div>
-            <div class="legend-stats"><span class="legend-pct">${p}%</span><span class="legend-count">${n} ${plural2()}</span></div>
-          </div>`;
-        }).join("");
+      let dentro = "";
+      if (aberto && n) {
+        let divisao = "";
+        if (mostraTipoMembro && s === ultimoStatus) {
+          divisao = `<div class="legend-subrows">` + TIPO_MEMBRO_OPCOES.map(t => {
+            const k = tipoMembroCounts[t] || 0;
+            const p = totalUltimo ? Math.round((k / totalUltimo) * 100) : 0;
+            return `<div class="legend-row legend-subrow">
+              <div class="legend-left">${esc2(s)} ${esc2(t)}</div>
+              <div class="legend-stats"><span class="legend-pct">${p}%</span><span class="legend-count">${k} ${plural2()}</span></div>
+            </div>`;
+          }).join("") + `</div>`;
+        }
+        const lista = paises[s].slice().sort((x, y) => x.nome.localeCompare(y.nome)).map(x =>
+          `<button type="button" class="legend-dropdown-item legend2-pais" data-pais="${esc2(x.nome)}">${esc2(x.nome)}${x.tipo ? ` <span class="legend2-tipo">· ${esc2(x.tipo)}</span>` : ""}</button>`).join("");
+        dentro = divisao + `<div class="legend-dropdown">${lista}</div>`;
       }
-      return `<div class="legend-row-wrap">${linha}${breakdown}</div>`;
+      return `<div class="legend-row-wrap">${linha}${dentro}</div>`;
     }).join("");
-    const ultimoRow = rowsEl.querySelector('[data-legend2-ultimo="1"]');
-    if (ultimoRow) {
-      ultimoRow.addEventListener("click", () => {
-        legend2UltimoAberto = !legend2UltimoAberto;
+    rowsEl.onclick = ev => {
+      const dot = ev.target.closest(".legend2-dot-btn");
+      if (dot) {
+        const st = dot.dataset.filtro;
+        legend2Filtro = legend2Filtro === st ? null : st;
+        if (allCountries2.length) renderWorldMap2();
         renderLegend2();
-      });
-    }
+        return;
+      }
+      const seta = ev.target.closest(".legend2-seta");
+      if (seta) {
+        const st = seta.dataset.abrir;
+        if (legend2Abertos.has(st)) legend2Abertos.delete(st); else legend2Abertos.add(st);
+        renderLegend2();
+        return;
+      }
+      const pais = ev.target.closest(".legend2-pais");
+      if (pais) {
+        const f = allCountries2.find(x => x.properties.name === pais.dataset.pais);
+        if (f) selectCountry2(f.properties.name, f);
+      }
+    };
   }
 
   // ── Continente de cada pais. Gerado a partir do codigo ISO numerico que

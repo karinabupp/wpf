@@ -12,6 +12,34 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (3ª) — CRM: filtrar o mapa pela cor, lista de países na legenda e % certa
+
+Pedido da Karina (print do Avisos Gerais), aprovado ("mete bala"), com a
+correção dela: a porcentagem é sobre os países COM status no pipeline, não
+sobre os 241 do mapa.
+
+- **Quadradinho de cor = filtro:** clicar deixa só aquele status colorido
+  no mapa (o resto no cinza neutro), com a linha destacada e as outras
+  apagadinhas; no Avisos Gerais os números também ficam só nos países que
+  aparecem. Clicar de novo volta a tudo; clicar em outra cor troca. Trocar
+  de pipeline volta a tudo. Só visual, de cada um.
+- **Setinha ▸/▾ depois de "N países":** abre a lista dos países daquele
+  status (ordem alfabética); clicar num país seleciona ele no mapa. Na
+  última linha (Membro) a divisão Observador/Afiliado — que antes abria
+  clicando na linha — foi pra dentro da lista, e cada país mostra o tipo.
+- **% da legenda:** sobre a soma dos países com status naquele pipeline
+  (ex.: 3 de 6 = 50%), em todos os pipelines. A linha "241 países" em cima
+  continua sendo o total do mapa.
+- **Onde:** `index.html` (CRM/members2): `legend2Filtro`, `legend2Abertos`
+  e `fillFor2` (antes do mapa), filtro dos selos em `renderWorldMap2`,
+  `renderLegend2` reescrita (sai `legend2UltimoAberto`), reset em
+  `trocarQuadro2`, CSS `legend2-*`.
+- **Verificação:** 13 testes no Chromium (% com 6 países, filtro, troca,
+  volta, lista com tipo, seleção pelo nome, fechar, troca de quadro) + 36
+  login + 12 (21/09) + 18 presença.
+
+---
+
 ## 2026-09-22 (2ª) — Robô: "seu" é só seu; o que é da equipe vem com o nome
 
 Pedido da Karina (print: perguntou "tem tarefa minha em deadline/late?" e o
