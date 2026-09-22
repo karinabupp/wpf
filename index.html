@@ -2309,7 +2309,11 @@
     background: none;
     border: none;
     padding: 7px 18px;
-    font-size: 13.5px;
+    /* mesma letra do nome do pipeline (22/09, Karina) */
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-size: 12.5px;
     cursor: pointer;
     color: var(--text-muted);
   }
@@ -2438,10 +2442,18 @@
   .pais2-bolinha { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
   #cores2-nome { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
   .cores2-linha { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13.5px; }
-  .cores2-linha input[type="color"] {
-    width: 38px; height: 32px; padding: 0; border: 1px solid var(--border);
-    border-radius: 6px; cursor: pointer; flex-shrink: 0;
+  /* Um código só: quadradinho de amostra + campo hex (22/09, Karina). A
+     janelinha do Chrome (R/G/B) saiu de cena. */
+  .cores2-amostra {
+    width: 38px; height: 32px; border: 1px solid var(--border);
+    border-radius: 6px; flex-shrink: 0;
   }
+  .cores2-hex {
+    width: 104px; flex-shrink: 0; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 13px; text-transform: uppercase; padding: 7px 8px;
+    border: 1px solid var(--border); border-radius: 6px; background: var(--panel);
+  }
+  .cores2-hex.invalida { border-color: #c0392b; color: #c0392b; }
   #cores2-acoes { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
   #cores2-cancelar {
     background: none; border: 1px solid var(--border); border-radius: 6px;
@@ -2646,11 +2658,11 @@
        alta, monoespaçada, sem diferença entre maiúscula e minúscula. */
     font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.04em;
   }
   #board2-select {
     margin: 0 0 4px;
-    font-size: 14px;
+    font-size: 12.5px;
     font-weight: 700;
     padding: 9px 10px;
     border: 1px solid var(--border);
@@ -15939,20 +15951,38 @@ applyRolePermissions();
     document.getElementById("cores2-nome").textContent = b.nome;
     document.getElementById("cores2-linhas").innerHTML = b.status.map(st => `
       <div class="cores2-linha">
-        <input type="color" data-status="${esc2(st)}" value="${corDoStatus2(b, st)}">
+        <span class="cores2-amostra" style="background:${corDoStatus2(b, st)}"></span>
+        <input type="text" class="cores2-hex" data-status="${esc2(st)}" value="${corDoStatus2(b, st).toUpperCase()}"
+               spellcheck="false" autocomplete="off" placeholder="#RRGGBB" title="Digite ou cole a cor (ex.: #7C9A5E)">
         <span>${esc2(st)}</span>
       </div>`).join("");
     cores2Overlay.classList.remove("hidden");
   }
+  // Aceita "#abc", "abc", "#AABBCC" ou "aabbcc"; devolve "#aabbcc" ou null.
+  function corHexValida(txt) {
+    const t = String(txt || "").trim().replace(/^#/, "");
+    if (/^[0-9a-fA-F]{3}$/.test(t)) return "#" + t.split("").map(c => c + c).join("").toLowerCase();
+    if (/^[0-9a-fA-F]{6}$/.test(t)) return "#" + t.toLowerCase();
+    return null;
+  }
+  document.getElementById("cores2-linhas").addEventListener("input", e => {
+    const inp = e.target.closest(".cores2-hex");
+    if (!inp) return;
+    const cor = corHexValida(inp.value);
+    inp.classList.toggle("invalida", !cor);
+    if (cor) inp.closest(".cores2-linha").querySelector(".cores2-amostra").style.background = cor;
+  });
   function fecharEditorCores2() { cores2Overlay.classList.add("hidden"); }
   document.getElementById("board2-cores").addEventListener("click", abrirEditorCores2);
   document.getElementById("cores2-cancelar").addEventListener("click", fecharEditorCores2);
   cores2Overlay.addEventListener("click", e => { if (e.target === cores2Overlay) fecharEditorCores2(); });
   document.getElementById("cores2-salvar").addEventListener("click", () => {
     const b = boardAtual();
-    document.querySelectorAll("#cores2-linhas input[type=color]").forEach(inp => {
+    document.querySelectorAll("#cores2-linhas .cores2-hex").forEach(inp => {
+      const cor = corHexValida(inp.value);
+      if (!cor) return; // cor escrita errada: mantém a de antes
       if (!b.cores[inp.dataset.status]) b.cores[inp.dataset.status] = {};
-      b.cores[inp.dataset.status].fill = inp.value;
+      b.cores[inp.dataset.status].fill = cor;
     });
     // Cor escolhida a mao nao pode ser desfeita pela sincronizacao dos
     // quadros padrao, entao o quadro sai do controle automatico.

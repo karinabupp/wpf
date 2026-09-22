@@ -12,6 +12,30 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (6ª) — CRM: cor num campo só e Mapa/Planilha na letra do pipeline
+
+Pedidos da Karina, na sequência do card da legenda.
+
+- **Cores dos status: um código só.** Saiu o `<input type="color">` (era ele
+  que abria a janelinha do Chrome com R, G e B). Cada status agora tem um
+  quadradinho de amostra + **um campo hex** onde dá pra digitar ou colar.
+  Aceita `#abc`, `abc`, `#AABBCC` e `aabbcc`, com espaços; a amostra muda na
+  hora; cor escrita errada fica marcada em vermelho e, ao salvar, aquele
+  status **mantém a cor anterior** (`corHexValida`).
+- **Mapa/Planilha:** mesma letra do nome do pipeline (mono, caixa alta).
+- **Nome do pipeline:** caiu pra 12,5px e `letter-spacing .04em` — em caixa
+  alta, "MEMBROS - FEDERAÇÕES" estava sendo cortado. Teste novo mede o texto
+  e garante que cabe no botão.
+- **Onde:** `index.html` — `.cores2-amostra`, `.cores2-hex`,
+  `abrirEditorCores2`, handler de `input` em `#cores2-linhas`, salvar cores;
+  `#members2-switch button`, `#board2-select`.
+- **Verificação:** 26 testes da legenda (6 novos: campo único sem o seletor
+  do Chrome, atalho de 3 letras, colar com # e espaços, cor errada marcada e
+  preservada, cor nova aplicada no mapa, nome cabe no botão) + 36 login +
+  12 + 18 presença.
+
+---
+
 ## 2026-09-22 (5ª) — CRM: espaço do card e nome do pipeline "tech"
 
 Pedidos da Karina, aprovados ("pode publicar assim").
