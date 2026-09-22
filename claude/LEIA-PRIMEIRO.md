@@ -43,6 +43,8 @@ dois arquivos antes de propor qualquer coisa**:
   `update wpf_acesso set precisa_trocar_senha = true where email = '<e-mail>';`
   Na próxima entrada a Dash obriga a trocar.
 - **Nunca** colocar senha, token ou chave secreta neste repo: ele é público.
+- **Robô — quem cria linha pra outras pessoas:** admin, ou quem tem
+  `cria_para_outros = true` em `wpf_agente_pessoas` (hoje: Isabela).
 
 ## O que o Claude NÃO consegue fazer sozinho
 

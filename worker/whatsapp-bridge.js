@@ -200,9 +200,20 @@ async function enviarTexto(env, para, texto, consumo) {
 // como texto com as opções numeradas, e a pessoa responde com o número.
 // Tocar numa opção chega de volta como o texto dela.
 const LIM_BOTAO = 20, LIM_LISTA = 24, LIM_CORPO_INTERATIVO = 1024;
+// Botão do WhatsApp aceita até 20 caracteres (lista, 24). Opção maior era
+// motivo pra cair na lista numerada; agora encurta na última palavra que cabe.
+function encurtarOpcao(o, lim) {
+  o = String(o).trim();
+  if (o.length <= lim) return o;
+  const corte = o.slice(0, lim + 1).replace(/\s+\S*$/, "").replace(/[\s,.;:–—-]+$/, "");
+  return (corte.length >= 4 ? corte : o.slice(0, lim)).trim();
+}
 function formatoOpcoes(texto, opcoes) {
-  const ops = (opcoes || []).map(o => String(o).trim()).filter(Boolean).filter((o, i, a) => a.indexOf(o) === i).slice(0, 10);
+  let ops = (opcoes || []).map(o => String(o).trim()).filter(Boolean).filter((o, i, a) => a.indexOf(o) === i).slice(0, 10);
   if (!ops.length) return { tipo: "texto", texto, opcoes: [] };
+  const lim = ops.length <= 3 ? LIM_BOTAO : LIM_LISTA;
+  const curtas = ops.map(o => encurtarOpcao(o, lim));
+  if (new Set(curtas).size === curtas.length) ops = curtas;
   if (texto.length <= LIM_CORPO_INTERATIVO && ops.length <= 3 && ops.every(o => o.length <= LIM_BOTAO)) return { tipo: "botoes", texto, opcoes: ops };
   if (texto.length <= LIM_CORPO_INTERATIVO && ops.every(o => o.length <= LIM_LISTA)) return { tipo: "lista", texto, opcoes: ops };
   return { tipo: "numerado", texto: texto + "\n\n" + ops.map((o, i) => `${i + 1}. ${o}`).join("\n") + "\n_(responda com o número)_", opcoes: ops };
@@ -215,6 +226,14 @@ function corpoInterativo(para, f) {
 }
 async function enviarComOpcoes(env, para, texto, opcoes, consumo) {
   texto = corta(paraWhats(texto), 4000);
+  // Texto maior que o corpo de uma mensagem com botões: manda o texto e,
+  // logo abaixo, os botões com uma frase curta (em vez de lista numerada).
+  if (texto.length > LIM_CORPO_INTERATIVO && (opcoes || []).filter(Boolean).length) {
+    await enviarTexto(env, para, texto, consumo);
+    const ultima = (texto.trim().split(/\n+/).pop() || "").trim();
+    const pergunta = /\?$/.test(ultima) && ultima.length <= 200 ? ultima : "O que fazemos?";
+    return enviarComOpcoes(env, para, pergunta, opcoes, { aviso_chave: consumo && consumo.aviso_chave });
+  }
   const f = formatoOpcoes(texto, opcoes);
   if (f.tipo === "texto") return enviarTexto(env, para, texto, consumo);
   if (f.tipo === "numerado") return enviarTexto(env, para, f.texto, { ...(consumo || {}), opcoes: f.opcoes });
@@ -608,7 +627,7 @@ function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
   const rp = TIPO_RANK[pai.rowType], rf = TIPO_RANK[tipo];
   if (rp === undefined || rf < rp || (rf === rp && !["projeto", "entregavel", "tarefa"].includes(tipo)))
     return { erro: `Não dá pra colocar ${TIPO_LABEL[tipo]} dentro de ${TIPO_LABEL[pai.rowType] || pai.rowType}.` };
-  if (!pessoa.admin && !doResponsavel(pai, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} só pode criar dentro de linhas em que é responsável.` };
+  if (!pessoa.admin && !pessoa.cria_para_outros && !doResponsavel(pai, pessoa.nome_tasks)) return { erro: `${pessoa.nome_tasks} só pode criar dentro de linhas em que é responsável.` };
   const nome = limpo(entrada.nome);
   if (!nome) return { erro: "Falta o nome da linha nova." };
   const ini = entrada.inicio ? String(entrada.inicio) : "", fim = entrada.fim ? String(entrada.fim) : "";
@@ -618,7 +637,7 @@ function validarCriacao(entrada, indice, pessoa, nomesConhecidos) {
   const resp = Array.isArray(entrada.responsaveis) && entrada.responsaveis.length ? entrada.responsaveis.map(String) : [pessoa.nome_tasks];
   const desconhecido = resp.find(n => !nomesConhecidos.has(n));
   if (desconhecido) return { erro: `Não conheço "${desconhecido}". Nomes válidos: ${[...nomesConhecidos].join(", ")}.` };
-  if (!pessoa.admin && resp.some(n => n !== pessoa.nome_tasks)) return { erro: "Só a Karina pode criar linha com outra pessoa como responsável." };
+  if (!pessoa.admin && !pessoa.cria_para_outros && resp.some(n => n !== pessoa.nome_tasks)) return { erro: "Você só pode criar linha com você mesma(o) como responsável." };
   return {
     acao: { tipo: "criacao", secao: info.empresa.secao, paiId: pai.id, linha: { nome, tipo, startDate: ini, endDate: fim, assignees: resp } },
     resumo: `Criar ${TIPO_LABEL[tipo]} *${nome}* em:\n*${caminhoTexto(info)}*\n` +
@@ -1910,7 +1929,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   // E-mails (Gmail) e reuniões (Read AI) ligados hoje são os da admin.
   const acompanhaEmailsReunioes = !!pessoa.admin;
   const contexto = [
-    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive CRM; o que é da equipe NÃO é dela)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê CRM)"}.`,
+    `Falando com: ${pessoa.nome_tasks}${pessoa.admin ? " (admin: vê e muda tudo, inclusive CRM; o que é da equipe NÃO é dela)" : " (vê e muda só o que é dela/dele na aba Tasks; não vê CRM)" + (pessoa.cria_para_outros ? "; PODE criar linhas com outras pessoas como responsáveis" : "")}.`,
     `Você acompanha pra esta pessoa: a gestão dos projetos (Tasks)${acompanhaEmailsReunioes ? ", os e-mails recebidos e as transcrições das reuniões" : " (e-mails e reuniões dela não são acompanhados)"}.`,
     primeiraConversa ? "PRIMEIRA CONVERSA com esta pessoa: comece se apresentando em 1–2 linhas (veja \"Ao se apresentar\") e depois responda o que ela mandou." : "",
     `Hoje: ${diaSemanaSP()}, ${hoje}.`,
@@ -2092,5 +2111,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

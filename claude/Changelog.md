@@ -12,6 +12,27 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (16ª) — Robô: botões sempre; Isabela cria pra outras pessoas
+
+Pedidos da Karina (print: resposta terminou com lista numerada em vez de
+botões).
+
+- **Causa:** a opção "Voltar pro Ladies Weekend" tinha 25 caracteres (botão
+  do WhatsApp aceita 20) e o robô caía na lista numerada. Agora
+  `encurtarOpcao` encurta na última palavra que cabe (20 no botão, 24 na
+  lista); só não encurta se isso deixar duas opções iguais. E texto maior
+  que o corpo de uma mensagem com botões (1024) vai em duas mensagens: o
+  texto e, logo abaixo, os botões com a pergunta final (ou "O que
+  fazemos?").
+- **Isabela cria pra outros:** coluna nova `cria_para_outros` em
+  `wpf_agente_pessoas` (`sql/2026-09-22_cria_para_outros.sql`), ligada só
+  pra Isabela. Com ela, `validarCriacao` deixa pôr outra pessoa como
+  responsável e criar fora das linhas dela (dentro do que ela enxerga). O
+  contexto da conversa avisa o Claude. Resto das permissões igual.
+- **Verificação:** 6 testes novos + 41 + 32 + 16 + 5 + 28.
+
+---
+
 ## 2026-09-22 (15ª) — Forms: linha branca como as outras categorias
 
 Karina (print): a linha da Forms seguia pintada com a cor do status, como a
