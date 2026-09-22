@@ -12,6 +12,22 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (17ª) — CRM da CBTH: Lead e Troca no Status Federações
+
+Pedido da Karina: Lead, Negociação, Troca, Membro.
+
+- **Código:** `PALETA_CBTH_FEDS` ganhou Lead (#e7d09d) e Troca (#6f9bd1);
+  `STATUS_CBTH_FEDS` novo; `garantirStatusCbth()` acrescenta os que
+  faltarem na ordem certa (sem tirar nada) no load e quando os quadros
+  chegam da nuvem — igual à "Abertura" da WPF. Sem isso, a re-sincronização
+  da paleta deixaria Lead/Troca cinza.
+- **Banco (`members2__cbth`):** status e cores do quadro atualizados. Os 27
+  estados continuam como estavam (23 Membro, 4 Negociação).
+- **Verificação:** 3 testes novos (CBTH com o quadro antigo na nuvem →
+  ordem certa e cores próprias) + 32 + 28 + 36.
+
+---
+
 ## 2026-09-22 (16ª) — Robô: botões sempre; Isabela cria pra outras pessoas
 
 Pedidos da Karina (print: resposta terminou com lista numerada em vez de

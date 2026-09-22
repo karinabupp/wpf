@@ -14774,12 +14774,14 @@ applyRolePermissions();
   const STATUS_AVISOS = ["OK", "Atenção", "Urgência"];
   // Quadros iniciais da CBTH: Avisos Gerais (mesmas regras e cores da WPF)
   // e um pipeline proprio de federacoes, com so dois status.
-  const PALETA_CBTH_FEDS = { "Negociação": "#d9a83a", "Membro": "#4f9d55" };
+  // 22/09 (Karina): Lead e Troca entram — Lead, Negociação, Troca, Membro.
+  const PALETA_CBTH_FEDS = { "Lead": "#e7d09d", "Negociação": "#d9a83a", "Troca": "#6f9bd1", "Membro": "#4f9d55" };
+  const STATUS_CBTH_FEDS = ["Lead", "Negociação", "Troca", "Membro"];
   const DEFAULT_BOARDS_CBTH = [
     { id: "avisos-gerais", nome: "Avisos Gerais", status: STATUS_AVISOS.slice(),
       cores: paletaParaObjeto(PALETA_AVISOS), temTipoMembro: false },
     { id: "cbth-status-federacoes", nome: "Status Federações",
-      status: ["Negociação", "Membro"], cores: paletaParaObjeto(PALETA_CBTH_FEDS),
+      status: STATUS_CBTH_FEDS.slice(), cores: paletaParaObjeto(PALETA_CBTH_FEDS),
       temTipoMembro: false }
   ];
   const DEFAULT_BOARDS_WPF = [
@@ -14863,7 +14865,24 @@ applyRolePermissions();
     }
     return mudou;
   }
-  if (ORG_ATUAL === "wpf") garantirAbertura();
+  // CBTH (22/09): o pipeline de federações ganha Lead (antes de tudo) e
+  // Troca (antes de Membro). Mantém o que existir e só acrescenta.
+  function garantirStatusCbth() {
+    const b = boards2.find(x => x.id === "cbth-status-federacoes");
+    if (!b || !Array.isArray(b.status)) return false;
+    let mudou = false;
+    STATUS_CBTH_FEDS.forEach((st, i) => {
+      if (b.status.includes(st)) return;
+      const proximo = STATUS_CBTH_FEDS.slice(i + 1).find(x => b.status.includes(x));
+      const pos = proximo ? b.status.indexOf(proximo) : b.status.length;
+      b.status.splice(pos, 0, st);
+      mudou = true;
+    });
+    if (!b.cores) b.cores = {};
+    STATUS_CBTH_FEDS.forEach(st => { if (!b.cores[st]) { b.cores[st] = { fill: PALETA_CBTH_FEDS[st] }; mudou = true; } });
+    return mudou;
+  }
+  if (ORG_ATUAL === "wpf") garantirAbertura(); else garantirStatusCbth();
   saveBoards2(); // grava a lista (ja migrada/semeada, se era o caso)
 
   let activeBoardId2 = localStorage.getItem(ACTIVE_BOARD_KEY) || boards2[0].id;
@@ -16232,7 +16251,7 @@ applyRolePermissions();
       // Tasks 2: ou o outro lado ainda nao abriu a aba, ou e resquicio.
       if (Array.isArray(pacote.boards) && pacote.boards.length) {
         boards2 = pacote.boards;
-        if (ORG_ATUAL === "wpf") garantirAbertura();
+        if (ORG_ATUAL === "wpf") garantirAbertura(); else garantirStatusCbth();
         localStorage.setItem(BOARDS_KEY, JSON.stringify(boards2));
       }
       if (Array.isArray(pacote.colunas)) {
