@@ -2048,6 +2048,15 @@
   .legend-subrow .legend-left { font-size: 14px; }
   .legend-subrow .legend-dot { width: 12px; height: 12px; }
   #legend2-tarefas:empty { display: none; }
+  /* Avisos Gerais (23/09): o card tem a MESMA altura do card do mapa
+     (medida ao vivo em --altura-mapa2; o mapa não muda) e a lista de
+     tarefas rola por dentro, ocupando o que sobra. */
+  #legend2-view.com-tarefas {
+    box-sizing: border-box; height: var(--altura-mapa2, auto); min-height: 0; flex: 0 0 auto;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #legend2-view.com-tarefas #legend2-tarefas { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  #legend2-view.com-tarefas .avisos2-lista { flex: 1 1 auto; min-height: 0; max-height: none; }
   .avisos2-lista-titulo {
     margin: 14px 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .03em;
     text-transform: uppercase; color: var(--text-muted);
@@ -15424,9 +15433,19 @@ applyRolePermissions();
   // Avisos Gerais (23/09, Karina): embaixo da legenda, as tarefas que
   // contam — vermelho = Urgência (Late), amarelo = Deadline. Done e o resto
   // não aparecem. Segue o filtro por responsável e o filtro da cor.
+  function medirAlturaMapa2() {
+    const w = document.getElementById("wrap2"), c = document.getElementById("legend2-view");
+    if (!w || !c) return;
+    const h = w.getBoundingClientRect().height;
+    if (h > 0) c.style.setProperty("--altura-mapa2", Math.round(h) + "px");
+  }
+  if (window.ResizeObserver) new ResizeObserver(medirAlturaMapa2).observe(document.getElementById("wrap2"));
+  window.addEventListener("resize", medirAlturaMapa2);
   function renderTarefasAvisos2(board) {
     const caixa = document.getElementById("legend2-tarefas");
     if (!caixa) return;
+    document.getElementById("legend2-view").classList.toggle("com-tarefas", ehQuadroAvisos(board));
+    medirAlturaMapa2();
     if (!ehQuadroAvisos(board) || !tasks2Bridge) { caixa.innerHTML = ""; return; }
     if (!avisosCache2) avisosCache2 = avisosDasTasks2();
     const itens = [];

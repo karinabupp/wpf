@@ -12,6 +12,23 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-23 (3ª) — Avisos Gerais: card da direita com a altura do mapa
+
+Karina (print): com a lista de tarefas, o card da direita ficou mais alto
+que o do mapa. Regra dela: mesma altura, e **a altura do mapa não muda**.
+
+- No Avisos Gerais o card ganha `.com-tarefas`: altura = altura do card do
+  mapa, medida ao vivo (`medirAlturaMapa2` + ResizeObserver no `#wrap2` e
+  no resize da janela), e a lista de tarefas ocupa o que sobra rolando por
+  dentro. Detalhe: dentro da coluna flex o card não encolhia abaixo do
+  conteúdo (`min-height: auto`) — foi preciso `min-height: 0`.
+- Nos outros pipelines o card continua como era.
+- **Verificação:** 4 testes novos (mesma altura e mesmo topo; lista rola com
+  32 tarefas; continua igual ao mudar a janela; mapa com a mesma altura de
+  antes) + 17 do Avisos Gerais + 32 + 28 + 3 + 36 + 20.
+
+---
+
 ## 2026-09-23 (2ª) — CRM › Avisos Gerais: lista de tarefas embaixo da legenda
 
 Pedido da Karina (WPF e CBTH, só no Avisos Gerais).
