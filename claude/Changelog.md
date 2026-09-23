@@ -12,6 +12,28 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-23 (4ª) — Avisos Gerais: a lista ao lado é das tarefas SEM país
+
+Karina: "por país você mostra no mapa; a lista ao lado é das tarefas em
+atenção (deadline) ou urgência (late) que não têm país". (Na 2ª de hoje eu
+tinha listado as COM país, e o clique abria o popup do país inteiro — por
+isso apareciam duas tarefas.)
+
+- `tarefasSemPais2`: tarefas (folhas) sem país/estado — nem próprio nem
+  herdado — em Late (vermelho) ou Deadline (amarelo); Done e o resto fora.
+  Segue o filtro por responsável e o da cor. Título "Sem país N" (na CBTH,
+  "Sem estado"); vazio: "Nenhuma tarefa em urgência ou deadline sem país."
+  Cada linha: nome, onde está (o pai), responsável, fim.
+- Clique abre **só a tarefa clicada** no popup de edição (modo
+  `popupAvisos2.semPais`; título "Sem país" + Urgência/Atenção). O número
+  no mapa continua abrindo todas as do país.
+- Card continua com a altura do mapa.
+- **Verificação:** 21 testes do Avisos Gerais (novos: só sem país, as com
+  país fora, Done fora, título, pai/responsável/fim, clique abre só uma, Esc)
+  + 32 + 28 + 3 + 36 + 20.
+
+---
+
 ## 2026-09-23 (3ª) — Avisos Gerais: card da direita com a altura do mapa
 
 Karina (print): com a lista de tarefas, o card da direita ficou mais alto

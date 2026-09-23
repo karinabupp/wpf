@@ -2072,7 +2072,8 @@
   .avisos2-quadrado { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
   .avisos2-item-texto { display: flex; flex-direction: column; min-width: 0; }
   .avisos2-item-nome { font-size: 13.5px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .avisos2-item-meta { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+  .avisos2-item-meta { font-size: 12px; color: var(--text-muted); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .avisos2-lista-vazia { font-size: 12.5px; color: var(--text-muted); padding: 4px 0; }
   .legend2-dot-btn { border: none; padding: 0; cursor: pointer; transition: transform .1s; }
   .legend2-dot-btn:hover { transform: scale(1.15); }
   .legend2-filtrada .legend2-dot-btn { outline: 2px solid var(--text); outline-offset: 2px; }
@@ -15034,7 +15035,7 @@ applyRolePermissions();
     renderLegend2();
     if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
     if (activeCountry2 && ehQuadroAvisos(boardAtual())) panel2Status.value = statusExibido2(activeCountry2);
-    if (popupAvisos2.pais) {
+    if (popupAvisos2.pais || popupAvisos2.semPais) {
       const foco = document.activeElement;
       if (!(foco && document.getElementById("avisos2-popup").contains(foco))) renderPopupAvisos2();
     }
@@ -15057,6 +15058,7 @@ applyRolePermissions();
     return a.late ? ordenar(a.lateIds).concat(ordenar(a.deadlineIds)) : ordenar(a.deadlineIds);
   }
   function abrirPopupAvisos2(pais) {
+    popupAvisos2.semPais = false;
     avisosCache2 = null;
     const a = avisoDoPais2(pais);
     if (!a || !a.numero || !tasks2Bridge) return;
@@ -15065,22 +15067,41 @@ applyRolePermissions();
     document.getElementById("avisos2-popup-overlay").classList.remove("hidden");
     renderPopupAvisos2();
   }
+  function abrirTarefaSemPais2(id) {
+    if (!tasks2Bridge || !tasks2Bridge.tarefa(id)) return;
+    popupAvisos2.pais = null;
+    popupAvisos2.semPais = true;
+    popupAvisos2.ids = [id];
+    document.getElementById("avisos2-popup-overlay").classList.remove("hidden");
+    renderPopupAvisos2();
+  }
   function fecharPopupAvisos2() {
+    popupAvisos2.semPais = false;
     popupAvisos2.pais = null;
     popupAvisos2.ids = [];
     document.getElementById("avisos2-popup-overlay").classList.add("hidden");
   }
   function renderPopupAvisos2() {
     const pais = popupAvisos2.pais;
-    if (!pais) return;
+    if (!pais && !popupAvisos2.semPais) return;
     avisosCache2 = null;
-    const a = avisoDoPais2(pais);
-    const contando = new Set(a ? a.lateIds.concat(a.deadlineIds) : []);
-    const statusTxt = a ? a.status : "OK";
     const board = boards2.find(b => b.id === QUADRO_AVISOS);
+    let contando, statusTxt, titulo;
+    if (popupAvisos2.semPais) {
+      // Uma tarefa sem país (clicada na lista ao lado do mapa).
+      const tk = tasks2Bridge.tarefa(popupAvisos2.ids[0]) || {};
+      contando = new Set(tk.status === "Late" || tk.status === "Deadline" ? popupAvisos2.ids : []);
+      statusTxt = tk.status === "Late" ? "Urgência" : tk.status === "Deadline" ? "Atenção" : "OK";
+      titulo = "Sem " + ROTULO_UNIDADE.toLowerCase();
+    } else {
+      const a = avisoDoPais2(pais);
+      contando = new Set(a ? a.lateIds.concat(a.deadlineIds) : []);
+      statusTxt = a ? a.status : "OK";
+      titulo = pais;
+    }
     const corTopo = board ? corDoStatus2(board, statusTxt) : "";
     document.getElementById("avisos2-popup-titulo").innerHTML =
-      `${escP2(pais)} <span class="avisos2-popup-status" style="background:${corTopo}">${escP2(statusTxt)}</span>`;
+      `${escP2(titulo)} <span class="avisos2-popup-status" style="background:${corTopo}">${escP2(statusTxt)}</span>`;
     const opcoes = tasks2Bridge.statusOptions();
     const usuarios = tasks2Bridge.usuarios();
     const linhas = popupAvisos2.ids.map(id => {
@@ -15121,7 +15142,7 @@ applyRolePermissions();
     document.body.appendChild(overlay);
     overlay.addEventListener("click", e => { if (e.target === overlay) fecharPopupAvisos2(); });
     document.getElementById("avisos2-popup-fechar").addEventListener("click", fecharPopupAvisos2);
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && popupAvisos2.pais) fecharPopupAvisos2(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && (popupAvisos2.pais || popupAvisos2.semPais)) fecharPopupAvisos2(); });
     const lista = document.getElementById("avisos2-popup-lista");
     const idDe = el => (el.closest(".avisos2-tarefa") || {}).dataset.id;
     lista.addEventListener("change", e => {
@@ -15441,35 +15462,54 @@ applyRolePermissions();
   }
   if (window.ResizeObserver) new ResizeObserver(medirAlturaMapa2).observe(document.getElementById("wrap2"));
   window.addEventListener("resize", medirAlturaMapa2);
+  // Avisos Gerais (23/09, Karina): o mapa já mostra as tarefas POR PAÍS.
+  // A lista ao lado é das que NÃO têm país/estado e estão em Urgência
+  // (Late, vermelho) ou Deadline (amarelo) — as que o mapa não mostra.
+  // Done e o resto não aparecem. Segue o filtro por responsável e o da cor.
+  function tarefasSemPais2() {
+    let lista = [];
+    try { lista = (tasks2Bridge && tasks2Bridge.getTasks) ? (tasks2Bridge.getTasks() || []) : []; } catch (e) { lista = []; }
+    const out = [];
+    (function andar(itens, paisHerdado) {
+      (itens || []).forEach(r => {
+        if (!r || r.status === "Cancelled") return;
+        const pais = r.paisLink || paisHerdado || "";
+        const filhos = Array.isArray(r.subtasks) ? r.subtasks : [];
+        if (filhos.length) { andar(filhos, pais); return; }
+        if (pais) return; // essa aparece no mapa
+        if (r.status !== "Late" && r.status !== "Deadline") return;
+        if (avisos2Responsavel && !(r.assignees || []).includes(avisos2Responsavel)) return;
+        out.push({ t: r, tipo: r.status === "Late" ? "Urgência" : "Atenção" });
+      });
+    })(lista, "");
+    return out;
+  }
   function renderTarefasAvisos2(board) {
     const caixa = document.getElementById("legend2-tarefas");
     if (!caixa) return;
     document.getElementById("legend2-view").classList.toggle("com-tarefas", ehQuadroAvisos(board));
     medirAlturaMapa2();
     if (!ehQuadroAvisos(board) || !tasks2Bridge) { caixa.innerHTML = ""; return; }
-    if (!avisosCache2) avisosCache2 = avisosDasTasks2();
-    const itens = [];
-    Object.entries(avisosCache2).forEach(([pais, a]) => {
-      a.lateIds.forEach(id => itens.push({ id, pais, tipo: "Urgência" }));
-      a.deadlineIds.forEach(id => itens.push({ id, pais, tipo: "Atenção" }));
-    });
-    const visiveis = itens
+    const visiveis = tarefasSemPais2()
       .filter(x => !legend2Filtro || legend2Filtro === x.tipo)
-      .map(x => ({ ...x, t: tasks2Bridge.tarefa(x.id) || {} }))
       .sort((x, y) => (x.tipo === y.tipo ? 0 : x.tipo === "Urgência" ? -1 : 1) || String(x.t.endDate || "9999").localeCompare(String(y.t.endDate || "9999")));
-    if (!visiveis.length) { caixa.innerHTML = ""; return; }
     const dm = d => (d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d.slice(8, 10) + "/" + d.slice(5, 7) : "");
     const primeiros = l => (l || []).map(n => String(n).split(" ")[0]).join(", ");
-    caixa.innerHTML = `<div class="avisos2-lista-titulo">Tarefas <span>${visiveis.length}</span></div>
-      <div class="avisos2-lista">` + visiveis.map(x => `
-        <button type="button" class="avisos2-item" data-pais="${escP2(x.pais)}" title="${escP2(x.t.name || "")}">
+    const titulo = `<div class="avisos2-lista-titulo">Sem ${escP2(ROTULO_UNIDADE.toLowerCase())} <span>${visiveis.length}</span></div>`;
+    if (!visiveis.length) { caixa.innerHTML = titulo + `<div class="avisos2-lista-vazia">Nenhuma tarefa em urgência ou deadline sem ${escP2(ROTULO_UNIDADE.toLowerCase())}.</div>`; return; }
+    caixa.innerHTML = titulo + `<div class="avisos2-lista">` + visiveis.map(x => {
+      let onde = "";
+      try { const c = tasks2Bridge.caminho(x.t.id) || []; onde = c.length ? c[c.length - 1] : ""; /* o pai da tarefa */ } catch (e) {}
+      return `
+        <button type="button" class="avisos2-item" data-id="${escP2(x.t.id)}" title="${escP2(x.t.name || "")}">
           <span class="avisos2-quadrado" style="background:${corDoStatus2(board, x.tipo)}"></span>
           <span class="avisos2-item-texto">
             <span class="avisos2-item-nome">${escP2(x.t.name || "(sem nome)")}</span>
-            <span class="avisos2-item-meta">${escP2(x.pais)}${x.t.assignees && x.t.assignees.length ? " · " + escP2(primeiros(x.t.assignees)) : ""}${x.t.endDate ? " · " + dm(x.t.endDate) : ""}</span>
+            <span class="avisos2-item-meta">${[onde, primeiros(x.t.assignees), dm(x.t.endDate)].filter(Boolean).map(escP2).join(" · ")}</span>
           </span>
-        </button>`).join("") + `</div>`;
-    caixa.onclick = ev => { const b = ev.target.closest(".avisos2-item"); if (b) abrirPopupAvisos2(b.dataset.pais); };
+        </button>`;
+    }).join("") + `</div>`;
+    caixa.onclick = ev => { const b = ev.target.closest(".avisos2-item"); if (b) abrirTarefaSemPais2(b.dataset.id); };
   }
   function renderLegend2() {
     const rowsEl = document.getElementById("legend2-rows");
