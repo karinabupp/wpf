@@ -12,6 +12,30 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-23 — CRM › Avisos Gerais: busca por responsável
+
+Pedido da Karina: no Avisos Gerais (WPF e CBTH), o buscador deixa de ser
+por país/estado e passa a ser por **responsável**. Nos outros pipelines
+continua por país/estado.
+
+- Placeholder "Buscar responsável...", lista com os nomes que têm tarefa
+  aberta. Escolher (ou digitar parte do nome, ex. "rober") filtra o
+  cálculo do Avisos Gerais (`avisos2Responsavel` em `avisosDasTasks2`):
+  mapa, números, legenda, planilha e o popup do número passam a contar só
+  as tarefas daquela pessoa. "Só as tarefas de Fulana." + botão **Ver
+  todos** pra voltar. Trocar de pipeline zera o filtro.
+- A busca se ajusta junto com a legenda (`renderLegend2` chama
+  `populateSearchList2` quando o pipeline, o filtro ou a lista de nomes
+  muda) — sem apagar o que a pessoa está digitando.
+- **Onde:** `index.html` (CRM/members2): `avisos2Responsavel`,
+  `nomesResponsaveis2`, `aplicarResponsavel2`, `populateSearchList2`,
+  `searchGo2`, reset, `trocarQuadro2`, `renderLegend2`.
+- **Verificação:** 10 testes novos (placeholder, lista de nomes, filtro por
+  pessoa no mapa e na legenda, parte do nome, Ver todos, outros pipelines
+  com busca por país) + 32 + 28 + 3 + 36 + 20.
+
+---
+
 ## 2026-09-22 (18ª) — REGRA: o que cada pessoa recebe do robô
 
 Regra da Karina, "não pode quebrar":

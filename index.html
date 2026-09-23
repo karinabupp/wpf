@@ -14966,6 +14966,8 @@ applyRolePermissions();
         const filhos = Array.isArray(r.subtasks) ? r.subtasks : [];
         if (filhos.length) { andar(filhos, pais); return; }
         if (!pais) return;
+        // Busca por responsável (23/09): só as tarefas dessa pessoa.
+        if (avisos2Responsavel && !(r.assignees || []).includes(avisos2Responsavel)) return;
         const a = out[pais] || (out[pais] = { total: 0, deadline: 0, late: 0, lateIds: [], deadlineIds: [] });
         a.total++;
         if (r.status === "Late") { a.late++; a.lateIds.push(r.id); }
@@ -14980,6 +14982,15 @@ applyRolePermissions();
     return out;
   }
   let avisosCache2 = null;
+  // Avisos Gerais (23/09, Karina): a busca desse quadro é por RESPONSÁVEL.
+  let avisos2Responsavel = null;
+  function nomesResponsaveis2() {
+    const nomes = new Set();
+    let lista = [];
+    try { lista = (tasks2Bridge && tasks2Bridge.getTasks) ? (tasks2Bridge.getTasks() || []) : []; } catch (e) { lista = []; }
+    (function andar(itens) { (itens || []).forEach(r => { if (!r || r.status === "Cancelled") return; (r.assignees || []).forEach(n => n && nomes.add(n)); andar(r.subtasks); }); })(lista);
+    return [...nomes].sort((a, b) => a.localeCompare(b));
+  }
   function avisoDoPais2(nome) {
     if (!avisosCache2) avisosCache2 = avisosDasTasks2();
     return avisosCache2[nome] || null;
@@ -15247,6 +15258,8 @@ applyRolePermissions();
     activeBoardId2 = novoId;
     legend2Filtro = null;
     legend2Abertos.clear();
+    avisos2Responsavel = null;
+    avisosCache2 = null;
     localStorage.setItem(ACTIVE_BOARD_KEY, novoId);
     carregarDadosDoBoard();
     // Fecha o painel — a selecao de pais era do quadro anterior, e o
@@ -15447,6 +15460,13 @@ applyRolePermissions();
       }
       return `<div class="legend-row-wrap">${linha}${dentro}</div>`;
     }).join("");
+    // A busca muda conforme o quadro (Avisos Gerais = por responsável).
+    const buscaAvisos = ehQuadroAvisos(board);
+    const chaveBusca = buscaAvisos + "|" + avisos2Responsavel + "|" + allCountries2.length + "|" + (buscaAvisos ? nomesResponsaveis2().join(",") : "");
+    if (populateSearchList2.ultimo !== chaveBusca) {
+      populateSearchList2.ultimo = chaveBusca;
+      populateSearchList2();
+    }
     rowsEl.onclick = ev => {
       const dot = ev.target.closest(".legend2-dot-btn");
       if (dot) {
@@ -16194,13 +16214,39 @@ applyRolePermissions();
 
   // ── Busca ───────────────────────────────────────────────────────────
   function populateSearchList2() {
-    document.getElementById("map2-search-list").innerHTML =
-      allCountries2.map(f => `<option value="${f.properties.name}">`).join("");
+    const av = ehQuadroAvisos(boardAtual());
+    const input = document.getElementById("map2-search-input");
+    input.placeholder = av ? "Buscar responsável..." : "Buscar " + ROTULO_UNIDADE.toLowerCase() + "...";
+    const nomes = av ? nomesResponsaveis2() : allCountries2.map(f => f.properties.name);
+    document.getElementById("map2-search-list").innerHTML = nomes.map(n => `<option value="${escP2(n)}">`).join("");
+    const reset = document.getElementById("map2-search-reset");
+    reset.textContent = av ? "Ver todos" : "Ver mundo todo";
+    reset.style.display = av && avisos2Responsavel ? "inline-block" : "";
+    if (!av) return;
+    if (document.activeElement !== input) input.value = avisos2Responsavel || "";
+    document.getElementById("map2-search-msg").textContent = avisos2Responsavel ? `Só as tarefas de ${avisos2Responsavel}.` : "";
+  }
+  function aplicarResponsavel2(nome) {
+    avisos2Responsavel = nome || null;
+    document.getElementById("map2-search-input").value = avisos2Responsavel || "";
+    avisosCache2 = null;
+    if (allCountries2.length) renderWorldMap2();
+    renderLegend2();
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+    populateSearchList2();
   }
   function searchGo2() {
     const input = document.getElementById("map2-search-input");
     const nome = input.value.trim();
     const msg = document.getElementById("map2-search-msg");
+    if (ehQuadroAvisos(boardAtual())) {
+      if (!nome) { aplicarResponsavel2(null); return; }
+      const nomes = nomesResponsaveis2(), q = nome.toLowerCase();
+      const achado = nomes.find(n => n.toLowerCase() === q) || (nomes.filter(n => n.toLowerCase().includes(q)).length === 1 ? nomes.find(n => n.toLowerCase().includes(q)) : null);
+      if (!achado) { msg.textContent = "Responsável não encontrado."; return; }
+      aplicarResponsavel2(achado);
+      return;
+    }
     if (!nome) { msg.textContent = ""; return; }
     const feature = allCountries2.find(f => f.properties.name.toLowerCase() === nome.toLowerCase());
     if (!feature) { msg.textContent = ROTULO_UNIDADE + " não encontrado."; return; }
@@ -16214,6 +16260,11 @@ applyRolePermissions();
   document.getElementById("map2-search-reset").addEventListener("click", () => {
     document.getElementById("map2-search-input").value = "";
     document.getElementById("map2-search-msg").textContent = "";
+    if (ehQuadroAvisos(boardAtual())) aplicarResponsavel2(null);
+  });
+  // Escolher um nome da lista já aplica (sem precisar de Enter).
+  document.getElementById("map2-search-input").addEventListener("change", () => {
+    if (ehQuadroAvisos(boardAtual())) searchGo2();
   });
 
   // ── Carrega a geografia do mundo (busca propria — nao compartilha a
