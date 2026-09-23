@@ -15,6 +15,19 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Robô: reuniões (Read AI) na regra de 22/09** — a regra da Karina
+  lista pra ela "as dela + Slack + e-mail"; os avisos de itens de reunião
+  (e de sistema) continuam indo pra admin. Confirmar com ela se ficam.
+  - *Aberto em:* 2026-09-22
+
+- [ ] **Aviso de mudança de datas em massa** — Karina perguntou (22/09) se
+  o robô avisa quando alguém muda muitas datas. Proposta: a Dash registra
+  quem mudou cada data; o robô junta (ex.: 5+ prazos da mesma pessoa em 1h).
+  Pendente: pela regra de 22/09, aviso sobre tarefas dos outros só quando
+  ela pedir — precisa ela dizer se isso é exceção. Faltam também as 3
+  escolhas (limite, só Fim ou Início também, de quem).
+  - *Aberto em:* 2026-09-22
+
 - [ ] **Slack: conferir o 1º aviso de verdade** — publicado em 22/09
   (Changelog, 7ª). Mandar uma mensagem num canal onde o bot está e ver se
   chega no WhatsApp em até ~5 min, com os botões Criar tarefa / Ver

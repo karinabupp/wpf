@@ -43,6 +43,12 @@ dois arquivos antes de propor qualquer coisa**:
   `update wpf_acesso set precisa_trocar_senha = true where email = '<e-mail>';`
   Na próxima entrada a Dash obriga a trocar.
 - **Nunca** colocar senha, token ou chave secreta neste repo: ele é público.
+- **REGRA DO ROBÔ (Karina, 22/09 — não pode quebrar):** o que cada um recebe
+  sem pedir. Leonardo e Roberto: só as tarefas deles. Isabela: as dela +
+  Slack. Karina: as dela + Slack + e-mail (e, como admin, reuniões/sistema).
+  Tarefas dos outros: NUNCA por conta própria; só na conversa, quando a
+  pessoa pedir. Slack por pessoa = `recebe_slack` em `wpf_agente_pessoas`.
+  Teste que guarda a regra: `teste_regra.mjs` (sessão de 22/09).
 - **Robô — quem cria linha pra outras pessoas:** admin, ou quem tem
   `cria_para_outros = true` em `wpf_agente_pessoas` (hoje: Isabela).
 

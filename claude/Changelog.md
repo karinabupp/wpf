@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-22 (18ª) — REGRA: o que cada pessoa recebe do robô
+
+Regra da Karina, "não pode quebrar":
+- **Leonardo** e **Roberto**: só o que é das tarefas deles.
+- **Isabela**: as tarefas dela + Slack.
+- **Karina**: as dela + Slack + e-mail + tarefas dos outros **só quando
+  pedir** (na conversa).
+
+O que violava e foi corrigido:
+1. **Slack chegava pros quatro** → coluna `recebe_slack` em
+   `wpf_agente_pessoas` (Karina e Isabela = true;
+   `sql/2026-09-22_recebe_slack.sql`); `avisosDoSlack` sai cedo pra quem
+   não tem.
+2. **Avisos "Da equipe" pra Karina** (tarefa/entregável dos outros que
+   acabou de atrasar) → removidos da detecção. Isso **substitui** a decisão
+   de mais cedo hoje (ela queria recebê-los) — a regra nova vale.
+3. **Entregável vencendo pra admin sem tarefa dela dentro** → agora só vai
+   pra quem tem tarefa ali.
+
+Continua: e-mail só pra dona do Gmail (Karina); reuniões (Read AI) e avisos
+de sistema pra admin; recado "Falar com X" (Karina → pessoa, sobre a tarefa
+DA pessoa) — mas o botão só aparecia nos avisos da equipe, então hoje não
+tem mais porta de entrada automática. Na conversa nada mudou (já era só a
+pessoa, e os outros quando ela pede).
+- **Verificação:** 9 testes da regra (pessoa por pessoa: tarefas e Slack) +
+  42 + 32 + 16 + 5 + 28 (testes antigos que esperavam "Da equipe" foram
+  ajustados pra regra).
+
+---
+
 ## 2026-09-22 (17ª) — CRM da CBTH: Lead e Troca no Status Federações
 
 Pedido da Karina: Lead, Negociação, Troca, Membro.

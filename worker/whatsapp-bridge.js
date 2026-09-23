@@ -993,6 +993,11 @@ function donosTexto(no) {
   const l = [...nomes].map(n => String(n).split(" ")[0]);
   return l.length ? (l.length > 2 ? l.slice(0, 2).join(", ") + " e outros" : l.join(" e ")) : "sem responsável";
 }
+// REGRA DA KARINA (22/09), não pode quebrar — o que cada um RECEBE sem pedir:
+//   Leonardo, Roberto: só o que é das tarefas deles.
+//   Isabela: as tarefas dela + Slack (recebe_slack).
+//   Karina: as dela + Slack + e-mail (+ reuniões/sistema, de admin).
+//   Tarefas dos outros: nunca por conta própria; só na conversa, quando pedir.
 function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
   const nome = pessoa.nome_tasks, amanha = somaDias(hoje, 1), recente = diasUteisAtras(hoje, DIAS_UTEIS_ATRASO_RECENTE), itens = [];
   const ancestrais = info => { const l = []; let p = info.pai; while (p) { l.push(info.empresa.secao + "|" + p.id + "|"); const ip = indice.porId[info.empresa.secao + "|" + p.id]; p = ip && ip.pai; } return l; };
@@ -1012,32 +1017,14 @@ function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
     if (no.rowType === "entregavel" && temFilhos(no) && venceLogo(no) && !dentroDeMarcado(info)) {
       const n = folhasAbaixo(no, aberta).length;
       const minhas = folhasAbaixo(no, f => aberta(f) && ehDono(f, nome)).length;
-      if (n >= MIN_TAREFAS_ABERTAS && (minhas || pessoa.admin)) {
+      if (n >= MIN_TAREFAS_ABERTAS && minhas) {
         const rot = minhas ? `Entregável com ${minhas} tarefa(s) sua(s) vence ${quando(no)} (${n} abertas no total)` : `Da equipe (de ${donosTexto(no)}, não seu) — Entregável vence ${quando(no)} com ${n} tarefas abertas`;
         add(base + "deadline_aberta", info, rot); marcados.add(id);
       }
     }
-    // 3. Admin: Meta/Projeto/Entregável de outra pessoa.
-    if (pessoa.admin && TIPOS_GRANDES[no.rowType] && !ehDono(no, nome) && !dentroDeMarcado(info)) {
-      if (acabouDeAtrasar(no)) {
-        const n = folhasAbaixo(no, f => f.status === "Late").length;
-        // Entregável com filhos só vira assunto quando o problema é o
-        // conjunto (3+ tarefas atrasadas); senão cada tarefa fala por si.
-        if (temFilhos(no) && n < MIN_TAREFAS_ABERTAS) return;
-        add(base + "grande_late", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} acabou de atrasar`, n ? ` | ${n} tarefa(s) atrasada(s) dentro` : "");
-        marcados.add(id);
-      } else if (no.rowType !== "entregavel" && venceLogo(no)) {
-        const n = folhasAbaixo(no, aberta).length;
-        if (n >= MIN_TAREFAS_ABERTAS) { add(base + "grande_deadline", info, `Da equipe (de ${donosTexto(no)}, não seu) — ${TIPO_LABEL[no.rowType]} vence ${quando(no)} com ${n} tarefas abertas`); marcados.add(id); }
-      }
-    }
-    // 3b. Admin: tarefa de outra pessoa que acabou de atrasar, sem estar
-    //     dentro de um entregável já avisado (o problema é a tarefa).
-    if (pessoa.admin && no.rowType === "tarefa" && !temFilhos(no) && !ehDono(no, nome) && acabouDeAtrasar(no) && !dentroDeMarcado(info)) {
-      const pai = info.pai;
-      const irmasLate = pai ? (pai.subtasks || []).filter(x => x.status === "Late" && !temFilhos(x)).length : 0;
-      if (irmasLate < MIN_TAREFAS_ABERTAS) add(base + "grande_late", info, `Da equipe (de ${donosTexto(no)}, não seu) — Tarefa acabou de atrasar`);
-    }
+    // (22/09) REGRA DA KARINA: ninguém recebe aviso proativo sobre as
+    // tarefas dos OUTROS — nem a admin. Tarefa dos outros só na conversa,
+    // quando ela pedir. Os antigos avisos "Da equipe" saíram daqui.
     // 4. Linha nova atribuída à pessoa.
     if (snap && ehDono(no, nome)) {
       const antes = ((snap.tasks || {})[info.empresa.secao] || {})[no.id];
@@ -1264,6 +1251,8 @@ function ehDiretoPraAdmin(m, admins) {
   });
 }
 async function avisosDoSlack(env, pessoa, cadastro) {
+  // REGRA (22/09): Slack só pra quem tem recebe_slack (Karina e Isabela).
+  if (!pessoa.recebe_slack) return [];
   const chaveCfg = `slack_visto_${pessoa.telefone}`;
   const visto = await cfgGet(env, chaveCfg);
   const r = await sb(env, `${TAB_SLACK}?select=channel,channel_name,user_name,text,ts&order=ts.desc&limit=60`);
