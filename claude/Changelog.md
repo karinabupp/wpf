@@ -12,6 +12,18 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-23 (5ª) — Avisos Gerais: "Tarefas sem país" e "em <lugar>"
+
+Karina viu "Confirmar contato de resp por mídias — USA · Isabela" na lista e
+achou que tinha país. Conferido no banco: a tarefa não tem país, nem o
+entregável "USA" onde ela está (Stops Americas › USA) — "USA" era o nome do
+pai. Pra não confundir:
+- título "Tarefas sem país" ("Tarefas sem estado" na CBTH);
+- o lugar aparece como "em USA".
+- **Verificação:** 21 do Avisos Gerais + 32 + 28 + 36.
+
+---
+
 ## 2026-09-23 (4ª) — Avisos Gerais: a lista ao lado é das tarefas SEM país
 
 Karina: "por país você mostra no mapa; a lista ao lado é das tarefas em

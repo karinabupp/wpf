@@ -15495,7 +15495,7 @@ applyRolePermissions();
       .sort((x, y) => (x.tipo === y.tipo ? 0 : x.tipo === "Urgência" ? -1 : 1) || String(x.t.endDate || "9999").localeCompare(String(y.t.endDate || "9999")));
     const dm = d => (d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d.slice(8, 10) + "/" + d.slice(5, 7) : "");
     const primeiros = l => (l || []).map(n => String(n).split(" ")[0]).join(", ");
-    const titulo = `<div class="avisos2-lista-titulo">Sem ${escP2(ROTULO_UNIDADE.toLowerCase())} <span>${visiveis.length}</span></div>`;
+    const titulo = `<div class="avisos2-lista-titulo">Tarefas sem ${escP2(ROTULO_UNIDADE.toLowerCase())} <span>${visiveis.length}</span></div>`;
     if (!visiveis.length) { caixa.innerHTML = titulo + `<div class="avisos2-lista-vazia">Nenhuma tarefa em urgência ou deadline sem ${escP2(ROTULO_UNIDADE.toLowerCase())}.</div>`; return; }
     caixa.innerHTML = titulo + `<div class="avisos2-lista">` + visiveis.map(x => {
       let onde = "";
@@ -15505,7 +15505,7 @@ applyRolePermissions();
           <span class="avisos2-quadrado" style="background:${corDoStatus2(board, x.tipo)}"></span>
           <span class="avisos2-item-texto">
             <span class="avisos2-item-nome">${escP2(x.t.name || "(sem nome)")}</span>
-            <span class="avisos2-item-meta">${[onde, primeiros(x.t.assignees), dm(x.t.endDate)].filter(Boolean).map(escP2).join(" · ")}</span>
+            <span class="avisos2-item-meta">${[onde ? "em " + onde : "", primeiros(x.t.assignees), dm(x.t.endDate)].filter(Boolean).map(escP2).join(" · ")}</span>
           </span>
         </button>`;
     }).join("") + `</div>`;
