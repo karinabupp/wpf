@@ -12,6 +12,26 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-23 (2ª) — CRM › Avisos Gerais: lista de tarefas embaixo da legenda
+
+Pedido da Karina (WPF e CBTH, só no Avisos Gerais).
+
+- Embaixo da legenda, **"Tarefas N"**: as que contam no Avisos Gerais, com
+  quadradinho **vermelho = Urgência (Late)** e **amarelo = Deadline**
+  (cores do próprio pipeline). Done e o resto não aparecem. Urgência
+  primeiro, depois por Fim. Cada linha: nome, país/estado, responsável(is),
+  fim. Clicar abre o popup do país (o mesmo do número no mapa).
+- Segue o filtro por responsável e o filtro da cor (clicar em Atenção na
+  legenda → só Deadline). Nos outros pipelines a lista não aparece.
+- Como o resto do Avisos Gerais, entram as tarefas que têm país/estado.
+- **Onde:** `index.html` — `#legend2-tarefas`, `renderTarefasAvisos2`
+  (chamada no `renderLegend2`), CSS `.avisos2-*`.
+- **Verificação:** 7 testes novos (ordem e cores, fora o que não conta,
+  país/responsável/fim, filtro da cor, clique abre o popup, filtro por
+  responsável, outros pipelines sem lista) + 32 + 28 + 3 + 36 + 20.
+
+---
+
 ## 2026-09-23 — CRM › Avisos Gerais: busca por responsável
 
 Pedido da Karina: no Avisos Gerais (WPF e CBTH), o buscador deixa de ser

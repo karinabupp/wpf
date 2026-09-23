@@ -2047,6 +2047,23 @@
   .legend-subrow { padding: 10px 0; font-size: 14px; }
   .legend-subrow .legend-left { font-size: 14px; }
   .legend-subrow .legend-dot { width: 12px; height: 12px; }
+  #legend2-tarefas:empty { display: none; }
+  .avisos2-lista-titulo {
+    margin: 14px 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .03em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .avisos2-lista-titulo span { font-weight: 600; margin-left: 4px; }
+  .avisos2-lista { display: flex; flex-direction: column; max-height: 340px; overflow-y: auto; margin: 0 -6px; }
+  .avisos2-item {
+    display: flex; align-items: flex-start; gap: 10px; text-align: left; width: 100%;
+    border: none; background: none; padding: 7px 6px; border-radius: 6px; cursor: pointer;
+    font-family: inherit; color: var(--text);
+  }
+  .avisos2-item:hover { background: var(--bg); }
+  .avisos2-quadrado { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
+  .avisos2-item-texto { display: flex; flex-direction: column; min-width: 0; }
+  .avisos2-item-nome { font-size: 13.5px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .avisos2-item-meta { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
   .legend2-dot-btn { border: none; padding: 0; cursor: pointer; transition: transform .1s; }
   .legend2-dot-btn:hover { transform: scale(1.15); }
   .legend2-filtrada .legend2-dot-btn { outline: 2px solid var(--text); outline-offset: 2px; }
@@ -5502,6 +5519,7 @@
         <div id="map2-search-msg" class="map-search-msg"></div>
       </div>
       <div id="legend2-rows"></div>
+      <div id="legend2-tarefas"></div>
     </div>
 
     <div id="panel2" class="side-card closed">
@@ -15403,6 +15421,37 @@ applyRolePermissions();
   // status do quadro (Membro, nos quadros padrao) e clicavel — abre a
   // proporcao entre Observador e Afiliado, em numero e em % DENTRO do
   // total daquele status (nao do total de paises). ───────────────────────
+  // Avisos Gerais (23/09, Karina): embaixo da legenda, as tarefas que
+  // contam — vermelho = Urgência (Late), amarelo = Deadline. Done e o resto
+  // não aparecem. Segue o filtro por responsável e o filtro da cor.
+  function renderTarefasAvisos2(board) {
+    const caixa = document.getElementById("legend2-tarefas");
+    if (!caixa) return;
+    if (!ehQuadroAvisos(board) || !tasks2Bridge) { caixa.innerHTML = ""; return; }
+    if (!avisosCache2) avisosCache2 = avisosDasTasks2();
+    const itens = [];
+    Object.entries(avisosCache2).forEach(([pais, a]) => {
+      a.lateIds.forEach(id => itens.push({ id, pais, tipo: "Urgência" }));
+      a.deadlineIds.forEach(id => itens.push({ id, pais, tipo: "Atenção" }));
+    });
+    const visiveis = itens
+      .filter(x => !legend2Filtro || legend2Filtro === x.tipo)
+      .map(x => ({ ...x, t: tasks2Bridge.tarefa(x.id) || {} }))
+      .sort((x, y) => (x.tipo === y.tipo ? 0 : x.tipo === "Urgência" ? -1 : 1) || String(x.t.endDate || "9999").localeCompare(String(y.t.endDate || "9999")));
+    if (!visiveis.length) { caixa.innerHTML = ""; return; }
+    const dm = d => (d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? d.slice(8, 10) + "/" + d.slice(5, 7) : "");
+    const primeiros = l => (l || []).map(n => String(n).split(" ")[0]).join(", ");
+    caixa.innerHTML = `<div class="avisos2-lista-titulo">Tarefas <span>${visiveis.length}</span></div>
+      <div class="avisos2-lista">` + visiveis.map(x => `
+        <button type="button" class="avisos2-item" data-pais="${escP2(x.pais)}" title="${escP2(x.t.name || "")}">
+          <span class="avisos2-quadrado" style="background:${corDoStatus2(board, x.tipo)}"></span>
+          <span class="avisos2-item-texto">
+            <span class="avisos2-item-nome">${escP2(x.t.name || "(sem nome)")}</span>
+            <span class="avisos2-item-meta">${escP2(x.pais)}${x.t.assignees && x.t.assignees.length ? " · " + escP2(primeiros(x.t.assignees)) : ""}${x.t.endDate ? " · " + dm(x.t.endDate) : ""}</span>
+          </span>
+        </button>`).join("") + `</div>`;
+    caixa.onclick = ev => { const b = ev.target.closest(".avisos2-item"); if (b) abrirPopupAvisos2(b.dataset.pais); };
+  }
   function renderLegend2() {
     const rowsEl = document.getElementById("legend2-rows");
     const board = boardAtual();
@@ -15460,6 +15509,7 @@ applyRolePermissions();
       }
       return `<div class="legend-row-wrap">${linha}${dentro}</div>`;
     }).join("");
+    renderTarefasAvisos2(board);
     // A busca muda conforme o quadro (Avisos Gerais = por responsável).
     const buscaAvisos = ehQuadroAvisos(board);
     const chaveBusca = buscaAvisos + "|" + avisos2Responsavel + "|" + allCountries2.length + "|" + (buscaAvisos ? nomesResponsaveis2().join(",") : "");
