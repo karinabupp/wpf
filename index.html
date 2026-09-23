@@ -4768,6 +4768,43 @@
     padding: 2px 5px; border-radius: 5px; color: #fff;
   }
   .presenca-etiqueta.ausente { opacity: .5; }
+  /* ── Carinha na Dash (23/09): janelinha de assistente, só pra Karina ── */
+  #carinha-bolha {
+    position: fixed; z-index: 890; width: 58px; height: 58px; border-radius: 50%;
+    border: 3px solid #fff; box-shadow: 0 6px 20px rgba(0,0,0,.25); cursor: pointer;
+    background-size: cover; background-position: center; padding: 0; touch-action: none;
+  }
+  #carinha-bolha:hover { transform: scale(1.05); }
+  #carinha-janela {
+    position: fixed; z-index: 890; width: 360px; height: 520px; max-height: calc(100vh - 24px);
+    display: flex; flex-direction: column; background: var(--panel, #fff);
+    border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 16px 44px rgba(0,0,0,.22); overflow: hidden;
+  }
+  #carinha-janela.hidden, #carinha-bolha.hidden { display: none; }
+  #carinha-cabeca {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; cursor: move; user-select: none;
+    background: var(--accent); color: #fff; touch-action: none;
+  }
+  #carinha-cabeca .carinha-foto { width: 32px; height: 32px; border-radius: 50%; background-size: cover; border: 2px solid rgba(255,255,255,.8); flex-shrink: 0; }
+  #carinha-cabeca .carinha-nome { font-weight: 700; font-size: 14px; flex: 1; }
+  #carinha-cabeca .carinha-sub { font-size: 11px; opacity: .8; font-weight: 400; display: block; }
+  #carinha-min { border: none; background: rgba(255,255,255,.18); color: #fff; width: 28px; height: 28px; border-radius: 7px; cursor: pointer; font-size: 18px; line-height: 1; }
+  #carinha-min:hover { background: rgba(255,255,255,.3); }
+  #carinha-msgs { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
+  .carinha-msg { max-width: 86%; padding: 8px 11px; border-radius: 12px; font-size: 13.5px; line-height: 1.4; white-space: normal; word-wrap: break-word; }
+  .carinha-msg.de-carinha { align-self: flex-start; background: #fff; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .carinha-msg.de-eu { align-self: flex-end; background: #d9fdd3; border-bottom-right-radius: 4px; }
+  .carinha-msg .carinha-hora { display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 3px; text-align: right; }
+  .carinha-ops { align-self: flex-start; display: flex; flex-wrap: wrap; gap: 6px; max-width: 92%; }
+  .carinha-op { border: 1px solid var(--accent); color: var(--accent); background: #fff; border-radius: 999px; padding: 5px 11px; font-size: 12.5px; cursor: pointer; font-family: inherit; }
+  .carinha-op:hover:not(:disabled) { background: var(--accent); color: #fff; }
+  .carinha-op:disabled { opacity: .45; cursor: default; }
+  .carinha-digitando { align-self: flex-start; font-size: 12px; color: var(--text-muted); padding: 2px 4px; }
+  .carinha-dia { align-self: center; font-size: 11px; color: var(--text-muted); background: #fff; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; }
+  #carinha-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border); background: var(--panel, #fff); }
+  #carinha-texto { flex: 1; resize: none; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-family: inherit; font-size: 13.5px; max-height: 110px; min-height: 38px; }
+  #carinha-enviar { border: none; background: var(--accent); color: #fff; border-radius: 10px; padding: 0 14px; font-weight: 600; cursor: pointer; }
+  #carinha-enviar:disabled { opacity: .5; cursor: default; }
 </style>
 
 </head>
@@ -7199,6 +7236,7 @@ function concluirLogin(acesso) {
   applyRolePermissions();
   resolverLoginFeito();
   iniciarPresenca();
+  iniciarCarinha();
 }
 
 // Primeiro acesso (ou senha resetada): a pessoa define a senha dela.
@@ -20490,6 +20528,168 @@ async function iniciarPresenca() {
   } catch (e) {
     console.warn("presença indisponível:", e);
   }
+}
+// ══════════════════════════════════════════════════════════
+// CARINHA NA DASH (23/09, Karina): janelinha do assistente, só pra
+// karina@. É o mesmo robô do WhatsApp e a MESMA conversa (a rota /chat do
+// Worker trata a mensagem igual a uma do WhatsApp e devolve a resposta
+// aqui). Arrasta pelo cabeçalho; minimizar deixa só a bolinha com a foto.
+// Posição e estado ficam no navegador.
+// ══════════════════════════════════════════════════════════
+const CARINHA_URL = "https://wpf-whatsapp-bridge.worldpokerfederation.workers.dev/chat";
+const CARINHA_LOGINS = ["karina"];
+const CARINHA_FOTO = "data:image/jpeg;base64,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";
+const CARINHA_POS_KEY = "wpf_carinha_pos", CARINHA_MIN_KEY = "wpf_carinha_min";
+let carinhaCarregado = false, carinhaOcupado = false;
+
+function carinhaFormatar(t) {
+  let h = String(t || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  h = h.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>')
+       .replace(/\*([^*\n]+)\*/g, "<b>$1</b>").replace(/(^|\s)_([^_\n]+)_(?=\s|$|[.,!?])/g, "$1<i>$2</i>").replace(/~([^~\n]+)~/g, "<s>$1</s>");
+  return h.replace(/\n/g, "<br>");
+}
+function carinhaHora(iso) {
+  const d = iso ? new Date(iso) : new Date();
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+function carinhaPos() {
+  try { const p = JSON.parse(localStorage.getItem(CARINHA_POS_KEY) || "null"); if (p && typeof p.right === "number") return p; } catch (e) {}
+  return { right: 20, bottom: 20 };
+}
+function carinhaAplicarPos() {
+  const p = carinhaPos();
+  ["carinha-janela", "carinha-bolha"].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    const w = el.offsetWidth || (id === "carinha-bolha" ? 58 : 360), h = el.offsetHeight || (id === "carinha-bolha" ? 58 : 520);
+    el.style.right = Math.min(Math.max(8, p.right), Math.max(8, window.innerWidth - w - 8)) + "px";
+    el.style.bottom = Math.min(Math.max(8, p.bottom), Math.max(8, window.innerHeight - h - 8)) + "px";
+    el.style.left = "auto"; el.style.top = "auto";
+  });
+}
+function carinhaMinimizar(min) {
+  localStorage.setItem(CARINHA_MIN_KEY, min ? "1" : "0");
+  document.getElementById("carinha-janela").classList.toggle("hidden", min);
+  document.getElementById("carinha-bolha").classList.toggle("hidden", !min);
+  carinhaAplicarPos();
+  if (!min) {
+    if (!carinhaCarregado) carinhaCarregarHistorico();
+    setTimeout(() => document.getElementById("carinha-texto").focus(), 50);
+  }
+}
+// Arrastar (cabeçalho da janela ou a bolinha). Clique curto na bolinha abre.
+function carinhaArrastavel(alvo, janelaOuBolha, aoClicar) {
+  let ini = null;
+  alvo.addEventListener("pointerdown", e => {
+    if (e.target.closest("#carinha-min")) return;
+    const r = janelaOuBolha.getBoundingClientRect();
+    ini = { x: e.clientX, y: e.clientY, right: window.innerWidth - r.right, bottom: window.innerHeight - r.bottom, moveu: false };
+    alvo.setPointerCapture(e.pointerId);
+  });
+  alvo.addEventListener("pointermove", e => {
+    if (!ini) return;
+    const dx = e.clientX - ini.x, dy = e.clientY - ini.y;
+    if (Math.abs(dx) + Math.abs(dy) > 4) ini.moveu = true;
+    if (!ini.moveu) return;
+    localStorage.setItem(CARINHA_POS_KEY, JSON.stringify({ right: ini.right - dx, bottom: ini.bottom - dy }));
+    carinhaAplicarPos();
+  });
+  alvo.addEventListener("pointerup", () => { const m = ini && ini.moveu; ini = null; if (!m && aoClicar) aoClicar(); });
+}
+function carinhaMensagem(m, animar) {
+  const caixa = document.getElementById("carinha-msgs");
+  const div = document.createElement("div");
+  div.className = "carinha-msg " + (m.de === "eu" ? "de-eu" : "de-carinha");
+  div.innerHTML = carinhaFormatar(m.texto) + `<span class="carinha-hora">${carinhaHora(m.hora)}${m.canal === "whatsapp" ? " · WhatsApp" : ""}</span>`;
+  caixa.appendChild(div);
+  // Botões só na última mensagem do Carinha (as antigas ficam sem).
+  caixa.querySelectorAll(".carinha-ops").forEach(o => o.remove());
+  if (m.de !== "eu" && m.opcoes && m.opcoes.length) {
+    const ops = document.createElement("div");
+    ops.className = "carinha-ops";
+    m.opcoes.forEach(o => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "carinha-op"; b.textContent = o;
+      b.addEventListener("click", () => { ops.querySelectorAll("button").forEach(x => x.disabled = true); carinhaEnviar(o, m.id); });
+      ops.appendChild(b);
+    });
+    caixa.appendChild(ops);
+  }
+  caixa.scrollTop = caixa.scrollHeight;
+}
+async function carinhaCarregarHistorico() {
+  const caixa = document.getElementById("carinha-msgs");
+  caixa.innerHTML = `<div class="carinha-digitando">Carregando a conversa…</div>`;
+  try {
+    const res = await fetch(CARINHA_URL, { headers: await headersWorker() });
+    const d = await res.json();
+    caixa.innerHTML = "";
+    const lista = (d && d.mensagens) || [];
+    if (!lista.length) carinhaMensagem({ de: "carinha", texto: "Oi, Karina! Sou o Carinha. Pode me perguntar das tarefas, do CRM, ou pedir pra criar e mudar coisas — eu sempre confirmo antes.", opcoes: [] });
+    let diaAnt = "";
+    lista.forEach(m => {
+      const dia = m.hora ? new Date(m.hora).toLocaleDateString("pt-BR") : "";
+      if (dia && dia !== diaAnt) { const s = document.createElement("div"); s.className = "carinha-dia"; s.textContent = dia; caixa.appendChild(s); diaAnt = dia; }
+      carinhaMensagem(m);
+    });
+    carinhaCarregado = true;
+  } catch (e) {
+    caixa.innerHTML = `<div class="carinha-digitando">Não consegui carregar a conversa. Fecha e abre de novo.</div>`;
+  }
+}
+async function carinhaEnviar(texto, contexto) {
+  texto = String(texto || "").trim();
+  if (!texto || carinhaOcupado) return;
+  carinhaOcupado = true;
+  const botao = document.getElementById("carinha-enviar");
+  botao.disabled = true;
+  carinhaMensagem({ de: "eu", texto, canal: "dash" });
+  const caixa = document.getElementById("carinha-msgs");
+  const dig = document.createElement("div");
+  dig.className = "carinha-digitando"; dig.textContent = "Carinha está digitando…";
+  caixa.appendChild(dig); caixa.scrollTop = caixa.scrollHeight;
+  try {
+    const res = await fetch(CARINHA_URL, { method: "POST", headers: await headersWorker({ "Content-Type": "application/json" }), body: JSON.stringify({ texto, contexto: contexto || null }) });
+    const d = await res.json();
+    dig.remove();
+    ((d && d.mensagens) || []).forEach(m => carinhaMensagem({ de: "carinha", texto: m.texto, opcoes: m.opcoes, id: m.id, canal: "dash" }));
+    if (!res.ok && d && d.erro) carinhaMensagem({ de: "carinha", texto: "Não consegui: " + d.erro, opcoes: [] });
+    // Ele pode ter mudado algo na Dash: puxa da nuvem na hora.
+    try { if (typeof buscarAtualizacoesDaNuvem === "function") buscarAtualizacoesDaNuvem(); } catch (e) {}
+  } catch (e) {
+    dig.remove();
+    carinhaMensagem({ de: "carinha", texto: "Tive um problema de conexão. Tenta de novo?", opcoes: [] });
+  } finally {
+    carinhaOcupado = false; botao.disabled = false;
+  }
+}
+function iniciarCarinha() {
+  if (!currentUser || !CARINHA_LOGINS.includes(currentUser.login) || document.getElementById("carinha-janela")) return;
+  const bolha = document.createElement("button");
+  bolha.id = "carinha-bolha"; bolha.type = "button"; bolha.title = "Carinha"; bolha.setAttribute("aria-label", "Abrir o Carinha");
+  bolha.style.backgroundImage = `url(${CARINHA_FOTO})`;
+  const jan = document.createElement("div");
+  jan.id = "carinha-janela";
+  jan.innerHTML = `
+    <div id="carinha-cabeca">
+      <span class="carinha-foto" style="background-image:url(${CARINHA_FOTO})"></span>
+      <span class="carinha-nome">Carinha<span class="carinha-sub">assistente da Dash · mesma conversa do WhatsApp</span></span>
+      <button type="button" id="carinha-min" title="Minimizar" aria-label="Minimizar">–</button>
+    </div>
+    <div id="carinha-msgs"></div>
+    <form id="carinha-form">
+      <textarea id="carinha-texto" rows="1" placeholder="Escreve pro Carinha…"></textarea>
+      <button type="submit" id="carinha-enviar">Enviar</button>
+    </form>`;
+  document.body.appendChild(jan);
+  document.body.appendChild(bolha);
+  document.getElementById("carinha-min").addEventListener("click", () => carinhaMinimizar(true));
+  carinhaArrastavel(document.getElementById("carinha-cabeca"), jan);
+  carinhaArrastavel(bolha, bolha, () => carinhaMinimizar(false));
+  const ta = document.getElementById("carinha-texto");
+  document.getElementById("carinha-form").addEventListener("submit", e => { e.preventDefault(); const t = ta.value; ta.value = ""; carinhaEnviar(t); });
+  ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById("carinha-form").requestSubmit(); } });
+  window.addEventListener("resize", carinhaAplicarPos);
+  carinhaMinimizar(localStorage.getItem(CARINHA_MIN_KEY) !== "0"); // começa minimizado
 }
 </script>
 

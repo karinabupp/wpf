@@ -175,8 +175,25 @@ function paraWhats(t) {
 }
 
 // consumo = { modelo, tokens_entrada, tokens_saida, tokens_cache, analise_geral }
+// ─── Carinha na Dash (23/09) ─────────────────────────────────────────────
+// Quando a mensagem veio da janelinha da Dash, env.__dash = { tel, saida }:
+// o que o robô "envia" pra essa pessoa não vai pro WhatsApp — volta pra Dash
+// (e fica gravado com canal 'dash', na mesma conversa). Mensagem pra OUTRA
+// pessoa (ex.: recado) continua indo pelo WhatsApp.
+function paraDash(env, para) { return env && env.__dash && env.__dash.tel === para; }
+async function entregarNaDash(env, para, texto, opcoes, consumo) {
+  const id = "dash-out-" + crypto.randomUUID();
+  await gravarMensagem(env, {
+    wa_message_id: id, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: para, canal: "dash",
+    msg_type: opcoes && opcoes.length ? "interactive" : "text", body: texto, opcoes: opcoes && opcoes.length ? opcoes : null,
+    sent_at: new Date().toISOString(), ...(consumo || {})
+  });
+  env.__dash.saida.push({ id, texto, opcoes: opcoes || [] });
+  return { ok: true, id };
+}
 async function enviarTexto(env, para, texto, consumo) {
   texto = corta(paraWhats(texto), 4000);
+  if (paraDash(env, para)) return entregarNaDash(env, para, texto, [], consumo);
   const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
@@ -226,6 +243,10 @@ function corpoInterativo(para, f) {
 }
 async function enviarComOpcoes(env, para, texto, opcoes, consumo) {
   texto = corta(paraWhats(texto), 4000);
+  if (paraDash(env, para)) {
+    const ops = (opcoes || []).map(o => String(o).trim()).filter(Boolean).filter((o, i, a) => a.indexOf(o) === i).slice(0, 10);
+    return entregarNaDash(env, para, texto, ops, consumo);
+  }
   // Texto maior que o corpo de uma mensagem com botões: manda o texto e,
   // logo abaixo, os botões com uma frase curta (em vez de lista numerada).
   if (texto.length > LIM_CORPO_INTERATIVO && (opcoes || []).filter(Boolean).length) {
@@ -1426,7 +1447,7 @@ async function rodadaProativa(env, cron, agoraMs) {
     const hojeP = rh.ok && Array.isArray(rh.dados) ? rh.dados : [];
     const conta = t => hojeP.filter(m => m.tipo_proativa === t).length;
     const ultimaProativa = hojeP.reduce((mx, m) => Math.max(mx, Date.parse(m.created_at)), 0);
-    const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&order=created_at.desc&limit=1`);
+    const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&canal=is.null&order=created_at.desc&limit=1`);
     const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
     const fechaEm = ultimaIn + 24 * 3600000;
     const aberta = fechaEm - agoraMs > MARGEM_JANELA_MS;
@@ -1681,7 +1702,7 @@ const extrairEmails = t => (String(t || "").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[
 const nomeDoRemetente = de => (String(de || "").replace(/<[^>]*>/, "").replace(/"/g, "").trim()) || String(de || "");
 
 async function janelaAberta(env, tel, agoraMs) {
-  const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&order=created_at.desc&limit=1`);
+  const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&canal=is.null&order=created_at.desc&limit=1`);
   const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
   return ultimaIn + 24 * 3600000 - (agoraMs || Date.now()) > MARGEM_JANELA_MS;
 }
@@ -2026,6 +2047,56 @@ async function assinaturaMetaOk(env, cabecalho, bruto) {
 }
 
 // ─── Entrada ─────────────────────────────────────────────────────────────
+// ─── Rota /chat: a janelinha do Carinha na Dash (23/09) ──────────────────
+// Só pra Karina (login "karina" no Supabase): a Dash manda o token de quem
+// está logado; o banco diz quem é. GET = histórico (mesma conversa do
+// WhatsApp); POST {texto, contexto} = mensagem nova, tratada exatamente
+// como uma do WhatsApp; a resposta volta no corpo.
+const SB_URL_PUBLICO = "https://ufwmktomjfcvloswgnyt.supabase.co";
+const SB_ANON_PUBLICO = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmd21rdG9tamZjdmxvc3dnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MjIyMDAsImV4cCI6MjEwMDM5ODIwMH0.NAhI21Vs1aYqJQ_P9QAVTsRQWr_8bYlaE1fPg2KS-mg";
+const LOGINS_CHAT_DASH = ["karina"];
+function corsChat() {
+  return { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type" };
+}
+function jsonChat(obj, status) {
+  return new Response(JSON.stringify(obj), { status: status || 200, headers: { ...corsChat(), "Content-Type": "application/json" } });
+}
+async function rotaChatDash(env, request) {
+  if (request.method === "OPTIONS") return new Response(null, { headers: corsChat() });
+  const auth = request.headers.get("Authorization") || "";
+  if (!/^Bearer\s+\S+$/.test(auth)) return jsonChat({ erro: "login necessário" }, 401);
+  let acesso = null;
+  try {
+    const r = await fetch(`${SB_URL_PUBLICO}/rest/v1/rpc/wpf_meu_acesso`, { method: "POST", headers: { apikey: SB_ANON_PUBLICO, Authorization: auth, "Content-Type": "application/json" }, body: "{}" });
+    const d = r.ok ? await r.json() : null;
+    acesso = Array.isArray(d) ? d[0] : d;
+  } catch (e) { acesso = null; }
+  if (!acesso || !LOGINS_CHAT_DASH.includes(acesso.login)) return jsonChat({ erro: "sem acesso" }, 403);
+  const rp = await sb(env, `${TAB_PESSOAS}?select=*&nome_tasks=eq.${encodeURIComponent(acesso.nome)}`);
+  const pessoa = rp.ok && rp.dados && rp.dados[0];
+  if (!pessoa) return jsonChat({ erro: "sem cadastro no robô" }, 403);
+  const tel = pessoa.telefone;
+  if (request.method === "GET") {
+    const rh = await sb(env, `${TAB_MSG}?select=wa_message_id,direction,body,opcoes,created_at,canal&or=(from_number.eq.${tel},to_number.eq.${tel})&order=created_at.desc&limit=60`);
+    const linhas = (rh.ok && Array.isArray(rh.dados) ? rh.dados : []).reverse()
+      .filter(m => m.body)
+      .map(m => ({ id: m.wa_message_id, de: m.direction === "in" ? "eu" : "carinha", texto: m.body, opcoes: Array.isArray(m.opcoes) ? m.opcoes : [], hora: m.created_at, canal: m.canal || "whatsapp" }));
+    return jsonChat({ mensagens: linhas });
+  }
+  if (request.method !== "POST") return jsonChat({ erro: "método" }, 405);
+  let corpo = null;
+  try { corpo = await request.json(); } catch (e) { corpo = null; }
+  const texto = corpo && String(corpo.texto || "").trim();
+  if (!texto) return jsonChat({ erro: "mensagem vazia" }, 400);
+  const msg = { id: "dash-in-" + crypto.randomUUID(), from: tel, type: "text", text: { body: corta(texto, 4000) }, timestamp: String(Math.floor(Date.now() / 1000)) };
+  if (corpo.contexto) msg.context = { id: String(corpo.contexto) };
+  await gravarMensagem(env, { wa_message_id: msg.id, direction: "in", from_number: tel, canal: "dash", msg_type: "text", body: msg.text.body, sent_at: new Date().toISOString() });
+  const envDash = Object.assign({}, env, { __dash: { tel, saida: [] } });
+  try { await tratarMensagem(envDash, msg, msg.text.body); }
+  catch (e) { console.log("chat dash:", e && e.message); envDash.__dash.saida.push({ id: null, texto: "Tive um problema pra responder agora. Tenta de novo?", opcoes: [] }); }
+  return jsonChat({ mensagens: envDash.__dash.saida });
+}
+
 export default {
   async scheduled(event, env, ctx) {
     const trabalho = (async () => {
@@ -2079,6 +2150,8 @@ export default {
       return new Response("ok", { status: 200 });
     }
 
+    if (url.pathname === "/chat") return rotaChatDash(env, request);
+
     if (url.pathname === "/readai/conectar" && (request.method === "GET" || request.method === "POST")) {
       try { return await paginaConectar(env, request, url); }
       catch (e) { console.log("readai conectar:", e && e.message); return paginaHtml("Erro", `<p class="erro">Algo deu errado. Tente de novo em instantes.</p>`); }
@@ -2100,5 +2173,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { janelaAberta, rotaChatDash, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

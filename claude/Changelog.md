@@ -12,6 +12,39 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-23 (6ª) — Carinha na Dash (janelinha de assistente, só pra Karina)
+
+Pedido da Karina, aprovado ("mesma conversa, pode mandar bala").
+
+- **Dash:** bolinha com a foto do Carinha no canto inferior direito (Tasks e
+  CRM), só pra login `karina`. Clicou → janela de chat (360×520) com o
+  cabeçalho "Carinha"; arrasta pelo cabeçalho (e a bolinha também);
+  minimizar volta pra bolinha. Posição e estado ficam no navegador
+  (`wpf_carinha_pos`, `wpf_carinha_min`); começa minimizado. Mostra a
+  conversa (inclusive a do WhatsApp, marcada "· WhatsApp"), com negrito/
+  itálico/links; opções viram botões clicáveis (só na última mensagem);
+  Enter envia, Shift+Enter quebra linha. Depois de cada resposta a Dash
+  puxa da nuvem (se ele mudou algo, aparece na hora). Foto recortada e
+  reduzida (128px, ~5KB) embutida no arquivo.
+- **Robô:** rota `/chat` (GET = histórico, POST = mensagem). Confere o login
+  do Supabase (`wpf_meu_acesso`) e só aceita `karina` (`LOGINS_CHAT_DASH`).
+  A mensagem passa pelo **mesmo** `tratarMensagem` do WhatsApp — mesma
+  conversa, mesmas regras, mesmas confirmações. Com `env.__dash`, o que ele
+  "envia" pra Karina volta pra Dash em vez do WhatsApp; recado pra outra
+  pessoa continua indo pelo WhatsApp.
+- **Banco:** coluna `canal` em `wpf_whatsapp_messages` (null = WhatsApp,
+  'dash'; `sql/2026-09-23_canal_dash.sql`). A janela de 24h do WhatsApp só
+  conta mensagens do WhatsApp (senão o robô acharia que pode mandar texto
+  livre no celular e falharia).
+- **Verificação:** 10 testes do robô (401 sem login; 403 Isabela; resposta
+  com botões; nada sai pelo WhatsApp; Claude vê a conversa do celular;
+  gravado como Dash; não abre a janela de 24h; histórico junto; botão com
+  contexto) + 15 da janelinha no Chromium (Isabela não vê; minimizado no
+  canto; abre; histórico; enviar; botões; login; contexto; arrastar;
+  minimizar no lugar; F5 mantém; aparece no CRM) + regressão completa.
+
+---
+
 ## 2026-09-23 (5ª) — Avisos Gerais: "Tarefas sem país" e "em <lugar>"
 
 Karina viu "Confirmar contato de resp por mídias — USA · Isabela" na lista e

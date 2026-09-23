@@ -49,6 +49,10 @@ dois arquivos antes de propor qualquer coisa**:
   Tarefas dos outros: NUNCA por conta própria; só na conversa, quando a
   pessoa pedir. Slack por pessoa = `recebe_slack` em `wpf_agente_pessoas`.
   Teste que guarda a regra: `teste_regra.mjs` (sessão de 22/09).
+- **Carinha na Dash (23/09):** janelinha de chat só pra login `karina`
+  (`CARINHA_LOGINS` no index.html + `LOGINS_CHAT_DASH` no Worker — mudar
+  nos dois). Rota `/chat` do Worker; mesma conversa do WhatsApp, marcada
+  `canal = 'dash'`.
 - **Robô — quem cria linha pra outras pessoas:** admin, ou quem tem
   `cria_para_outros = true` em `wpf_agente_pessoas` (hoje: Isabela).
 
