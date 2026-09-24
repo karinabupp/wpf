@@ -5958,6 +5958,7 @@
 //     abertura vale a nuvem, não a cópia velha) e o rodapé avisa.
 // ══════════════════════════════════════════════════════════════════════════
 const LOCAL_INCOMPLETO_KEY = "wpf_local_incompleto";
+const SYNC_PROTEGIDO_KEY = "wpf_sync_protegido_v1";
 let localSemEspaco = false;
 const ehChaveDeHistorico = k => /^wpf_historico_geral$|^wpf_tasks2_historico/.test(k);
 (function protegerMemoriaLocal() {
@@ -6360,7 +6361,7 @@ function applyAllData(data) {
   if (data.brazilStates) brazilStateData = data.brazilStates;
   if (data.goals) goalsData = data.goals.map(migrateGoalRecord);
   if (data.tasks) tasksData = data.tasks.map(t => ensureTaskDefaults(t));
-  if (data.users && data.users.length) usersList = data.users.map(ensureUserDefaults);
+  if (data.users && data.users.length) usersList = semUsuariosFantasma(data.users).map(ensureUserDefaults);
   if (data.social) socialData = data.social;
   if (data.socialBR) socialDataBR = data.socialBR;
   if (data.affiliations) affiliationsCountryData = data.affiliations;
@@ -6882,11 +6883,25 @@ async function lerCarimbos(secoes) {
   rows.forEach(r => { out[r.section] = r.updated_at; });
   return out;
 }
+// Tamanho (em caracteres) de cada seção como está na nuvem, pra trava de
+// apagamento em massa (ver enviarAgora).
+const cloudTamanhos = {};
+const tamanhoJson = v => { try { return JSON.stringify(v).length; } catch (e) { return 0; } };
 async function lerSecoes(secoes) {
   const rows = await cloudFetch(`select=section,data,updated_at&${filtroSecoes(secoes)}`);
   const data = {}, carimbos = {};
-  rows.forEach(r => { data[r.section] = r.data; carimbos[r.section] = r.updated_at; });
+  rows.forEach(r => { data[r.section] = r.data; carimbos[r.section] = r.updated_at; cloudTamanhos[r.section] = tamanhoJson(r.data); });
   return { data, carimbos };
+}
+// 24/09: um navegador com a cópia local faltando (memória cheia) mandou pra
+// nuvem o CRM quase vazio — a junta leu "não tenho" como "apaguei". Envio
+// que deixaria uma seção com menos de 40% do tamanho que ela tem na nuvem
+// é bloqueado e a seção volta da nuvem. Históricos ficam de fora (encolhem
+// de propósito). Restaurar versão (forcar) passa.
+function encolheuDemais(secao, valor) {
+  if (ehSecaoHistorico(secao)) return false;
+  const antes = cloudTamanhos[secao];
+  return antes > 1000 && tamanhoJson(valor) < antes * 0.4;
 }
 
 // Pessoa digitando num campo, ou com o botao do mouse apertado (arrastando,
@@ -6959,7 +6974,20 @@ async function enviarAgora(opcoes) {
   try {
     registrarVersaoGeral(collectAllData());
     let all = collectAllData();
-    const mudadas = secoesAtivas().filter(s => all[s] !== undefined && (forcar || secaoMudouAqui(s, all[s])));
+    let mudadas = secoesAtivas().filter(s => all[s] !== undefined && (forcar || secaoMudouAqui(s, all[s])));
+    if (!forcar) {
+      const suspeitas = mudadas.filter(s => encolheuDemais(s, all[s]));
+      if (suspeitas.length) {
+        console.warn("Envio bloqueado (apagaria quase tudo):", suspeitas.join(", "), "— voltando da nuvem.");
+        registrarVersaoGeral(all, true); // o estado local fica guardado como versão
+        const { data, carimbos } = await lerSecoes(suspeitas);
+        aplicarDaNuvem(data, carimbos);
+        suspeitas.forEach(s => { if (data[s] !== undefined) cloudBase[s] = baseDaSecao(data[s], s); });
+        guardarBase();
+        mudadas = mudadas.filter(s => !suspeitas.includes(s));
+        all = collectAllData();
+      }
+    }
     if (mudadas.length) {
       if (!forcar) {
         // Outra pessoa gravou alguma destas secoes desde a ultima vez que
@@ -7005,6 +7033,7 @@ async function enviarAgora(opcoes) {
       const carimbos = {};
       if (Array.isArray(resposta)) resposta.forEach(r => { if (r && r.section) carimbos[r.section] = r.updated_at; });
       enviado.forEach(r => {
+        cloudTamanhos[r.section] = tamanhoJson(r.data);
         cloudBase[r.section] = baseDaSecao(r.data, r.section);
         cloudStamps[r.section] = carimbos[r.section] || r.updated_at;
       });
@@ -7057,7 +7086,11 @@ async function loadFromCloud() {
     // Cópia deste navegador incompleta (faltou espaço numa gravação): ela
     // pode estar velha, então NÃO conta como edição feita aqui — a nuvem
     // vale. O estado local vira versão antes, dá pra voltar.
-    const localIncompleto = localStorage.getItem(LOCAL_INCOMPLETO_KEY) === "1";
+    // 24/09: na primeira abertura com a sincronização protegida, vale a nuvem
+    // (navegadores que perderam dados por falta de espaço antes da correção
+    // não tinham como saber que a cópia deles estava incompleta).
+    const primeiraVezProtegido = localStorage.getItem(SYNC_PROTEGIDO_KEY) !== "1";
+    const localIncompleto = localStorage.getItem(LOCAL_INCOMPLETO_KEY) === "1" || primeiraVezProtegido;
     if (localIncompleto) registrarVersaoGeral(all, true);
     const aplicar = {};
     const guardarPraJuntar = [];
@@ -7075,6 +7108,7 @@ async function loadFromCloud() {
       marcarPendente(false);
       if (!localSemEspaco) localStorage.removeItem(LOCAL_INCOMPLETO_KEY);
     }
+    localStorage.setItem(SYNC_PROTEGIDO_KEY, "1");
     cloudCarregou = true;
     cloudCargaFalhou = false;
     if (cloudPendente) {
@@ -7144,9 +7178,20 @@ const AUTH_SESSION_KEY = "wpf_auth_session";
 // First-run seed so nobody gets locked out — log in with one of these once,
 // then create the real accounts in Settings and delete/rename these.
 // (Sem senha: desde 21/09 o login e pelo Supabase Auth.)
-const USERS_SEED = [
-  { username: "karina", role: "adm" }
-];
+// 24/09: sem semente. O "karina" daqui virou um responsável fantasma quando
+// um navegador sem lista guardada mandou a semente pra nuvem. Quem entra
+// já vem do Supabase Auth; a lista de responsáveis vem da nuvem.
+const USERS_SEED = [];
+// Tira nomes-fantasma: só o primeiro nome em minúsculas ("karina") quando
+// já existe a pessoa com nome completo ("Karina Bupp").
+function semUsuariosFantasma(lista) {
+  const nomes = (lista || []).map(u => String((u && u.username) || ""));
+  return (lista || []).filter(u => {
+    const n = String((u && u.username) || "");
+    if (!n || /\s/.test(n) || n !== n.toLowerCase()) return true;
+    return !nomes.some(o => o !== n && o.toLowerCase().startsWith(n + " "));
+  });
+}
 
 // --- Per-user colab permissions — each colab account carries its own
 // permissions object (set in Settings, inside that person's row) instead
@@ -7206,7 +7251,7 @@ try {
 } catch (e) {
   usersList = USERS_SEED.map(u => ({ ...u }));
 }
-usersList = usersList.map(u => ensureUserDefaults(u));
+usersList = semUsuariosFantasma(usersList).map(u => ensureUserDefaults(u));
 
 // Sessions are never restored across page loads — every fresh open of the
 // dashboard starts at the login screen, so it always knows for sure who's
