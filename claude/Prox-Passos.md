@@ -15,6 +15,61 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **KPI "Ladies Weekend 2026": de onde contar** — contava os eventos
+  "Closed" da Committee antiga (16). A Committee saiu em 24/09; o pipeline
+  Ladies 26 do CRM só tem 2 países como Membro, então o KPI ficou com o
+  último valor (16), sem recalcular (`ladies-closed`, calc = null). Karina
+  decide: preencher o Ladies 26 (ou a coluna "LW stop 26") no CRM e apontar
+  pra lá, ou deixar manual.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **CSS das abas que saíram** — o código e o HTML de Geral, Goals, Tasks
+  antiga, Members, Committee, Social, Slack e Settings saíram em 24/09; o
+  CSS delas (~uns 100 KB) ficou, por segurança (classes compartilhadas).
+  Dá pra limpar numa sessão calma, com os testes visuais.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Voltar versão do dashboard (sem tela)** — a tela de backup/versões
+  (Settings) saiu em 24/09. As versões continuam sendo guardadas
+  (`historicoGeral` na nuvem, 1 a cada 30 min, até 10) e a Tasks tem o
+  Histórico dela. Pra restaurar CRM/usuários: pelo conector do Supabase,
+  copiar `historicoGeral[i].data.<seção>` pra seção (guardar cópia antes,
+  como em 24/09).
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Apagar as cópias `bkp_*_2026-09-24_1858_estragado`** (9 seções) do
+  Supabase quando a Karina confirmar que o CRM restaurado está certo.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Lista de responsáveis: "Leonardo Martins"** — a lista de usuários
+  (seção `users`) tem "Leonardo Martins" e "Leonardo Cavarge"; o login
+  `leonardo` é o Cavarge. Se o Martins for resto, tirar da seção `users`.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Isabela: F5 e conferir** — depois da correção de 24/09 (Changelog,
+  2ª de 24/09). Ela dá F5; se o rodapé mostrar "navegador sem espaço", a
+  Dash continua salvando na nuvem, mas vale limpar dados do site no Chrome
+  dela. Conferir no bloco Aumentar alcance da marca (CBTH) se falta algo
+  além do Ladies Weekend 2026 restaurado — o que foi criado no dia 24 e se
+  perdeu não tinha cópia na nuvem (talvez no Histórico local dela).
+  Olhar o log do Supabase nos próximos dias: não devia mais aparecer
+  `statement timeout` em `wpf_dashboard_data`.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Salvar só a linha editada (não a seção inteira)** — ideia da
+  Karina, aprovada como próximo passo. Hoje cada envio leva a seção inteira
+  (Tasks da CBTH ~190 KB); o timeout vinha dos históricos (resolvido), mas
+  mandar só a linha mudada é o certo a longo prazo: envio mínimo e menos
+  chance de uma pessoa atropelar a outra. Exige função no banco que aplica
+  a mudança na seção (ex. RPC com jsonb) e trocar o envio da sincronização.
+  Sessão dedicada.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Apagar a cópia `bkp_tasks2__cbth_2026-09-24_antes_restauro`** do
+  Supabase quando a Karina confirmar que a restauração ficou certa (é só
+  uma cópia; nada lê essa seção).
+  - *Aberto em:* 2026-09-24
+
 - [ ] **Todo mundo dar F5 depois do CRM de 24/09** — publicado (commit
   `b96665c`). Quem ficar com a Dash antiga aberta devolve as colunas antigas
   de contato — a migração refaz sem duplicar, mas os tipos de empresa novos
@@ -38,7 +93,7 @@ reconstruir o raciocínio.
   da Tasks (dois cliques, mostra quantas empresas usam).
   - *Aberto em:* 2026-09-24
 
-- [ ] **Equipe nas pessoas da interação vem da lista de usuários antiga**
+- [ ] **Equipe nas pessoas da interação vem da lista de usuários**
   (`usersList`, a de Settings) — hoje aparecem "Leonardo Martins" e
   "Leonardo Cavarge". Se um for resto, tirar da lista ou filtrar pelos
   nomes da `wpf_acesso`.
@@ -138,40 +193,6 @@ reconstruir o raciocínio.
   - *Meta:* aprovar template, mexer em número/verificação.
   - *Aberto em:* 2026-09-17 · *revisado em:* 2026-09-18
 
-- [ ] **Sem Settings: como gerenciar usuários e backup** — em 16/09 Settings
-  saiu do menu de vez (decisão da Karina, sem atalho).
-  - *Contexto:* criar/editar usuários e senhas, baixar/restaurar backup,
-    lista de versões do dashboard e URL do Daily Digest só existiam lá. O
-    código continua; as versões seguem sendo gravadas. Pra usar de novo:
-    tirar `#nav-settings` da regra CSS de 16/09 (ou abrir via console:
-    `document.getElementById("nav-settings").click()`).
-  - *Onde:* `index.html`, CSS ao lado de `#nav-marketing`.
-  - *21/09:* **usuários e senhas não são mais da Dash.** Com o login do
-    Supabase, a lista de usuários em Settings não controla mais quem entra:
-    dar/tirar acesso = usuário em Authentication → Users **e** linha em
-    `wpf_acesso` (ver LEIA-PRIMEIRO). Backup e versões continuam valendo.
-  - *Aberto em:* 2026-09-16 · *revisado em:* 2026-09-21
-
-- [ ] **Metas automáticas da Tasks congelam sem a Goals** — "acessos no
-  site", "seguidores Instagram", "CPC" e "gasto AdWords" leem a entrada mais
-  recente dos KPIs de Marketing em `goalsData`, que só era atualizada pela
-  aba Goals.
-  - *Contexto:* não há código que traga esses números da planilha de
-    Marketing pra `goalsData`. Caminho sugerido: `kpiDoMarketing` ler direto
-    de `mktData` (a planilha que já carrega a cada 5 min).
-  - *Onde:* `index.html`, Tasks 2, `METAS_AUTOMATICAS` / `kpiDoMarketing`.
-  - *Aberto em:* 2026-09-16
-
-- [ ] **Apagar de verdade o código de Geral, Goals, Tasks original, Members,
-  Committee, Social, a aba Slack, o card do Slack e a aba Forms** (o editor
-  e as respostas do Forms continuam usados pelo popup das tarefas Forms) — hoje só escondidos (Members e
-  Committee desde 21/09; os dados de Members já estão no CRM).
-  - *Contexto:* decisão de 16/09 foi ocultar. Antes de apagar: resolver as
-    metas automáticas (item acima), a semeadura da Tasks 2 a partir de
-    `tasksData` (`seedFromRealTasks`) e o Slack, que usa `tasksData`.
-  - *Onde:* `index.html`.
-  - *Aberto em:* 2026-09-16
-
 - [ ] **Sync: mesmo campo da mesma linha editado ao mesmo tempo** — continua
   valendo o último a gravar naquele campo.
   - *Contexto:* limite aceito na proposta de 15/09. Resolver 100% exige
@@ -187,15 +208,6 @@ reconstruir o raciocínio.
     corrigido**. Caminho provável: limpar a pilha de desfazer quando
     `aplicarDaNuvem` trouxer `tasks2`.
   - *Onde:* `index.html`, Tasks 2 (snapshot de desfazer) + `aplicarDaNuvem`.
-  - *Aberto em:* 2026-09-15
-
-- [ ] **Históricos pesam em todo envio** — `historicoGeral` (10 retratos do
-  dashboard inteiro) e `tasks2Historico` mudam a cada gravação e sobem
-  junto sempre.
-  - *Contexto:* já era assim antes; o sync novo só não os baixa na
-    atualização ao vivo. Se a dash ficar lenta pra salvar, é o primeiro
-    lugar a olhar (ex. mandar só a versão nova em vez da lista toda).
-  - *Onde:* `registrarVersaoGeral`, `enviarAgora`.
   - *Aberto em:* 2026-09-15
 
 - [ ] **Uma sessão por vez mexendo na Dash** — em 11/09 duas sessões
@@ -321,6 +333,11 @@ reconstruir o raciocínio.
 ---
 
 ## Concluídos
+
+- [x] **Limpeza da Dash (24/09)** — saíram do código Geral, Goals, Tasks
+  antiga, Members, Committee, Social, Slack e Settings; metas automáticas
+  leem do Marketing; KPIs de federações contam do CRM; históricos leves.
+  Ver Changelog 24/09 (3ª/4ª).
 
 - [x] **Daily Digest desligado** — Karina cancelou no Google em 21/09.
 

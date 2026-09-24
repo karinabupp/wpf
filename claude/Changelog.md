@@ -12,6 +12,147 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-24 (4ª) — Limpeza da Dash: saem as abas antigas
+
+Pedido da Karina: tirar tudo que não é usado ("tirando os dados de mkt"),
+garantindo que nada de CRM e Tasks se perca. Aprovado, inclusive tirar a
+tela de backup/versões (Settings).
+
+- **Saíram do código (JS + HTML):** Geral, Goals, Tasks antiga (com o popup
+  "Tarefas de Fulana", o "Tasks em atraso" e o resumo por e-mail),
+  Members (2º mapa-múndi + mapas embutidos de EUA, China e Reino Unido),
+  Committee, Social, Slack (aba, card e consulta a cada 20 s) e Settings
+  (lista de usuários antiga e tela de backup/versões). Menu: só Tasks e
+  CRM (Marketing e Forms continuam no código, escondidos).
+- **Ficam:** Tasks, CRM (com o mapa do Brasil da CBTH), formulários (tarefas
+  "Forms"), leitura do Marketing a cada 5 min, login, presença, Carinha.
+- **Nuvem:** a Dash só lê/grava `users`, `tasks2*`, `members2*` e os
+  históricos. As seções antigas (`federations`, `committee`, `states`,
+  `committeeStates`, `brazilStates`, `goals`, `tasks`, `social`, `socialBR`,
+  `affiliations`) **continuam no banco, intocadas**.
+- **Tasks sem depender das abas antigas:**
+  - metas automáticas (acessos, seguidores, CPC, gasto AdWords) leem o
+    número da planilha de Marketing (`FONTE_DA_META` → `KPI_SOURCES`), em
+    vez da Goals;
+  - KPIs de federações contam do CRM (`membros2Bridge.contarStatus` /
+    `contarColuna`): Member Federations 39→41 e Opening 7→8 (CRM mais
+    atual), National Championships 20 e Digital Presence 20 (iguais);
+    **Ladies Weekend 2026 mantém 16** (no CRM seria 2 — ver Prox Passos);
+  - a Tasks da WPF não copia mais da Tasks antiga quando vazia; KPIs não
+    semeiam mais da Goals.
+- **Status da sincronização visível:** o "☁️ Sincronizado / Salvando… /
+  navegador sem espaço" morava numa tela escondida (ninguém via). Agora é
+  uma etiqueta fixa no canto inferior esquerdo.
+- **Como foi feito:** análise de escopo do script (acorn + eslint-scope):
+  saiu todo comando/declaração das partes antigas que o código que fica não
+  usa; conferido depois que nenhuma referência ficou apontando pro que saiu
+  (só 3, todas protegidas por `typeof`) e que todo `id` que o JS procura
+  existe no HTML. `todayISO`/`formatEntryDate` (usadas pela Tasks) e a
+  limpeza do link `?verTarefas` foram mantidas.
+- **Peso:** arquivo 1,76 MB → 1,27 MB; elementos na página 13.445 → 1.499;
+  processamento ao abrir 132 ms → 62 ms; memória 19 → 11 MB.
+- **Verificação:** JS válido, CSS 1393/1393; 71 + 12 (CRM) + 26 (navegador
+  cheio) + 4 (estrago) + 3 (popup) + 6/7 fumaça (menu, CRM, logo, KPIs do
+  CRM, status visível, sem erros; o 7º é seletor do teste — a mesma checagem
+  falha igual na versão anterior).
+- **Publicação:** commit `aa55a83` pelo Chrome; sha256 `5b5b4583…`.
+
+---
+
+## 2026-09-24 (3ª) — CRM apagado às 18:58 e restaurado; sincronização blindada
+
+- **O que aconteceu:** às 18:58 um navegador (IP `187.102.164.186`) com os
+  dados locais perdidos (memória cheia antes da correção) abriu a Dash e a
+  junta da sincronização leu "não tenho" como "apaguei": gravou o CRM
+  quase vazio (WPF 11,8 KB → 1,6 KB; CBTH 2,5 KB → 0,7 KB), as seções
+  antigas vazias/de exemplo e a lista de usuários com a semente "karina".
+  Tasks não foi tocada.
+- **Restaurado (Supabase, com cópia `bkp_*_2026-09-24_1858_estragado`):**
+  `members2` e as seções antigas a partir do `historicoGeral` (versão de
+  18:16, igual à última gravação boa); `members2__cbth` a partir da leitura
+  das 16:40 + tipos de empresa + Amapá e Espírito Santo em Lead (achados no
+  retrato do robô de 18:31) — 2.558 caracteres, igual à última versão boa.
+  Usuários sem o "karina".
+- **Blindagem (código):**
+  1. envio que deixaria uma seção com menos de 40% do tamanho que ela tem
+     na nuvem (> 1 KB) é bloqueado e a seção volta da nuvem (históricos
+     fora; restaurar versão passa) — `encolheuDemais`, `cloudTamanhos`;
+  2. na primeira abertura com esta versão, vale a nuvem
+     (`wpf_sync_protegido_v1`) — cobre navegadores que perderam dados
+     antes da correção;
+  3. sem usuário-semente (`USERS_SEED = []`) e `semUsuariosFantasma` tira
+     "karina" quando existe "Karina …".
+- **Verificação:** teste `teste_estrago.mjs` reproduz o caso (na versão
+  anterior o CRM ia de 2.047 pra 637 caracteres e perdia os estados; na
+  nova, intacto) + 26 + 71 + 12.
+- **Publicação:** commit `8f2f292` pelo Chrome; sha256 `bae3487d…`.
+
+- **Popup "Tarefas de Fulana"** (mesmo dia): abria sozinho com links velhos
+  dos e-mails de resumo (`?verTarefas=`). Deixou de abrir (commit `6781e14`)
+  e depois saiu junto com a Tasks antiga; o parâmetro é tirado do endereço.
+
+---
+
+## 2026-09-24 (2ª) — Tarefas da CBTH sumindo: navegador cheio e timeouts
+
+Karina: "as tarefas das tasks da CBTH estão sumindo depois de atualizadas"
+(acontecia no Chrome da Isabela). Aprovado com as decisões dela.
+
+- **Diagnóstico (banco + código):**
+  1. **Históricos gigantes.** A Tasks guardava 1 versão por clique (as 12
+     versões cobriam segundos, 2,7 MB na CBTH) e o histórico geral guardava
+     o histórico da Tasks DENTRO de cada versão (5,4 MB).
+  2. **Banco recusando gravação:** cada envio levava ~3 MB de histórico;
+     entre 18:06 e 18:17, 8 envios caíram com `statement timeout`
+     (500/502/520, todos do mesmo computador).
+  3. **Navegador cheio (localStorage ~5 mi caracteres):** a gravação local
+     não tinha proteção e dava erro ANTES do envio pra nuvem — a edição
+     ficava só na tela e sumia na próxima atualização. Pior: com o
+     navegador cheio a Dash nem terminava de iniciar (reproduzido no
+     teste: "Cannot access 'CARINHA_LOGINS' before initialization"), e a
+     sincronização parava de vez.
+  - Os blocos Regularizar Federações atuais, Fed Piauí e Fed Amapá (CBTH)
+    também sumiram hoje — **apagados de propósito pela Karina**, não é bug.
+- **Restaurado (dado, não código):** projeto **Ladies Weekend 2026** (6
+  linhas: Calendário de Postagens IG, Pré/Durante/Pós evento, Alinhar com
+  Nina) de volta em Aumentar alcance da marca › Alcançar 9.605 seguidores,
+  a partir da versão de 23/09 04:10 (tasks2Historico__cbth). Gravado no
+  Supabase com trava de concorrência. Cópia de antes:
+  seção `bkp_tasks2__cbth_2026-09-24_antes_restauro` (622 ids → 628).
+  Itens criados no dia 24 nesse bloco não tinham cópia na nuvem.
+- **Correção no código:**
+  - **Toda gravação local protegida** (`Storage.prototype.setItem`, no
+    início do script): sem espaço → apaga os históricos locais (a nuvem tem
+    cópia) e tenta de novo; se ainda não couber, não lança erro — a edição
+    segue pra nuvem, a cópia local fica marcada como incompleta
+    (`wpf_local_incompleto`) e o rodapé mostra "navegador sem espaço:
+    salvando direto na nuvem".
+  - **Cópia local incompleta → na abertura vale a nuvem** (não é tratada
+    como edição feita aqui; o estado local vira versão antes).
+  - **Histórico da Tasks:** no máximo 1 versão a cada 15 min
+    (`HISTORICO_INTERVALO_MS`), 12 versões; restaurar/importar forçam.
+  - **Histórico geral:** no máximo 1 a cada 30 min, sem nenhum histórico
+    dentro (`SECOES_HISTORICO_TODAS`).
+  - Versões antigas **afinadas** ao abrir e ao chegar da nuvem
+    (`afinarVersoes`, uma por janela de tempo) — na próxima gravação a
+    nuvem encolhe (CBTH: 12 versões → 3).
+- **Onde:** `index.html` — bloco "Memória do navegador cheia" no início do
+  script principal; `setCloudStatus`; `HISTORICO_GERAL_*`,
+  `registrarVersaoGeral`, `retratoSemSenhas`, `applyAllData`,
+  `loadFromCloud`; Tasks: `registrarSnapshot`, `tasks2Bridge.apply`.
+- **Verificação:** JS válido. Teste novo `teste_espaco.mjs` com nuvem
+  simulada: **na versão anterior a Dash quebra ao iniciar** com o
+  navegador cheio; na nova (26 testes): carga conclui, edição chega na
+  nuvem, rodapé avisa, atualização de outra pessoa não apaga a edição, F5
+  com cópia incompleta não apaga nada, histórico cheio é encolhido; 12
+  versões a segundos viram 1; 4 edições seguidas mandam histórico no
+  máximo 1 vez; depois disso envios só com a tarefa. Regressão: 71 + 12
+  do CRM.
+- **Publicação:** push bloqueado nesta sessão → pelo Chrome da Karina,
+  commit `f0bd05b`; sha256 do `index.html` no repo = `5212b80b…6bbe`.
+
+---
+
 ## 2026-09-24 — CRM: janela do país, Contatos, Empresas e histórico de interações
 
 Pedido da Karina (WPF e CBTH), aprovado com as decisões dela em cada ponto.
