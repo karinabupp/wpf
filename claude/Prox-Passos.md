@@ -15,12 +15,13 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **KPI "Ladies Weekend 2026": de onde contar** — contava os eventos
-  "Closed" da Committee antiga (16). A Committee saiu em 24/09; o pipeline
-  Ladies 26 do CRM só tem 2 países como Membro, então o KPI ficou com o
-  último valor (16), sem recalcular (`ladies-closed`, calc = null). Karina
-  decide: preencher o Ladies 26 (ou a coluna "LW stop 26") no CRM e apontar
-  pra lá, ou deixar manual.
+- [ ] **"Restaurar" do Histórico da Tasks volta a seção inteira** — em
+  24/09 19:40 alguém restaurou a CBTH pra 22/09 e desfez dois dias de
+  trabalho (ver Changelog 5ª de 24/09). O botão restaura TUDO, não só o que
+  sumiu. Ideia: avisar no botão ("desfaz tudo que foi feito depois de
+  dd/mm") ou trocar por "trazer de volta só as linhas que sumiram".
+  Também: conferir com a Karina/Isabela se o "Projeto Social Media LW
+  2026" (21/09) e o "Ladies Weekend 2026" (23/09) são duplicados.
   - *Aberto em:* 2026-09-24
 
 - [ ] **CSS das abas que saíram** — o código e o HTML de Geral, Goals, Tasks
@@ -37,7 +38,7 @@ reconstruir o raciocínio.
   como em 24/09).
   - *Aberto em:* 2026-09-24
 
-- [ ] **Apagar as cópias `bkp_*_2026-09-24_1858_estragado`** (9 seções) do
+- [ ] **Apagar as cópias `bkp_*_2026-09-24_*`** (1858_estragado, 1940_restaurar_antigo, antes_restauro) do
   Supabase quando a Karina confirmar que o CRM restaurado está certo.
   - *Aberto em:* 2026-09-24
 

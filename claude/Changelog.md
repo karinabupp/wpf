@@ -12,6 +12,31 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-24 (5ª) — CBTH: "Aumentar alcance" restaurado; KPI Ladies manual
+
+- **O que aconteceu:** às 19:40 alguém usou "Restaurar" no Histórico da
+  Tasks da CBTH e voltou pra versão de 22/09 19:06 (830 itens): sumiu o
+  Ladies Weekend 2026, voltaram os blocos apagados de propósito
+  (Regularizar Federações atuais, Fed Piauí, Fed Amapá) e o que foi feito
+  em 23–24/09 na CBTH se desfez.
+- **Restaurado (Supabase, cópia `bkp_tasks2__cbth_2026-09-24_1940_restaurar_antigo`):**
+  a versão boa de 24/09 18:58 (628 itens: com Ladies Weekend, sem os
+  blocos apagados — igual ao que estava antes do "Restaurar") **+ os 34
+  itens de "Aumentar alcance da marca" que existiam em 21/09** e sumiram
+  até 22/09, cada um embaixo da mesma meta (mesmos ids, metas renomeadas
+  depois): BSOP, CBPE, CódigoPoker, Ladies Weekend (em "35 menções");
+  Projeto Social Media LW 2026 com o calendário de postagens inteiro (em
+  "seguidores"); Website com Adwords e Páginas das Federações (em
+  "acessos"). Total 662. O "Projeto Social Media LW 2026" (21/09) e o
+  "Ladies Weekend 2026" (23/09) parecem a mesma coisa refeita — os dois
+  ficaram; a Karina apaga o que sobrar.
+- **KPI Ladies Weekend 2026: manual** (decisão da Karina) — fonte tirada no
+  dado (`source: ""`, valor 16) e no código (sai de `KPI_SOURCES` e de
+  `KPI_APELIDOS`, pra nenhum navegador religar sozinho).
+- **Publicação:** commit pelo Chrome; sha256 `c98ea9fe…`.
+
+---
+
 ## 2026-09-24 (4ª) — Limpeza da Dash: saem as abas antigas
 
 Pedido da Karina: tirar tudo que não é usado ("tirando os dados de mkt"),
