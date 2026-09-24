@@ -10572,11 +10572,15 @@ document.getElementById("digest-tasks-modal-backdrop").addEventListener("click",
   if (e.target.id === "digest-tasks-modal-backdrop") closeDigestTasksModal();
 });
 
-// Auto-opens this same popup when arriving from the "Ver tarefas" link in
-// a digest email (?verTarefas=Nome+Da+Pessoa).
+// 24/09 (Karina): o popup "Tarefas de Fulana" era da Tasks antiga e abria
+// sozinho com links velhos dos e-mails de resumo (?verTarefas=Nome). Não
+// abre mais: o parâmetro é só tirado do endereço, pra não ficar no favorito.
 function checkDigestLinkParam() {
-  const person = new URLSearchParams(location.search).get("verTarefas");
-  if (person) openDigestTasksModal(person);
+  const params = new URLSearchParams(location.search);
+  if (!params.has("verTarefas")) return;
+  params.delete("verTarefas");
+  const resto = params.toString();
+  try { history.replaceState(null, "", location.pathname + (resto ? "?" + resto : "") + location.hash); } catch (e) {}
 }
 
 function setTasksViewMode(mode) {
