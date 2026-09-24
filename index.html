@@ -2701,23 +2701,108 @@
     flex-direction: column;
     gap: 16px;
   }
-  #panel2 { transition: opacity 0.15s ease; }
+  /* ── Janela do país (24/09, Karina) ─────────────────────────────────
+     Flutua por cima do mapa/planilha (fixed, dentro da view do CRM, então
+     some junto quando troca de aba). z-index abaixo do Carinha (890), do
+     popup de avisos (900) e dos modais (1000). */
+  #panel2 {
+    position: fixed; z-index: 880; width: 400px; max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 24px); display: flex; flex-direction: column;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: 0 16px 44px rgba(0,0,0,.22); overflow: hidden; box-sizing: border-box;
+  }
+  #panel2.closed, #panel2.pj2-minimizada { display: none; }
+  .pj2-oculto { display: none !important; }
   #panel2-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 12px 12px 10px 18px; cursor: move; user-select: none; touch-action: none;
+    border-bottom: 1px solid var(--border);
   }
-  #panel2-name { font-size: 18px; font-weight: 500; margin: 0; }
-  #panel2-close {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0;
+  #panel2.pj2-maximizada #panel2-header { cursor: default; }
+  #panel2-titulos { min-width: 0; }
+  #panel2-name { font-size: 18px; font-weight: 500; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #panel2-pipeline { display: block; font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 2px; }
+  #panel2-botoes { display: flex; gap: 4px; flex-shrink: 0; }
+  #panel2-botoes button {
+    background: transparent; border: 1px solid transparent; border-radius: 7px;
+    color: var(--text-muted); width: 30px; height: 30px; font-size: 17px; line-height: 1;
+    cursor: pointer; padding: 0; font-family: inherit;
   }
+  #panel2-botoes button:hover { background: var(--bg); border-color: var(--border); color: var(--text); }
+  #panel2-close { font-size: 21px !important; }
+  #panel2-abas { display: flex; gap: 2px; padding: 8px 12px 0; border-bottom: 1px solid var(--border); }
+  #panel2-abas button {
+    background: none; border: none; border-bottom: 2px solid transparent; padding: 7px 10px 8px;
+    font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit;
+  }
+  #panel2-abas button.is-ativo { color: var(--accent); border-bottom-color: var(--accent); }
+  #panel2-abas .pj2-n { font-weight: 500; opacity: .75; }
+  #panel2-corpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px 18px 18px; }
+  #panel2.pj2-maximizada { border-radius: 10px; }
+  #panel2.pj2-maximizada .pj2-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px; align-items: start; }
+  #pj2-interacoes { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 14px; }
+  .pj2-sec-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .pj2-sec-cab h3 { font-size: 14px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: .03em; }
+  .pj2-add {
+    background: none; border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px;
+    font-size: 12.5px; font-weight: 600; color: var(--accent); cursor: pointer; font-family: inherit;
+  }
+  .pj2-add:hover { background: var(--bg); border-color: var(--border-strong); }
+  .pj2-lista { display: flex; flex-direction: column; gap: 10px; }
+  .pj2-vazio { font-size: 13px; color: var(--text-muted); padding: 4px 0; }
+  .pj2-card { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--panel); display: flex; flex-direction: column; gap: 7px; }
+  .pj2-card.pj2-novo { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(24,95,165,.12); }
+  .pj2-linha { display: flex; gap: 6px; align-items: center; }
+  .pj2-linha > * { min-width: 0; }
+  .pj2-card input, .pj2-card select, .pj2-card textarea {
+    font-family: inherit; font-size: 13px; color: var(--text); background: var(--panel);
+    border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; box-sizing: border-box; width: 100%;
+  }
+  .pj2-card input:focus, .pj2-card select:focus, .pj2-card textarea:focus { outline: none; border-color: var(--accent); }
+  .pj2-card textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
+  .pj2-card .pj2-forte { font-weight: 600; }
+  .pj2-int-data { width: auto !important; flex: 0 0 auto; }
+  .pj2-autor { font-size: 11.5px; color: var(--text-muted); flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pj2-del {
+    flex: 0 0 auto; background: none; border: 1px solid transparent; border-radius: 6px; color: var(--text-muted);
+    cursor: pointer; font-size: 12px; padding: 4px 7px; font-family: inherit; white-space: nowrap;
+  }
+  .pj2-del:hover { border-color: var(--border); color: #b3261e; }
+  .pj2-del.pj2-armado { background: #fbe9e7; border-color: #e7b3ab; color: #b3261e; font-weight: 600; }
+  .pj2-rotulo { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; }
+  .pj2-pessoas { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .pj2-pessoas input { flex: 1 1 120px; width: auto; }
+  .pj2-chip { display: inline-flex; align-items: center; gap: 4px; background: #f1efe8; border-radius: 999px; padding: 3px 4px 3px 9px; font-size: 12.5px; max-width: 100%; }
+  .pj2-chip.pj2-equipe { background: #e3eefa; color: #174f86; }
+  .pj2-chip-sub { color: var(--text-muted); font-size: 11.5px; }
+  .pj2-chip button { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 14px; line-height: 1; padding: 0 3px; }
+  .pj2-chip button:hover { color: #b3261e; }
+  .pj2-tipo-novo { display: flex; gap: 6px; }
+  .pj2-emp-contatos { font-size: 12px; color: var(--text-muted); }
+  #panel2-minibar {
+    position: fixed; z-index: 880; display: flex; align-items: center; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,.18); overflow: hidden;
+  }
+  #panel2-minibar button { background: none; border: none; cursor: pointer; font-family: inherit; color: var(--text); }
+  #panel2-minibar-abrir { display: flex; align-items: center; gap: 8px; padding: 9px 6px 9px 16px; font-size: 14px; font-weight: 600; }
+  #panel2-minibar-abrir:hover { color: var(--accent); }
+  .pj2-mini-ic { color: var(--accent); font-size: 15px; }
+  #panel2-minibar-fechar { padding: 6px 14px 6px 8px; font-size: 19px; color: var(--text-muted) !important; }
+  #panel2-minibar-fechar:hover { color: #b3261e !important; }
+  @media (max-width: 700px) {
+    #panel2:not(.pj2-maximizada) { left: 8px !important; right: 8px; top: auto !important; bottom: 8px; width: auto !important; max-height: 78vh; }
+  }
+  /* Planilha: colunas de Empresas, Contatos e Histórico (clicar abre a janela) */
+  #planilha2 td.pl2-rel { padding: 0; }
+  .pl2-rel-btn {
+    display: flex; flex-wrap: wrap; gap: 4px; align-items: center; width: 100%; min-height: 34px; text-align: left;
+    background: none; border: none; cursor: pointer; padding: 6px 8px; font-family: inherit; font-size: 13px; color: var(--text);
+    max-width: 320px; box-sizing: border-box;
+  }
+  .pl2-rel-btn:hover { background: var(--bg); }
+  .pl2-hist-data { font-weight: 600; white-space: nowrap; }
+  .pl2-hist-txt { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 210px; }
+  .pl2-hist-n { font-size: 11.5px; color: var(--accent); font-weight: 600; }
   #save2-row { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
   #save2-btn {
     background: var(--accent);
@@ -5569,23 +5654,6 @@
       <div id="legend2-tarefas"></div>
     </div>
 
-    <div id="panel2" class="side-card closed">
-      <div id="panel2-header">
-        <h2 id="panel2-name"></h2>
-        <button id="panel2-close" type="button" aria-label="Fechar">×</button>
-      </div>
-      <div id="panel2-fields">
-        <div class="field">
-          <label for="panel2-status">Status no pipeline</label>
-          <select id="panel2-status"></select>
-        </div>
-        <button type="button" id="panel2-detalhes">Ver detalhes do país →</button>
-        <div id="save2-row">
-          <button id="save2-btn" type="button">Salvar</button>
-          <span id="save2-confirm">Salvo</span>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -5601,6 +5669,68 @@
     <span id="planilha2-contagem"></span>
     <button type="button" id="pl2-add-col">+ Coluna</button>
   </div>
+</div>
+<!-- Janela do país (24/09, Karina): flutua por cima do mapa/planilha, com
+     minimizar, maximizar e arrastar. Abas: Pipeline (status + interações
+     daquele pipeline), Contatos e Empresas (do país, iguais em todos os
+     pipelines). -->
+<div id="panel2" class="closed" role="dialog" aria-labelledby="panel2-name">
+  <div id="panel2-header" title="Arraste para mover · duplo clique maximiza">
+    <div id="panel2-titulos">
+      <h2 id="panel2-name"></h2>
+      <span id="panel2-pipeline"></span>
+    </div>
+    <div id="panel2-botoes">
+      <button type="button" id="panel2-min" title="Minimizar" aria-label="Minimizar">&#8211;</button>
+      <button type="button" id="panel2-max" title="Maximizar" aria-label="Maximizar">&#9633;</button>
+      <button id="panel2-close" type="button" title="Fechar" aria-label="Fechar">×</button>
+    </div>
+  </div>
+  <div id="panel2-abas">
+    <button type="button" data-aba="pipeline" class="is-ativo">Pipeline</button>
+    <button type="button" data-aba="contatos">Contatos <span class="pj2-n" id="pj2-n-contatos"></span></button>
+    <button type="button" data-aba="empresas">Empresas <span class="pj2-n" id="pj2-n-empresas"></span></button>
+  </div>
+  <div id="panel2-corpo">
+    <div id="panel2-fields" data-painel="pipeline">
+      <div class="field">
+        <label for="panel2-status">Status no pipeline</label>
+        <select id="panel2-status"></select>
+      </div>
+      <button type="button" id="panel2-detalhes">Ver detalhes do país →</button>
+      <div id="save2-row">
+        <button id="save2-btn" type="button">Salvar</button>
+        <span id="save2-confirm">Salvo</span>
+      </div>
+      <div id="pj2-interacoes">
+        <div class="pj2-sec-cab">
+          <h3>Última interação</h3>
+          <button type="button" id="pj2-nova-int" class="pj2-add">+ Nova interação</button>
+        </div>
+        <div id="pj2-int-lista"></div>
+      </div>
+    </div>
+    <div id="panel2-contatos" data-painel="contatos" class="pj2-oculto">
+      <div class="pj2-sec-cab">
+        <h3>Contatos</h3>
+        <button type="button" id="pj2-novo-contato" class="pj2-add">+ Novo contato</button>
+      </div>
+      <div id="pj2-contatos-lista"></div>
+    </div>
+    <div id="panel2-empresas" data-painel="empresas" class="pj2-oculto">
+      <div class="pj2-sec-cab">
+        <h3>Empresas</h3>
+        <button type="button" id="pj2-nova-empresa" class="pj2-add">+ Nova empresa</button>
+      </div>
+      <div id="pj2-empresas-lista"></div>
+    </div>
+  </div>
+  <datalist id="pj2-dl-pessoas"></datalist>
+  <datalist id="pj2-dl-empresas"></datalist>
+</div>
+<div id="panel2-minibar" class="pj2-oculto">
+  <button type="button" id="panel2-minibar-abrir" title="Abrir a janela"><span class="pj2-mini-ic">&#9633;</span><span id="panel2-minibar-nome"></span></button>
+  <button type="button" id="panel2-minibar-fechar" title="Fechar" aria-label="Fechar">×</button>
 </div>
 <span id="planilha2-datalists"></span>
 
@@ -15351,7 +15481,7 @@ applyRolePermissions();
     // Fecha o painel — a selecao de pais era do quadro anterior, e o
     // proximo pode nem ter os mesmos status (nomes diferentes).
     activeCountry2 = null; activeFeature2 = null;
-    document.getElementById("panel2").classList.add("closed");
+    fecharJanela2();
     document.getElementById("count2").textContent = NADA_SELECIONADO_2;
     popularSelectStatus2();
     if (allCountries2.length) renderWorldMap2();
@@ -15453,20 +15583,22 @@ applyRolePermissions();
     panel2Status.title = panel2Status.disabled ? "Calculado a partir das tarefas da aba Tasks" : "";
     panel2TipoMembro.value = rec.tipoMembro || "";
     atualizarVisibilidadeTipoMembro();
-    if (highlightHalo2 && highlightPath2) {
+    if (highlightHalo2 && highlightPath2 && feature) {
       highlightHalo2.attr("d", path2(feature)).raise();
       highlightPath2.attr("d", path2(feature)).raise();
     }
     document.getElementById("count2").textContent = name;
+    janela2Abrir(name);
   }
-  document.getElementById("panel2-close").addEventListener("click", () => {
-    panel2.classList.add("closed");
+  function fecharPaisSelecionado2() {
+    fecharJanela2();
     activeCountry2 = null;
     activeFeature2 = null;
     if (highlightHalo2) highlightHalo2.attr("d", null);
     if (highlightPath2) highlightPath2.attr("d", null);
     document.getElementById("count2").textContent = NADA_SELECIONADO_2;
-  });
+  }
+  document.getElementById("panel2-close").addEventListener("click", fecharPaisSelecionado2);
   document.getElementById("save2-btn").addEventListener("click", () => {
     if (!activeCountry2) return;
     // Avisos Gerais: o status exibido e calculado; o gravado nao muda.
@@ -15678,8 +15810,12 @@ applyRolePermissions();
   // coluna aceita sem precisar clicar nela.
   const ICONE_TIPO = {
     texto: "¶", pessoa: "☺", select: "◉", email: "✉", telefone: "✆",
-    multi: "☰", status: "◈"
+    multi: "☰", status: "◈",
+    empresas: "▦", contatos: "☺", historico: "☷"
   };
+  // Colunas que não moram em colunas2: se criam sozinhas e não têm ×.
+  // (24/09) Empresas e Contatos são do país; Histórico é um por pipeline.
+  const TIPOS_VIRTUAIS2 = new Set(["status", "empresas", "contatos", "historico"]);
   const TIPOS_COLUNA = {
     texto:    { rotulo: "Texto livre" },
     pessoa:   { rotulo: "Pessoa" },
@@ -15718,12 +15854,19 @@ applyRolePermissions();
     savePaises2();
   }
 
+  // Durante o desenho da planilha, cada pipeline é lido uma vez só (antes
+  // era um JSON.parse por célula; com o Histórico seriam o dobro).
+  let memoBoards2 = null;
   function dadosDoBoard2(boardId) {
     if (boardId === activeBoardId2) return countryData2;
+    if (memoBoards2 && memoBoards2[boardId]) return memoBoards2[boardId];
+    let d = {};
     try {
-      const d = JSON.parse(localStorage.getItem(chaveDadosDoBoard(boardId)) || "{}");
-      return (d && typeof d === "object") ? d : {};
-    } catch (e) { return {}; }
+      const g = JSON.parse(localStorage.getItem(chaveDadosDoBoard(boardId)) || "{}");
+      d = (g && typeof g === "object") ? g : {};
+    } catch (e) { d = {}; }
+    if (memoBoards2) memoBoards2[boardId] = d;
+    return d;
   }
   function statusDoPais2(boardId, nome) {
     const d = dadosDoBoard2(boardId);
@@ -15776,15 +15919,27 @@ applyRolePermissions();
 
   // Uma coluna de status por pipeline + as colunas do pais. Quadro novo
   // entra aqui sozinho, sem precisar mexer em nada.
+  // 24/09 (Karina): depois do status de cada pipeline vem o Histórico
+  // daquele pipeline (menos Avisos Gerais, que não tem interações), e
+  // depois Empresas e Contatos, que são do país.
   function colunasDaPlanilha() {
-    const st = boards2.map(b => ({
-      id: "__st__" + b.id, nome: b.nome, tipo: "status",
-      boardId: b.id, opcoes: b.status
-    }));
+    const st = [];
+    boards2.forEach(b => {
+      st.push({ id: "__st__" + b.id, nome: b.nome, tipo: "status", boardId: b.id, opcoes: b.status });
+      if (!ehQuadroAvisos(b)) st.push({ id: "__hist__" + b.id, nome: "Histórico · " + b.nome, tipo: "historico", boardId: b.id });
+    });
+    st.push({ id: "__empresas__", nome: "Empresas", tipo: "empresas" });
+    st.push({ id: "__contatos__", nome: "Contatos", tipo: "contatos" });
     return st.concat(colunas2);
   }
 
   function valorDaCelula(nome, col) {
+    if (col.tipo === "empresas") return empresasDo2(nome).map(e => (e.nome || "(sem nome)") + (e.tipo ? " (" + e.tipo + ")" : "")).join(", ");
+    if (col.tipo === "contatos") return contatosDo2(nome).map(c => (c.nome || "(sem nome)") + (c.cargo ? " — " + c.cargo : "")).join(", ");
+    if (col.tipo === "historico") {
+      const u = ordenarInteracoes2(interacoesDo2(col.boardId, nome))[0];
+      return u ? [dataBR2(u.data), u.texto].filter(Boolean).join(" · ") : "";
+    }
     if (col.tipo === "status") {
       if (col.boardId === QUADRO_AVISOS) { const a = avisoDoPais2(nome); return a ? a.status : ""; }
       return statusDoPais2(col.boardId, nome);
@@ -15824,7 +15979,14 @@ applyRolePermissions();
   function aplicarOrdem2(ids) {
     const conhecidos = ordemColunas2.filter(id => ids.includes(id));
     const novos = ids.filter(id => !conhecidos.includes(id));
-    return conhecidos.concat(novos);
+    // 24/09: coluna de Histórico nova entra logo depois do status do
+    // mesmo pipeline, mesmo quando já existe uma ordem salva.
+    const out = conhecidos.slice();
+    novos.forEach(id => {
+      const pos = id.startsWith("__hist__") ? out.indexOf("__st__" + id.slice(8)) : -1;
+      if (pos >= 0) out.splice(pos + 1, 0, id); else out.push(id);
+    });
+    return out;
   }
 
   function moverColuna2(origem, destino) {
@@ -15955,8 +16117,11 @@ applyRolePermissions();
   }
 
   function celulaMarkup(nome, col) {
-    const val = valorDaCelula(nome, col);
     const d = `data-pais="${esc2(nome)}" data-col="${esc2(col.id)}"`;
+    if (col.tipo === "empresas" || col.tipo === "contatos" || col.tipo === "historico") {
+      return `<td class="pl2-rel"><button type="button" class="pl2-rel-btn" ${d}>${celulaRelMarkup2(nome, col)}</button></td>`;
+    }
+    const val = valorDaCelula(nome, col);
     if (col.tipo === "status" || col.tipo === "select") {
       const board = col.tipo === "status" ? boards2.find(b => b.id === col.boardId) : null;
       // Fundo escuro pede texto branco, fundo claro pede preto — sem isso
@@ -15985,6 +16150,10 @@ applyRolePermissions();
   }
 
   function renderPlanilha2() {
+    memoBoards2 = {};
+    try { renderPlanilha2Dentro(); } finally { memoBoards2 = null; }
+  }
+  function renderPlanilha2Dentro() {
     const cols = colunasDaPlanilha();
     const cabeca = document.getElementById("planilha2-head");
     const corpo = document.getElementById("planilha2-body");
@@ -16025,7 +16194,7 @@ applyRolePermissions();
 
     cabeca.innerHTML = `<tr>${ordenadas.map(m => m.fixa
       ? th(m.fixa === "pais" ? "__pais__" : "__continente__", m.nome)
-      : th(m.col.id, m.col.nome, m.col.tipo === "status" ? "" :
+      : th(m.col.id, m.col.nome, TIPOS_VIRTUAIS2.has(m.col.tipo) ? "" :
           `<button type="button" class="pl2-del-col" data-col="${esc2(m.col.id)}" title="Excluir coluna">×</button>`, m.col.tipo)
     ).join("")}</tr>`;
 
@@ -16080,6 +16249,9 @@ applyRolePermissions();
     });
     corpo.querySelectorAll(".pl2-multi-btn").forEach(btn => {
       btn.addEventListener("click", e => { e.stopPropagation(); abrirMultiSelect2(btn); });
+    });
+    corpo.querySelectorAll(".pl2-rel-btn").forEach(btn => {
+      btn.addEventListener("click", () => abrirJanelaPelaPlanilha2(btn.dataset.pais, btn.dataset.col));
     });
     let arrastando2 = null;
     document.getElementById("planilha2-head").querySelectorAll("th[data-colth]").forEach(th => {
@@ -16223,6 +16395,648 @@ applyRolePermissions();
   document.getElementById("panel2-detalhes").addEventListener("click", () => {
     if (activeCountry2) abrirDetalhesPais2(activeCountry2);
   });
+
+  // ══ Janela do país, Contatos, Empresas e Interações (24/09, Karina) ══════
+  // Onde mora cada coisa:
+  //   Empresas  → dadosPaises2[pais].__empresas  (do país, igual em todos os
+  //               pipelines) — { id, tipo, nome, email, tel, site, redeSocial }
+  //   Contatos  → dadosPaises2[pais].__contatos — { id, nome, cargo,
+  //               empresaId, tel, email }. A empresa do contato é uma das
+  //               Empresas do país (digitar um nome novo cria a empresa).
+  //   Interações → registro do país DENTRO de cada pipeline
+  //               (countryData2[pais].interacoes) — cada pipeline tem o seu
+  //               histórico. { id, data, pessoas:[{t,id?,nome}], texto,
+  //               autor, criadoEm }. Pessoa: t = "contato" | "equipe".
+  //   Tipos de empresa → tiposEmpresa2 (por empresa WPF/CBTH, vai pra nuvem
+  //               no pacote do CRM). A Karina acrescenta pelo "+ Novo tipo…".
+  // Tudo vai pra nuvem pelos caminhos que já existiam (paises e
+  // statusPorQuadro guardam o registro inteiro).
+  const TIPOS_EMPRESA_KEY = chaveOrg2("wpf_members2_tipos_empresa");
+  const TIPOS_EMPRESA_PADRAO = ["Federação", "Comitê", "LW Host", "Patrocinador", "Outros"];
+  const NOVO_TIPO2 = "__novo_tipo__";
+  let tiposEmpresa2 = TIPOS_EMPRESA_PADRAO.slice();
+  try {
+    const g = JSON.parse(localStorage.getItem(TIPOS_EMPRESA_KEY) || "null");
+    if (Array.isArray(g) && g.length) tiposEmpresa2 = g;
+  } catch (e) {}
+  function saveTiposEmpresa2() {
+    localStorage.setItem(TIPOS_EMPRESA_KEY, JSON.stringify(tiposEmpresa2));
+    scheduleCloudSave();
+  }
+  function idNovo2(prefixo) { return prefixo + "_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  const mesmoTexto2 = (a, b) => normalizarTexto2(String(a || "").trim()) === normalizarTexto2(String(b || "").trim());
+
+  function empresasDo2(pais) { const v = getPais2(pais).__empresas; return Array.isArray(v) ? v : []; }
+  function contatosDo2(pais) { const v = getPais2(pais).__contatos; return Array.isArray(v) ? v : []; }
+  function gravarEmpresas2(pais, lista) { setValorPais2(pais, "__empresas", lista); }
+  function gravarContatos2(pais, lista) { setValorPais2(pais, "__contatos", lista); }
+  function interacoesDo2(boardId, pais) {
+    const r = dadosDoBoard2(boardId)[pais];
+    return (r && Array.isArray(r.interacoes)) ? r.interacoes : [];
+  }
+  function gravarInteracoes2(boardId, pais, lista) {
+    if (boardId === activeBoardId2) { setRecord2(pais, { interacoes: lista }); return; }
+    const d = dadosDoBoard2(boardId);
+    if (!d[pais]) d[pais] = { status: "", partner: "", tipoMembro: "" };
+    d[pais].interacoes = lista;
+    localStorage.setItem(chaveDadosDoBoard(boardId), JSON.stringify(d));
+    scheduleCloudSave();
+  }
+  function ordenarInteracoes2(lista) {
+    return lista.slice().sort((a, b) =>
+      String(b.data || "").localeCompare(String(a.data || "")) ||
+      String(b.criadoEm || "").localeCompare(String(a.criadoEm || "")));
+  }
+  function dataBR2(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    return m ? `${m[3]}/${m[2]}/${m[1]}` : "";
+  }
+  // Data de HOJE no fuso de quem está usando (não UTC — depois das 21h em
+  // São Paulo o toISOString já daria amanhã).
+  function hojeLocal2() {
+    const d = new Date(), z = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+  }
+  function nomeEmpresa2(pais, id) { const e = empresasDo2(pais).find(x => x.id === id); return e ? (e.nome || "") : ""; }
+  function nomeDaPessoa2(pais, p) {
+    if (p && p.t === "contato") {
+      const c = contatosDo2(pais).find(x => x.id === p.id);
+      return c ? (c.nome || p.nome || "(sem nome)") : (p.nome || "(contato apagado)");
+    }
+    return (p && p.nome) || "";
+  }
+  function equipe2() {
+    const nomes = new Set();
+    try { (usersList || []).forEach(u => { if (u && u.username) nomes.add(u.username); }); } catch (e) {}
+    try { if (currentUser && currentUser.username) nomes.add(currentUser.username); } catch (e) {}
+    return [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }
+  function autorAtual2() { try { return (currentUser && currentUser.username) || ""; } catch (e) { return ""; } }
+
+  // Célula da planilha (Empresas / Contatos / Histórico): resumo clicável.
+  function celulaRelMarkup2(nome, col) {
+    const vazio = `<span class="pl2-vazio">—</span>`;
+    if (col.tipo === "empresas") {
+      const l = empresasDo2(nome);
+      return l.length ? l.map(e => `<span class="pl2-chip" title="${esc2(e.tipo || "")}">${esc2(e.nome || "(sem nome)")}</span>`).join("") : vazio;
+    }
+    if (col.tipo === "contatos") {
+      const l = contatosDo2(nome);
+      return l.length ? l.map(c => {
+        const sub = [c.cargo, nomeEmpresa2(nome, c.empresaId)].filter(Boolean).join(" · ");
+        return `<span class="pl2-chip" title="${esc2(sub)}">${esc2(c.nome || "(sem nome)")}</span>`;
+      }).join("") : vazio;
+    }
+    const l = ordenarInteracoes2(interacoesDo2(col.boardId, nome));
+    if (!l.length) return vazio;
+    const u = l[0];
+    const resto = l.length > 1 ? `<span class="pl2-hist-n">+${l.length - 1}</span>` : "";
+    return `<span class="pl2-hist-data">${esc2(dataBR2(u.data) || "sem data")}</span>` +
+      `<span class="pl2-hist-txt" title="${esc2(u.texto || "")}">${esc2(u.texto || "")}</span>${resto}`;
+  }
+
+  // ── Migração: colunas antigas de contato viram cards (24/09) ──────────
+  // "Nome federação", "Nome comitê", "Contato fed", "Contato comitê",
+  // "Website" e "Rede social" saem da planilha. O que estiver preenchido
+  // vira Empresa (Federação / Comitê) do país. Os valores antigos continuam
+  // gravados no país (mesma regra de sempre: recriar a coluna traz de volta).
+  // Roda no load e sempre que o pacote chega da nuvem; não duplica.
+  const COLUNAS_VIRAM_CARDS2 = ["nomeFederacao", "contatoFed", "nomeComite", "contatoComite", "website", "redeSocial"];
+  function migrarColunasParaCards2() {
+    if (!colunas2.some(c => COLUNAS_VIRAM_CARDS2.includes(c.id))) return false;
+    let mudouPaises = false;
+    Object.keys(dadosPaises2).forEach(pais => {
+      const r = dadosPaises2[pais];
+      if (!r || typeof r !== "object") return;
+      const v = id => (typeof r[id] === "string" ? r[id].trim() : "");
+      const fed = v("nomeFederacao"), cf = v("contatoFed"), site = v("website"), rede = v("redeSocial");
+      const com = v("nomeComite"), cc = v("contatoComite");
+      const emp = Array.isArray(r.__empresas) ? r.__empresas.slice() : [];
+      let mudou = false;
+      if (fed || cf || site || rede) {
+        const nome = fed || (/cbth/i.test(rede + " " + site) ? "CBTH" : "");
+        const ja = emp.some(e => e.tipo === "Federação" &&
+          ((nome && mesmoTexto2(e.nome, nome)) || (rede && e.redeSocial === rede) || (site && e.site === site) || (cf && e.email === cf)));
+        if (!ja) { emp.push({ id: idNovo2("emp"), tipo: "Federação", nome, email: cf, tel: "", site, redeSocial: rede }); mudou = true; }
+      }
+      if (com || cc) {
+        const ja = emp.some(e => e.tipo === "Comitê" && ((com && mesmoTexto2(e.nome, com)) || (cc && e.email === cc)));
+        if (!ja) { emp.push({ id: idNovo2("emp"), tipo: "Comitê", nome: com, email: cc, tel: "", site: "", redeSocial: "" }); mudou = true; }
+      }
+      if (mudou) { r.__empresas = emp; mudouPaises = true; }
+    });
+    colunas2 = colunas2.filter(c => !COLUNAS_VIRAM_CARDS2.includes(c.id));
+    Object.keys(filtros2).forEach(id => { if (COLUNAS_VIRAM_CARDS2.includes(id)) delete filtros2[id]; });
+    if (mudouPaises) savePaises2();
+    saveColunas2();
+    return true;
+  }
+  migrarColunasParaCards2();
+
+  // ── A janela ──────────────────────────────────────────────────────────
+  const JANELA2_POS_KEY = "wpf_crm_janela_pos"; // só conveniência, por navegador
+  const janela2 = { aba: "pipeline", max: false, min: false, x: null, y: null };
+  try {
+    const g = JSON.parse(localStorage.getItem(JANELA2_POS_KEY) || "null");
+    if (g && typeof g.x === "number" && typeof g.y === "number") { janela2.x = g.x; janela2.y = g.y; }
+  } catch (e) {}
+  const panel2Min = document.getElementById("panel2-min");
+  const panel2Max = document.getElementById("panel2-max");
+  const minibar2 = document.getElementById("panel2-minibar");
+  // Ids criados nesta abertura: se o card ficar vazio, some ao fechar.
+  const criadosAgora2 = new Set();
+
+  function janela2Aberta() { return !!activeCountry2 && !panel2.classList.contains("closed"); }
+  function areaDoCrm2() {
+    const v = document.getElementById("members2-view").getBoundingClientRect();
+    const top = Math.max(v.top, 0) + 8;
+    return { left: Math.max(v.left, 0) + 8, top, width: Math.max(Math.min(v.right, window.innerWidth) - Math.max(v.left, 0) - 16, 280),
+      height: Math.max(window.innerHeight - top - 12, 240) };
+  }
+  function limitarPos2(x, y) {
+    const w = panel2.offsetWidth || 400, h = Math.min(panel2.offsetHeight || 300, window.innerHeight - 24);
+    return {
+      x: Math.min(Math.max(x, 8), Math.max(window.innerWidth - w - 8, 8)),
+      y: Math.min(Math.max(y, 8), Math.max(window.innerHeight - Math.min(h, 120), 8))
+    };
+  }
+  function janela2Posicionar() {
+    panel2.classList.toggle("pj2-maximizada", janela2.max);
+    panel2Max.innerHTML = janela2.max ? "&#10697;" : "&#9633;";
+    panel2Max.title = janela2.max ? "Restaurar tamanho" : "Maximizar";
+    panel2Max.setAttribute("aria-label", panel2Max.title);
+    if (janela2.max) {
+      const a = areaDoCrm2();
+      Object.assign(panel2.style, { left: a.left + "px", top: a.top + "px", width: a.width + "px", height: a.height + "px", maxHeight: "none" });
+      return;
+    }
+    Object.assign(panel2.style, { width: "", height: "", maxHeight: "" });
+    if (janela2.x == null) {
+      // Primeira vez: sobre o lado direito do mapa (ou da planilha), sem
+      // tapar a legenda.
+      const mapa = document.getElementById("wrap2").getBoundingClientRect();
+      const a = areaDoCrm2();
+      janela2.x = mapa.width > 0 ? mapa.right - 400 - 16 : a.left + a.width - 400 - 16;
+      janela2.y = mapa.width > 0 ? mapa.top + 16 : a.top + 64;
+    }
+    const p = limitarPos2(janela2.x, janela2.y);
+    panel2.style.left = p.x + "px";
+    panel2.style.top = p.y + "px";
+  }
+  function posicionarMinibar2() {
+    const a = areaDoCrm2();
+    minibar2.style.left = (a.left + 8) + "px";
+    minibar2.style.bottom = "16px";
+  }
+  function janela2Abrir(pais) {
+    if (janela2.paisAberto && janela2.paisAberto !== pais) limparVazios2();
+    janela2.paisAberto = pais;
+    janela2.min = false;
+    panel2.classList.remove("closed", "pj2-minimizada");
+    minibar2.classList.add("pj2-oculto");
+    // Avisos Gerais: só o status calculado e o popup de tarefas; sem
+    // interações (decisão da Karina, 24/09).
+    document.getElementById("pj2-interacoes").classList.toggle("pj2-oculto", ehQuadroAvisos(boardAtual()));
+    document.getElementById("panel2-pipeline").textContent = boardAtual().nome;
+    janela2RenderListas();
+    janela2MostrarAba(janela2.aba);
+    janela2Posicionar();
+  }
+  function fecharJanela2() {
+    limparVazios2();
+    janela2.paisAberto = null;
+    janela2.min = false;
+    panel2.classList.add("closed");
+    panel2.classList.remove("pj2-minimizada");
+    minibar2.classList.add("pj2-oculto");
+  }
+  function minimizarJanela2() {
+    if (!activeCountry2) return;
+    janela2.min = true;
+    panel2.classList.add("pj2-minimizada");
+    document.getElementById("panel2-minibar-nome").textContent = activeCountry2;
+    posicionarMinibar2();
+    minibar2.classList.remove("pj2-oculto");
+  }
+  function restaurarJanela2() {
+    janela2.min = false;
+    panel2.classList.remove("pj2-minimizada");
+    minibar2.classList.add("pj2-oculto");
+    janela2Posicionar();
+  }
+  function alternarMaximizar2() { janela2.max = !janela2.max; janela2Posicionar(); }
+  panel2Min.addEventListener("click", minimizarJanela2);
+  panel2Max.addEventListener("click", alternarMaximizar2);
+  document.getElementById("panel2-minibar-abrir").addEventListener("click", restaurarJanela2);
+  document.getElementById("panel2-minibar-fechar").addEventListener("click", fecharPaisSelecionado2);
+  window.addEventListener("resize", () => {
+    if (janela2Aberta() && !janela2.min) janela2Posicionar();
+    if (janela2.min) posicionarMinibar2();
+  });
+
+  // Arrastar pelo cabeçalho (não quando maximizada nem em cima dos botões).
+  (function ligarArraste2() {
+    const cab = document.getElementById("panel2-header");
+    let arr = null;
+    cab.addEventListener("pointerdown", e => {
+      if (janela2.max || e.button !== 0 || e.target.closest("button")) return;
+      if (window.matchMedia && window.matchMedia("(max-width: 700px)").matches) return;
+      const r = panel2.getBoundingClientRect();
+      arr = { dx: e.clientX - r.left, dy: e.clientY - r.top, id: e.pointerId };
+      try { cab.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    cab.addEventListener("pointermove", e => {
+      if (!arr || e.pointerId !== arr.id) return;
+      const p = limitarPos2(e.clientX - arr.dx, e.clientY - arr.dy);
+      janela2.x = p.x; janela2.y = p.y;
+      panel2.style.left = p.x + "px"; panel2.style.top = p.y + "px";
+    });
+    const soltar = e => {
+      if (!arr || e.pointerId !== arr.id) return;
+      arr = null;
+      try { localStorage.setItem(JANELA2_POS_KEY, JSON.stringify({ x: janela2.x, y: janela2.y })); } catch (err) {}
+    };
+    cab.addEventListener("pointerup", soltar);
+    cab.addEventListener("pointercancel", soltar);
+    cab.addEventListener("dblclick", e => { if (!e.target.closest("button")) alternarMaximizar2(); });
+  })();
+
+  // ── Abas ──────────────────────────────────────────────────────────────
+  function janela2MostrarAba(aba) {
+    if (activeCountry2 && aba !== janela2.aba) {
+      desarmar2();
+      if (aba === "pipeline") renderInteracoes2();
+      else if (aba === "contatos") renderContatos2();
+      else if (aba === "empresas") renderEmpresas2();
+    }
+    janela2.aba = aba;
+    document.querySelectorAll("#panel2-abas button").forEach(b => b.classList.toggle("is-ativo", b.dataset.aba === aba));
+    document.querySelectorAll("#panel2-corpo [data-painel]").forEach(p => p.classList.toggle("pj2-oculto", p.dataset.painel !== aba));
+  }
+  document.querySelectorAll("#panel2-abas button").forEach(b => b.addEventListener("click", () => janela2MostrarAba(b.dataset.aba)));
+
+  // ── Desenho das listas ────────────────────────────────────────────────
+  function janela2RenderListas() {
+    if (!activeCountry2) return;
+    atualizarAuxiliares2();
+    renderInteracoes2();
+    renderContatos2();
+    renderEmpresas2();
+  }
+  // Contagens das abas e sugestões (pessoas / empresas) do país aberto.
+  function atualizarAuxiliares2() {
+    const pais = activeCountry2;
+    if (!pais) return;
+    const emps = empresasDo2(pais), conts = contatosDo2(pais);
+    document.getElementById("pj2-n-contatos").textContent = conts.length ? `(${conts.length})` : "";
+    document.getElementById("pj2-n-empresas").textContent = emps.length ? `(${emps.length})` : "";
+    document.getElementById("pj2-dl-empresas").innerHTML = emps.filter(e => e.nome)
+      .map(e => `<option value="${esc2(e.nome)}">${esc2(e.tipo || "")}</option>`).join("");
+    document.getElementById("pj2-dl-pessoas").innerHTML =
+      conts.filter(c => c.nome).map(c => {
+        const sub = [c.cargo, nomeEmpresa2(pais, c.empresaId)].filter(Boolean).join(" · ");
+        return `<option value="${esc2(c.nome)}">${esc2(sub ? "Contato · " + sub : "Contato")}</option>`;
+      }).join("") +
+      equipe2().map(n => `<option value="${esc2(n)}">Equipe</option>`).join("");
+  }
+  function botaoExcluir2(tipo, id, titulo) {
+    return `<button type="button" class="pj2-del" data-excluir="${tipo}" data-id="${esc2(id)}" title="${esc2(titulo)}">Excluir</button>`;
+  }
+  function classeNovo2(id) { return criadosAgora2.has(id) ? " pj2-novo" : ""; }
+
+  function renderInteracoes2() {
+    const pais = activeCountry2, caixa = document.getElementById("pj2-int-lista");
+    const lista = ordenarInteracoes2(interacoesDo2(activeBoardId2, pais));
+    caixa.className = "pj2-lista";
+    caixa.innerHTML = lista.length ? lista.map(it => {
+      const chips = (it.pessoas || []).map((p, i) => {
+        const c = p.t === "contato" ? contatosDo2(pais).find(x => x.id === p.id) : null;
+        const sub = c ? [c.cargo, nomeEmpresa2(pais, c.empresaId)].filter(Boolean).join(" · ") : "";
+        return `<span class="pj2-chip${p.t === "equipe" ? " pj2-equipe" : ""}" title="${esc2(p.t === "equipe" ? "Equipe" : sub)}">${esc2(nomeDaPessoa2(pais, p))}` +
+          `<button type="button" data-tirar-pessoa="${i}" title="Tirar">×</button></span>`;
+      }).join("");
+      const autor = it.autor ? `por ${esc2(it.autor)}` : "";
+      return `<div class="pj2-card pj2-int${classeNovo2(it.id)}" data-int="${esc2(it.id)}">
+        <div class="pj2-linha">
+          <input type="date" class="pj2-int-data" value="${esc2(it.data || "")}" aria-label="Data da interação">
+          <span class="pj2-autor">${autor}</span>
+          ${botaoExcluir2("int", it.id, "Excluir interação")}
+        </div>
+        <div class="pj2-pessoas">${chips}<input type="text" class="pj2-pessoa-add" list="pj2-dl-pessoas" placeholder="+ pessoa (Enter)" aria-label="Adicionar pessoa"></div>
+        <textarea class="pj2-int-texto" placeholder="O que foi conversado…" aria-label="Texto da interação">${esc2(it.texto || "")}</textarea>
+      </div>`;
+    }).join("") : `<div class="pj2-vazio">Nenhuma interação registrada neste pipeline.</div>`;
+  }
+  function renderContatos2() {
+    const pais = activeCountry2, caixa = document.getElementById("pj2-contatos-lista");
+    const lista = contatosDo2(pais);
+    caixa.className = "pj2-lista";
+    caixa.innerHTML = lista.length ? lista.map(c => `
+      <div class="pj2-card pj2-contato${classeNovo2(c.id)}" data-contato="${esc2(c.id)}">
+        <div class="pj2-linha">
+          <input type="text" class="pj2-forte" data-campo="nome" value="${esc2(c.nome || "")}" placeholder="Nome" aria-label="Nome">
+          ${botaoExcluir2("contato", c.id, "Excluir contato")}
+        </div>
+        <div class="pj2-linha">
+          <input type="text" data-campo="cargo" value="${esc2(c.cargo || "")}" placeholder="Cargo" aria-label="Cargo">
+          <input type="text" data-campo="empresa" list="pj2-dl-empresas" value="${esc2(nomeEmpresa2(pais, c.empresaId))}" placeholder="Empresa" aria-label="Empresa">
+        </div>
+        <div class="pj2-linha">
+          <input type="tel" data-campo="tel" value="${esc2(c.tel || "")}" placeholder="Telefone" aria-label="Telefone">
+          <input type="email" data-campo="email" value="${esc2(c.email || "")}" placeholder="E-mail" aria-label="E-mail">
+        </div>
+      </div>`).join("") : `<div class="pj2-vazio">Nenhum contato neste ${esc2(ROTULO_UNIDADE.toLowerCase())}.</div>`;
+  }
+  function renderEmpresas2() {
+    const pais = activeCountry2, caixa = document.getElementById("pj2-empresas-lista");
+    const lista = empresasDo2(pais), conts = contatosDo2(pais);
+    caixa.className = "pj2-lista";
+    caixa.innerHTML = lista.length ? lista.map(e => {
+      const tipos = tiposEmpresa2.includes(e.tipo) || !e.tipo ? tiposEmpresa2 : tiposEmpresa2.concat([e.tipo]);
+      const daqui = conts.filter(c => c.empresaId === e.id && c.nome).map(c => c.nome);
+      return `<div class="pj2-card pj2-empresa${classeNovo2(e.id)}" data-empresa="${esc2(e.id)}">
+        <div class="pj2-linha">
+          <input type="text" class="pj2-forte" data-campo="nome" value="${esc2(e.nome || "")}" placeholder="Nome da empresa" aria-label="Nome da empresa">
+          ${botaoExcluir2("empresa", e.id, "Excluir empresa")}
+        </div>
+        <div class="pj2-linha pj2-tipo-linha">
+          <select data-campo="tipo" aria-label="Tipo">
+            <option value="">— tipo —</option>
+            ${tipos.map(t => `<option value="${esc2(t)}" ${t === e.tipo ? "selected" : ""}>${esc2(t)}</option>`).join("")}
+            <option value="${NOVO_TIPO2}">+ Novo tipo…</option>
+          </select>
+        </div>
+        <div class="pj2-linha">
+          <input type="tel" data-campo="tel" value="${esc2(e.tel || "")}" placeholder="Telefone geral" aria-label="Telefone">
+          <input type="email" data-campo="email" value="${esc2(e.email || "")}" placeholder="E-mail geral" aria-label="E-mail">
+        </div>
+        <div class="pj2-linha">
+          <input type="text" data-campo="site" value="${esc2(e.site || "")}" placeholder="Site" aria-label="Site">
+          <input type="text" data-campo="redeSocial" value="${esc2(e.redeSocial || "")}" placeholder="Rede social" aria-label="Rede social">
+        </div>
+        ${daqui.length ? `<div class="pj2-emp-contatos">Contatos: ${daqui.map(esc2).join(", ")}</div>` : ""}
+      </div>`;
+    }).join("") : `<div class="pj2-vazio">Nenhuma empresa neste ${esc2(ROTULO_UNIDADE.toLowerCase())}.</div>`;
+  }
+  // Depois de gravar algo do país: planilha aberta acompanha.
+  function depoisDeMudarPais2() {
+    if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
+  }
+
+  // ── Criar ─────────────────────────────────────────────────────────────
+  document.getElementById("pj2-nova-int").addEventListener("click", () => {
+    const pais = activeCountry2;
+    if (!pais || ehQuadroAvisos(boardAtual())) return;
+    const it = { id: idNovo2("int"), data: hojeLocal2(), pessoas: [], texto: "", autor: autorAtual2(), criadoEm: new Date().toISOString() };
+    criadosAgora2.add(it.id);
+    gravarInteracoes2(activeBoardId2, pais, [it].concat(interacoesDo2(activeBoardId2, pais)));
+    renderInteracoes2();
+    depoisDeMudarPais2();
+    const card = document.querySelector(`#pj2-int-lista [data-int="${CSS.escape(it.id)}"]`);
+    if (card) { card.scrollIntoView({ block: "nearest" }); card.querySelector(".pj2-int-texto").focus(); }
+  });
+  function novoContato2(pais, campos) {
+    const c = Object.assign({ id: idNovo2("ct"), nome: "", cargo: "", empresaId: "", tel: "", email: "" }, campos || {});
+    gravarContatos2(pais, contatosDo2(pais).concat([c]));
+    return c;
+  }
+  function novaEmpresa2(pais, campos) {
+    const e = Object.assign({ id: idNovo2("emp"), tipo: "", nome: "", email: "", tel: "", site: "", redeSocial: "" }, campos || {});
+    gravarEmpresas2(pais, empresasDo2(pais).concat([e]));
+    return e;
+  }
+  document.getElementById("pj2-novo-contato").addEventListener("click", () => {
+    if (!activeCountry2) return;
+    const c = novoContato2(activeCountry2);
+    criadosAgora2.add(c.id);
+    janela2RenderListas();
+    depoisDeMudarPais2();
+    const inp = document.querySelector(`#pj2-contatos-lista [data-contato="${CSS.escape(c.id)}"] [data-campo="nome"]`);
+    if (inp) { inp.scrollIntoView({ block: "nearest" }); inp.focus(); }
+  });
+  document.getElementById("pj2-nova-empresa").addEventListener("click", () => {
+    if (!activeCountry2) return;
+    const e = novaEmpresa2(activeCountry2);
+    criadosAgora2.add(e.id);
+    janela2RenderListas();
+    depoisDeMudarPais2();
+    const inp = document.querySelector(`#pj2-empresas-lista [data-empresa="${CSS.escape(e.id)}"] [data-campo="nome"]`);
+    if (inp) { inp.scrollIntoView({ block: "nearest" }); inp.focus(); }
+  });
+
+  // Card criado agora e deixado em branco some ao fechar/trocar de país.
+  function limparVazios2() {
+    const pais = janela2.paisAberto;
+    if (!pais || !criadosAgora2.size) { criadosAgora2.clear(); return; }
+    const vazioInt = it => criadosAgora2.has(it.id) && !String(it.texto || "").trim() && !(it.pessoas || []).length;
+    const vazioC = c => criadosAgora2.has(c.id) && !["nome", "cargo", "tel", "email", "empresaId"].some(k => String(c[k] || "").trim());
+    const vazioE = e => criadosAgora2.has(e.id) && !["nome", "tipo", "tel", "email", "site", "redeSocial"].some(k => String(e[k] || "").trim());
+    let mudou = false;
+    boards2.forEach(b => {
+      const l = interacoesDo2(b.id, pais);
+      if (l.some(vazioInt)) { gravarInteracoes2(b.id, pais, l.filter(it => !vazioInt(it))); mudou = true; }
+    });
+    const cs = contatosDo2(pais);
+    if (cs.some(vazioC)) { gravarContatos2(pais, cs.filter(c => !vazioC(c))); mudou = true; }
+    const es = empresasDo2(pais);
+    if (es.some(vazioE)) { gravarEmpresas2(pais, es.filter(e => !vazioE(e))); mudou = true; }
+    criadosAgora2.clear();
+    if (mudou) depoisDeMudarPais2();
+  }
+
+  // ── Editar (um listener por lista, delegando) ─────────────────────────
+  function mudarInteracao2(id, patch) {
+    const pais = activeCountry2;
+    const lista = interacoesDo2(activeBoardId2, pais).map(it => it.id === id ? Object.assign({}, it, patch) : it);
+    gravarInteracoes2(activeBoardId2, pais, lista);
+    depoisDeMudarPais2();
+  }
+  // Pessoa digitada/escolhida → contato do país, alguém da equipe, ou um
+  // contato novo (só com o nome) criado na hora.
+  function resolverPessoa2(pais, texto) {
+    const t = String(texto || "").trim();
+    if (!t) return null;
+    const c = contatosDo2(pais).find(x => mesmoTexto2(x.nome, t));
+    if (c) return { t: "contato", id: c.id, nome: c.nome };
+    const eq = equipe2().find(n => mesmoTexto2(n, t));
+    if (eq) return { t: "equipe", nome: eq };
+    const novo = novoContato2(pais, { nome: t });
+    return { t: "contato", id: novo.id, nome: novo.nome };
+  }
+  function adicionarPessoa2(intId, texto) {
+    const pais = activeCountry2;
+    const it = interacoesDo2(activeBoardId2, pais).find(x => x.id === intId);
+    const p = it && resolverPessoa2(pais, texto);
+    if (!p) return;
+    const ja = (it.pessoas || []).some(q => q.t === p.t && (p.t === "contato" ? q.id === p.id : mesmoTexto2(q.nome, p.nome)));
+    if (!ja) mudarInteracao2(intId, { pessoas: (it.pessoas || []).concat([p]) });
+    janela2RenderListas();
+    const inp = document.querySelector(`#pj2-int-lista [data-int="${CSS.escape(intId)}"] .pj2-pessoa-add`);
+    if (inp) inp.focus();
+  }
+  const listaInt2 = document.getElementById("pj2-int-lista");
+  const esperaTexto2 = {};
+  listaInt2.addEventListener("input", e => {
+    const card = e.target.closest("[data-int]");
+    if (!card) return;
+    const id = card.dataset.int;
+    if (e.target.classList.contains("pj2-int-texto")) {
+      // Grava enquanto digita (com respiro), pra não perder nada num F5.
+      clearTimeout(esperaTexto2[id]);
+      const valor = e.target.value;
+      esperaTexto2[id] = setTimeout(() => mudarInteracao2(id, { texto: valor }), 700);
+      return;
+    }
+    if (e.target.classList.contains("pj2-pessoa-add")) {
+      // Escolher da lista (datalist) já adiciona.
+      const v = e.target.value;
+      const escolheu = !e.inputType || e.inputType === "insertReplacementText";
+      if (escolheu && [...document.getElementById("pj2-dl-pessoas").options].some(o => o.value === v)) adicionarPessoa2(id, v);
+    }
+  });
+  listaInt2.addEventListener("change", e => {
+    const card = e.target.closest("[data-int]");
+    if (!card) return;
+    const id = card.dataset.int;
+    if (e.target.classList.contains("pj2-int-texto")) {
+      clearTimeout(esperaTexto2[id]);
+      mudarInteracao2(id, { texto: e.target.value });
+    } else if (e.target.classList.contains("pj2-int-data")) {
+      mudarInteracao2(id, { data: e.target.value });
+      renderInteracoes2(); // a ordem pode mudar
+    }
+  });
+  listaInt2.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || !e.target.classList.contains("pj2-pessoa-add")) return;
+    e.preventDefault();
+    adicionarPessoa2(e.target.closest("[data-int]").dataset.int, e.target.value);
+  });
+  listaInt2.addEventListener("click", e => {
+    const tirar = e.target.closest("[data-tirar-pessoa]");
+    if (!tirar) return;
+    const id = tirar.closest("[data-int]").dataset.int;
+    const it = interacoesDo2(activeBoardId2, activeCountry2).find(x => x.id === id);
+    if (!it) return;
+    const i = Number(tirar.dataset.tirarPessoa);
+    mudarInteracao2(id, { pessoas: (it.pessoas || []).filter((_, k) => k !== i) });
+    renderInteracoes2();
+  });
+
+  document.getElementById("pj2-contatos-lista").addEventListener("change", e => {
+    const card = e.target.closest("[data-contato]"), campo = e.target.dataset.campo;
+    if (!card || !campo) return;
+    const pais = activeCountry2, id = card.dataset.contato;
+    let patch;
+    if (campo === "empresa") {
+      const nome = e.target.value.trim();
+      let emp = nome ? empresasDo2(pais).find(x => mesmoTexto2(x.nome, nome)) : null;
+      if (nome && !emp) emp = novaEmpresa2(pais, { nome });
+      patch = { empresaId: emp ? emp.id : "" };
+    } else patch = { [campo]: e.target.value.trim() };
+    gravarContatos2(pais, contatosDo2(pais).map(c => c.id === id ? Object.assign({}, c, patch) : c));
+    depoisDeMudarPais2();
+    // Nome/empresa aparecem em outros lugares (chips, datalists, Empresas).
+    // Não redesenha o card (roubaria o clique de quem pulou pro próximo
+    // campo): atualiza as listas de sugestão; as outras abas se redesenham
+    // ao entrar nelas.
+    atualizarAuxiliares2();
+  });
+  document.getElementById("pj2-empresas-lista").addEventListener("change", e => {
+    const card = e.target.closest("[data-empresa]"), campo = e.target.dataset.campo;
+    if (!card || !campo) return;
+    const pais = activeCountry2, id = card.dataset.empresa;
+    if (campo === "tipo" && e.target.value === NOVO_TIPO2) {
+      pedirNovoTipo2(e.target, id);
+      return;
+    }
+    gravarEmpresas2(pais, empresasDo2(pais).map(x => x.id === id ? Object.assign({}, x, { [campo]: e.target.value.trim() }) : x));
+    depoisDeMudarPais2();
+    atualizarAuxiliares2();
+  });
+  // "+ Novo tipo…": troca o select por um campo; Enter grava (e escolhe o
+  // tipo nessa empresa), Esc desiste. Vale pra todas as empresas daqui pra frente.
+  function pedirNovoTipo2(select, empId) {
+    const linha = select.closest(".pj2-tipo-linha");
+    linha.innerHTML = `<div class="pj2-tipo-novo" style="flex:1">
+      <input type="text" class="pj2-tipo-novo-nome" placeholder="Nome do novo tipo" aria-label="Nome do novo tipo">
+      <button type="button" class="pj2-add pj2-tipo-ok">Criar</button></div>`;
+    const inp = linha.querySelector("input");
+    let feito = false;
+    const concluir = gravar => {
+      if (feito) return;
+      feito = true;
+      const nome = inp.value.trim();
+      if (gravar && nome) {
+        let tipo = tiposEmpresa2.find(t => mesmoTexto2(t, nome));
+        if (!tipo) { tipo = nome; tiposEmpresa2 = tiposEmpresa2.concat([nome]); saveTiposEmpresa2(); }
+        const pais = activeCountry2;
+        gravarEmpresas2(pais, empresasDo2(pais).map(x => x.id === empId ? Object.assign({}, x, { tipo }) : x));
+        depoisDeMudarPais2();
+      }
+      renderEmpresas2();
+    };
+    inp.addEventListener("keydown", ev => {
+      if (ev.key === "Enter") { ev.preventDefault(); concluir(true); }
+      else if (ev.key === "Escape") { ev.preventDefault(); ev.stopPropagation(); concluir(false); }
+    });
+    linha.querySelector(".pj2-tipo-ok").addEventListener("mousedown", ev => ev.preventDefault());
+    linha.querySelector(".pj2-tipo-ok").addEventListener("click", () => concluir(true));
+    inp.addEventListener("blur", () => setTimeout(() => concluir(true), 0));
+    inp.focus();
+  }
+  // ── Excluir em dois cliques (mesmo padrão do resto da Dash) ───────────
+  let armado2 = null;
+  function desarmar2() {
+    if (armado2) { armado2.btn.classList.remove("pj2-armado"); armado2.btn.textContent = "Excluir"; clearTimeout(armado2.t); armado2 = null; }
+  }
+  document.getElementById("panel2-corpo").addEventListener("click", e => {
+    const btn = e.target.closest("[data-excluir]");
+    if (!btn) { if (armado2 && !e.target.closest(".pj2-del")) desarmar2(); return; }
+    if (!armado2 || armado2.btn !== btn) {
+      desarmar2();
+      btn.classList.add("pj2-armado");
+      btn.textContent = "Excluir?";
+      armado2 = { btn, t: setTimeout(desarmar2, 5000) };
+      return;
+    }
+    desarmar2();
+    const pais = activeCountry2, id = btn.dataset.id, tipo = btn.dataset.excluir;
+    if (tipo === "int") gravarInteracoes2(activeBoardId2, pais, interacoesDo2(activeBoardId2, pais).filter(x => x.id !== id));
+    else if (tipo === "contato") gravarContatos2(pais, contatosDo2(pais).filter(x => x.id !== id));
+    else if (tipo === "empresa") {
+      // Contato que era dessa empresa fica sem empresa (não aponta pro nada).
+      gravarEmpresas2(pais, empresasDo2(pais).filter(x => x.id !== id));
+      const cs = contatosDo2(pais);
+      if (cs.some(c => c.empresaId === id)) gravarContatos2(pais, cs.map(c => c.empresaId === id ? Object.assign({}, c, { empresaId: "" }) : c));
+    }
+    criadosAgora2.delete(id);
+    janela2RenderListas();
+    depoisDeMudarPais2();
+  });
+
+  // ── Abrir pela planilha ───────────────────────────────────────────────
+  // Histórico de outro pipeline: troca o pipeline ativo (a janela sempre
+  // mostra o pipeline ativo, com o status dele) e abre na aba Pipeline.
+  function abrirJanelaPelaPlanilha2(pais, colId) {
+    const col = colunasDaPlanilha().find(c => c.id === colId);
+    if (!col || !pais) return;
+    if (col.tipo === "historico" && col.boardId !== activeBoardId2) {
+      board2Select.value = col.boardId;
+      trocarQuadro2(col.boardId);
+    }
+    janela2.aba = col.tipo === "empresas" ? "empresas" : col.tipo === "contatos" ? "contatos" : "pipeline";
+    const f = allCountries2.find(x => x.properties.name === pais) || null;
+    selectCountry2(pais, f);
+  }
+  // Dados novos da nuvem com a janela aberta: redesenha, a não ser que a
+  // pessoa esteja digitando dentro dela (aí espera o próximo).
+  function janela2DepoisDaNuvem() {
+    if (!janela2Aberta()) return;
+    const a = document.activeElement;
+    if (a && panel2.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+    janela2RenderListas();
+  }
 
   // ── Editor de cores: vale pra qualquer pipeline, criado agora ou nao ──
   const cores2Overlay = document.getElementById("cores2-overlay");
@@ -16441,7 +17255,8 @@ applyRolePermissions();
       colunas: colunas2,
       ordem: ordemColunas2,
       paises: dadosPaises2,
-      statusPorQuadro: dadosDeTodosOsQuadros2()
+      statusPorQuadro: dadosDeTodosOsQuadros2(),
+      tiposEmpresa: tiposEmpresa2
     }),
     apply: (pacote) => {
       if (!pacote || typeof pacote !== "object") return;
@@ -16471,6 +17286,14 @@ applyRolePermissions();
           if (bid === activeBoardId2) countryData2 = d;
         });
       }
+      if (Array.isArray(pacote.tiposEmpresa) && pacote.tiposEmpresa.length) {
+        tiposEmpresa2 = pacote.tiposEmpresa;
+        localStorage.setItem(TIPOS_EMPRESA_KEY, JSON.stringify(tiposEmpresa2));
+      }
+      // Quem ainda estava com a Dash antiga aberta pode devolver as colunas
+      // de contato — migra de novo (não duplica empresa).
+      migrarColunasParaCards2();
+      janela2DepoisDaNuvem();
       if (allCountries2.length) { renderWorldMap2(); renderLegend2(); }
       if (!document.getElementById("planilha2-wrap").classList.contains("hidden")) renderPlanilha2();
     }
