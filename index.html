@@ -5941,6 +5941,45 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
 <script>
+// ══════════════════════════════════════════════════════════════════════════
+// Memória do navegador cheia (24/09) — tem que vir ANTES de tudo
+//
+// O localStorage aguenta uns 5 milhões de caracteres. Com os históricos
+// grandes, o navegador da Isabela lotou e cada gravação local passou a dar
+// erro. O erro acontecia ANTES do envio pra nuvem (a edição ficava só na
+// tela e sumia na próxima atualização) e, na carga, fazia a Dash achar que
+// a nuvem tinha falhado — e aí ela nunca mais enviava nada.
+//
+// Aqui toda gravação local fica protegida:
+//  1. Se não couber, apaga os HISTÓRICOS locais (a nuvem tem cópia) e tenta
+//     de novo.
+//  2. Se ainda não couber, não lança erro: a edição segue pra nuvem, a
+//     cópia deste navegador fica marcada como incompleta (na próxima
+//     abertura vale a nuvem, não a cópia velha) e o rodapé avisa.
+// ══════════════════════════════════════════════════════════════════════════
+const LOCAL_INCOMPLETO_KEY = "wpf_local_incompleto";
+let localSemEspaco = false;
+const ehChaveDeHistorico = k => /^wpf_historico_geral$|^wpf_tasks2_historico/.test(k);
+(function protegerMemoriaLocal() {
+  let original;
+  try { original = Storage.prototype.setItem; } catch (e) { return; }
+  Storage.prototype.setItem = function (chave, valor) {
+    try { return original.call(this, chave, valor); }
+    catch (erro) {
+      if (this !== window.localStorage) throw erro;
+      try {
+        Object.keys(this).filter(k => ehChaveDeHistorico(k) && k !== chave).forEach(k => this.removeItem(k));
+        return original.call(this, chave, valor);
+      } catch (erro2) {
+        localSemEspaco = true;
+        try { original.call(this, LOCAL_INCOMPLETO_KEY, "1"); } catch (e3) {}
+        console.warn("Navegador sem espaço — '" + chave + "' não foi guardado aqui (vai só pra nuvem).");
+        try { if (typeof setCloudStatus === "function") setCloudStatus(cloudStatusAtual || "synced"); } catch (e4) {}
+      }
+    }
+  };
+})();
+
 // ═══════════════════════════════════════════════════════════════════════
 // Seletor de empresa (logo clicável) — World Poker Federation / CBTH
 //
@@ -6254,7 +6293,9 @@ function bumpLocalRevision() {
   return localRevision;
 }
 
+let cloudStatusAtual = null;
 function setCloudStatus(state) {
+  cloudStatusAtual = state;
   const el = document.getElementById("cloud-status");
   if (!el) return;
   const labels = {
@@ -6266,8 +6307,9 @@ function setCloudStatus(state) {
     updated: "☁️ Sincronizado · atualizado com alterações de outro computador"
   };
   const colors = { loading: "#77766f", saving: "#8a6d1f", synced: "#0f6e56", error: "#a3312a", merged: "#0f6e56", updated: "#0f6e56" };
-  el.textContent = labels[state] || "";
-  el.style.color = colors[state] || "";
+  el.textContent = (labels[state] || "") +
+    (localSemEspaco && state !== "error" ? " · ⚠️ navegador sem espaço: salvando direto na nuvem" : "");
+  el.style.color = localSemEspaco && state !== "error" ? "#8a6d1f" : (colors[state] || "");
 }
 
 function collectAllData() {
@@ -6332,10 +6374,9 @@ function applyAllData(data) {
   // o objetivo aqui e nao perder.
   if (Array.isArray(data.historicoGeral) && data.historicoGeral.length) {
     const vistos = {};
-    historicoGeral = historicoGeral.concat(data.historicoGeral.map(retratoSemSenhas))
+    historicoGeral = afinarVersoes(historicoGeral.concat(data.historicoGeral.map(retratoSemSenhas))
       .filter(v => v && v.ts && !vistos[v.ts] && (vistos[v.ts] = true))
-      .sort((a, b) => (a.ts < b.ts ? 1 : -1))
-      .slice(0, HISTORICO_GERAL_MAX);
+      .sort((a, b) => (a.ts < b.ts ? 1 : -1)), HISTORICO_GERAL_INTERVALO_MS, HISTORICO_GERAL_MAX);
     try { localStorage.setItem(HISTORICO_GERAL_KEY, JSON.stringify(historicoGeral)); } catch (e) {}
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(countryData));
@@ -6380,12 +6421,33 @@ function applyAllData(data) {
 // ══════════════════════════════════════════════════════════════════════════
 const HISTORICO_GERAL_KEY = "wpf_historico_geral";
 const HISTORICO_GERAL_MAX = 10;
+// 24/09: no máximo uma versão a cada 30 min (antes era uma por gravação — as
+// 10 versões cobriam poucos minutos e pesavam 5 MB), e sem os históricos
+// dentro (cada versão carregava o histórico da Tasks inteiro).
+const HISTORICO_GERAL_INTERVALO_MS = 30 * 60 * 1000;
+const SECOES_HISTORICO_TODAS = ["historicoGeral", "tasks2Historico", "tasks2Historico__cbth"];
+function versaoSemHistoricos(v) {
+  if (v && v.data) SECOES_HISTORICO_TODAS.forEach(sec => { delete v.data[sec]; });
+  return v;
+}
+// Uma versão por janela de tempo (fica a mais recente de cada janela).
+function afinarVersoes(lista, intervaloMs, max) {
+  const out = [];
+  lista.forEach(v => {
+    const t = Date.parse(v && v.ts);
+    const ultimo = out[out.length - 1];
+    if (ultimo && !isNaN(t) && Date.parse(ultimo.ts) - t < intervaloMs) return;
+    out.push(v);
+  });
+  return out.slice(0, max);
+}
 // Secoes cujo esvaziamento e suspeito.
 const SECOES_NUNCA_VAZIAS = ["goals", "tasks", "users", "federations", "tasks2"];
 
 // Retratos antigos guardavam a lista de usuarios com as senhas (login antigo).
 // Tira a senha de qualquer retrato que passar por aqui.
 function retratoSemSenhas(v) {
+  versaoSemHistoricos(v);
   if (v && v.data && Array.isArray(v.data.users)) {
     v.data.users = v.data.users.map(u => {
       if (!u || typeof u !== "object") return u;
@@ -6398,7 +6460,7 @@ function retratoSemSenhas(v) {
 let historicoGeral = [];
 try {
   const g = JSON.parse(localStorage.getItem(HISTORICO_GERAL_KEY) || "null");
-  if (Array.isArray(g)) historicoGeral = g.map(retratoSemSenhas);
+  if (Array.isArray(g)) historicoGeral = afinarVersoes(g.map(retratoSemSenhas), HISTORICO_GERAL_INTERVALO_MS, HISTORICO_GERAL_MAX);
   localStorage.setItem(HISTORICO_GERAL_KEY, JSON.stringify(historicoGeral));
 } catch (e) { historicoGeral = []; }
 
@@ -6425,12 +6487,14 @@ function versaoUtil(all) {
   });
 }
 
-function registrarVersaoGeral(all) {
+function registrarVersaoGeral(all, forcar) {
   if (!versaoUtil(all)) return;
+  const ultimoAntes = historicoGeral[0];
+  if (!forcar && ultimoAntes && Date.now() - Date.parse(ultimoAntes.ts) < HISTORICO_GERAL_INTERVALO_MS) return;
   const retrato = { ts: new Date().toISOString(), data: {} };
   CLOUD_SECTIONS.forEach(sec => {
-    // O proprio historico nunca entra dentro do historico.
-    if (sec === "historicoGeral") return;
+    // Nenhum historico entra dentro do historico (24/09: o da Tasks entrava).
+    if (SECOES_HISTORICO_TODAS.includes(sec)) return;
     if (all[sec] !== undefined) retrato.data[sec] = all[sec];
   });
   const ultimo = historicoGeral[0];
@@ -6452,7 +6516,7 @@ function restaurarVersaoGeral(indice) {
   if (!v || !v.data) return false;
   // O estado atual vira versao ANTES da troca: restaurar por engano tem
   // volta.
-  registrarVersaoGeral(collectAllData());
+  registrarVersaoGeral(collectAllData(), true);
   applyAllData(v.data);
   bumpLocalRevision();
   scheduleCloudSave({ forcar: true }); // restaurar substitui, nao junta
@@ -6987,13 +7051,18 @@ async function loadFromCloud() {
       // versao em Settings antes, entao da pra voltar. Navegador que nunca
       // editou nada so tem os dados de exemplo: guardar isso como versao
       // atrapalharia o historico (metas de exemplo -> vazias parece perda).
-      if (cloudRevisaoAoAbrir > 0) registrarVersaoGeral(all);
+      if (cloudRevisaoAoAbrir > 0) registrarVersaoGeral(all, true);
       marcarPendente(false);
     }
+    // Cópia deste navegador incompleta (faltou espaço numa gravação): ela
+    // pode estar velha, então NÃO conta como edição feita aqui — a nuvem
+    // vale. O estado local vira versão antes, dá pra voltar.
+    const localIncompleto = localStorage.getItem(LOCAL_INCOMPLETO_KEY) === "1";
+    if (localIncompleto) registrarVersaoGeral(all, true);
     const aplicar = {};
     const guardarPraJuntar = [];
     Object.keys(data).forEach(s => {
-      if (cloudPendente && cloudBaseExistia && all[s] !== undefined && !ehSecaoHistorico(s) && secaoMudouAqui(s, all[s])) {
+      if (!localIncompleto && cloudPendente && cloudBaseExistia && all[s] !== undefined && !ehSecaoHistorico(s) && secaoMudouAqui(s, all[s])) {
         guardarPraJuntar.push(s); // editado aqui e nao enviado: vai pelo envio, com junta
       } else {
         aplicar[s] = data[s];
@@ -7002,6 +7071,10 @@ async function loadFromCloud() {
     const carimbosAplicados = {};
     Object.keys(aplicar).forEach(s => { carimbosAplicados[s] = carimbos[s]; });
     aplicarDaNuvem(aplicar, carimbosAplicados);
+    if (localIncompleto) {
+      marcarPendente(false);
+      if (!localSemEspaco) localStorage.removeItem(LOCAL_INCOMPLETO_KEY);
+    }
     cloudCarregou = true;
     cloudCargaFalhou = false;
     if (cloudPendente) {
@@ -20899,18 +20972,23 @@ applyRolePermissions();
   // ══════════════════════════════════════════════════════════════════════
   const HISTORICO_STORAGE_KEY = chaveDaOrg("wpf_tasks2_historico");
   const HISTORICO_MAX = 12;
+  // 24/09: no máximo uma versão a cada 15 min. Antes era uma por clique: as
+  // 12 versões cobriam segundos, pesavam 2,7 MB e iam pra nuvem a cada
+  // edição (o banco começou a recusar por tempo).
+  const HISTORICO_INTERVALO_MS = 15 * 60 * 1000;
 
   let historicoData = [];
   try {
     const guardado = JSON.parse(localStorage.getItem(HISTORICO_STORAGE_KEY) || "null");
-    if (Array.isArray(guardado)) historicoData = guardado;
+    if (Array.isArray(guardado)) historicoData = afinarVersoes(guardado, HISTORICO_INTERVALO_MS, HISTORICO_MAX);
   } catch (e) { historicoData = []; }
 
   let registrandoSnapshot = false;
 
-  function registrarSnapshot() {
+  function registrarSnapshot(forcar) {
     // Reentrancia: registrar chama save, que chamaria registrar de novo.
     if (registrandoSnapshot) return;
+    if (!forcar && historicoData[0] && Date.now() - Date.parse(historicoData[0].ts) < HISTORICO_INTERVALO_MS) return;
     // Tabela vazia nunca vira versao. Guardar o vazio so serviria pra
     // empurrar as versoes boas pra fora da lista — que e exatamente o que
     // transformaria um acidente em perda definitiva.
@@ -20940,7 +21018,7 @@ applyRolePermissions();
     if (!v) return false;
     // A versao atual entra no historico ANTES da troca, senao restaurar por
     // engano viraria uma segunda perda.
-    registrarSnapshot();
+    registrarSnapshot(true);
     tasksData = (v.tasks || []).map(t => ensureTaskDefaults(t));
     areasData = (v.areas || []).filter(x => x && x.id);
     kpisData = (v.kpis || []).map(ensureKpiDefaults);
@@ -20998,7 +21076,7 @@ applyRolePermissions();
     let pacote = null;
     try { pacote = JSON.parse(texto); } catch (e) { return "Arquivo não é um JSON válido."; }
     if (!pacote || !Array.isArray(pacote.tasks)) return "Arquivo não parece uma cópia da Tasks 2.";
-    registrarSnapshot(); // o que existe agora vira versao antes de ser trocado
+    registrarSnapshot(true); // o que existe agora vira versao antes de ser trocado
     tasksData = pacote.tasks.map(t => ensureTaskDefaults(t));
     areasData = Array.isArray(pacote.areas) ? pacote.areas.filter(x => x && x.id) : areasData;
     kpisData = Array.isArray(pacote.kpis) ? pacote.kpis.map(ensureKpiDefaults) : kpisData;
@@ -21090,10 +21168,9 @@ applyRolePermissions();
       // perder — entao mescla por data e corta no limite.
       if (Array.isArray(data.tasks2Historico) && data.tasks2Historico.length) {
         const vistos = {};
-        historicoData = historicoData.concat(data.tasks2Historico)
+        historicoData = afinarVersoes(historicoData.concat(data.tasks2Historico)
           .filter(v => v && v.ts && !vistos[v.ts] && (vistos[v.ts] = true))
-          .sort((a, b) => (a.ts < b.ts ? 1 : -1))
-          .slice(0, HISTORICO_MAX);
+          .sort((a, b) => (a.ts < b.ts ? 1 : -1)), HISTORICO_INTERVALO_MS, HISTORICO_MAX);
         try { localStorage.setItem(HISTORICO_STORAGE_KEY, JSON.stringify(historicoData)); } catch (e) {}
       }
       // So redesenha se a aba estiver aberta; render com a view escondida
