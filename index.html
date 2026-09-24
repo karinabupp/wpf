@@ -13630,11 +13630,8 @@ applyRolePermissions();
                       calc: () => contaCrm(b => b.contarColuna("campeaoNacional", "Sim")) },
     "fed-digital":  { label: "CRM · Mídia ativa", decimais: 0, aba: "nav-members2",
                       calc: () => contaCrm(b => b.contarColuna("midiaAtiva", "Sim")) },
-    // Ladies: os 16 eventos fechados só existiam na Committee antiga (o
-    // pipeline Ladies 26 do CRM tem outra conta). Fica com o último valor
-    // (calc null = mantém) até a Karina decidir de onde contar.
-    "ladies-closed": { label: "Committee antiga · valor mantido", decimais: 0, aba: "nav-members2",
-                      calc: () => null },
+    // Ladies Weekend 2026: manual desde 24/09 (decisão da Karina) — a fonte
+    // da Committee antiga saiu junto com a aba.
     "ads-cpc":    { label: "Marketing · CPC", decimais: 2, mktKey: "adsCpc",
                     calc: () => {
                       const vals = seriesReal("adsCpc", ["CPC"]).filter(v => v !== null && v > 0);
@@ -13762,7 +13759,7 @@ applyRolePermissions();
     // (meta 23) que NAO e o mesmo que "Digital Presence" (meta 35). Ligar os
     // dois a mesma fonte estaria errado — quem decide isso e Karina.
     "fed-digital": ["digital presence"],
-    "ladies-closed": ["ladies weekend 2026", "ladies weekend"]
+
   };
   const LIGACAO_KEY = "wpf_tasks2_kpis_fontes_ligadas";
   const LIGACAO_KEY_ANTIGA = "wpf_tasks2_kpis_mkt_ligados"; // flag booleana, versao 1
