@@ -12,6 +12,82 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-24 — CRM: janela do país, Contatos, Empresas e histórico de interações
+
+Pedido da Karina (WPF e CBTH), aprovado com as decisões dela em cada ponto.
+
+- **Janela do país:** o card do país saiu da coluna da direita e virou
+  janela flutuante por cima do mapa/planilha. Botões **minimizar** (vira
+  barrinha com o nome no rodapé; clicou, volta), **maximizar** (ocupa a
+  área do CRM; duplo clique no cabeçalho também) e **fechar**. Arrasta pelo
+  cabeçalho; a posição fica no navegador (`wpf_crm_janela_pos`). No
+  celular vira painel de baixo, largura toda. Some junto quando troca de
+  aba (mora dentro da view do CRM). z-index 880 (abaixo do Carinha, do
+  popup de avisos e dos modais).
+- **Abas:** Pipeline (status + Tipo de membro + Salvar, como antes; Ver
+  detalhes do país; **Última interação**), Contatos e Empresas.
+- **Interações — cada pipeline tem o seu histórico:** cards com data (hoje
+  por padrão, data local), pessoas envolvidas e texto; mais recente em cima;
+  "por Fulana" no card. Pessoas = **contatos do país + equipe** (chips;
+  Enter ou escolher da lista; nome desconhecido vira contato novo do país).
+  Texto grava enquanto digita. Excluir em dois cliques. Card criado e
+  deixado em branco some ao fechar a janela. Gravado em
+  `countryData2[pais].interacoes` do pipeline (vai pra nuvem no
+  `statusPorQuadro`, que já levava o registro inteiro).
+- **Avisos Gerais:** sem interações (decisão da Karina) — a janela mostra
+  só o status calculado; o popup de tarefas continua igual.
+- **Contatos (do país, iguais em todos os pipelines):** vários cards com
+  nome, cargo, empresa, telefone e e-mail. A empresa é escolhida entre as
+  Empresas do país; digitar uma nova cria a empresa. Em
+  `dadosPaises2[pais].__contatos`.
+- **Empresas (do país):** cards com nome, **tipo**, telefone e e-mail
+  gerais, site, rede social e a lista dos contatos dela. Tipos: Federação,
+  Comitê, LW Host, Patrocinador, Outros + **"+ Novo tipo…"** (vale pra
+  todas as empresas daqui pra frente; `tiposEmpresa` no pacote do CRM,
+  por empresa WPF/CBTH). Excluir empresa deixa os contatos dela sem
+  empresa. Em `dadosPaises2[pais].__empresas`.
+- **Planilha:** "Histórico · <pipeline>" logo depois do status de cada
+  pipeline (menos Avisos Gerais), e as colunas **Empresas** e
+  **Contatos**. Mostram um resumo (histórico = data + começo do texto +
+  "+N"); clicar abre a janela do país na aba certa (histórico de outro
+  pipeline troca o pipeline ativo). Filtram por texto. Sem × (não se
+  apagam). A leitura dos pipelines na planilha passou a ser uma vez por
+  desenho (`memoBoards2`), não uma por célula.
+- **Migração (WPF):** saíram as colunas Nome federação, Contato fed, Nome
+  comitê, Contato comitê, Website e Rede social — todas vazias, menos 1
+  valor: a rede social do Brazil virou a Empresa **CBTH** (Federação) com
+  o Instagram. Os valores antigos continuam gravados no país. Roda no load
+  e quando o pacote chega da nuvem, sem duplicar (se alguém com a Dash
+  antiga aberta devolver as colunas, migra de novo). CBTH não tinha
+  colunas.
+- **Onde:** `index.html` — HTML `#panel2` (movido pra dentro de
+  `#members2-view`, fora do `#sidebar2`) + `#panel2-minibar`; CSS
+  `#panel2*`, `.pj2-*`, `.pl2-rel*`/`.pl2-hist-*`; JS no bloco do CRM:
+  `colunasDaPlanilha`, `aplicarOrdem2`, `valorDaCelula`, `celulaMarkup`,
+  `TIPOS_VIRTUAIS2`, `selectCountry2`/`fecharPaisSelecionado2`,
+  `trocarQuadro2`, bloco novo "Janela do país, Contatos, Empresas e
+  Interações" (depois do listener de `panel2-detalhes`), `getDados`/`apply`
+  do `membros2Bridge` (`tiposEmpresa`, migração, redesenho da janela).
+- **Verificação:** JS válido, CSS 1391/1391. 71 testes no Chromium com os
+  dados reais de hoje (migração e não-duplicar; janela fixed sobre o mapa;
+  interação com data/autor/pessoas/texto; equipe x contato; escolher da
+  lista; tirar pessoa; Salvar status mantém interações; ordem; minimizar,
+  barrinha, maximizar, duplo clique, arrastar; contatos com empresa nova;
+  foco não se perde; tipos, novo tipo; excluir em 2 cliques; card vazio
+  some; histórico separado por pipeline; Avisos sem interações; planilha:
+  ordem das colunas, resumo, filtro, clique abre na aba/pipeline certos;
+  F5 idêntico; outro navegador recebe tudo; celular; CBTH com estados e
+  chaves `__cbth`) + 12 de regressão (Tipo de membro, legenda, Ver
+  detalhes por cima da janela, status e texto pela planilha, + Coluna,
+  Avisos Gerais, Tasks) — sem erros de página.
+- **Publicação:** push bloqueado nesta sessão (repo fora das fontes). O
+  Claude publicou pelo **Chrome da Karina** (extensão Claude in Chrome,
+  logada como karinabupp), upload na página do GitHub: commit `b96665c`.
+  Conferido: sha256 do `index.html` no repo = `e0c3d2e3…3ac3`, igual ao
+  testado. Docs (`claude/`) no commit seguinte.
+
+---
+
 ## 2026-09-23 (6ª) — Carinha na Dash (janelinha de assistente, só pra Karina)
 
 Pedido da Karina, aprovado ("mesma conversa, pode mandar bala").

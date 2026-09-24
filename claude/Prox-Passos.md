@@ -15,6 +15,46 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Todo mundo dar F5 depois do CRM de 24/09** — publicado (commit
+  `b96665c`). Quem ficar com a Dash antiga aberta devolve as colunas antigas
+  de contato — a migração refaz sem duplicar, mas os tipos de empresa novos
+  só voltam pra nuvem quando alguém com a versão nova salvar algo no CRM.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Sessão aberta sem o repo nas fontes não publica direto** — em
+  24/09 o push voltou a dar `not in this session's authorized repository
+  set` (o token funciona; depende de a tarefa ser aberta com
+  `karinabupp/wpf` como fonte — não contornar). Caminho que funcionou:
+  o **Chrome da Karina** pela extensão Claude in Chrome (logado como
+  karinabupp) → `github.com/karinabupp/wpf/upload/main` (ou `/upload/main/claude`),
+  `file_upload` do arquivo que a sessão entregou, commit, e conferir o
+  sha256 do raw no repo. O navegador embutido do app **não** está logado
+  no GitHub.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Tipos de empresa: só dá pra acrescentar** — "+ Novo tipo…" cria;
+  renomear ou apagar um tipo não tem tela (fica em `tiposEmpresa` no pacote
+  `members2`/`members2__cbth`). Se pedir: um gerenciador igual ao de áreas
+  da Tasks (dois cliques, mostra quantas empresas usam).
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Equipe nas pessoas da interação vem da lista de usuários antiga**
+  (`usersList`, a de Settings) — hoje aparecem "Leonardo Martins" e
+  "Leonardo Cavarge". Se um for resto, tirar da lista ou filtrar pelos
+  nomes da `wpf_acesso`.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Robô (agente) e as interações do CRM** — o agente lê `members2*`,
+  então já "vê" contatos, empresas e interações no JSON, mas nada foi
+  feito pra ele usar isso (ex.: "qual foi a última conversa com a
+  Rússia?", registrar interação pelo WhatsApp). Ideia pra depois.
+  - *Aberto em:* 2026-09-24
+
+- [ ] **Bolinha do Carinha tapa o "+ Coluna" da planilha do CRM** (canto
+  inferior direito, só pra login `karina`). Dá pra arrastar a bolinha, mas
+  vale mudar a posição inicial dela ou subir a barra da planilha.
+  - *Aberto em:* 2026-09-24
+
 - [ ] **Robô: reuniões (Read AI) na regra de 22/09** — a regra da Karina
   lista pra ela "as dela + Slack + e-mail"; os avisos de itens de reunião
   (e de sistema) continuam indo pra admin. Confirmar com ela se ficam.
