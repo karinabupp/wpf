@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>WPF Dashboard</title>
 <style>
   :root {
@@ -4898,6 +4899,75 @@
     padding: 3px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.08); pointer-events: none;
   }
   #cloud-status:empty { display: none; }
+
+  /* ── Celular (25/09, Karina): tela até 760px. Tudo o que muda no celular
+     mora neste bloco; no computador nada muda. Menu vira barra embaixo;
+     Tasks rola de lado com o Nome fixo; CRM empilha mapa e legenda. ── */
+  @media (max-width: 760px) {
+    html { scrollbar-gutter: auto; }
+    body { flex-direction: column; min-height: 100vh; }
+    #content-column { padding: 10px 10px calc(78px + env(safe-area-inset-bottom)); width: 100%; }
+    #nav-rail {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 870;
+      flex-direction: row; justify-content: space-around; align-items: center;
+      min-height: 0; height: calc(58px + env(safe-area-inset-bottom));
+      padding: 4px 8px env(safe-area-inset-bottom); gap: 4px;
+      border-right: none; border-top: 1px solid var(--border);
+      box-shadow: 0 -2px 10px rgba(0,0,0,.05);
+    }
+    #nav-rail-icon, #current-user-badge, #presenca-bolhas { display: none !important; }
+    #nav-rail .nav-icon-btn { margin: 0 !important; }
+    .nav-icon-btn[data-tooltip]::after, .nav-icon-btn[data-tooltip]:hover::after { display: none !important; }
+    #cloud-status { left: 10px; bottom: calc(66px + env(safe-area-inset-bottom)); }
+    /* Tasks: a tabela rola de lado; checkbox e Nome ficam presos à esquerda. */
+    #tasks2-table { -webkit-overflow-scrolling: touch; }
+    .tasks2-row, .tasks2-row:not(.tasks2-head-row) {
+      grid-template-columns: 26px 250px 102px 128px 128px 130px 104px 132px 54px !important;
+      width: max-content; min-width: 100%; min-height: 44px;
+    }
+    .tasks2-head-row, .tasks2-objetivo-card { width: max-content; min-width: 100%; }
+    .tasks2-row > div { padding: 0 6px; }
+    .tasks2-objetivo-card { overflow: clip; } /* hidden quebraria o Nome preso */
+    .tasks2-drag-handle, .tasks2-row .tasks2-fill-handle { display: none !important; }
+    .tasks2-name-row { gap: 3px !important; }
+    .tasks2-name-row > .tasks2-type-picker { width: 26px !important; height: 26px !important; padding: 3px !important; }
+    .tasks2-type-icon svg { width: 16px; height: 16px; }
+    .tasks2-name-wrap { min-width: 96px; }
+    .tasks2-meta-progresso-btn { padding: 2px 6px; font-size: 11px; }
+    .tasks2-row > div:nth-child(1), .tasks2-row > div:nth-child(2) {
+      position: sticky; z-index: 25; background: inherit;
+    }
+    .tasks2-row > div:nth-child(1) { left: 0; }
+    .tasks2-row > div:nth-child(2) { left: 26px; box-shadow: 6px 0 6px -6px rgba(0,0,0,.18); }
+    .tasks2-row { background: var(--panel, #fff); }
+    .tasks2-name-input { font-size: 13.5px !important; line-height: 1.25 !important; height: 2.7em !important; padding: 3px 2px !important; }
+    .tasks2-head-row > div:nth-child(1), .tasks2-head-row > div:nth-child(2) { background: #fff; }
+    .tasks2-objetivo-resumo { display: none !important; }
+    #tasks2-late-list { grid-template-columns: 1fr; }
+    #tasks2-bulk-bar { flex-wrap: wrap; }
+    /* CRM: mapa em cima, legenda embaixo; planilha rola de lado. */
+    #header-row2 { width: 100%; }
+    #main2 { flex-direction: column; max-width: 100%; }
+    #wrap2 { width: 100%; padding: 6px; }
+    #sidebar2 { flex: 0 0 auto; width: 100%; }
+    #legend2-view.com-tarefas { height: auto; overflow: visible; }
+    #legend2-view.com-tarefas .avisos2-lista { max-height: 50vh; overflow-y: auto; }
+    #planilha2-scroll { max-height: calc(100vh - 250px); max-height: calc(100dvh - 250px); -webkit-overflow-scrolling: touch; }
+    #planilha2 td.pl2-pais, #planilha2 thead th:first-child { position: sticky; left: 0; z-index: 3; background: #fff; box-shadow: 6px 0 6px -6px rgba(0,0,0,.18); }
+    #planilha2 thead th:first-child { z-index: 4; }
+    #planilha2 td.pl2-pais { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+    #planilha2 tbody tr:nth-child(even) td.pl2-pais { background: #faf9f7; }
+    #planilha2-barra { padding-right: 70px; } /* sobra pra bolinha do Carinha */
+    #panel2:not(.pj2-maximizada) { bottom: calc(66px + env(safe-area-inset-bottom)) !important; max-height: 70vh; }
+    /* Carinha: bolinha acima da barra; janela ocupa a largura toda. */
+    #carinha-bolha { left: auto !important; top: auto !important; right: 12px !important; bottom: calc(70px + env(safe-area-inset-bottom)) !important; width: 50px; height: 50px; }
+    #carinha-janela { left: 6px !important; right: 6px !important; top: auto !important; bottom: calc(64px + env(safe-area-inset-bottom)) !important; width: auto !important; height: 72vh !important; }
+    #carinha-cabeca { cursor: default; }
+    /* Pop-ups ocupam a tela, com rolagem. */
+    #avisos2-popup, #forms-popup, .tasks2-projmodal { max-width: calc(100vw - 16px) !important; }
+    input, select, textarea { font-size: 16px; } /* iPhone não dá zoom ao focar */
+    .tasks2-row input, .tasks2-row select { font-size: 13px; }
+  }
 </style>
 
 </head>
@@ -11197,8 +11267,11 @@ applyRolePermissions();
   // niveis de agrupamento, e Karina nao quer eles empurrando pra direita
   // conforme a arvore cresce.
   const CATEGORIAS_COM_RECUO = { projeto: true, entregavel: true, tarefa: true };
+  // Celular (25/09): recuo menor por nível, pra sobrar espaço pro nome.
+  const celularTasks = window.matchMedia ? window.matchMedia("(max-width: 760px)") : null;
   function nameIndent(t, depth) {
-    return CATEGORIAS_COM_RECUO[t.rowType] ? 16 + depth * 26 : 16;
+    const passo = celularTasks && celularTasks.matches ? 10 : 26;
+    return CATEGORIAS_COM_RECUO[t.rowType] ? (passo === 26 ? 16 : 4) + depth * passo : (passo === 26 ? 16 : 4);
   }
 
   // ══════════════════════════════════════════════════════════════════════
