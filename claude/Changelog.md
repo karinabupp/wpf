@@ -12,6 +12,33 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-25 — Settings (etapa 1 do plano "Settings e Carinha")
+
+- **O que mudou:** aba nova **Settings** (engrenagem no menu), só pro login
+  da Karina. Planilha com uma linha por pessoa: Nome, E-mail, Celular,
+  empresas (WPF, CBTH, Canário — "Resp." e "Acesso"), Papel, botão
+  **Permissões** (pop-up por aba com marcar/desmarcar tudo e selo "novo")
+  e **Resetar senha** (dois cliques; senha provisória de 10 caracteres
+  aparece uma vez, com Copiar). **+ Pessoa** cria o login com senha
+  provisória. Salva sozinho a cada mudança; se falhar, a linha volta.
+- **Onde:** `index.html` (aba `config-view`, `CATALOGO_PERMISSOES`,
+  `SETTINGS_LOGINS`); `worker/whatsapp-bridge.js` (rotas `/admin/pessoas`,
+  `/admin/pessoa`, `/admin/reset-senha`, só login `karina`);
+  `sql/2026-09-25_settings.sql` (colunas `empresas` e `permissoes` em
+  `wpf_acesso`, preenchidas com "tudo liberado"; `wpf_meu_acesso` devolve
+  as duas). Volta: `sql/2026-09-25_settings_volta.sql`.
+- **Decisões da Karina (25/09):** permissões ficam gravadas mas **não
+  bloqueiam** ainda (segue "todo mundo vê tudo"); Settings e Carinha
+  continuam só dela, sempre. + Ação só na WPF. Interação registrada
+  automaticamente a cada envio.
+- **Travas:** a Karina não tira de si mesma o papel de adm. Nome e e-mail
+  de quem já existe não mudam pela Settings (ligam Tasks e robô). Pessoa
+  nova com celular entra no robô com `recebe_avisos = false`.
+- **Verificação:** 22 testes das rotas do Worker (banco e Auth simulados)
+  + 32 no Chromium (computador e celular; Karina, colab e falha de rede).
+
+---
+
 ## 2026-09-25 — Dash no celular
 
 - **O que mudou:** `index.html` trocado pela versão da Karina com layout de

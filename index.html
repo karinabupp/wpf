@@ -4900,6 +4900,88 @@
   }
   #cloud-status:empty { display: none; }
 
+  /* ── Settings (25/09): pessoas e permissões, só no login da Karina. ── */
+  #nav-config { display: none; }
+  body.pode-settings #nav-config { display: flex; }
+  #cfg-wrap { max-width: min(96vw, 1400px); }
+  #cfg-topo { display: flex; align-items: center; gap: 14px; margin: 4px 0 6px; }
+  #cfg-titulo { margin: 0; font-size: 20px; }
+  #cfg-status { font-size: 12px; color: var(--text-muted); }
+  #cfg-status.erro { color: #b3261e; }
+  #cfg-nota { margin: 0 0 14px; font-size: 13px; color: var(--text-muted); max-width: 780px; line-height: 1.45; }
+  #cfg-tabela-wrap { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; }
+  #cfg-tabela { border-collapse: collapse; width: 100%; font-size: 13px; }
+  #cfg-tabela th, #cfg-tabela td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: left; vertical-align: middle; }
+  #cfg-tabela th:last-child, #cfg-tabela td:last-child { border-right: none; }
+  #cfg-tabela thead th {
+    background: var(--bg); text-transform: uppercase; letter-spacing: .04em; font-size: 11px;
+    font-weight: 600; padding: 8px 10px; white-space: nowrap;
+  }
+  #cfg-tabela thead th.cfg-emp, #cfg-tabela tr.cfg-sub th { text-align: center; }
+  #cfg-tabela tr.cfg-sub th { font-size: 10px; padding: 5px 6px; color: var(--text-muted); border-bottom-color: var(--border-strong); }
+  #cfg-tabela tbody tr:nth-child(even) { background: #faf9f7; }
+  #cfg-tabela tbody tr:last-child td { border-bottom: none; }
+  #cfg-tabela td { padding: 6px 10px; height: 40px; }
+  #cfg-tabela td.cfg-nome { font-weight: 600; white-space: nowrap; }
+  #cfg-tabela td.cfg-email { color: var(--text-muted); white-space: nowrap; }
+  #cfg-tabela td.cfg-caixa { text-align: center; padding: 6px; }
+  #cfg-tabela td.cfg-caixa input { width: 17px; height: 17px; cursor: pointer; accent-color: #5a35c2; }
+  #cfg-tabela input[type="text"], #cfg-tabela input[type="email"], #cfg-tabela input[type="tel"], #cfg-tabela select {
+    font: inherit; color: var(--text); border: 1px solid transparent; border-radius: 5px; background: none;
+    padding: 6px 8px; box-sizing: border-box; width: 100%; min-width: 120px;
+  }
+  #cfg-tabela input:hover, #cfg-tabela select:hover { border-color: var(--border); }
+  #cfg-tabela input:focus, #cfg-tabela select:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: #fff; }
+  #cfg-tabela select:disabled { color: var(--text-muted); cursor: not-allowed; }
+  #cfg-tabela tr.cfg-nova td { background: #f4f0ff; }
+  #cfg-tabela tr.cfg-nova input { border-color: var(--border); background: #fff; }
+  .cfg-selo { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 700; background: var(--bg); color: var(--text-muted); border: 1px solid var(--border); vertical-align: 1px; }
+  .cfg-linha-status { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+  .cfg-linha-status.erro { color: #b3261e; }
+  .cfg-btn {
+    font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer;
+    border: 1px solid var(--border); background: #fff; color: var(--text); white-space: nowrap;
+  }
+  .cfg-btn:hover { border-color: var(--border-strong); }
+  .cfg-btn:disabled { opacity: .55; cursor: default; }
+  .cfg-btn-principal { background: #5a35c2; border-color: #5a35c2; color: #fff; }
+  .cfg-btn-principal:hover { background: #4a2aa6; border-color: #4a2aa6; }
+  .cfg-btn-perigo { background: #b3261e; border-color: #b3261e; color: #fff; }
+  #cfg-add {
+    margin-top: 10px; font: inherit; font-size: 13px; color: #5a35c2; background: none; cursor: pointer;
+    border: 1px dashed var(--border-strong); border-radius: 8px; padding: 7px 14px;
+  }
+  #cfg-add:hover { border-color: #5a35c2; }
+  .cfg-overlay { position: fixed; inset: 0; z-index: 965; background: rgba(20,20,18,.42); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .cfg-overlay.hidden { display: none; }
+  .cfg-modal { background: var(--panel); border-radius: 14px; width: min(620px, 100%); max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 24px 60px rgba(0,0,0,.28); overflow: hidden; }
+  .cfg-modal-pequeno { width: min(420px, 100%); }
+  .cfg-modal-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .cfg-fechar { border: none; background: none; font-size: 16px; cursor: pointer; color: var(--text-muted); }
+  .cfg-fechar:hover { color: var(--text); }
+  .cfg-modal-corpo { padding: 14px 18px; overflow-y: auto; min-height: 0; font-size: 13px; }
+  .cfg-modal-pe { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border); }
+  .cfg-grupo { margin-bottom: 14px; }
+  .cfg-grupo-cabeca { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+  .cfg-grupo-nome { flex: 1 1 auto; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+  .cfg-grupo-cabeca button { font: inherit; font-size: 11px; color: var(--accent); background: none; border: none; cursor: pointer; padding: 2px 4px; }
+  .cfg-grupo-cabeca button:hover { text-decoration: underline; }
+  .cfg-perm { display: flex; align-items: center; gap: 10px; padding: 6px 2px; cursor: pointer; }
+  .cfg-perm input { width: 16px; height: 16px; accent-color: #5a35c2; cursor: pointer; flex-shrink: 0; }
+  .cfg-perm.fixo { cursor: default; color: var(--text-muted); }
+  .cfg-perm.fixo input { cursor: default; }
+  .cfg-novo { font-size: 10px; font-weight: 700; color: #fff; background: #5a35c2; border-radius: 999px; padding: 1px 7px; }
+  .cfg-perm-obs { margin: 0 0 12px; color: var(--text-muted); line-height: 1.45; }
+  #cfg-senha-linha { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  #cfg-senha-valor { font-size: 20px; letter-spacing: .06em; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; user-select: all; }
+  .cfg-senha-obs { color: var(--text-muted); line-height: 1.45; margin: 0; }
+  @media (max-width: 760px) {
+    #cfg-tabela td.cfg-nome { position: sticky; left: 0; z-index: 2; background: #fff; box-shadow: 6px 0 6px -6px rgba(0,0,0,.18); }
+    #cfg-tabela tbody tr:nth-child(even) td.cfg-nome { background: #faf9f7; }
+    #cfg-tabela td.cfg-nome input { min-width: 110px; }
+    .cfg-modal { max-height: calc(100vh - 90px); }
+  }
+
   /* ── Celular (25/09, Karina): tela até 760px. Tudo o que muda no celular
      mora neste bloco; no computador nada muda. Menu vira barra embaixo;
      Tasks rola de lado com o Nome fixo; CRM empilha mapa e legenda. ── */
@@ -5037,6 +5119,12 @@
       <path d="M9 12.5l3 3 3-3"/>
     </svg>
   </button>
+  <button class="nav-icon-btn" id="nav-config" data-tooltip="Settings" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+    </svg>
+  </button>
   <button class="nav-icon-btn" id="nav-logout-btn" data-tooltip="Sair" type="button" style="margin-top:auto;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -5052,6 +5140,66 @@
 
 
 
+
+<!-- SETTINGS (25/09): só pro login da Karina. Quem lê/grava é o Worker
+     (/admin/*), que confere o login de novo — esconder aqui é só a tela. -->
+<div id="config-view" class="content-view hidden">
+  <div id="cfg-wrap">
+    <div id="cfg-topo">
+      <h2 id="cfg-titulo">Settings</h2>
+      <span id="cfg-status"></span>
+    </div>
+    <p id="cfg-nota">Pessoas e permissões da Dash. O que muda aqui vale no próximo carregamento da pessoa.
+      As permissões ficam gravadas, mas <strong>ainda não bloqueiam ninguém</strong> (hoje vale "todo mundo vê tudo").
+      Settings e Carinha são só seus.</p>
+    <div id="cfg-tabela-wrap">
+      <table id="cfg-tabela">
+        <thead>
+          <tr>
+            <th rowspan="2">Nome</th><th rowspan="2">E-mail</th><th rowspan="2">Celular</th>
+            <th colspan="2" class="cfg-emp">WPF</th><th colspan="2" class="cfg-emp">CBTH</th><th colspan="2" class="cfg-emp">Canário</th>
+            <th rowspan="2">Papel</th><th rowspan="2">Permissões</th><th rowspan="2">Senha</th>
+          </tr>
+          <tr class="cfg-sub">
+            <th title="Aparece como responsável">Resp.</th><th title="Tem acesso">Acesso</th>
+            <th title="Aparece como responsável">Resp.</th><th title="Tem acesso">Acesso</th>
+            <th title="Aparece como responsável">Resp.</th><th title="Tem acesso">Acesso</th>
+          </tr>
+        </thead>
+        <tbody id="cfg-corpo"></tbody>
+      </table>
+    </div>
+    <button type="button" id="cfg-add">+ Pessoa</button>
+  </div>
+</div>
+
+<div id="cfg-perm-overlay" class="cfg-overlay hidden">
+  <div class="cfg-modal" id="cfg-perm-modal" role="dialog" aria-labelledby="cfg-perm-titulo">
+    <div class="cfg-modal-cabeca">
+      <span id="cfg-perm-titulo">Permissões</span>
+      <button type="button" class="cfg-fechar" data-fecha="cfg-perm-overlay" aria-label="Fechar">✕</button>
+    </div>
+    <div class="cfg-modal-corpo" id="cfg-perm-corpo"></div>
+    <div class="cfg-modal-pe">
+      <button type="button" class="cfg-btn" data-fecha="cfg-perm-overlay">Cancelar</button>
+      <button type="button" class="cfg-btn cfg-btn-principal" id="cfg-perm-salvar">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="cfg-senha-overlay" class="cfg-overlay hidden">
+  <div class="cfg-modal cfg-modal-pequeno" role="dialog" aria-labelledby="cfg-senha-titulo">
+    <div class="cfg-modal-cabeca">
+      <span id="cfg-senha-titulo">Senha provisória</span>
+      <button type="button" class="cfg-fechar" data-fecha="cfg-senha-overlay" aria-label="Fechar">✕</button>
+    </div>
+    <div class="cfg-modal-corpo">
+      <p id="cfg-senha-texto"></p>
+      <div id="cfg-senha-linha"><code id="cfg-senha-valor"></code><button type="button" class="cfg-btn" id="cfg-senha-copiar">Copiar</button></div>
+      <p class="cfg-senha-obs">Ela aparece só agora. Se fechar sem copiar, é só resetar de novo. Na entrada, a Dash obriga a pessoa a trocar.</p>
+    </div>
+  </div>
+</div>
 
 <div id="marketing-view" class="content-view hidden">
   <div id="marketing-wrap">
@@ -6807,13 +6955,17 @@ async function continuarLogin() {
 }
 
 function concluirLogin(acesso) {
-  currentUser = { username: acesso.nome, role: acesso.papel, login: acesso.login };
+  // empresas/permissoes: da Settings (25/09). Ficam guardadas pra quando o
+  // bloqueio for ligado; hoje nada lê daqui pra esconder coisa.
+  currentUser = { username: acesso.nome, role: acesso.papel, login: acesso.login,
+    empresas: acesso.empresas || null, permissoes: acesso.permissoes || null };
   loginConcluido = true;
   hideLoginGate();
   applyRolePermissions();
   resolverLoginFeito();
   iniciarPresenca();
   iniciarCarinha();
+  iniciarSettings();
 }
 
 // Primeiro acesso (ou senha resetada): a pessoa define a senha dela.
@@ -6925,7 +7077,8 @@ const NAV_VIEWS = {
   "nav-tasks2": "tasks2-view",
   "nav-members2": "members2-view",
   "nav-marketing": "marketing-view",
-  "nav-forms": "forms-view"
+  "nav-forms": "forms-view",
+  "nav-config": "config-view"
 };
 Object.keys(NAV_VIEWS).forEach(btnId => {
   const botao = document.getElementById(btnId);
@@ -6938,6 +7091,7 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
       if (b) b.classList.toggle("active", id === btnId);
     });
     if (btnId === "nav-forms" && typeof loadFormsList === "function") loadFormsList();
+    if (btnId === "nav-config" && typeof cfgCarregar === "function") cfgCarregar();
   });
 });
 
@@ -14660,6 +14814,364 @@ function iniciarCarinha() {
   window.addEventListener("resize", carinhaAplicarPos);
   carinhaMinimizar(localStorage.getItem(CARINHA_MIN_KEY) !== "0"); // começa minimizado
 }
+// ══════════════════════════════════════════════════════════════════════
+// SETTINGS (25/09) — pessoas e permissões. Só pro login da Karina
+// (SETTINGS_LOGINS aqui + LOGINS_SETTINGS no Worker — mudar nos dois).
+// A tela só mostra; quem lê e grava é o Worker (/admin/*), que confere o
+// login de novo com o token. Senha provisória aparece uma vez e não fica
+// guardada na Dash.
+//
+// CATALOGO_PERMISSOES: a lista de tudo o que a Dash faz, por aba.
+// REGRA (LEIA-PRIMEIRO): toda função nova acrescenta a permissão dela aqui
+// e o Changelog registra. Chave que a pessoa ainda não tem vale o padrão do
+// papel: adm ligado, colab desligado ("nasce desligada pra colab").
+// "fixo": não é configurável — só a Karina, sempre.
+// ══════════════════════════════════════════════════════════════════════
+const SETTINGS_LOGINS = ["karina"];
+const CFG_WORKER = "https://wpf-whatsapp-bridge.worldpokerfederation.workers.dev";
+const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]];
+const CATALOGO_PERMISSOES = [
+  { grupo: "Tasks", itens: [
+    { chave: "tabTasks", rotulo: "Ver a aba Tasks" },
+    { chave: "tasksCreate", rotulo: "Criar linha" },
+    { chave: "tasksEditName", rotulo: "Editar nome" },
+    { chave: "tasksEditDates", rotulo: "Editar datas" },
+    { chave: "tasksEditAssignee", rotulo: "Mudar responsável" },
+    { chave: "tasksEditKpi", rotulo: "Editar KPI / pontuação de meta" },
+    { chave: "tasksDelete", rotulo: "Apagar linha" },
+    { chave: "tasksRestore", rotulo: "Restaurar histórico" }
+  ] },
+  { grupo: "CRM", itens: [
+    { chave: "tabCrm", rotulo: "Ver a aba CRM" },
+    { chave: "crmEdit", rotulo: "Editar CRM (país, planilha, contatos)" },
+    { chave: "crmEditColors", rotulo: "Editar cores" }
+  ] },
+  { grupo: "Marketing", itens: [
+    { chave: "tabMarketing", rotulo: "Ver a aba Marketing" }
+  ] },
+  { grupo: "Forms", itens: [
+    { chave: "tabForms", rotulo: "Ver e usar formulários" },
+    { chave: "formsDeleteForm", rotulo: "Apagar formulário" },
+    { chave: "formsDeleteResponse", rotulo: "Apagar resposta" }
+  ] },
+  { grupo: "Só da Karina (fixo)", fixo: true, itens: [
+    { chave: "settings", rotulo: "Settings (pessoas, permissões, senhas)" },
+    { chave: "carinha", rotulo: "Usar o Carinha" },
+    { chave: "acoesIa", rotulo: "Ações de IA (e-mail, mensagem, pesquisa)" }
+  ] }
+];
+const CFG_VISTAS_KEY = "wpf_cfg_permissoes_vistas";
+
+let cfgPessoas = [];
+let cfgCarregando = false;
+let cfgPermEditando = null;   // e-mail da pessoa com o pop-up aberto
+
+function podeSettings() { return !!currentUser && SETTINGS_LOGINS.includes(currentUser.login); }
+function cfgEsc(v) { return String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function cfgStatus(texto, erro) {
+  const el = document.getElementById("cfg-status");
+  if (!el) return;
+  el.textContent = texto || "";
+  el.classList.toggle("erro", !!erro);
+}
+function cfgPermValor(p, chave) {
+  const perms = p && p.permissoes;
+  if (perms && Object.prototype.hasOwnProperty.call(perms, chave)) return !!perms[chave];
+  return !!p && p.papel === "adm";
+}
+
+async function cfgPedir(caminho, corpo) {
+  const opcoes = corpo === undefined
+    ? { method: "GET", headers: await headersWorker() }
+    : { method: "POST", headers: await headersWorker({ "Content-Type": "application/json" }), body: JSON.stringify(corpo) };
+  let res;
+  try { res = await fetch(CFG_WORKER + caminho, opcoes); }
+  catch (e) { throw new Error("sem conexão com o servidor"); }
+  let dados = null;
+  try { dados = await res.json(); } catch (e) { dados = null; }
+  if (!res.ok) throw new Error((dados && dados.erro) || `erro ${res.status}`);
+  return dados || {};
+}
+
+function iniciarSettings() {
+  document.body.classList.toggle("pode-settings", podeSettings());
+}
+
+async function cfgCarregar() {
+  if (!podeSettings() || cfgCarregando) return;
+  cfgCarregando = true;
+  cfgStatus("Carregando…");
+  try {
+    const d = await cfgPedir("/admin/pessoas");
+    cfgPessoas = Array.isArray(d.pessoas) ? d.pessoas : [];
+    cfgStatus("");
+    cfgRender();
+  } catch (e) {
+    cfgStatus("Não consegui carregar: " + e.message, true);
+  } finally {
+    cfgCarregando = false;
+  }
+}
+
+function cfgLinhaHtml(p) {
+  const caixas = CFG_EMPRESAS.map(([k]) => {
+    const e = (p.empresas && p.empresas[k]) || {};
+    return `<td class="cfg-caixa"><input type="checkbox" data-emp="${k}" data-campo="responsavel" ${e.responsavel ? "checked" : ""} aria-label="${k} responsável"></td>` +
+           `<td class="cfg-caixa"><input type="checkbox" data-emp="${k}" data-campo="acesso" ${e.acesso ? "checked" : ""} aria-label="${k} acesso"></td>`;
+  }).join("");
+  return `<tr data-email="${cfgEsc(p.email)}">
+    <td class="cfg-nome">${cfgEsc(p.nome)}${p.eu ? '<span class="cfg-selo">você</span>' : ""}${p.precisa_trocar_senha ? '<span class="cfg-selo" title="Ainda não trocou a senha provisória">provisória</span>' : ""}<span class="cfg-linha-status"></span></td>
+    <td class="cfg-email">${cfgEsc(p.email)}</td>
+    <td><input type="tel" class="cfg-tel" value="${cfgEsc(p.telefone ? "+" + p.telefone : "")}" placeholder="+55…" aria-label="Celular"></td>
+    ${caixas}
+    <td><select class="cfg-papel" ${p.eu ? 'disabled title="Você não pode tirar de si mesma o papel de adm"' : ""} aria-label="Papel">
+      <option value="adm" ${p.papel === "adm" ? "selected" : ""}>adm</option>
+      <option value="colab" ${p.papel === "colab" ? "selected" : ""}>colab</option>
+    </select></td>
+    <td><button type="button" class="cfg-btn cfg-perm-abrir">Permissões</button></td>
+    <td><button type="button" class="cfg-btn cfg-reset">Resetar senha</button></td>
+  </tr>`;
+}
+
+function cfgRender() {
+  const corpo = document.getElementById("cfg-corpo");
+  if (!corpo) return;
+  corpo.innerHTML = cfgPessoas.map(cfgLinhaHtml).join("");
+}
+
+function cfgLinhaStatus(tr, texto, erro) {
+  const el = tr && tr.querySelector(".cfg-linha-status");
+  if (!el) return;
+  el.textContent = texto || "";
+  el.classList.toggle("erro", !!erro);
+}
+
+// Lê a linha da tela e manda pro Worker. Ao falhar, volta a tela pro que
+// está gravado (pra não mostrar o que não salvou).
+async function cfgSalvarLinha(tr, extra) {
+  const email = tr.dataset.email;
+  const p = cfgPessoas.find(x => x.email === email);
+  if (!p) return;
+  const empresas = {};
+  CFG_EMPRESAS.forEach(([k]) => {
+    empresas[k] = {
+      responsavel: !!tr.querySelector(`input[data-emp="${k}"][data-campo="responsavel"]`).checked,
+      acesso: !!tr.querySelector(`input[data-emp="${k}"][data-campo="acesso"]`).checked
+    };
+  });
+  const corpo = {
+    email, papel: tr.querySelector(".cfg-papel").value, empresas,
+    permissoes: (extra && extra.permissoes) || p.permissoes || {},
+    telefone: tr.querySelector(".cfg-tel").value
+  };
+  cfgLinhaStatus(tr, "Salvando…");
+  try {
+    const d = await cfgPedir("/admin/pessoa", corpo);
+    Object.assign(p, { papel: corpo.papel, empresas, permissoes: corpo.permissoes });
+    if (!d.aviso) p.telefone = String(corpo.telefone || "").replace(/\D/g, "") || p.telefone;
+    else tr.querySelector(".cfg-tel").value = p.telefone ? "+" + p.telefone : "";
+    cfgLinhaStatus(tr, d.aviso ? d.aviso : "Salvo ✓", !!d.aviso);
+    return true;
+  } catch (e) {
+    cfgLinhaStatus(tr, "Não salvou: " + e.message, true);
+    const nova = document.createElement("tbody");
+    nova.innerHTML = cfgLinhaHtml(p);
+    const trNova = nova.firstElementChild;
+    tr.replaceWith(trNova);
+    cfgLinhaStatus(trNova, "Não salvou: " + e.message, true);
+    return false;
+  }
+}
+
+// ── Pop-up de permissões ──
+function cfgVistas() {
+  try { const v = JSON.parse(localStorage.getItem(CFG_VISTAS_KEY) || "null"); return Array.isArray(v) ? v : null; }
+  catch (e) { return null; }
+}
+function cfgTodasChaves() {
+  return CATALOGO_PERMISSOES.flatMap(g => g.itens.map(i => i.chave));
+}
+function cfgAbrirPermissoes(email) {
+  const p = cfgPessoas.find(x => x.email === email);
+  if (!p) return;
+  cfgPermEditando = email;
+  let vistas = cfgVistas();
+  // Primeira vez neste aparelho: nada é "novo" ainda.
+  if (!vistas) { vistas = cfgTodasChaves(); try { localStorage.setItem(CFG_VISTAS_KEY, JSON.stringify(vistas)); } catch (e) {} }
+  const vistasSet = new Set(vistas);
+  document.getElementById("cfg-perm-titulo").textContent = `Permissões — ${p.nome}`;
+  const obs = `<p class="cfg-perm-obs">Ficam gravadas, mas ainda não bloqueiam ninguém: hoje vale "todo mundo vê tudo". Permissão nova nasce ${p.papel === "adm" ? "ligada (adm)" : "desligada (colab)"}.</p>`;
+  document.getElementById("cfg-perm-corpo").innerHTML = obs + CATALOGO_PERMISSOES.map((g, gi) => `
+    <div class="cfg-grupo" data-grupo="${gi}">
+      <div class="cfg-grupo-cabeca">
+        <span class="cfg-grupo-nome">${cfgEsc(g.grupo)}</span>
+        ${g.fixo ? "" : `<button type="button" data-todos="1">marcar tudo</button><button type="button" data-todos="0">desmarcar tudo</button>`}
+      </div>
+      ${g.itens.map(i => {
+        const ligado = g.fixo ? p.eu : cfgPermValor(p, i.chave);
+        return `<label class="cfg-perm${g.fixo ? " fixo" : ""}">
+          <input type="checkbox" data-chave="${cfgEsc(i.chave)}" ${ligado ? "checked" : ""} ${g.fixo ? "disabled" : ""}>
+          <span>${cfgEsc(i.rotulo)}</span>
+          ${!vistasSet.has(i.chave) ? '<span class="cfg-novo">novo</span>' : ""}
+        </label>`;
+      }).join("")}
+    </div>`).join("");
+  document.getElementById("cfg-perm-overlay").classList.remove("hidden");
+}
+function cfgFecharPermissoes() {
+  document.getElementById("cfg-perm-overlay").classList.add("hidden");
+  cfgPermEditando = null;
+  try { localStorage.setItem(CFG_VISTAS_KEY, JSON.stringify(cfgTodasChaves())); } catch (e) {}
+}
+async function cfgSalvarPermissoes() {
+  const email = cfgPermEditando;
+  const tr = email && document.querySelector(`#cfg-corpo tr[data-email="${CSS.escape(email)}"]`);
+  const p = cfgPessoas.find(x => x.email === email);
+  if (!tr || !p) return;
+  const permissoes = { ...(p.permissoes || {}) };
+  document.querySelectorAll("#cfg-perm-corpo input[data-chave]:not(:disabled)").forEach(cx => { permissoes[cx.dataset.chave] = cx.checked; });
+  const botao = document.getElementById("cfg-perm-salvar");
+  botao.disabled = true;
+  const ok = await cfgSalvarLinha(tr, { permissoes });
+  botao.disabled = false;
+  if (ok) cfgFecharPermissoes();
+}
+
+// ── Senha provisória ──
+function cfgMostrarSenha(texto, senha) {
+  document.getElementById("cfg-senha-texto").textContent = texto;
+  document.getElementById("cfg-senha-valor").textContent = senha;
+  document.getElementById("cfg-senha-copiar").textContent = "Copiar";
+  document.getElementById("cfg-senha-overlay").classList.remove("hidden");
+}
+function cfgFecharSenha() {
+  document.getElementById("cfg-senha-overlay").classList.add("hidden");
+  document.getElementById("cfg-senha-valor").textContent = "";   // não fica na tela
+}
+const cfgTimersReset = new WeakMap();
+async function cfgResetar(botao) {
+  const tr = botao.closest("tr");
+  const p = cfgPessoas.find(x => x.email === tr.dataset.email);
+  if (!p) return;
+  // Dois cliques: o 1º arma, o 2º (em até 5 s) confirma.
+  if (!botao.classList.contains("cfg-btn-perigo")) {
+    botao.classList.add("cfg-btn-perigo");
+    botao.textContent = "Confirmar reset?";
+    cfgTimersReset.set(botao, setTimeout(() => { botao.classList.remove("cfg-btn-perigo"); botao.textContent = "Resetar senha"; }, 5000));
+    return;
+  }
+  clearTimeout(cfgTimersReset.get(botao));
+  botao.classList.remove("cfg-btn-perigo");
+  botao.textContent = "Resetando…";
+  botao.disabled = true;
+  try {
+    const d = await cfgPedir("/admin/reset-senha", { email: p.email });
+    p.precisa_trocar_senha = true;
+    cfgRender();
+    cfgMostrarSenha(`Senha provisória de ${p.nome} (${p.email}):`, d.senha);
+  } catch (e) {
+    cfgLinhaStatus(tr, "Reset falhou: " + e.message, true);
+    botao.textContent = "Resetar senha";
+    botao.disabled = false;
+  }
+}
+
+// ── + Pessoa ──
+function cfgNovaLinha() {
+  if (document.getElementById("cfg-nova")) { document.querySelector("#cfg-nova input").focus(); return; }
+  const caixas = CFG_EMPRESAS.map(([k]) => {
+    const liga = k === "wpf" ? "checked" : "";
+    return `<td class="cfg-caixa"><input type="checkbox" data-emp="${k}" data-campo="responsavel" ${liga}></td>` +
+           `<td class="cfg-caixa"><input type="checkbox" data-emp="${k}" data-campo="acesso" ${liga}></td>`;
+  }).join("");
+  const tr = document.createElement("tr");
+  tr.id = "cfg-nova";
+  tr.className = "cfg-nova";
+  tr.innerHTML = `
+    <td class="cfg-nome"><input type="text" class="cfg-novo-nome" placeholder="Nome (como na Tasks)" aria-label="Nome"><span class="cfg-linha-status"></span></td>
+    <td><input type="email" class="cfg-novo-email" placeholder="e-mail de login" aria-label="E-mail"></td>
+    <td><input type="tel" class="cfg-tel" placeholder="+55…" aria-label="Celular"></td>
+    ${caixas}
+    <td><select class="cfg-papel" aria-label="Papel"><option value="colab" selected>colab</option><option value="adm">adm</option></select></td>
+    <td><button type="button" class="cfg-btn" id="cfg-nova-cancelar">Cancelar</button></td>
+    <td><button type="button" class="cfg-btn cfg-btn-principal" id="cfg-nova-salvar">Criar login</button></td>`;
+  document.getElementById("cfg-corpo").appendChild(tr);
+  tr.querySelector(".cfg-novo-nome").focus();
+}
+async function cfgCriarPessoa() {
+  const tr = document.getElementById("cfg-nova");
+  if (!tr) return;
+  const nome = tr.querySelector(".cfg-novo-nome").value.trim();
+  const email = tr.querySelector(".cfg-novo-email").value.trim().toLowerCase();
+  if (nome.length < 2) { cfgLinhaStatus(tr, "Preencha o nome.", true); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { cfgLinhaStatus(tr, "E-mail inválido.", true); return; }
+  const empresas = {};
+  CFG_EMPRESAS.forEach(([k]) => {
+    empresas[k] = {
+      responsavel: !!tr.querySelector(`input[data-emp="${k}"][data-campo="responsavel"]`).checked,
+      acesso: !!tr.querySelector(`input[data-emp="${k}"][data-campo="acesso"]`).checked
+    };
+  });
+  const botao = document.getElementById("cfg-nova-salvar");
+  botao.disabled = true;
+  cfgLinhaStatus(tr, "Criando…");
+  try {
+    const d = await cfgPedir("/admin/pessoa", {
+      novo: true, nome, email, telefone: tr.querySelector(".cfg-tel").value,
+      papel: tr.querySelector(".cfg-papel").value, empresas, permissoes: {}
+    });
+    tr.remove();
+    await cfgCarregar();
+    cfgMostrarSenha(`Login criado pra ${nome} (${email}). Senha provisória:`, d.senha);
+  } catch (e) {
+    cfgLinhaStatus(tr, "Não criou: " + e.message, true);
+    botao.disabled = false;
+  }
+}
+
+(function ligarSettings() {
+  const corpo = document.getElementById("cfg-corpo");
+  if (!corpo) return;
+  corpo.addEventListener("change", e => {
+    const tr = e.target.closest("tr");
+    if (!tr || tr.id === "cfg-nova") return;
+    if (e.target.matches("input[type=checkbox], .cfg-papel, .cfg-tel")) cfgSalvarLinha(tr);
+  });
+  corpo.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.classList.contains("cfg-perm-abrir")) cfgAbrirPermissoes(b.closest("tr").dataset.email);
+    else if (b.classList.contains("cfg-reset")) cfgResetar(b);
+    else if (b.id === "cfg-nova-cancelar") b.closest("tr").remove();
+    else if (b.id === "cfg-nova-salvar") cfgCriarPessoa();
+  });
+  document.getElementById("cfg-add").addEventListener("click", cfgNovaLinha);
+  document.getElementById("cfg-perm-salvar").addEventListener("click", cfgSalvarPermissoes);
+  document.getElementById("cfg-perm-corpo").addEventListener("click", e => {
+    const b = e.target.closest("button[data-todos]");
+    if (!b) return;
+    b.closest(".cfg-grupo").querySelectorAll("input[data-chave]:not(:disabled)").forEach(cx => { cx.checked = b.dataset.todos === "1"; });
+  });
+  document.querySelectorAll("[data-fecha]").forEach(b => b.addEventListener("click", () => {
+    if (b.dataset.fecha === "cfg-perm-overlay") cfgFecharPermissoes(); else cfgFecharSenha();
+  }));
+  document.getElementById("cfg-senha-copiar").addEventListener("click", async () => {
+    const senha = document.getElementById("cfg-senha-valor").textContent;
+    const b = document.getElementById("cfg-senha-copiar");
+    try { await navigator.clipboard.writeText(senha); b.textContent = "Copiado ✓"; }
+    catch (e) {
+      const r = document.createRange(); r.selectNodeContents(document.getElementById("cfg-senha-valor"));
+      const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      b.textContent = "Selecionada — Ctrl+C";
+    }
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Escape") return;
+    if (!document.getElementById("cfg-senha-overlay").classList.contains("hidden")) cfgFecharSenha();
+    else if (!document.getElementById("cfg-perm-overlay").classList.contains("hidden")) cfgFecharPermissoes();
+  });
+})();
+
 </script>
 
 </body>

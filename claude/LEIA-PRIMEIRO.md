@@ -53,6 +53,18 @@ dois arquivos antes de propor qualquer coisa**:
   (`CARINHA_LOGINS` no index.html + `LOGINS_CHAT_DASH` no Worker — mudar
   nos dois). Rota `/chat` do Worker; mesma conversa do WhatsApp, marcada
   `canal = 'dash'`.
+- **Settings (25/09):** aba de pessoas e permissões, só pro login `karina`
+  (`SETTINGS_LOGINS` no index.html + `LOGINS_SETTINGS` no Worker — mudar
+  nos dois). Lê e grava pelo Worker (`/admin/pessoas`, `/admin/pessoa`,
+  `/admin/reset-senha`). Empresas e permissões moram em `wpf_acesso`
+  (`empresas`, `permissoes`). Permissões ainda NÃO bloqueiam ninguém
+  (`PERMISSOES_LIBERADAS_PARA_TODOS = true`); Settings e Carinha são só da
+  Karina, sempre.
+- **REGRA — `CATALOGO_PERMISSOES` (25/09):** toda sessão que criar uma
+  função nova na Dash acrescenta a permissão dela no `CATALOGO_PERMISSOES`
+  (index.html) e registra no Changelog. Assim o pop-up de permissões da
+  Settings acompanha cada atualização. Permissão nova nasce desligada pra
+  colab e ligada pra adm; o pop-up marca "novo".
 - **Robô — quem cria linha pra outras pessoas:** admin, ou quem tem
   `cria_para_outros = true` em `wpf_agente_pessoas` (hoje: Isabela).
 

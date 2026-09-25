@@ -2061,16 +2061,19 @@ function corsChat() {
 function jsonChat(obj, status) {
   return new Response(JSON.stringify(obj), { status: status || 200, headers: { ...corsChat(), "Content-Type": "application/json" } });
 }
+// Quem está logado na Dash, pelo token que ela manda (o banco confere).
+async function acessoDoToken(auth) {
+  try {
+    const r = await fetch(`${SB_URL_PUBLICO}/rest/v1/rpc/wpf_meu_acesso`, { method: "POST", headers: { apikey: SB_ANON_PUBLICO, Authorization: auth, "Content-Type": "application/json" }, body: "{}" });
+    const d = r.ok ? await r.json() : null;
+    return (Array.isArray(d) ? d[0] : d) || null;
+  } catch (e) { return null; }
+}
 async function rotaChatDash(env, request) {
   if (request.method === "OPTIONS") return new Response(null, { headers: corsChat() });
   const auth = request.headers.get("Authorization") || "";
   if (!/^Bearer\s+\S+$/.test(auth)) return jsonChat({ erro: "login necessário" }, 401);
-  let acesso = null;
-  try {
-    const r = await fetch(`${SB_URL_PUBLICO}/rest/v1/rpc/wpf_meu_acesso`, { method: "POST", headers: { apikey: SB_ANON_PUBLICO, Authorization: auth, "Content-Type": "application/json" }, body: "{}" });
-    const d = r.ok ? await r.json() : null;
-    acesso = Array.isArray(d) ? d[0] : d;
-  } catch (e) { acesso = null; }
+  const acesso = await acessoDoToken(auth);
   if (!acesso || !LOGINS_CHAT_DASH.includes(acesso.login)) return jsonChat({ erro: "sem acesso" }, 403);
   const rp = await sb(env, `${TAB_PESSOAS}?select=*&nome_tasks=eq.${encodeURIComponent(acesso.nome)}`);
   const pessoa = rp.ok && rp.dados && rp.dados[0];
@@ -2095,6 +2098,167 @@ async function rotaChatDash(env, request) {
   try { await tratarMensagem(envDash, msg, msg.text.body); }
   catch (e) { console.log("chat dash:", e && e.message); envDash.__dash.saida.push({ id: null, texto: "Tive um problema pra responder agora. Tenta de novo?", opcoes: [] }); }
   return jsonChat({ mensagens: envDash.__dash.saida });
+}
+
+// ─── Rotas /admin: aba Settings da Dash (25/09) ──────────────────────────
+// Só pra Karina (login "karina", igual ao /chat). O navegador não pode criar
+// login nem trocar senha de outra pessoa; o Worker faz, com a chave secreta.
+//   GET  /admin/pessoas     → lista (wpf_acesso + telefone do robô)
+//   POST /admin/pessoa      → cria (novo: true) ou edita papel/empresas/
+//                             permissões/celular. Nome e e-mail de quem já
+//                             existe não mudam aqui (ligam Tasks e robô).
+//   POST /admin/reset-senha → senha provisória nova; volta só na resposta.
+// A senha provisória não é gravada em lugar nenhum além do Supabase Auth.
+const LOGINS_SETTINGS = ["karina"];
+const EMPRESAS_SETTINGS = ["wpf", "cbth", "canario"];
+async function sbAuthAdmin(env, caminho, opcoes = {}) {
+  const res = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/${caminho}`, {
+    method: opcoes.method || "GET",
+    headers: { apikey: env.SUPABASE_SERVICE_KEY, Authorization: `Bearer ${env.SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+    body: opcoes.body !== undefined ? JSON.stringify(opcoes.body) : undefined
+  });
+  const texto = await res.text();
+  let dados = null;
+  try { dados = texto ? JSON.parse(texto) : null; } catch (e) { dados = texto; }
+  if (!res.ok) console.log("auth admin erro", res.status, caminho.split("?")[0], String(texto).slice(0, 300));
+  return { ok: res.ok, status: res.status, dados };
+}
+// 10 caracteres, sem os que confundem (0/O, 1/l/I), com maiúscula,
+// minúscula e número.
+function senhaProvisoria() {
+  const letras = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const limite = 256 - (256 % letras.length);
+  for (;;) {
+    let s = "";
+    while (s.length < 10) {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      for (const x of b) if (x < limite && s.length < 10) s += letras[x % letras.length];
+    }
+    if (/[A-Z]/.test(s) && /[a-z]/.test(s) && /[0-9]/.test(s)) return s;
+  }
+}
+function limparEmpresas(e) {
+  const saida = {};
+  EMPRESAS_SETTINGS.forEach(k => {
+    const v = e && typeof e === "object" ? e[k] : null;
+    saida[k] = { responsavel: !!(v && v.responsavel), acesso: !!(v && v.acesso) };
+  });
+  return saida;
+}
+function limparPermissoes(p) {
+  const saida = {};
+  if (p && typeof p === "object" && !Array.isArray(p)) {
+    Object.keys(p).slice(0, 200).forEach(k => { if (/^[A-Za-z0-9_]{1,40}$/.test(k)) saida[k] = !!p[k]; });
+  }
+  return saida;
+}
+function limparTelefone(t) {
+  const d = String(t || "").replace(/\D/g, "");
+  return d;
+}
+async function usuarioAuthPorEmail(env, email) {
+  for (let pagina = 1; pagina <= 10; pagina++) {
+    const r = await sbAuthAdmin(env, `users?page=${pagina}&per_page=200`);
+    const lista = r.ok && r.dados && Array.isArray(r.dados.users) ? r.dados.users : [];
+    const achou = lista.find(u => String(u.email || "").toLowerCase() === email);
+    if (achou) return achou;
+    if (lista.length < 200) return null;
+  }
+  return null;
+}
+async function rotaAdmin(env, request, url) {
+  if (request.method === "OPTIONS") return new Response(null, { headers: corsChat() });
+  const auth = request.headers.get("Authorization") || "";
+  if (!/^Bearer\s+\S+$/.test(auth)) return jsonChat({ erro: "login necessário" }, 401);
+  const quem = await acessoDoToken(auth);
+  if (!quem || !LOGINS_SETTINGS.includes(quem.login)) return jsonChat({ erro: "sem acesso" }, 403);
+
+  if (url.pathname === "/admin/pessoas" && request.method === "GET") {
+    const ra = await sb(env, "wpf_acesso?select=*&order=nome.asc");
+    if (!ra.ok) return jsonChat({ erro: "não consegui ler a lista" }, 500);
+    const rp = await sb(env, `${TAB_PESSOAS}?select=telefone,nome_tasks`);
+    const tel = {};
+    (rp.ok && Array.isArray(rp.dados) ? rp.dados : []).forEach(p => { tel[p.nome_tasks] = p.telefone; });
+    const pessoas = (ra.dados || []).map(a => ({
+      email: a.email, login: a.login, nome: a.nome, papel: a.papel,
+      precisa_trocar_senha: !!a.precisa_trocar_senha,
+      empresas: limparEmpresas(a.empresas), permissoes: a.permissoes && typeof a.permissoes === "object" ? a.permissoes : {},
+      telefone: tel[a.nome] || "", eu: a.login === quem.login
+    }));
+    return jsonChat({ pessoas });
+  }
+
+  if (request.method !== "POST") return jsonChat({ erro: "método" }, 405);
+  let corpo = null;
+  try { corpo = await request.json(); } catch (e) { corpo = null; }
+  if (!corpo || typeof corpo !== "object") return jsonChat({ erro: "pedido vazio" }, 400);
+  const email = String(corpo.email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return jsonChat({ erro: "e-mail inválido" }, 400);
+
+  if (url.pathname === "/admin/reset-senha") {
+    const ra = await sb(env, `wpf_acesso?select=email&email=eq.${encodeURIComponent(email)}`);
+    if (!ra.ok || !ra.dados || !ra.dados[0]) return jsonChat({ erro: "pessoa não está na lista de acesso" }, 404);
+    const u = await usuarioAuthPorEmail(env, email);
+    if (!u) return jsonChat({ erro: "essa pessoa não tem login no Supabase" }, 404);
+    const senha = senhaProvisoria();
+    const rs = await sbAuthAdmin(env, `users/${u.id}`, { method: "PUT", body: { password: senha } });
+    if (!rs.ok) return jsonChat({ erro: "o Supabase recusou a senha nova" }, 502);
+    await sb(env, `wpf_acesso?email=eq.${encodeURIComponent(email)}`, { method: "PATCH", body: { precisa_trocar_senha: true } });
+    return jsonChat({ ok: true, senha });
+  }
+
+  if (url.pathname !== "/admin/pessoa") return jsonChat({ erro: "rota" }, 404);
+  const papel = corpo.papel === "adm" ? "adm" : corpo.papel === "colab" ? "colab" : null;
+  if (!papel) return jsonChat({ erro: "papel inválido" }, 400);
+  const empresas = limparEmpresas(corpo.empresas);
+  const permissoes = limparPermissoes(corpo.permissoes);
+  const telefone = limparTelefone(corpo.telefone);
+  if (telefone && (telefone.length < 10 || telefone.length > 15)) return jsonChat({ erro: "celular inválido: use DDI + DDD + número" }, 400);
+
+  const rAtual = await sb(env, `wpf_acesso?select=*&email=eq.${encodeURIComponent(email)}`);
+  const atual = rAtual.ok && rAtual.dados && rAtual.dados[0];
+  const rTel = telefone ? await sb(env, `${TAB_PESSOAS}?select=telefone,nome_tasks&telefone=eq.${telefone}`) : null;
+  const donoTel = rTel && rTel.ok && rTel.dados && rTel.dados[0];
+
+  if (corpo.novo) {
+    if (atual) return jsonChat({ erro: "esse e-mail já está na lista" }, 409);
+    const nome = String(corpo.nome || "").trim().replace(/\s+/g, " ");
+    if (nome.length < 2 || nome.length > 80) return jsonChat({ erro: "nome inválido" }, 400);
+    const rNome = await sb(env, `wpf_acesso?select=email&nome=eq.${encodeURIComponent(nome)}`);
+    if (rNome.ok && rNome.dados && rNome.dados[0]) return jsonChat({ erro: "já existe alguém com esse nome" }, 409);
+    if (donoTel) return jsonChat({ erro: `esse celular já é de ${donoTel.nome_tasks}` }, 409);
+    let login = email.split("@")[0].toLowerCase().replace(/[^a-z0-9._-]/g, "") || "pessoa";
+    const rLogins = await sb(env, "wpf_acesso?select=login");
+    const usados = new Set((rLogins.ok && rLogins.dados || []).map(x => x.login));
+    const base = login;
+    for (let i = 2; usados.has(login); i++) login = base + i;
+    const senha = senhaProvisoria();
+    let u = await usuarioAuthPorEmail(env, email);
+    const rs = u
+      ? await sbAuthAdmin(env, `users/${u.id}`, { method: "PUT", body: { password: senha } })
+      : await sbAuthAdmin(env, "users", { method: "POST", body: { email, password: senha, email_confirm: true } });
+    if (!rs.ok) return jsonChat({ erro: "o Supabase não criou o login" }, 502);
+    const ri = await sb(env, "wpf_acesso", { method: "POST", body: [{ email, login, nome, papel, precisa_trocar_senha: true, empresas, permissoes }] });
+    if (!ri.ok) return jsonChat({ erro: "login criado, mas não entrou na lista de acesso — tente de novo" }, 502);
+    // Pessoa nova NÃO recebe avisos do robô sozinha: a Karina liga depois.
+    if (telefone) await sb(env, TAB_PESSOAS, { method: "POST", body: [{ telefone, nome_tasks: nome, email, recebe_avisos: false }] });
+    return jsonChat({ ok: true, senha, login });
+  }
+
+  if (!atual) return jsonChat({ erro: "pessoa não encontrada" }, 404);
+  // Trava: a Karina não tira dela mesma o papel de adm.
+  if (atual.login === quem.login && papel !== "adm") return jsonChat({ erro: "você não pode tirar de si mesma o papel de adm" }, 400);
+  const ru = await sb(env, `wpf_acesso?email=eq.${encodeURIComponent(email)}`, { method: "PATCH", body: { papel, empresas, permissoes } });
+  if (!ru.ok) return jsonChat({ erro: "não consegui salvar" }, 502);
+  let avisoTel = "";
+  if (telefone) {
+    const rMeu = await sb(env, `${TAB_PESSOAS}?select=telefone&nome_tasks=eq.${encodeURIComponent(atual.nome)}`);
+    const meu = rMeu.ok && rMeu.dados && rMeu.dados[0];
+    if (donoTel && donoTel.nome_tasks !== atual.nome) avisoTel = `celular não salvo: já é de ${donoTel.nome_tasks}`;
+    else if (meu && meu.telefone !== telefone) await sb(env, `${TAB_PESSOAS}?telefone=eq.${meu.telefone}`, { method: "PATCH", body: { telefone } });
+    else if (!meu) await sb(env, TAB_PESSOAS, { method: "POST", body: [{ telefone, nome_tasks: atual.nome, email, recebe_avisos: false }] });
+  }
+  return jsonChat({ ok: true, aviso: avisoTel });
 }
 
 export default {
@@ -2151,6 +2315,7 @@ export default {
     }
 
     if (url.pathname === "/chat") return rotaChatDash(env, request);
+    if (url.pathname.startsWith("/admin/")) return rotaAdmin(env, request, url);
 
     if (url.pathname === "/readai/conectar" && (request.method === "GET" || request.method === "POST")) {
       try { return await paginaConectar(env, request, url); }
@@ -2173,5 +2338,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { janelaAberta, rotaChatDash, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

@@ -15,6 +15,32 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Plano "Settings e Carinha" — etapas 2 a 7** — plano de 25/09
+  (PDF da Karina). Etapa 1 (Settings) feita. Falta:
+  2. Acesso por empresa travado no banco (política de `wpf_dashboard_data`
+     pela empresa da seção) — depois da etapa 1 no ar.
+  3. + Ação › Escrever e-mail (só WPF; interação registrada automática) —
+     depende da Karina reinstalar o script do Gmail com envio e criar
+     `GMAIL_ENVIO_URL` + código no Cloudflare.
+  4. + Ação › Mandar mensagem (abre o WhatsApp da Karina).
+  5. + Ação › Pesquisar — depende de recarga do crédito da Anthropic.
+  6. Caixinha "Próximo passo". 7. Chat do Carinha com o contexto da tela.
+  - *Decisões que faltam:* assinatura dos e-mails (nome, cargo, telefone;
+    alguém em cópia?) e teto de pesquisas por dia (sugestão: 20).
+  - *Onde:* `index.html`, `worker/whatsapp-bridge.js`, `worker/gmail-script.gs`
+  - *Aberto em:* 2026-09-25
+
+- [ ] **Ligar o bloqueio das permissões** — a Settings grava, mas
+  `PERMISSOES_LIBERADAS_PARA_TODOS = true` e `colabCan()` ainda lê as
+  permissões antigas (seção `users`). Pra ligar: `colabCan()` passa a ler
+  `currentUser.permissoes` (padrão do papel quando a chave falta), cada item
+  do `CATALOGO_PERMISSOES` ganha a trava na tela (vários ainda não têm:
+  editar nome, restaurar histórico, CRM), empresas "Resp."/"Acesso" passam
+  a filtrar responsáveis e seções, e a constante vira `false`. Só com o OK
+  da Karina, depois de ela configurar cada pessoa.
+  - *Onde:* `index.html` (`colabCan`, `CATALOGO_PERMISSOES`)
+  - *Aberto em:* 2026-09-25
+
 - [ ] **Conferir a Dash no celular com dados reais** — a versão de celular
   (25/09) foi testada sem login; olhar Tasks cheia (rolagem de lado, Nome
   preso), CRM/planilha, Carinha e pop-ups num celular de verdade.
