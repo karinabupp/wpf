@@ -15,6 +15,12 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Conferir a Dash no celular com dados reais** — a versão de celular
+  (25/09) foi testada sem login; olhar Tasks cheia (rolagem de lado, Nome
+  preso), CRM/planilha, Carinha e pop-ups num celular de verdade.
+  - *Onde:* `index.html`, bloco `@media (max-width: 760px)`
+  - *Aberto em:* 2026-09-25
+
 - [ ] **"Restaurar" do Histórico da Tasks volta a seção inteira** — em
   24/09 19:40 alguém restaurou a CBTH pra 22/09 e desfez dois dias de
   trabalho (ver Changelog 5ª de 24/09). O botão restaura TUDO, não só o que

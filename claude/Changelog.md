@@ -12,6 +12,24 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-09-25 — Dash no celular
+
+- **O que mudou:** `index.html` trocado pela versão da Karina com layout de
+  celular (telas até 760px). Entra a meta `viewport`; menu vira barra
+  embaixo; Tasks rola de lado com checkbox e Nome presos à esquerda (recuo
+  por nível menor: 10px em vez de 26px); CRM empilha mapa e legenda e a
+  planilha rola de lado com o país preso; Carinha e pop-ups ajustados à
+  tela; campos com fonte 16px (iPhone não dá zoom). No computador nada muda.
+- **Onde:** `index.html` (bloco `@media (max-width: 760px)` no CSS e
+  `nameIndent` da Tasks).
+- **Por quê:** pedido da Karina — usar a Dash pelo celular.
+- **Verificação:** sintaxe do JS ok; Chromium em 1400px e 390px, versão
+  antiga e nova, zero erros; Tasks e CRM sem rolagem lateral da página.
+  Sem login real (Supabase fora do teste): falta conferir no celular com
+  dados, principalmente a tabela da Tasks cheia.
+
+---
+
 ## 2026-09-24 (5ª) — CBTH: "Aumentar alcance" restaurado; KPI Ladies manual
 
 - **O que aconteceu:** às 19:40 alguém usou "Restaurar" no Histórico da
