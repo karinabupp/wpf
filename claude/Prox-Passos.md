@@ -71,6 +71,18 @@ reconstruir o raciocínio.
     Linha de baixo herda as tags de cima (clarinhas) e soma as próprias.
     Linhas que hoje são país/pessoa: o Carinha propõe em lote nome novo +
     tags, Karina aprova. CRM e Avisos Gerais passam a ler as tags de lugar.
+    **A (aprovado 07/10):** um Carinha conversa (piloto) e chama 7
+    especialistas — Detalhador, Planejador, Acompanhador, Fechamento,
+    Triagem, Resumo, Redator; conectores em código: WhatsApp, transcrição
+    de áudio, Gmail (ler e enviar por pessoa), Google Calendar,
+    Dash/Supabase, CRM, Read AI, Slack. Haiku: Carinha, Acompanhador,
+    Triagem, Fechamento; Sonnet: Detalhador, Planejador, Resumo. Redator
+    **envia** o e-mail depois do "sim". CRM: o Carinha **propõe** registrar
+    a interação. Áudio **sem custo**: Workers AI do Cloudflare
+    (`@cf/openai/whisper-large-v3-turbo`, ~47 neurons/min; 10 mil neurons
+    grátis por dia ≈ 200 min/dia; acima disso falha no plano Free, não
+    cobra). Tags: Detalhador e Triagem sugerem; conector do CRM cria
+    pessoa/empresa nova com "sim".
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
