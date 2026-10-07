@@ -12,6 +12,19 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (9ª) — Tasks (piloto): "+" mais claro e alinhado com a seta
+
+- **O que mudou:** o "+" antes da setinha ficou mais claro (sem negrito,
+  mesmo cinza da seta, mais suave; escurece no mouse) e alinhado com a
+  seta (os dois numa caixinha de 16px, centralizados na mesma altura).
+  *Motivo:* no print da Karina, o "+" estava escuro e desalinhado.
+- **Onde:** `index.html`, só CSS do piloto (`.tasksp-add-nome`,
+  `.tasksp-name-row .tasksp-toggle`).
+- **Verificação:** centro do "+" e da seta na mesma altura (medido);
+  79 + 32 + 33 + 34 testes.
+
+---
+
 ## 2026-10-07 (8ª) — Tasks (piloto): Pessoas nas tags, só a demanda do LW, "+" no lugar do contexto
 
 - **Tags › Pessoas:** o grupo Pessoas aparece sempre no painel de tags

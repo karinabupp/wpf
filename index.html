@@ -6480,8 +6480,13 @@
   .tasksp-stent-vazio { color: var(--text-muted); font-size: 12px; }
   .tasksp-head-row .tasksp-col-stent .tasksp-head-txt, .tasksp-head-row .tasksp-col-entrega .tasksp-head-txt { white-space: normal; line-height: 1.15; }
   /* 07/10 (3ª): "+" no lugar do contexto; Pessoas sempre no painel de tags */
-  .tasksp-name-row .tasksp-add-nome { flex-shrink: 0; padding: 0 4px; font-size: 16px; line-height: 1; font-weight: 600; }
-  .tasksp-name-row .tasksp-add-nome:hover { color: var(--accent); }
+  .tasksp-name-row .tasksp-add-nome {
+    flex-shrink: 0; width: 16px; height: 16px; padding: 0; margin: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; line-height: 1; font-weight: 400; color: var(--text-muted); opacity: 0.6;
+  }
+  .tasksp-name-row .tasksp-add-nome:hover { opacity: 1; color: var(--accent); }
+  .tasksp-name-row .tasksp-toggle { height: 16px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
   .tasksp-tags-pessoas-vazio { padding: 2px 4px 4px; }
 
 
