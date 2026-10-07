@@ -12,6 +12,18 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (2ª) — Carinha: mensagens pausadas pra Isabela, Leonardo e Roberto
+
+- **O que mudou (Supabase):** `proativo = false` pros três em
+  `wpf_agente_pessoas` (`sql/2026-10-07_pausa_mensagens_equipe.sql`, com a
+  volta comentada). Param check-in, avisos, Slack e template. Se eles
+  mandarem mensagem, o Carinha responde normal. `recebe_avisos` (o SAIR
+  deles) não foi tocado. Karina segue recebendo tudo.
+- **Por quê:** pedido da Karina enquanto o projeto do assistente é
+  montado na metodologia BAIER.
+
+---
+
 ## 2026-10-07 — Tasks (piloto): cópia da Tasks com Entrega › Item › Etapa
 
 Pedido da Karina, aprovado ("pode"), primeiro passo do plano do assistente

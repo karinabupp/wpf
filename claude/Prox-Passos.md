@@ -15,6 +15,11 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Religar o Carinha pra Isabela, Leonardo e Roberto** — pausado em
+  07/10 (`proativo = false`). Quando a Karina liberar, rodar a "volta" de
+  `sql/2026-10-07_pausa_mensagens_equipe.sql`.
+  - *Aberto em:* 2026-10-07
+
 - [ ] **Assistente da equipe (projeto do chefe, 06/10) — piloto na Dash** —
   projeto de assistente que transforma demanda vaga em entregas/etapas,
   planeja o dia em blocos com o Google Calendar e fecha o dia. Comparação e
