@@ -6412,6 +6412,43 @@
     .tasksp-extras { padding-left: 34px; }
     .tasksp-proxima, .tasksp-aguarda, .tasksp-depende { max-width: 160px; }
   }
+  /* Fase 1 (07/10): coluna Tags e painel de tags */
+  .tasksp-tags-cell { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; cursor: pointer; min-height: 26px; width: 100%; padding: 2px 0; }
+  .tasksp-tags-cell:hover { background: rgba(0,0,0,0.03); border-radius: 6px; }
+  .tasksp-tag {
+    display: inline-flex; align-items: center; gap: 4px; max-width: 150px; padding: 1px 7px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.6;
+  }
+  .tasksp-tag-lugar { background: #e6f1fb; color: #0c447c; }
+  .tasksp-tag-empresa { background: #e7f4ec; color: #1e5b36; }
+  .tasksp-tag-pessoa { background: transparent; color: var(--text); box-shadow: inset 0 0 0 1px var(--border-strong, #cfcdc4); }
+  .tasksp-tag-equipe { background: #f1efe8; box-shadow: none; }
+  .tasksp-tag-equipe i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .tasksp-tag.is-herdada { opacity: 0.45; }
+  .tasksp-tag-mais { background: #eeece4; color: var(--text-muted); }
+  #tasksp-tags-painel {
+    position: fixed; z-index: 950; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16); width: 340px; max-width: calc(100vw - 24px); max-height: 440px;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .tasksp-tags-proprias, .tasksp-tags-herdadas { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 12px 0; align-items: center; }
+  .tasksp-tags-herdadas:empty { display: none; }
+  .tasksp-tags-rot, .tasksp-tags-nada { font-size: 11px; color: var(--text-muted); }
+  .tasksp-tag-tirar { display: inline-flex; align-items: center; }
+  .tasksp-tag-tirar button { border: 0; background: none; color: var(--text-muted); cursor: pointer; font-size: 14px; padding: 0 2px; }
+  .tasksp-tags-busca { margin: 8px 12px; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; background: var(--bg); color: var(--text); }
+  .tasksp-tags-lista { overflow-y: auto; padding: 0 8px 8px; display: flex; flex-direction: column; }
+  .tasksp-tags-grupo { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); padding: 8px 4px 3px; }
+  .tasksp-tags-opcao { display: flex; align-items: center; gap: 6px; border: 0; background: none; text-align: left; padding: 4px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text); }
+  .tasksp-tags-opcao:hover, .tasksp-tags-opcao:focus { background: rgba(0,0,0,0.05); }
+  .tasksp-tags-opcao small { color: var(--text-muted); font-size: 11px; }
+  .tasksp-tags-criar { display: flex; flex-direction: column; gap: 6px; padding: 8px 4px; font-size: 12.5px; }
+  .tasksp-tags-criar label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+  .tasksp-tags-criar select { border: 1px solid var(--border); border-radius: 6px; padding: 5px 6px; font: inherit; font-size: 13px; background: var(--bg); color: var(--text); }
+  .tasksp-tags-criar select.is-erro { border-color: #cf2b2b; }
+  .tasksp-tags-criar-botoes { display: flex; gap: 6px; }
+  .tasksp-tags-criar-botoes button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .tasksp-tags-criar-botoes button:first-child { color: #fff; background: var(--accent); border-color: var(--accent); }
 
 </style>
 
@@ -6827,7 +6864,7 @@
         <div class="tasksp-col-date"><button type="button" class="tasksp-filtro-btn" data-col="fim">Fim<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-assignee"><button type="button" class="tasksp-filtro-btn" data-col="responsavel">Responsável<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-area"><button type="button" class="tasksp-filtro-btn" data-col="area">Área<span class="tasksp-filtro-seta">▾</span></button></div>
-        <div class="tasksp-col-pais"><button type="button" class="tasksp-filtro-btn" data-col="pais"><span id="tasksp-rotulo-pais">País</span><span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-pais"><button type="button" class="tasksp-filtro-btn" data-col="tags"><span id="tasksp-rotulo-pais">País</span><span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-actions"></div>
       </div>
       <div id="tasksp-table-body"></div>
@@ -7306,7 +7343,8 @@ if (sbAuth) {
 // só não são mais lidas nem gravadas.
 const CLOUD_SECTIONS = ["users", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico", "historicoGeral", "tasks2__cbth", "tasks2Areas__cbth", "tasks2Kpis__cbth", "tasks2Historico__cbth", "members2", "members2__cbth",
   // Tasks (piloto), 07/10: seções próprias, que o robô não lê (ele lê tasks2* e members2*).
-  "tasksPiloto", "tasksPilotoAreas", "tasksPilotoKpis", "tasksPiloto__cbth", "tasksPilotoAreas__cbth", "tasksPilotoKpis__cbth"];
+  "tasksPiloto", "tasksPilotoAreas", "tasksPilotoKpis", "tasksPiloto__cbth", "tasksPilotoAreas__cbth", "tasksPilotoKpis__cbth",
+  "tasksPilotoCadastro", "tasksPilotoCadastro__cbth"];
 // Sufixo da empresa ativa, usado nos nomes de secao acima.
 const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 
@@ -7383,6 +7421,8 @@ function preencherSecoesPorOrg(p) {
       p["tasksPilotoAreas" + suf] = tasksPilotoBridge.getAreas();
       p["tasksPilotoKpis" + suf] = tasksPilotoBridge.getKpis();
     }
+    const cad = tasksPilotoBridge.getCadastro ? tasksPilotoBridge.getCadastro() : undefined;
+    if (cad !== undefined) p["tasksPilotoCadastro" + suf] = cad;
   }
   return p;
 }
@@ -7436,7 +7476,8 @@ const HISTORICO_GERAL_INTERVALO_MS = 30 * 60 * 1000;
 // O piloto (07/10) também fica fora das versões do histórico geral: é uma cópia
 // de teste e dobraria o tamanho de cada versão.
 const SECOES_HISTORICO_TODAS = ["historicoGeral", "tasks2Historico", "tasks2Historico__cbth",
-  "tasksPiloto", "tasksPilotoAreas", "tasksPilotoKpis", "tasksPiloto__cbth", "tasksPilotoAreas__cbth", "tasksPilotoKpis__cbth"];
+  "tasksPiloto", "tasksPilotoAreas", "tasksPilotoKpis", "tasksPiloto__cbth", "tasksPilotoAreas__cbth", "tasksPilotoKpis__cbth",
+  "tasksPilotoCadastro", "tasksPilotoCadastro__cbth"];
 function versaoSemHistoricos(v) {
   if (v && v.data) SECOES_HISTORICO_TODAS.forEach(sec => { delete v.data[sec]; });
   return v;
@@ -7638,7 +7679,7 @@ const ehSecaoHistorico = s => SECOES_HISTORICO.includes(s);
 
 // So as secoes que a empresa ativa usa (as da outra empresa nem sao lidas).
 function secaoDaOrg(s) {
-  const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2|tasksPiloto|tasksPilotoAreas|tasksPilotoKpis)(__.+)?$/.exec(s);
+  const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2|tasksPiloto|tasksPilotoAreas|tasksPilotoKpis|tasksPilotoCadastro)(__.+)?$/.exec(s);
   if (!porEmpresa) return true;
   return (porEmpresa[2] || "") === SUFIXO_ORG();
 }
@@ -16058,7 +16099,7 @@ applyRolePermissions();
       id: "task-" + Date.now(),
       name: ((rowType === "objetivo" || rowType === "entregavel") ? "Novo " : "Nova ") + TASK_TYPES[rowType].label.toLowerCase(),
       status: "Not Started", startDate: "", endDate: "",
-      assignees: [], kpiLink: "", areaLink: "", objetivoLink: "", paisLink: "",
+      assignees: [], kpiLink: "", areaLink: "", objetivoLink: "", tags: { pessoas: [], lugares: [], empresas: [] },
       rowType, subtasks: []
     };
   }
@@ -16481,7 +16522,7 @@ applyRolePermissions();
     }
     delete t.assignee;
     if (t.kpiLink === undefined) t.kpiLink = "";
-    if (t.paisLink === undefined) t.paisLink = "";
+    migrarPaisParaTags(t); // piloto: país vira tag de lugar
     if (!Array.isArray(t.mentions)) t.mentions = [];
     if (!Array.isArray(t.pontuacoes)) t.pontuacoes = [];
     // "rowType" is the explicit task/subtask classification the user picks per
@@ -17372,19 +17413,19 @@ applyRolePermissions();
   // ══════════════════════════════════════════════════════════════════════
   const filtros = {
     nome: "",
-    tipo: new Set(), kpi: new Set(), objetivo: new Set(), area: new Set(), status: new Set(), responsavel: new Set(),
+    tipo: new Set(), kpi: new Set(), objetivo: new Set(), area: new Set(), status: new Set(), responsavel: new Set(), tags: new Set(),
     inicioDe: "", inicioAte: "", fimDe: "", fimAte: ""
   };
   const SEM_VALOR = "__sem__"; // "sem KPI" / "sem projeto" / "sem responsável"
 
   function haFiltro() {
     return !!filtros.nome.trim() || filtros.tipo.size || filtros.kpi.size || filtros.objetivo.size || filtros.area.size ||
-      filtros.status.size || filtros.responsavel.size ||
+      filtros.status.size || filtros.responsavel.size || filtros.tags.size ||
       filtros.inicioDe || filtros.inicioAte || filtros.fimDe || filtros.fimAte;
   }
   function limparFiltros() {
     filtros.nome = "";
-    ["tipo", "kpi", "objetivo", "area", "status", "responsavel"].forEach(k => filtros[k].clear());
+    ["tipo", "kpi", "objetivo", "area", "status", "responsavel", "tags"].forEach(k => filtros[k].clear());
     ["inicioDe", "inicioAte", "fimDe", "fimAte"].forEach(k => filtros[k] = "");
   }
 
@@ -17411,6 +17452,11 @@ applyRolePermissions();
       const bate = resp.length
         ? resp.some(r => filtros.responsavel.has(r))
         : filtros.responsavel.has(SEM_VALOR);
+      if (!bate) return false;
+    }
+    if (filtros.tags.size) {
+      const ch = chavesEfetivas(t);
+      const bate = ch.size ? [...ch].some(k => filtros.tags.has(k)) : filtros.tags.has(SEM_VALOR);
       if (!bate) return false;
     }
     if (!dentroDoIntervalo(t.startDate, filtros.inicioDe, filtros.inicioAte)) return false;
@@ -17568,7 +17614,7 @@ applyRolePermissions();
   const ROTULO_PAIS_TASKS2 = ORG_ATUAL === "cbth" ? "Estado" : "País";
   (function () {
     const el = document.getElementById("tasksp-rotulo-pais");
-    if (el) el.textContent = ROTULO_PAIS_TASKS2;
+    if (el) el.textContent = "Tags";
   })();
 
   function paisCellMarkup(t) {
@@ -17791,9 +17837,9 @@ applyRolePermissions();
           ${areaCellMarkup(t, depth, inheritedArea)}
           <span class="tasksp-fill-handle" data-id="${t.id}" data-field="areaLink" title="Arraste para copiar a área para as linhas abaixo"></span>
         </div>
-        <div class="tasksp-col-pais" data-fill-field="paisLink">
-          ${paisCellMarkup(t)}
-          <span class="tasksp-fill-handle" data-id="${t.id}" data-field="paisLink" title="Arraste para copiar ${ROTULO_PAIS_TASKS2.toLowerCase()} para as linhas abaixo"></span>
+        <div class="tasksp-col-pais" data-fill-field="tags">
+          ${tagsCellMarkup(t)}
+          <span class="tasksp-fill-handle" data-id="${t.id}" data-field="tags" title="Arraste para copiar as tags para as linhas abaixo"></span>
         </div>
         <div class="tasksp-col-actions">
           ${canCreate ? `<button class="tasksp-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
@@ -17826,7 +17872,8 @@ applyRolePermissions();
     status:      { rotulo: "Status",      tipo: "lista" },
     inicio:      { rotulo: "Início",      tipo: "data", campos: ["inicioDe", "inicioAte"] },
     fim:         { rotulo: "Fim",         tipo: "data", campos: ["fimDe", "fimAte"] },
-    responsavel: { rotulo: "Responsável", tipo: "lista" }
+    responsavel: { rotulo: "Responsável", tipo: "lista" },
+    tags:        { rotulo: "Tags",        tipo: "lista" }
   };
 
   function opcoesDaColuna(col) {
@@ -17838,6 +17885,17 @@ applyRolePermissions();
       .concat(OBJETIVOS.map(x => ({ valor: x.id, texto: x.name })));
     if (col === "area") return [{ valor: SEM_VALOR, texto: "— sem área —" }]
       .concat(areasData.map(x => ({ valor: x.id, texto: x.name })));
+    if (col === "tags") {
+      const vistos = new Map();
+      (function walk(items) { items.forEach(t => {
+        const g = tagsDe(t);
+        g.pessoas.forEach(v => vistos.set("pessoa|" + v, rotuloTag("pessoa", v)));
+        g.empresas.forEach(v => vistos.set("empresa|" + v, rotuloTag("empresa", v)));
+        g.lugares.forEach(v => vistos.set("lugar|" + v, v));
+        walk(t.subtasks); }); })(tasksData);
+      return [{ valor: SEM_VALOR, texto: "— sem tags —" }]
+        .concat([...vistos].filter(([, n]) => n).sort((a, b) => a[1].localeCompare(b[1], "pt-BR")).map(([v, n]) => ({ valor: v, texto: n })));
+    }
     if (col === "responsavel") {
       const nomes = new Set();
       (function walk(items) { items.forEach(t => {
@@ -17926,6 +17984,7 @@ applyRolePermissions();
     syncKpisDasFontes(); // e o valor pode ter mudado desde o ultimo render
     autoSyncLateStatuses();
     syncStatusCalculados();
+    mapaHeranca = calcularHeranca(); // piloto: tags herdadas das linhas de cima
     const body = document.getElementById("tasksp-table-body");
     idsFiltrados = haFiltro() ? idsVisiveis() : null;
     if (idsFiltrados) {
@@ -18388,7 +18447,7 @@ applyRolePermissions();
   // linha nova; pra isso existe o Copiar/Colar.
   let tasksFill = null; // { campos, valores, startIndex, ids } while a drag is in progress
   // Tipo fica de fora de proposito: trocar categoria mexe na hierarquia.
-  const CAMPOS_ARRASTAVEIS = ["name", "status", "startDate", "endDate", "assignees", "areaLink", "paisLink"];
+  const CAMPOS_ARRASTAVEIS = ["name", "status", "startDate", "endDate", "assignees", "areaLink", "tags"];
   let celulasMarcadas = null; // { id, campos: Set } — celulas marcadas com Ctrl/Cmd+clique
 
   function campoEditavel(field) {
@@ -18411,7 +18470,7 @@ applyRolePermissions();
 
   // Responsavel e array: cada linha ganha a sua copia, senao todas passariam
   // a dividir o mesmo array e mexer numa mexeria em todas.
-  const copiaValor = v => Array.isArray(v) ? [...v] : (v === undefined ? "" : v);
+  const copiaValor = v => Array.isArray(v) ? [...v] : (v && typeof v === "object") ? JSON.parse(JSON.stringify(v)) : (v === undefined ? "" : v);
 
   function tasksFlatRowIds() {
     return [...document.querySelectorAll("#tasksp-table-body .tasksp-row")].map(el => el.dataset.id);
@@ -18692,6 +18751,7 @@ applyRolePermissions();
   function textoDoValor(campo, v) {
     if (campo === "assignees") return (Array.isArray(v) ? v : []).join(", ");
     if (campo === "areaLink") { const a = v ? findAreaById(v) : null; return a ? a.name : ""; }
+    if (campo === "tags") return tagsParaTexto(v);
     return v == null ? "" : String(v);
   }
 
@@ -18722,6 +18782,7 @@ applyRolePermissions();
       const a = areasData.find(x => igual(x.name, txt));
       return a ? { ok: true, v: a.id } : { ok: false };
     }
+    if (campo === "tags") return textoParaTags(txt);
     if (campo === "paisLink") {
       if (!txt) return { ok: true, v: "" };
       const p = paisesDisponiveis2().find(x => igual(x, txt));
@@ -19583,6 +19644,330 @@ applyRolePermissions();
     return null;
   }
 
+  // ══ Piloto, fase 1 (07/10, Karina): TAGS e CADASTRO ÚNICO ══════════════
+  // Nenhuma linha é mais país, pessoa, estado ou empresa: o nome é o trabalho
+  // e o resto vira tag. t.tags = { pessoas: ["eq:<nome da equipe>" | "p:<id>"],
+  // lugares: ["<país ou estado>"], empresas: ["<id>"] }. A coluna "País"
+  // virou "Tags". A linha de baixo herda as tags de cima (aparecem clarinhas)
+  // e soma as próprias.
+  // Cadastro único (pessoas e empresas existem por si e se ligam a um ou mais
+  // lugares): seção própria do piloto (tasksPilotoCadastro), semeada uma vez
+  // a partir dos contatos e empresas do CRM real — que NÃO é alterado.
+  const CADASTRO_KEY = chaveDaOrg("wpf_tasksp_cadastro");
+  let cadastro = { pessoas: [], empresas: [] };
+  let cadastroTemDados = false;
+  try {
+    const g = JSON.parse(localStorage.getItem(CADASTRO_KEY) || "null");
+    if (g && Array.isArray(g.pessoas) && Array.isArray(g.empresas)) { cadastro = g; cadastroTemDados = true; }
+  } catch (e) {}
+  function saveCadastro() {
+    try { localStorage.setItem(CADASTRO_KEY, JSON.stringify(cadastro)); } catch (e) {}
+    scheduleCloudSave();
+  }
+  const normTag = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim().replace(/\s+/g, " ");
+  const novoIdTag = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+  // Uma vez só: contatos e empresas que hoje moram dentro de cada país do
+  // CRM viram cadastro único. Mesma empresa/pessoa em dois países = um
+  // cadastro com os dois lugares (pessoa: mesmo e-mail ou mesmo nome).
+  function semearCadastroDoCrm() {
+    if (cadastroTemDados) return true;
+    if (!pilotoLiberado() || typeof cloudCarregou === "undefined" || !cloudCarregou) return false;
+    let pac = null;
+    try { pac = window.membros2Bridge && membros2Bridge.getDados ? membros2Bridge.getDados() : null; } catch (e) { pac = null; }
+    const paises = (pac && pac.paises) || {};
+    const empresas = [], pessoas = [], mapaEmp = {};
+    const porNomeEmp = {}, porChavePes = {};
+    Object.keys(paises).forEach(lugar => {
+      const reg = paises[lugar] || {};
+      (Array.isArray(reg.__empresas) ? reg.__empresas : []).forEach(e => {
+        if (!e || !String(e.nome || "").trim()) return;
+        const k = normTag(e.nome);
+        let alvo = porNomeEmp[k];
+        if (!alvo) {
+          alvo = { id: e.id || novoIdTag("emp"), nome: String(e.nome).trim(), tipo: e.tipo || "", email: e.email || "", tel: e.tel || "",
+            site: e.site || "", redeSocial: e.redeSocial || "", lugares: [] };
+          porNomeEmp[k] = alvo; empresas.push(alvo);
+        }
+        if (!alvo.lugares.includes(lugar)) alvo.lugares.push(lugar);
+        if (e.id) mapaEmp[e.id] = alvo.id;
+      });
+    });
+    Object.keys(paises).forEach(lugar => {
+      const reg = paises[lugar] || {};
+      (Array.isArray(reg.__contatos) ? reg.__contatos : []).forEach(c => {
+        if (!c || !String(c.nome || "").trim()) return;
+        const k = c.email ? "@" + String(c.email).trim().toLowerCase() : normTag(c.nome);
+        let alvo = porChavePes[k];
+        if (!alvo) {
+          alvo = { id: c.id || novoIdTag("pes"), nome: String(c.nome).trim(), cargo: c.cargo || "", email: c.email || "", tel: c.tel || "",
+            empresaId: c.empresaId ? (mapaEmp[c.empresaId] || c.empresaId) : "", lugares: [] };
+          porChavePes[k] = alvo; pessoas.push(alvo);
+        }
+        if (!alvo.lugares.includes(lugar)) alvo.lugares.push(lugar);
+      });
+    });
+    cadastro = { pessoas, empresas };
+    cadastroTemDados = true;
+    saveCadastro();
+    return true;
+  }
+
+  function tagsDe(t) {
+    const g = (t && t.tags) || {};
+    return { pessoas: Array.isArray(g.pessoas) ? g.pessoas : [], lugares: Array.isArray(g.lugares) ? g.lugares : [],
+      empresas: Array.isArray(g.empresas) ? g.empresas : [] };
+  }
+  // A coluna País de antes vira a 1ª tag de lugar (roda no ensureTaskDefaults).
+  function migrarPaisParaTags(t) {
+    const g = tagsDe(t);
+    if (t.paisLink && !g.lugares.includes(t.paisLink)) g.lugares = g.lugares.concat(t.paisLink);
+    delete t.paisLink;
+    t.tags = g;
+  }
+
+  // Herança: o que está nas linhas de cima de cada uma (recalculado a cada
+  // desenho da tabela).
+  let mapaHeranca = new Map();
+  function calcularHeranca() {
+    const m = new Map();
+    (function walk(l, acima) {
+      l.forEach(x => {
+        m.set(x.id, acima);
+        const g = tagsDe(x);
+        const prox = {
+          pessoas: [...new Set(acima.pessoas.concat(g.pessoas))],
+          lugares: [...new Set(acima.lugares.concat(g.lugares))],
+          empresas: [...new Set(acima.empresas.concat(g.empresas))]
+        };
+        walk(x.subtasks || [], prox);
+      });
+    })(tasksData, { pessoas: [], lugares: [], empresas: [] });
+    return m;
+  }
+  function herdadas(t) { return mapaHeranca.get(t.id) || { pessoas: [], lugares: [], empresas: [] }; }
+  // Chaves únicas das tags efetivas (próprias + herdadas), usadas no filtro.
+  function chavesEfetivas(t) {
+    const g = tagsDe(t), h = herdadas(t), out = new Set();
+    g.pessoas.concat(h.pessoas).forEach(v => out.add("pessoa|" + v));
+    g.lugares.concat(h.lugares).forEach(v => out.add("lugar|" + v));
+    g.empresas.concat(h.empresas).forEach(v => out.add("empresa|" + v));
+    return out;
+  }
+
+  const pessoaDoCadastro = id => cadastro.pessoas.find(p => p.id === id) || null;
+  const empresaDoCadastro = id => cadastro.empresas.find(e => e.id === id) || null;
+  function rotuloTag(tipo, v) {
+    if (tipo === "lugar") return v;
+    if (tipo === "empresa") { const e = empresaDoCadastro(v); return e ? e.nome : ""; }
+    if (String(v).indexOf("eq:") === 0) return String(v).slice(3);
+    const p = pessoaDoCadastro(String(v).slice(2)); return p ? p.nome : "";
+  }
+  function corEquipe(nome) {
+    const cores = ["#7b4fe0", "#d6457a", "#1f9d74", "#e08a12", "#2f7fd6", "#b8860b", "#c0392b", "#16a085"];
+    let h = 0; for (const c of String(nome)) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return cores[h % cores.length];
+  }
+  function chipTag(tipo, v, herdada) {
+    const nome = rotuloTag(tipo, v);
+    if (!nome) return "";
+    const e = escP(nome);
+    const classe = `tasksp-tag tasksp-tag-${tipo}${herdada ? " is-herdada" : ""}`;
+    if (tipo === "pessoa" && String(v).indexOf("eq:") === 0) {
+      return `<span class="${classe} tasksp-tag-equipe" title="Equipe: ${e}${herdada ? " (herdada)" : ""}"><i style="background:${corEquipe(nome)}"></i>${e}</span>`;
+    }
+    const ic = tipo === "lugar" ? "📍" : tipo === "empresa" ? "🏢" : "👤";
+    const rot = tipo === "lugar" ? ROTULO_PAIS_TASKS2 : tipo === "empresa" ? "Empresa" : "Contato";
+    return `<span class="${classe}" title="${rot}: ${e}${herdada ? " (herdada)" : ""}">${ic} ${e}</span>`;
+  }
+  function listaChips(t) {
+    const g = tagsDe(t), h = herdadas(t), out = [];
+    const add = (tipo, own, her) => {
+      own.forEach(v => out.push(chipTag(tipo, v, false)));
+      her.filter(v => !own.includes(v)).forEach(v => out.push(chipTag(tipo, v, true)));
+    };
+    add("pessoa", g.pessoas, h.pessoas);
+    add("empresa", g.empresas, h.empresas);
+    add("lugar", g.lugares, h.lugares);
+    return out.filter(Boolean);
+  }
+  function tagsCellMarkup(t) {
+    const chips = listaChips(t);
+    const mostra = chips.slice(0, 3).join("");
+    const resto = chips.length > 3 ? `<span class="tasksp-tag tasksp-tag-mais">+${chips.length - 3}</span>` : "";
+    return `<span class="tasksp-tags-cell" data-id="${t.id}" title="Clique pra marcar pessoas, empresas e ${ROTULO_PAIS_TASKS2 === "Estado" ? "estados" : "países"}">${chips.length ? mostra + resto : `<span class="tasksp-pais-vazio">+ tags</span>`}</span>`;
+  }
+
+  // Texto ↔ tags (copiar/colar e arrastar).
+  function tagsParaTexto(g) {
+    g = g || {};
+    const nomes = [];
+    (g.pessoas || []).forEach(v => nomes.push(rotuloTag("pessoa", v)));
+    (g.empresas || []).forEach(v => nomes.push(rotuloTag("empresa", v)));
+    (g.lugares || []).forEach(v => nomes.push(v));
+    return nomes.filter(Boolean).join(", ");
+  }
+  function textoParaTags(txt) {
+    const g = { pessoas: [], lugares: [], empresas: [] };
+    const partes = String(txt || "").split(/[,;]/).map(x => x.trim()).filter(Boolean);
+    let achou = 0;
+    partes.forEach(n => {
+      const k = normTag(n);
+      const u = (usersList || []).find(x => normTag(x.username) === k);
+      if (u) { g.pessoas.push("eq:" + u.username); achou++; return; }
+      const p = cadastro.pessoas.find(x => normTag(x.nome) === k);
+      if (p) { g.pessoas.push("p:" + p.id); achou++; return; }
+      const e = cadastro.empresas.find(x => normTag(x.nome) === k);
+      if (e) { g.empresas.push(e.id); achou++; return; }
+      const l = paisesDisponiveis2().find(x => normTag(x) === k);
+      if (l) { g.lugares.push(l); achou++; }
+    });
+    return { ok: !partes.length || achou > 0, v: g };
+  }
+
+  // ── Painel de tags ──
+  let tagsPainelId = null;
+  let tagsBusca = "";
+  let tagsCriando = null; // { tipo: "pessoa"|"empresa", nome }
+  function fecharTagsPainel(redesenhar) {
+    const el = document.getElementById("tasksp-tags-painel");
+    if (el) el.remove();
+    const tinha = tagsPainelId;
+    tagsPainelId = null; tagsBusca = ""; tagsCriando = null;
+    if (tinha && redesenhar !== false) renderTasksTable();
+  }
+  function lugaresDaLinha(t) {
+    const g = tagsDe(t), h = herdadas(t);
+    return [...new Set(g.lugares.concat(h.lugares))];
+  }
+  function opcoesDeTag(t, q) {
+    const g = tagsDe(t), k = normTag(q);
+    const casa = s => !k || normTag(s).includes(k);
+    const lim = l => l.slice(0, 8);
+    return {
+      equipe: lim((usersList || []).map(u => u.username).filter(n => casa(n) && !g.pessoas.includes("eq:" + n))),
+      pessoas: lim(cadastro.pessoas.filter(p => casa(p.nome) && !g.pessoas.includes("p:" + p.id))),
+      empresas: lim(cadastro.empresas.filter(e => casa(e.nome) && !g.empresas.includes(e.id))),
+      lugares: lim(paisesDisponiveis2().filter(l => casa(l) && !g.lugares.includes(l)))
+    };
+  }
+  function montarTagsPainel() {
+    const painel = document.getElementById("tasksp-tags-painel");
+    const t = findTaskById(tasksData, tagsPainelId);
+    if (!painel || !t) return;
+    const g = tagsDe(t), h = herdadas(t);
+    const proprias = [];
+    g.pessoas.forEach(v => proprias.push(["pessoa", v])); g.empresas.forEach(v => proprias.push(["empresa", v])); g.lugares.forEach(v => proprias.push(["lugar", v]));
+    const her = listaChips({ id: t.id, tags: {} });
+    const o = opcoesDeTag(t, tagsBusca);
+    const grupo = (titulo, itens) => itens.length ? `<div class="tasksp-tags-grupo">${titulo}</div>${itens.join("")}` : "";
+    const nomeL = ROTULO_PAIS_TASKS2 === "Estado" ? "Estados" : "Países";
+    const exato = normTag(tagsBusca) && (cadastro.pessoas.some(p => normTag(p.nome) === normTag(tagsBusca)) ||
+      cadastro.empresas.some(e => normTag(e.nome) === normTag(tagsBusca)) || (usersList || []).some(u => normTag(u.username) === normTag(tagsBusca)));
+    let criar = "";
+    if (tagsCriando) {
+      const lugares = lugaresDaLinha(t);
+      criar = `<div class="tasksp-tags-criar">
+        <div>Novo ${tagsCriando.tipo === "pessoa" ? "contato" : "cadastro de empresa"}: <b>${escP(tagsCriando.nome)}</b></div>
+        <label>Ligado a ${ROTULO_PAIS_TASKS2 === "Estado" ? "qual estado" : "qual país"}?</label>
+        <select class="tasksp-tags-criar-lugar">${lugares.length ? "" : `<option value="">— escolha —</option>`}${paisesDisponiveis2().map(l => `<option value="${escP(l)}" ${lugares[0] === l ? "selected" : ""}>${escP(l)}</option>`).join("")}</select>
+        <div class="tasksp-tags-criar-botoes"><button type="button" data-acao="criar-ok">Criar e marcar</button><button type="button" data-acao="criar-cancelar">Cancelar</button></div>
+      </div>`;
+    }
+    painel.querySelector(".tasksp-tags-proprias").innerHTML = proprias.length
+      ? proprias.map(([tipo, v]) => `<span class="tasksp-tag-tirar">${chipTag(tipo, v, false)}<button type="button" data-acao="tirar" data-tipo="${tipo}" data-v="${escP(v)}" title="Tirar">×</button></span>`).join("")
+      : `<span class="tasksp-tags-nada">Nenhuma tag nesta linha.</span>`;
+    painel.querySelector(".tasksp-tags-herdadas").innerHTML = her.length ? `<span class="tasksp-tags-rot">Herdadas de cima:</span> ${her.join("")}` : "";
+    painel.querySelector(".tasksp-tags-lista").innerHTML = criar || (
+      grupo("Equipe", o.equipe.map(n => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="eq:${escP(n)}">${chipTag("pessoa", "eq:" + n, false)}</button>`)) +
+      grupo("Contatos", o.pessoas.map(p => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="p:${escP(p.id)}">${chipTag("pessoa", "p:" + p.id, false)}<small>${escP((p.lugares || []).join(", "))}</small></button>`)) +
+      grupo("Empresas", o.empresas.map(e => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="empresa" data-v="${escP(e.id)}">${chipTag("empresa", e.id, false)}<small>${escP((e.lugares || []).join(", "))}</small></button>`)) +
+      grupo(nomeL, o.lugares.map(l => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="lugar" data-v="${escP(l)}">${chipTag("lugar", l, false)}</button>`)) +
+      (tagsBusca.trim() && !exato ? `<div class="tasksp-tags-grupo">Novo cadastro</div>
+        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="pessoa">+ Criar contato “${escP(tagsBusca.trim())}”</button>
+        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="empresa">+ Criar empresa “${escP(tagsBusca.trim())}”</button>` : "") ||
+      `<div class="tasksp-tags-nada">Nada encontrado.</div>`);
+  }
+  function abrirTagsPainel(celula) {
+    fecharTagsPainel(false);
+    const t = findTaskById(tasksData, celula.dataset.id);
+    if (!t) return;
+    tagsPainelId = t.id;
+    const painel = document.createElement("div");
+    painel.id = "tasksp-tags-painel";
+    painel.innerHTML = `<div class="tasksp-contexto-topo"><span title="${escP(t.name || "")}">Tags · ${escP(t.name || "")}</span><button type="button" data-acao="fechar" title="Fechar">×</button></div>
+      <div class="tasksp-tags-proprias"></div>
+      <div class="tasksp-tags-herdadas"></div>
+      <input type="text" class="tasksp-tags-busca" placeholder="Buscar pessoa, empresa ou ${ROTULO_PAIS_TASKS2 === "Estado" ? "estado" : "país"}…" autocomplete="off">
+      <div class="tasksp-tags-lista"></div>`;
+    document.body.appendChild(painel);
+    montarTagsPainel();
+    const r = celula.getBoundingClientRect();
+    const alto = Math.min(painel.offsetHeight, 440);
+    const cabe = r.bottom + 4 + alto < window.innerHeight - 8;
+    painel.style.top = Math.max(8, cabe ? r.bottom + 4 : r.top - alto - 4) + "px";
+    painel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - painel.offsetWidth - 12)) + "px";
+    const busca = painel.querySelector(".tasksp-tags-busca");
+    busca.addEventListener("input", () => { tagsBusca = busca.value; tagsCriando = null; montarTagsPainel(); });
+    busca.addEventListener("keydown", e => {
+      if (e.key === "Escape") { e.preventDefault(); fecharTagsPainel(); }
+      if (e.key === "Enter") { e.preventDefault(); const b = painel.querySelector(".tasksp-tags-opcao"); if (b) b.click(); }
+    });
+    painel.addEventListener("click", e => {
+      const b = e.target.closest("[data-acao]");
+      if (!b) return;
+      const linha = findTaskById(tasksData, tagsPainelId);
+      if (!linha) return;
+      const acao = b.dataset.acao;
+      if (acao === "fechar") { fecharTagsPainel(); return; }
+      const g = tagsDe(linha);
+      const lista = t2 => (t2 === "pessoa" ? "pessoas" : t2 === "empresa" ? "empresas" : "lugares");
+      if (acao === "add" || acao === "tirar") {
+        const campo = lista(b.dataset.tipo);
+        g[campo] = acao === "add" ? [...new Set(g[campo].concat(b.dataset.v))] : g[campo].filter(v => v !== b.dataset.v);
+        linha.tags = g;
+        saveTasksData();
+        mapaHeranca = calcularHeranca();
+        tagsBusca = ""; busca.value = "";
+        montarTagsPainel();
+        busca.focus();
+        return;
+      }
+      if (acao === "criar") { tagsCriando = { tipo: b.dataset.tipo, nome: tagsBusca.trim() }; montarTagsPainel(); return; }
+      if (acao === "criar-cancelar") { tagsCriando = null; montarTagsPainel(); return; }
+      if (acao === "criar-ok" && tagsCriando) {
+        const lugar = (painel.querySelector(".tasksp-tags-criar-lugar") || {}).value || "";
+        if (!lugar) { painel.querySelector(".tasksp-tags-criar-lugar").classList.add("is-erro"); return; }
+        if (tagsCriando.tipo === "pessoa") {
+          const p = { id: novoIdTag("pes"), nome: tagsCriando.nome, cargo: "", email: "", tel: "", empresaId: "", lugares: [lugar] };
+          cadastro.pessoas.push(p);
+          g.pessoas = g.pessoas.concat("p:" + p.id);
+        } else {
+          const emp = { id: novoIdTag("emp"), nome: tagsCriando.nome, tipo: "", email: "", tel: "", site: "", redeSocial: "", lugares: [lugar] };
+          cadastro.empresas.push(emp);
+          g.empresas = g.empresas.concat(emp.id);
+        }
+        cadastroTemDados = true;
+        saveCadastro();
+        linha.tags = g;
+        saveTasksData();
+        mapaHeranca = calcularHeranca();
+        tagsCriando = null; tagsBusca = ""; busca.value = "";
+        montarTagsPainel();
+      }
+    });
+    busca.focus();
+  }
+  document.addEventListener("click", e => {
+    const cel = e.target.closest("#tasksp-table-body .tasksp-tags-cell");
+    if (cel && !e.target.closest(".tasksp-fill-handle")) {
+      if (tagsPainelId === cel.dataset.id) { fecharTagsPainel(); return; }
+      abrirTagsPainel(cel);
+      return;
+    }
+    if (tagsPainelId && !e.target.closest("#tasksp-tags-painel") && document.contains(e.target)) fecharTagsPainel();
+  });
+
   // ─── Ponte com a nuvem ────────────────────────────────────────────────
   // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
   // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as
@@ -19605,6 +19990,7 @@ applyRolePermissions();
     getAreas: () => (tasks2TemDados && pilotoLiberado() ? areasData : undefined),
     getKpis:  () => (tasks2TemDados && pilotoLiberado() ? kpisData : undefined),
     getHistorico: () => undefined, // o histórico do piloto fica só no navegador
+    getCadastro: () => (cadastroTemDados && pilotoLiberado() ? cadastro : undefined),
     // Edicao vinda de fora da tabela (pop-up do Avisos Gerais, Members 2).
     // Mesmas regras dos handlers da tabela: status escolhido a mao apaga a
     // memoria do Deadline automatico; datas recalculam Deadline/Late e os
@@ -19668,6 +20054,11 @@ applyRolePermissions();
           .sort((a, b) => (a.ts < b.ts ? 1 : -1)), HISTORICO_INTERVALO_MS, HISTORICO_MAX);
         try { localStorage.setItem(HISTORICO_STORAGE_KEY, JSON.stringify(historicoData)); } catch (e) {}
       }
+      const cad = data["tasksPilotoCadastro" + suf];
+      if (cad && typeof cad === "object" && Array.isArray(cad.pessoas) && Array.isArray(cad.empresas)) {
+        cadastro = cad; cadastroTemDados = true;
+        try { localStorage.setItem(CADASTRO_KEY, JSON.stringify(cadastro)); } catch (e) {}
+      }
       // So redesenha se a aba estiver aberta; render com a view escondida
       // nao mede nada direito (ver refreshNameExpandButtons).
       const view = document.getElementById("tasksp-view");
@@ -19691,6 +20082,7 @@ applyRolePermissions();
       if (corpo) corpo.innerHTML = `<div class="tasksp-piloto-msg">Não consegui copiar a Tasks agora: os dados da nuvem ainda não chegaram. Tente de novo em alguns segundos.</div>`;
       return;
     }
+    semearCadastroDoCrm(); // 1ª vez: contatos e empresas do CRM viram cadastro único (o CRM não muda)
     setTasksViewMode("list"); // ja redesenha
     // De novo aqui: no render acima a aba pode ainda nao estar visivel, e
     // sem visibilidade a medida de transbordo da 0.
