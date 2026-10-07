@@ -6449,6 +6449,30 @@
   .tasksp-tags-criar-botoes { display: flex; gap: 6px; }
   .tasksp-tags-criar-botoes button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
   .tasksp-tags-criar-botoes button:first-child { color: #fff; background: var(--accent); border-color: var(--accent); }
+  /* 07/10: Demanda › Entrega › Item › Etapa; Início/Fim juntos, Data entrega, Frente, Objetivo, Tags */
+  .tasksp-row { grid-template-columns: 30px minmax(300px, 1fr) 128px 146px 136px 160px 116px 120px 184px 60px; }
+  .tasksp-col-datas { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-top: 3px !important; padding-bottom: 3px !important; }
+  .tasksp-head-row .tasksp-col-datas { flex-direction: row; align-items: center; gap: 2px; }
+  .tasksp-sub-data { position: relative; display: flex; align-items: center; }
+  .tasksp-col-datas .tasksp-date-input { height: 22px; font-size: 11.5px; }
+  .tasksp-barra { color: var(--text-muted); font-size: 11px; }
+  .tasksp-head-txt { font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+  .tasksp-col-obj { display: flex; align-items: center; min-width: 0; position: relative; }
+  .tasksp-obj-picker { position: relative; display: inline-flex; align-items: center; max-width: 100%; }
+  .tasksp-obj-chip { font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .tasksp-obj-herdado { font-size: 11.5px; color: var(--text-muted); font-style: italic; }
+  .tasksp-obj-vazio { color: var(--text-muted); font-size: 12px; }
+  .tasksp-obj-select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .tasksp-tag-associacao { background: #e3f4f4; color: #145b5b; }
+  @media (max-width: 1650px) {
+    .tasksp-row { grid-template-columns: 28px minmax(260px, 1fr) 112px 136px 126px 140px 104px 108px 156px 58px; }
+  }
+  @media (max-width: 1380px) {
+    .tasksp-row { grid-template-columns: 26px minmax(230px, 1fr) 100px 126px 118px 118px 94px 96px 136px 54px; }
+  }
+  @media (max-width: 760px) {
+    .tasksp-row, .tasksp-row:not(.tasksp-head-row) { grid-template-columns: 26px 250px 100px 126px 118px 130px 94px 96px 136px 54px !important; }
+  }
 
 
   /* ═══ GESTÃO (07/10): protótipo do modelo de acompanhamento ═══ */
@@ -6991,10 +7015,11 @@
         <div class="tasksp-col-select"></div>
         <div class="tasksp-col-name"><button type="button" class="tasksp-filtro-btn" data-col="nome">Nome<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-status"><button type="button" class="tasksp-filtro-btn" data-col="status">Status<span class="tasksp-filtro-seta">▾</span></button></div>
-        <div class="tasksp-col-date"><button type="button" class="tasksp-filtro-btn" data-col="inicio">Início<span class="tasksp-filtro-seta">▾</span></button></div>
-        <div class="tasksp-col-date"><button type="button" class="tasksp-filtro-btn" data-col="fim">Fim<span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-date tasksp-col-datas"><button type="button" class="tasksp-filtro-btn" data-col="inicio">Início<span class="tasksp-filtro-seta">▾</span></button><span class="tasksp-barra">/</span><button type="button" class="tasksp-filtro-btn" data-col="fim">Fim<span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-date tasksp-col-entrega"><span class="tasksp-head-txt">Data entrega</span></div>
         <div class="tasksp-col-assignee"><button type="button" class="tasksp-filtro-btn" data-col="responsavel">Responsável<span class="tasksp-filtro-seta">▾</span></button></div>
-        <div class="tasksp-col-area"><button type="button" class="tasksp-filtro-btn" data-col="area">Área<span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-area"><button type="button" class="tasksp-filtro-btn" data-col="area">Frente<span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-obj"><button type="button" class="tasksp-filtro-btn" data-col="objetivo">Objetivo<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-pais"><button type="button" class="tasksp-filtro-btn" data-col="tags"><span id="tasksp-rotulo-pais">País</span><span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-actions"></div>
       </div>
@@ -16165,7 +16190,7 @@ applyRolePermissions();
   // basta trocar o "color" do container pra pintar o icone.
   const TASK_TYPES = {
     objetivo:   { label: "Objetivo",   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg>` },
-    meta:       { label: "Meta",       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 21.4V3.2"/><path d="M5.4 4.2h11.9l-2.3 4 2.3 4H5.4"/></svg>` },
+    meta:       { label: "Demanda",       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 21.4V3.2"/><path d="M5.4 4.2h11.9l-2.3 4 2.3 4H5.4"/></svg>` },
     projeto:    { label: "Entrega",    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="7.4" width="18.8" height="13" rx="2.4"/><path d="M8.4 7.4V5.6a2.1 2.1 0 0 1 2.1-2.1h3a2.1 2.1 0 0 1 2.1 2.1v1.8"/></svg>` },
     entregavel: { label: "Item", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8.4 12 12.9 3 8.4 12 3.9z"/><path d="M3 8.4v7.2L12 20.1l9-4.5V8.4"/><path d="M12 12.9v7.2"/></svg>` },
     tarefa:     { label: "Etapa",     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.6,2.6 20.4,6.4 16.6,10.2"/><path d="M3.6 12.4V9.9A3.5 3.5 0 0 1 7.1 6.4h13.3"/><polyline points="7.4,21.4 3.6,17.6 7.4,13.8"/><path d="M20.4 11.6v2.5a3.5 3.5 0 0 1-3.5 3.5H3.6"/></svg>` }
@@ -16208,7 +16233,7 @@ applyRolePermissions();
   // no seletor e no icone. Clicar no icone abre o editor de formularios num
   // popup.
   TASK_TYPES.forms = { label: "Forms", icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.5" width="14" height="17" rx="2.2"/><line x1="8.5" y1="8.5" x2="15.5" y2="8.5"/><line x1="8.5" y1="12" x2="15.5" y2="12"/><line x1="8.5" y1="15.5" x2="12.5" y2="15.5"/></svg>` };
-  const TASK_TYPE_ORDER = ["objetivo", "meta", "projeto", "entregavel", "tarefa"];
+  const TASK_TYPE_ORDER = ["meta", "projeto", "entregavel", "tarefa"]; // piloto: Objetivo virou coluna
   const TIPOS_SELETOR = TASK_TYPE_ORDER.slice();
   const tipoVisual = t => t.rowType; // piloto: Forms não é mais tipo de linha
   // O "+" de uma linha cria o nivel logo abaixo dela na hierarquia:
@@ -16448,7 +16473,9 @@ applyRolePermissions();
     const vivos = t.subtasks.filter(x => x.status !== "Cancelled");
     const inicios = vivos.map(x => x.startDate).filter(Boolean);
     const fins = vivos.map(x => x.endDate).filter(Boolean);
+    const entregas = vivos.map(x => x.dataEntrega).filter(Boolean);
     return {
+      entrega: entregas.length ? entregas.slice().sort().pop() : "",
       // ISO (aaaa-mm-dd) ordena certo como texto, nao precisa virar Date
       inicio: inicios.length ? inicios.slice().sort()[0] : "",
       fim: fins.length ? fins.slice().sort().pop() : ""
@@ -16518,6 +16545,7 @@ applyRolePermissions();
           const d = computeRollupDatas(t);
           if (t.startDate !== d.inicio) { t.startDate = d.inicio; changed = true; }
           if (t.endDate !== d.fim) { t.endDate = d.fim; changed = true; }
+          if ((t.dataEntrega || "") !== d.entrega) { t.dataEntrega = d.entrega; changed = true; }
         }
         if (responsavelIsAuto(t)) {
           const r = computeRollupResponsaveis(t);
@@ -16659,7 +16687,7 @@ applyRolePermissions();
         if (achado) t.areaLink = achado.id;
       }
     }
-    if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "tarefa" : "objetivo";
+    if (!TASK_TYPES[t.rowType]) t.rowType = (depth || 0) > 0 ? "tarefa" : "meta";
   }
 
   function ensureTaskDefaults(t, depth) {
@@ -16670,6 +16698,7 @@ applyRolePermissions();
     if (t.status === "Late Progress") t.status = "Late"; // migrate old label
     if (t.startDate === undefined) t.startDate = "";
     if (t.endDate === undefined) t.endDate = t.date || ""; // migrate old single "date" field
+    if (t.dataEntrega === undefined) t.dataEntrega = ""; // piloto: data de entrega (prazo)
     delete t.date;
     if (t.assignees === undefined) {
       t.assignees = t.assignee ? [t.assignee] : []; // migrate old single-assignee field
@@ -16962,6 +16991,7 @@ applyRolePermissions();
   }
 
   function metaProgressoMarkup(t) {
+    return ""; // piloto (07/10): sem KPIs
     if (t.rowType !== "meta") return "";
     const prog = metaProgresso(t);
     const texto = prog ? `${prog.atual}/${prog.alvo}` : "— sem número na meta —";
@@ -17400,6 +17430,8 @@ applyRolePermissions();
   // whatever status it was in before — except Done/Cancelled, which are
   // treated as finished/moot and are left alone. Runs before every render so
   // the table, Late view and Geral stats always reflect this on their own.
+  // Piloto (07/10): o prazo é a Data de entrega; sem ela, vale o Fim.
+  const prazoDe = t => t.dataEntrega || t.endDate || "";
   function autoSyncLateStatuses() {
     const today = todayISO();
     const limiteDeadline = new Date(Date.parse(today + "T00:00:00Z") + DIAS_DEADLINE * 86400000).toISOString().slice(0, 10);
@@ -17412,11 +17444,11 @@ applyRolePermissions();
         // So entregavel e tarefa viram Late por data propria. Objetivo e
       // ideia recebem Late pelo rollup, quando ha algo atrasado abaixo.
       const podeAtrasar = (t.rowType === "entregavel" || t.rowType === "tarefa") && t.status !== "Aguardando";
-      if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && t.endDate && t.endDate < today) {
+      if (podeAtrasar && t.status !== "Done" && t.status !== "Cancelled" && t.status !== "Late" && prazoDe(t) && prazoDe(t) < today) {
           t.status = "Late";
           delete t.statusAntesDeadline;
           changed = true;
-        } else if (podeAtrasar && t.endDate && t.endDate >= today && t.endDate <= limiteDeadline
+        } else if (podeAtrasar && prazoDe(t) && prazoDe(t) >= today && prazoDe(t) <= limiteDeadline
                    && !["Done", "Cancelled", "Late", "Deadline"].includes(t.status)) {
           // Vence em ate 3 dias: vira Deadline e guarda o status de antes,
           // pra devolver se a data de Fim for empurrada pra frente.
@@ -17424,7 +17456,7 @@ applyRolePermissions();
           t.status = "Deadline";
           changed = true;
         } else if (t.status === "Deadline" && t.statusAntesDeadline !== undefined
-                   && (!podeAtrasar || !t.endDate || t.endDate > limiteDeadline)) {
+                   && (!podeAtrasar || !prazoDe(t) || prazoDe(t) > limiteDeadline)) {
           // Saiu da janela (data adiada ou apagada): volta ao que era. So vale
           // pro Deadline automatico — o escolhido a mao nao tem o campo.
           t.status = statusAllowed(t, t.statusAntesDeadline) ? t.statusAntesDeadline : "Not Started";
@@ -17975,13 +18007,19 @@ applyRolePermissions();
           : `<select class="tasksp-status-select" data-id="${t.id}" style="background:${colors.bg}; color:${colors.text}">${taskStatusOptionsMarkup(t.status, statusesFor(t))}</select>`}
           <span class="tasksp-fill-handle" data-id="${t.id}" data-field="status" title="Arraste para copiar o status para as linhas ao lado"></span>
         </div>
-        <div class="tasksp-col-date" data-fill-field="startDate">
+        <div class="tasksp-col-date tasksp-col-datas">
+        <div class="tasksp-sub-data" data-fill-field="startDate">
           <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="startDate" value="${t.startDate}" title="${datasSaoAuto(t) ? "Calculada: a primeira data de início lá dentro" : "Data de início"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
           ${(canDates && !datasSaoAuto(t)) ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="startDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
         </div>
-        <div class="tasksp-col-date" data-fill-field="endDate">
+        <div class="tasksp-sub-data" data-fill-field="endDate">
           <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="endDate" value="${t.endDate}" title="${datasSaoAuto(t) ? "Calculada: a última data de término lá dentro" : "Data final"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
           ${(canDates && !datasSaoAuto(t)) ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="endDate" title="Arraste para copiar a data para as linhas ao lado"></span>` : ""}
+        </div>
+        </div>
+        <div class="tasksp-col-date tasksp-col-entrega" data-fill-field="dataEntrega">
+          <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="dataEntrega" value="${t.dataEntrega || ""}" title="${datasSaoAuto(t) ? "Calculada: a última data de entrega lá dentro" : "Data de entrega (prazo): é ela que marca Deadline e Late"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
+          ${(canDates && !datasSaoAuto(t)) ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="dataEntrega" title="Arraste para copiar a data de entrega para as linhas ao lado"></span>` : ""}
         </div>
         <div class="tasksp-col-assignee" data-fill-field="assignees">
           ${responsavelIsAuto(t) ? responsavelAutoMarkup(t) : assigneeCellMarkup(t, !canAssignee)}
@@ -17990,6 +18028,10 @@ applyRolePermissions();
         <div class="tasksp-col-area" data-fill-field="areaLink">
           ${areaCellMarkup(t, depth, inheritedArea)}
           <span class="tasksp-fill-handle" data-id="${t.id}" data-field="areaLink" title="Arraste para copiar a área para as linhas abaixo"></span>
+        </div>
+        <div class="tasksp-col-obj" data-fill-field="objetivoLink">
+          ${objetivoCellMarkup(t, depth, inheritedObjetivo)}
+          <span class="tasksp-fill-handle" data-id="${t.id}" data-field="objetivoLink" title="Arraste para copiar o objetivo para as linhas abaixo"></span>
         </div>
         <div class="tasksp-col-pais" data-fill-field="tags">
           ${tagsCellMarkup(t)}
@@ -18020,7 +18062,8 @@ applyRolePermissions();
   // opcoes (KPIs, projetos, responsaveis) mudam enquanto se usa a aba.
   const COLUNAS_FILTRO = {
     tipo:        { rotulo: "Tipo",        tipo: "lista" },
-    area:        { rotulo: "Área",        tipo: "lista" },
+    area:        { rotulo: "Frente",      tipo: "lista" },
+    objetivo:    { rotulo: "Objetivo",    tipo: "lista" },
     nome:        { rotulo: "Nome",        tipo: "texto" },
     kpi:         { rotulo: "KPI",         tipo: "lista" },
     status:      { rotulo: "Status",      tipo: "lista" },
@@ -18037,7 +18080,7 @@ applyRolePermissions();
       .concat(kpisData.map(k => ({ valor: k.id, texto: k.name || "(sem nome)" })));
     if (col === "objetivo") return [{ valor: SEM_VALOR, texto: "— sem objetivo —" }]
       .concat(OBJETIVOS.map(x => ({ valor: x.id, texto: x.name })));
-    if (col === "area") return [{ valor: SEM_VALOR, texto: "— sem área —" }]
+    if (col === "area") return [{ valor: SEM_VALOR, texto: "— sem frente —" }]
       .concat(areasData.map(x => ({ valor: x.id, texto: x.name })));
     if (col === "tags") {
       const vistos = new Map();
@@ -18045,6 +18088,7 @@ applyRolePermissions();
         const g = tagsDe(t);
         g.pessoas.forEach(v => vistos.set("pessoa|" + v, rotuloTag("pessoa", v)));
         g.empresas.forEach(v => vistos.set("empresa|" + v, rotuloTag("empresa", v)));
+        g.associacoes.forEach(v => vistos.set("associacao|" + v, rotuloTag("associacao", v)));
         g.lugares.forEach(v => vistos.set("lugar|" + v, v));
         walk(t.subtasks); }); })(tasksData);
       return [{ valor: SEM_VALOR, texto: "— sem tags —" }]
@@ -18150,14 +18194,9 @@ applyRolePermissions();
     } else {
       assinaturaFiltroAberto = null;
     }
-    body.innerHTML = tasksData.map(t => {
-      const html = renderTaskRow(t, 0);
-      // So embrulha em card se sobrou algo pra mostrar. Sem este "if", um
-      // objetivo que o filtro descartou virava um card VAZIO (mas presente
-      // no DOM), e a checagem de "nada bateu" logo abaixo nunca disparava —
-      // a mensagem de filtro vazio parava de aparecer.
-      return html ? `<div class="tasksp-objetivo-card">${html}</div>` : "";
-    }).join("");
+    // Piloto (07/10): um card só com a lista inteira (antes, um card por objetivo).
+    const tudoHtml = tasksData.map(t => renderTaskRow(t, 0)).join("");
+    body.innerHTML = tudoHtml ? `<div class="tasksp-objetivo-card">${tudoHtml}</div>` : "";
     if (idsFiltrados && !body.innerHTML.trim()) {
       body.innerHTML = `<div class="tasksp-filtro-vazio">Nenhuma linha bate com os filtros.</div>`;
     }
@@ -18364,7 +18403,7 @@ applyRolePermissions();
         // Toda Meta precisa de um numero no nome (e o alvo da pontuacao).
         // Bloqueia aqui, no unico lugar que persiste o nome: sem numero, o
         // texto volta pro que estava antes e nada e gravado.
-        if (input.dataset.field === "name" && t.rowType === "meta" && !nomeTemNumero(input.value)) {
+        if (false && input.dataset.field === "name" && t.rowType === "meta" && !nomeTemNumero(input.value)) { // piloto: Demanda sem número
           input.value = t.name;
           window.alert('Toda Meta precisa de um número no nome — ex.: "Fechar 10 países no Ladies Weekend". A alteração não foi salva.');
           return;
@@ -18511,7 +18550,7 @@ applyRolePermissions();
         if (!t) return;
         // Mesma regra do campo de nome, aplicada aqui tambem: trocar a
         // categoria pra Meta e outro jeito de a linha acabar sem numero.
-        if (select.value === "meta" && !nomeTemNumero(t.name)) {
+        if (false && select.value === "meta" && !nomeTemNumero(t.name)) { // piloto
           select.value = t.rowType; // desfaz a troca
           window.alert('Toda Meta precisa de um número no nome antes de virar Meta. Ajuste o nome primeiro.');
           return;
@@ -18601,11 +18640,11 @@ applyRolePermissions();
   // linha nova; pra isso existe o Copiar/Colar.
   let tasksFill = null; // { campos, valores, startIndex, ids } while a drag is in progress
   // Tipo fica de fora de proposito: trocar categoria mexe na hierarquia.
-  const CAMPOS_ARRASTAVEIS = ["name", "status", "startDate", "endDate", "assignees", "areaLink", "tags"];
+  const CAMPOS_ARRASTAVEIS = ["name", "status", "startDate", "endDate", "dataEntrega", "assignees", "areaLink", "objetivoLink", "tags"];
   let celulasMarcadas = null; // { id, campos: Set } — celulas marcadas com Ctrl/Cmd+clique
 
   function campoEditavel(field) {
-    if (field === "startDate" || field === "endDate") return colabCan("tasksEditDates");
+    if (field === "startDate" || field === "endDate" || field === "dataEntrega") return colabCan("tasksEditDates");
     if (field === "assignees") return colabCan("tasksEditAssignee");
     return CAMPOS_ARRASTAVEIS.includes(field);
   }
@@ -18617,7 +18656,7 @@ applyRolePermissions();
   function podeReceber(t, field, value) {
     if (!campoEditavel(field)) return false;
     if (field === "status") return !statusIsAuto(t) && statusAllowed(t, value);
-    if ((field === "startDate" || field === "endDate") && datasSaoAuto(t)) return false;
+    if ((field === "startDate" || field === "endDate" || field === "dataEntrega") && datasSaoAuto(t)) return false;
     if (field === "assignees" && responsavelIsAuto(t)) return false;
     return true;
   }
@@ -18906,6 +18945,7 @@ applyRolePermissions();
     if (campo === "assignees") return (Array.isArray(v) ? v : []).join(", ");
     if (campo === "areaLink") { const a = v ? findAreaById(v) : null; return a ? a.name : ""; }
     if (campo === "tags") return tagsParaTexto(v);
+    if (campo === "objetivoLink") { const o = v ? findObjetivoById(v) : null; return o ? o.name : ""; }
     return v == null ? "" : String(v);
   }
 
@@ -18917,7 +18957,7 @@ applyRolePermissions();
       const s = TASK_STATUS_OPTIONS.find(x => igual(x, txt));
       return s ? { ok: true, v: s } : { ok: false };
     }
-    if (campo === "startDate" || campo === "endDate") {
+    if (campo === "startDate" || campo === "endDate" || campo === "dataEntrega") {
       if (!txt) return { ok: true, v: "" };
       let m = txt.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
       if (m) return { ok: true, v: `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}` };
@@ -18937,6 +18977,11 @@ applyRolePermissions();
       return a ? { ok: true, v: a.id } : { ok: false };
     }
     if (campo === "tags") return textoParaTags(txt);
+    if (campo === "objetivoLink") {
+      if (!txt) return { ok: true, v: "" };
+      const o = OBJETIVOS.find(x => igual(x.name, txt));
+      return o ? { ok: true, v: o.id } : { ok: false };
+    }
     if (campo === "paisLink") {
       if (!txt) return { ok: true, v: "" };
       const p = paisesDisponiveis2().find(x => igual(x, txt));
@@ -18949,7 +18994,7 @@ applyRolePermissions();
   // as duas datas (Inicio <-> Fim).
   function converterInterno(campoOrigem, valor, campoDestino) {
     if (campoOrigem === campoDestino) return { ok: true, v: copiaValor(valor) };
-    const datas = ["startDate", "endDate"];
+    const datas = ["startDate", "endDate", "dataEntrega"];
     if (datas.includes(campoOrigem) && datas.includes(campoDestino)) return { ok: true, v: valor };
     return { ok: false };
   }
@@ -19808,11 +19853,11 @@ applyRolePermissions();
   // lugares): seção própria do piloto (tasksPilotoCadastro), semeada uma vez
   // a partir dos contatos e empresas do CRM real — que NÃO é alterado.
   const CADASTRO_KEY = chaveDaOrg("wpf_tasksp_cadastro");
-  let cadastro = { pessoas: [], empresas: [] };
+  let cadastro = { pessoas: [], empresas: [], associacoes: [] };
   let cadastroTemDados = false;
   try {
     const g = JSON.parse(localStorage.getItem(CADASTRO_KEY) || "null");
-    if (g && Array.isArray(g.pessoas) && Array.isArray(g.empresas)) { cadastro = g; cadastroTemDados = true; }
+    if (g && Array.isArray(g.pessoas) && Array.isArray(g.empresas)) { cadastro = g; if (!Array.isArray(cadastro.associacoes)) cadastro.associacoes = []; cadastroTemDados = true; }
   } catch (e) {}
   function saveCadastro() {
     try { localStorage.setItem(CADASTRO_KEY, JSON.stringify(cadastro)); } catch (e) {}
@@ -19861,7 +19906,9 @@ applyRolePermissions();
         if (!alvo.lugares.includes(lugar)) alvo.lugares.push(lugar);
       });
     });
-    cadastro = { pessoas, empresas };
+    // 07/10 (Karina): federações são associações, não empresas.
+    const associacoes = empresas.filter(e => normTag(e.tipo) === "federacao");
+    cadastro = { pessoas, empresas: empresas.filter(e => !associacoes.includes(e)), associacoes };
     cadastroTemDados = true;
     saveCadastro();
     return true;
@@ -19870,7 +19917,7 @@ applyRolePermissions();
   function tagsDe(t) {
     const g = (t && t.tags) || {};
     return { pessoas: Array.isArray(g.pessoas) ? g.pessoas : [], lugares: Array.isArray(g.lugares) ? g.lugares : [],
-      empresas: Array.isArray(g.empresas) ? g.empresas : [] };
+      empresas: Array.isArray(g.empresas) ? g.empresas : [], associacoes: Array.isArray(g.associacoes) ? g.associacoes : [] };
   }
   // A coluna País de antes vira a 1ª tag de lugar (roda no ensureTaskDefaults).
   function migrarPaisParaTags(t) {
@@ -19892,28 +19939,32 @@ applyRolePermissions();
         const prox = {
           pessoas: [...new Set(acima.pessoas.concat(g.pessoas))],
           lugares: [...new Set(acima.lugares.concat(g.lugares))],
-          empresas: [...new Set(acima.empresas.concat(g.empresas))]
+          empresas: [...new Set(acima.empresas.concat(g.empresas))],
+          associacoes: [...new Set(acima.associacoes.concat(g.associacoes))]
         };
         walk(x.subtasks || [], prox);
       });
-    })(tasksData, { pessoas: [], lugares: [], empresas: [] });
+    })(tasksData, { pessoas: [], lugares: [], empresas: [], associacoes: [] });
     return m;
   }
-  function herdadas(t) { return mapaHeranca.get(t.id) || { pessoas: [], lugares: [], empresas: [] }; }
+  function herdadas(t) { return mapaHeranca.get(t.id) || { pessoas: [], lugares: [], empresas: [], associacoes: [] }; }
   // Chaves únicas das tags efetivas (próprias + herdadas), usadas no filtro.
   function chavesEfetivas(t) {
     const g = tagsDe(t), h = herdadas(t), out = new Set();
     g.pessoas.concat(h.pessoas).forEach(v => out.add("pessoa|" + v));
     g.lugares.concat(h.lugares).forEach(v => out.add("lugar|" + v));
     g.empresas.concat(h.empresas).forEach(v => out.add("empresa|" + v));
+    g.associacoes.concat(h.associacoes).forEach(v => out.add("associacao|" + v));
     return out;
   }
 
   const pessoaDoCadastro = id => cadastro.pessoas.find(p => p.id === id) || null;
   const empresaDoCadastro = id => cadastro.empresas.find(e => e.id === id) || null;
+  const associacaoDoCadastro = id => (cadastro.associacoes || []).find(e => e.id === id) || null;
   function rotuloTag(tipo, v) {
     if (tipo === "lugar") return v;
     if (tipo === "empresa") { const e = empresaDoCadastro(v); return e ? e.nome : ""; }
+    if (tipo === "associacao") { const e = associacaoDoCadastro(v); return e ? e.nome : ""; }
     if (String(v).indexOf("eq:") === 0) return String(v).slice(3);
     const p = pessoaDoCadastro(String(v).slice(2)); return p ? p.nome : "";
   }
@@ -19930,8 +19981,8 @@ applyRolePermissions();
     if (tipo === "pessoa" && String(v).indexOf("eq:") === 0) {
       return `<span class="${classe} tasksp-tag-equipe" title="Equipe: ${e}${herdada ? " (herdada)" : ""}"><i style="background:${corEquipe(nome)}"></i>${e}</span>`;
     }
-    const ic = tipo === "lugar" ? "📍" : tipo === "empresa" ? "🏢" : "👤";
-    const rot = tipo === "lugar" ? ROTULO_PAIS_TASKS2 : tipo === "empresa" ? "Empresa" : "Contato";
+    const ic = tipo === "lugar" ? "📍" : tipo === "empresa" ? "🏢" : tipo === "associacao" ? "🏛" : "👤";
+    const rot = tipo === "lugar" ? ROTULO_PAIS_TASKS2 : tipo === "empresa" ? "Empresa" : tipo === "associacao" ? "Associação" : "Pessoa";
     return `<span class="${classe}" title="${rot}: ${e}${herdada ? " (herdada)" : ""}">${ic} ${e}</span>`;
   }
   function listaChips(t) {
@@ -19940,16 +19991,17 @@ applyRolePermissions();
       own.forEach(v => out.push(chipTag(tipo, v, false)));
       her.filter(v => !own.includes(v)).forEach(v => out.push(chipTag(tipo, v, true)));
     };
-    add("pessoa", g.pessoas, h.pessoas);
     add("empresa", g.empresas, h.empresas);
+    add("associacao", g.associacoes, h.associacoes);
     add("lugar", g.lugares, h.lugares);
+    add("pessoa", g.pessoas, h.pessoas);
     return out.filter(Boolean);
   }
   function tagsCellMarkup(t) {
     const chips = listaChips(t);
     const mostra = chips.slice(0, 3).join("");
     const resto = chips.length > 3 ? `<span class="tasksp-tag tasksp-tag-mais">+${chips.length - 3}</span>` : "";
-    return `<span class="tasksp-tags-cell" data-id="${t.id}" title="Clique pra marcar pessoas, empresas e ${ROTULO_PAIS_TASKS2 === "Estado" ? "estados" : "países"}">${chips.length ? mostra + resto : `<span class="tasksp-pais-vazio">+ tags</span>`}</span>`;
+    return `<span class="tasksp-tags-cell" data-id="${t.id}" title="Clique pra marcar empresas, associações, ${ROTULO_PAIS_TASKS2 === "Estado" ? "estados" : "países"} e pessoas">${chips.length ? mostra + resto : `<span class="tasksp-pais-vazio">+ tags</span>`}</span>`;
   }
 
   // Texto ↔ tags (copiar/colar e arrastar).
@@ -19958,21 +20010,22 @@ applyRolePermissions();
     const nomes = [];
     (g.pessoas || []).forEach(v => nomes.push(rotuloTag("pessoa", v)));
     (g.empresas || []).forEach(v => nomes.push(rotuloTag("empresa", v)));
+    (g.associacoes || []).forEach(v => nomes.push(rotuloTag("associacao", v)));
     (g.lugares || []).forEach(v => nomes.push(v));
     return nomes.filter(Boolean).join(", ");
   }
   function textoParaTags(txt) {
-    const g = { pessoas: [], lugares: [], empresas: [] };
+    const g = { pessoas: [], lugares: [], empresas: [], associacoes: [] };
     const partes = String(txt || "").split(/[,;]/).map(x => x.trim()).filter(Boolean);
     let achou = 0;
     partes.forEach(n => {
       const k = normTag(n);
-      const u = (usersList || []).find(x => normTag(x.username) === k);
-      if (u) { g.pessoas.push("eq:" + u.username); achou++; return; }
       const p = cadastro.pessoas.find(x => normTag(x.nome) === k);
       if (p) { g.pessoas.push("p:" + p.id); achou++; return; }
       const e = cadastro.empresas.find(x => normTag(x.nome) === k);
       if (e) { g.empresas.push(e.id); achou++; return; }
+      const as = (cadastro.associacoes || []).find(x => normTag(x.nome) === k);
+      if (as) { g.associacoes.push(as.id); achou++; return; }
       const l = paisesDisponiveis2().find(x => normTag(x) === k);
       if (l) { g.lugares.push(l); achou++; }
     });
@@ -19999,9 +20052,9 @@ applyRolePermissions();
     const casa = s => !k || normTag(s).includes(k);
     const lim = l => l.slice(0, 8);
     return {
-      equipe: lim((usersList || []).map(u => u.username).filter(n => casa(n) && !g.pessoas.includes("eq:" + n))),
       pessoas: lim(cadastro.pessoas.filter(p => casa(p.nome) && !g.pessoas.includes("p:" + p.id))),
       empresas: lim(cadastro.empresas.filter(e => casa(e.nome) && !g.empresas.includes(e.id))),
+      associacoes: lim((cadastro.associacoes || []).filter(e => casa(e.nome) && !g.associacoes.includes(e.id))),
       lugares: lim(paisesDisponiveis2().filter(l => casa(l) && !g.lugares.includes(l)))
     };
   }
@@ -20011,18 +20064,18 @@ applyRolePermissions();
     if (!painel || !t) return;
     const g = tagsDe(t), h = herdadas(t);
     const proprias = [];
-    g.pessoas.forEach(v => proprias.push(["pessoa", v])); g.empresas.forEach(v => proprias.push(["empresa", v])); g.lugares.forEach(v => proprias.push(["lugar", v]));
+    g.empresas.forEach(v => proprias.push(["empresa", v])); g.associacoes.forEach(v => proprias.push(["associacao", v])); g.lugares.forEach(v => proprias.push(["lugar", v])); g.pessoas.forEach(v => proprias.push(["pessoa", v]));
     const her = listaChips({ id: t.id, tags: {} });
     const o = opcoesDeTag(t, tagsBusca);
     const grupo = (titulo, itens) => itens.length ? `<div class="tasksp-tags-grupo">${titulo}</div>${itens.join("")}` : "";
     const nomeL = ROTULO_PAIS_TASKS2 === "Estado" ? "Estados" : "Países";
     const exato = normTag(tagsBusca) && (cadastro.pessoas.some(p => normTag(p.nome) === normTag(tagsBusca)) ||
-      cadastro.empresas.some(e => normTag(e.nome) === normTag(tagsBusca)) || (usersList || []).some(u => normTag(u.username) === normTag(tagsBusca)));
+      cadastro.empresas.some(e => normTag(e.nome) === normTag(tagsBusca)) || (cadastro.associacoes || []).some(e => normTag(e.nome) === normTag(tagsBusca)));
     let criar = "";
     if (tagsCriando) {
       const lugares = lugaresDaLinha(t);
       criar = `<div class="tasksp-tags-criar">
-        <div>Novo ${tagsCriando.tipo === "pessoa" ? "contato" : "cadastro de empresa"}: <b>${escP(tagsCriando.nome)}</b></div>
+        <div>Novo cadastro de ${tagsCriando.tipo === "pessoa" ? "pessoa" : tagsCriando.tipo === "associacao" ? "associação" : "empresa"}: <b>${escP(tagsCriando.nome)}</b></div>
         <label>Ligado a ${ROTULO_PAIS_TASKS2 === "Estado" ? "qual estado" : "qual país"}?</label>
         <select class="tasksp-tags-criar-lugar">${lugares.length ? "" : `<option value="">— escolha —</option>`}${paisesDisponiveis2().map(l => `<option value="${escP(l)}" ${lugares[0] === l ? "selected" : ""}>${escP(l)}</option>`).join("")}</select>
         <div class="tasksp-tags-criar-botoes"><button type="button" data-acao="criar-ok">Criar e marcar</button><button type="button" data-acao="criar-cancelar">Cancelar</button></div>
@@ -20033,13 +20086,14 @@ applyRolePermissions();
       : `<span class="tasksp-tags-nada">Nenhuma tag nesta linha.</span>`;
     painel.querySelector(".tasksp-tags-herdadas").innerHTML = her.length ? `<span class="tasksp-tags-rot">Herdadas de cima:</span> ${her.join("")}` : "";
     painel.querySelector(".tasksp-tags-lista").innerHTML = criar || (
-      grupo("Equipe", o.equipe.map(n => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="eq:${escP(n)}">${chipTag("pessoa", "eq:" + n, false)}</button>`)) +
-      grupo("Contatos", o.pessoas.map(p => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="p:${escP(p.id)}">${chipTag("pessoa", "p:" + p.id, false)}<small>${escP((p.lugares || []).join(", "))}</small></button>`)) +
       grupo("Empresas", o.empresas.map(e => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="empresa" data-v="${escP(e.id)}">${chipTag("empresa", e.id, false)}<small>${escP((e.lugares || []).join(", "))}</small></button>`)) +
+      grupo("Associações", o.associacoes.map(e => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="associacao" data-v="${escP(e.id)}">${chipTag("associacao", e.id, false)}<small>${escP((e.lugares || []).join(", "))}</small></button>`)) +
       grupo(nomeL, o.lugares.map(l => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="lugar" data-v="${escP(l)}">${chipTag("lugar", l, false)}</button>`)) +
+      grupo("Pessoas", o.pessoas.map(p => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="p:${escP(p.id)}">${chipTag("pessoa", "p:" + p.id, false)}<small>${escP((p.lugares || []).join(", "))}</small></button>`)) +
       (tagsBusca.trim() && !exato ? `<div class="tasksp-tags-grupo">Novo cadastro</div>
-        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="pessoa">+ Criar contato “${escP(tagsBusca.trim())}”</button>
-        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="empresa">+ Criar empresa “${escP(tagsBusca.trim())}”</button>` : "") ||
+        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="empresa">+ Criar empresa “${escP(tagsBusca.trim())}”</button>
+        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="associacao">+ Criar associação “${escP(tagsBusca.trim())}”</button>
+        <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="pessoa">+ Criar pessoa “${escP(tagsBusca.trim())}”</button>` : "") ||
       `<div class="tasksp-tags-nada">Nada encontrado.</div>`);
   }
   function abrirTagsPainel(celula) {
@@ -20052,7 +20106,7 @@ applyRolePermissions();
     painel.innerHTML = `<div class="tasksp-contexto-topo"><span title="${escP(t.name || "")}">Tags · ${escP(t.name || "")}</span><button type="button" data-acao="fechar" title="Fechar">×</button></div>
       <div class="tasksp-tags-proprias"></div>
       <div class="tasksp-tags-herdadas"></div>
-      <input type="text" class="tasksp-tags-busca" placeholder="Buscar pessoa, empresa ou ${ROTULO_PAIS_TASKS2 === "Estado" ? "estado" : "país"}…" autocomplete="off">
+      <input type="text" class="tasksp-tags-busca" placeholder="Buscar empresa, associação, ${ROTULO_PAIS_TASKS2 === "Estado" ? "estado" : "país"} ou pessoa…" autocomplete="off">
       <div class="tasksp-tags-lista"></div>`;
     document.body.appendChild(painel);
     montarTagsPainel();
@@ -20075,7 +20129,7 @@ applyRolePermissions();
       const acao = b.dataset.acao;
       if (acao === "fechar") { fecharTagsPainel(); return; }
       const g = tagsDe(linha);
-      const lista = t2 => (t2 === "pessoa" ? "pessoas" : t2 === "empresa" ? "empresas" : "lugares");
+      const lista = t2 => (t2 === "pessoa" ? "pessoas" : t2 === "empresa" ? "empresas" : t2 === "associacao" ? "associacoes" : "lugares");
       if (acao === "add" || acao === "tirar") {
         const campo = lista(b.dataset.tipo);
         g[campo] = acao === "add" ? [...new Set(g[campo].concat(b.dataset.v))] : g[campo].filter(v => v !== b.dataset.v);
@@ -20096,6 +20150,11 @@ applyRolePermissions();
           const p = { id: novoIdTag("pes"), nome: tagsCriando.nome, cargo: "", email: "", tel: "", empresaId: "", lugares: [lugar] };
           cadastro.pessoas.push(p);
           g.pessoas = g.pessoas.concat("p:" + p.id);
+        } else if (tagsCriando.tipo === "associacao") {
+          if (!Array.isArray(cadastro.associacoes)) cadastro.associacoes = [];
+          const as = { id: novoIdTag("ass"), nome: tagsCriando.nome, tipo: "Associação", email: "", tel: "", site: "", redeSocial: "", lugares: [lugar] };
+          cadastro.associacoes.push(as);
+          g.associacoes = g.associacoes.concat(as.id);
         } else {
           const emp = { id: novoIdTag("emp"), nome: tagsCriando.nome, tipo: "", email: "", tel: "", site: "", redeSocial: "", lugares: [lugar] };
           cadastro.empresas.push(emp);
@@ -20150,6 +20209,15 @@ applyRolePermissions();
     if (lugar && !e.lugares.includes(lugar)) e.lugares.push(lugar);
     return e.id;
   }
+  // Federação é associação (07/10, Karina).
+  function associacaoPorNome(nome, lugar) {
+    if (!Array.isArray(cadastro.associacoes)) cadastro.associacoes = [];
+    const k = normTag(nome);
+    let e = cadastro.associacoes.find(x => normTag(x.nome) === k);
+    if (!e) { e = { id: novoIdTag("ass"), nome, tipo: "Federação", email: "", tel: "", site: "", redeSocial: "", lugares: [] }; cadastro.associacoes.push(e); }
+    if (lugar && !e.lugares.includes(lugar)) e.lugares.push(lugar);
+    return e.id;
+  }
   function addTag(t, campo, v) {
     const g = tagsDe(t);
     if (v && !g[campo].includes(v)) g[campo] = g[campo].concat(v);
@@ -20188,7 +20256,7 @@ applyRolePermissions();
               const lugar = lugarAtual || acharLugar(resto);
               if (lugar) addTag(t, "lugares", lugar);
               const nomeEmp = normTag(resto) === "basque country" ? "Fed Basque Country" : "Fed " + (lugar || resto);
-              addTag(t, "empresas", empresaPorNome(nomeEmp, lugar, "Federação"));
+              addTag(t, "associacoes", associacaoPorNome(nomeEmp, lugar));
               t.name = PAI_FED[kPai]; n++;
             }
           // Regra 4: empresa como nome
@@ -20217,6 +20285,67 @@ applyRolePermissions();
       }
     })(tasksData, null, null);
     cadastro.reorg = REORG_ID;
+    saveCadastro();
+    saveTasksData();
+    return n;
+  }
+
+  // ══ Piloto (07/10, Karina): Demanda › Entrega › Item › Etapa ═══════════
+  // "Objetivo" deixa de ser nível de linha e vira coluna (Autoridade,
+  // Alcance, Governança). Cada objetivo antigo some e o que estava dentro
+  // sobe pra raiz, com a coluna Objetivo preenchida pelo nome dele. Meta
+  // vira Demanda (por dentro continua rowType "meta"). Pessoas da equipe
+  // saem das tags (já estão em Responsável). Federações passam de empresa a
+  // associação. Roda UMA vez por empresa (marca no cadastro).
+  const NIVEIS_ID = "2026-10-07-niveis";
+  function objetivoDoNome(nome) {
+    const k = normTag(nome);
+    if (k.includes("autoridade")) return "autoridade";
+    if (k.includes("alcance")) return "alcance";
+    if (k.includes("governanca")) return "governanca";
+    return "";
+  }
+  function migrarNiveis() {
+    if (!pilotoLiberado() || !tasks2TemDados || !cadastroTemDados || cadastro.niveis === NIVEIS_ID) return 0;
+    let n = 0;
+    const raiz = [];
+    tasksData.forEach(t => {
+      if (t.rowType !== "objetivo") { raiz.push(t); return; }
+      const obj = t.objetivoLink || objetivoDoNome(t.name);
+      const g = tagsDe(t);
+      (t.subtasks || []).forEach(f => {
+        if (!f.objetivoLink && obj) f.objetivoLink = obj;
+        if (!f.areaLink && t.areaLink) f.areaLink = t.areaLink;
+        const gf = tagsDe(f);
+        ["lugares", "empresas", "associacoes", "pessoas"].forEach(c => { gf[c] = [...new Set(gf[c].concat(g[c]))]; });
+        f.tags = gf;
+        raiz.push(f);
+      });
+      n++;
+    });
+    tasksData = raiz;
+    // Objetivo que sobrou mais pra dentro vira Demanda; equipe sai das tags.
+    if (!Array.isArray(cadastro.associacoes)) cadastro.associacoes = [];
+    const feds = cadastro.empresas.filter(e => normTag(e.tipo) === "federacao");
+    const idsFed = new Set(feds.map(e => e.id));
+    feds.forEach(e => { if (!cadastro.associacoes.some(a => a.id === e.id)) cadastro.associacoes.push(e); });
+    cadastro.empresas = cadastro.empresas.filter(e => !idsFed.has(e.id));
+    (function walk(l) {
+      l.forEach(x => {
+        if (x.rowType === "objetivo") { x.rowType = "meta"; n++; }
+        const g = tagsDe(x);
+        const semEq = g.pessoas.filter(v => String(v).indexOf("eq:") !== 0);
+        const movidas = g.empresas.filter(id => idsFed.has(id));
+        if (semEq.length !== g.pessoas.length || movidas.length) {
+          g.pessoas = semEq;
+          g.empresas = g.empresas.filter(id => !idsFed.has(id));
+          g.associacoes = [...new Set(g.associacoes.concat(movidas))];
+          x.tags = g;
+        }
+        walk(x.subtasks || []);
+      });
+    })(tasksData);
+    cadastro.niveis = NIVEIS_ID;
     saveCadastro();
     saveTasksData();
     return n;
@@ -20337,7 +20466,8 @@ applyRolePermissions();
       return;
     }
     semearCadastroDoCrm(); // 1ª vez: contatos e empresas do CRM viram cadastro único (o CRM não muda)
-    const nReorg = reorganizarWpf(); // 1ª vez (WPF): linhas que eram país/federação/empresa ganham nome de trabalho + tags
+    const nReorg = reorganizarWpf();
+    migrarNiveis(); // 1ª vez: objetivos viram coluna; Demanda › Entrega › Item › Etapa // 1ª vez (WPF): linhas que eram país/federação/empresa ganham nome de trabalho + tags
     if (nReorg) { const av = document.querySelector(".tasksp-piloto-aviso"); if (av) av.insertAdjacentHTML("beforeend", ` <b>· Reorganizei ${nReorg} linhas com tags (regras de 07/10).</b>`); }
     setTasksViewMode("list"); // ja redesenha
     // De novo aqui: no render acima a aba pode ainda nao estar visivel, e
