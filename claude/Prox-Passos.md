@@ -15,6 +15,40 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Assistente da equipe (projeto do chefe, 06/10) — piloto na Dash** —
+  projeto de assistente que transforma demanda vaga em entregas/etapas,
+  planeja o dia em blocos com o Google Calendar e fecha o dia. Comparação e
+  plano no doc "Assistente da equipe × o que já temos"
+  (claude.ai/code/artifact/f67348f9-beca-42c0-8291-bae6467fcf37).
+  - *Decisões da Karina (07/10):*
+    1. Base continua na Dash (não vai pro Notion).
+    2. Sem nível novo; renomear Projeto → **Entrega**, Entregável → **Item**,
+       Tarefa → **Etapa** (Objetivo e Meta: confirmar se mantêm o nome).
+    3. Cada pessoa conecta o próprio Google (Gmail + Agenda) na Dash e
+       recebe avisos do próprio e-mail/agenda. Todos são do Workspace da WPF
+       (app interno; confirmar na doc do Google). **Substitui** as regras
+       "e-mail só pra Karina" (21/09) e "Leonardo/Roberto só tarefas"
+       (22/09) — mas só quando isso for aplicado.
+    4. Ritual obrigatório, dias úteis: abertura 9h (no lugar do check-in
+       9h25) e fechamento 19h.
+    5. Resumo diário da equipe só pra Karina por enquanto (regra de 22/09
+       segue valendo pra Isabela).
+    6. Campos novos: obrigatórios só no Item (responsável, fim, critério de
+       conclusão); "próxima ação" e "precisa de detalhamento" calculados;
+       "depende de" e link de evidência opcionais; status novo
+       **Aguardando** (quem destrava, desde quando, próximo retorno).
+    7. Piloto só com a Karina, 2 semanas, demandas reais (uma WPF + Ladies
+       Weekend 2026 da CBTH).
+  - *Como aplicar:* **numa cópia isolada da Tasks** (como a Tasks 2),
+    só depois portar pra Tasks real. Ordem: cópia com nomes/campos →
+    semana 1 (detalhamento + fechamento 19h) → conexão Google → semana 2
+    (abertura 9h com agenda) → Tasks real + equipe. Cada passo com OK.
+  - *A decidir no passo 2:* o Carinha lê só `tasks2*`; pra pilotar com
+    dados reais, ou aponta o Carinha pra cópia, ou porta antes.
+  - *Onde:* `index.html` (Tasks), `worker/whatsapp-bridge.js`, Google Cloud
+    (app OAuth interno do Workspace WPF).
+  - *Aberto em:* 2026-10-07
+
 - [ ] **Plano "Settings e Carinha" — etapas 2 a 7** — plano de 25/09
   (PDF da Karina). Etapa 1 (Settings) feita. Falta:
   2. Acesso por empresa travado no banco (política de `wpf_dashboard_data`
