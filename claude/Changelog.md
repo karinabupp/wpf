@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (3ª) — Tasks (piloto), fase 1: Tags e cadastro único
+
+Primeira fase do projeto "Assistente da equipe — projeto em BAIER"
+(aprovado pela Karina, "manda bala").
+
+- **Coluna Tags** (no lugar de País, só no piloto): toda linha tem tags de
+  **pessoas** (equipe, com bolinha colorida, e contatos, com 👤),
+  **empresas** (🏢) e **lugares** (📍; WPF países, CBTH estados), várias de
+  cada. Mostra até 3 e "+N". A linha de baixo **herda** as tags de cima
+  (clarinhas) e soma as próprias. O país que cada linha tinha virou a 1ª
+  tag de lugar (`paisLink` → `tags.lugares`).
+- **Painel de tags** (clique na célula): tags da linha com ×, herdadas,
+  busca por equipe, contatos, empresas e lugares; "+ Criar contato/empresa"
+  pede o lugar (sugere o da linha) e entra no cadastro. Fecha ao clicar
+  fora ou Esc.
+- **Cadastro único** (`tasksPilotoCadastro`, + `__cbth`): pessoas e
+  empresas existem por si, com `lugares` (um ou mais). Semeado uma vez a
+  partir dos contatos/empresas de cada país do CRM, juntando repetidos
+  (pessoa: mesmo e-mail ou nome; empresa: mesmo nome, sem acento). **O CRM
+  real não muda.** Só a Karina envia essa seção; fora do histórico geral.
+- **Filtro "Tags"** no cabeçalho (pessoa, empresa, lugar, "sem tags"),
+  contando as herdadas. Arrastar e copiar/colar levam as tags (texto =
+  nomes separados por vírgula).
+- **Verificação:** 29 testes novos (`teste_fase1.mjs`) + os 66 do piloto.
+  Tasks real, coluna País dela e CRM real intocados; Isabela não envia.
+- **Publicação:** commit `f14d969`; sha256 `da805963…2631`, igual ao
+  testado. Só linhas do piloto mudaram no arquivo.
+
+---
+
 ## 2026-10-07 (2ª) — Carinha: mensagens pausadas pra Isabela, Leonardo e Roberto
 
 - **O que mudou (Supabase):** `proativo = false` pros três em
