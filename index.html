@@ -6450,7 +6450,7 @@
   .tasksp-tags-criar-botoes button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
   .tasksp-tags-criar-botoes button:first-child { color: #fff; background: var(--accent); border-color: var(--accent); }
   /* 07/10: Demanda › Entrega › Item › Etapa; Início/Fim juntos, Data entrega, Frente, Objetivo, Tags */
-  .tasksp-row { grid-template-columns: 30px minmax(280px, 1fr) 124px 142px 132px 100px 152px 108px 112px 116px 152px 58px; }
+  .tasksp-row { grid-template-columns: 30px minmax(280px, 1fr) 124px 142px 132px 100px 166px 108px 108px 112px 142px 58px; }
   .tasksp-col-datas { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-top: 3px !important; padding-bottom: 3px !important; }
   .tasksp-head-row .tasksp-col-datas { flex-direction: row; align-items: center; gap: 2px; }
   .tasksp-sub-data { position: relative; display: flex; align-items: center; }
@@ -6465,10 +6465,10 @@
   .tasksp-obj-select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
   .tasksp-tag-associacao { background: #e3f4f4; color: #145b5b; }
   @media (max-width: 1650px) {
-    .tasksp-row { grid-template-columns: 28px minmax(240px, 1fr) 108px 132px 122px 88px 126px 104px 98px 104px 110px 52px; }
+    .tasksp-row { grid-template-columns: 28px minmax(240px, 1fr) 108px 132px 122px 88px 142px 104px 90px 104px 98px 52px; }
   }
   @media (max-width: 1380px) {
-    .tasksp-row { grid-template-columns: 26px minmax(210px, 1fr) 98px 124px 116px 84px 108px 100px 86px 92px 94px 48px; }
+    .tasksp-row { grid-template-columns: 26px minmax(210px, 1fr) 98px 124px 116px 84px 122px 100px 82px 92px 82px 48px; }
   }
   @media (max-width: 760px) {
     .tasksp-row, .tasksp-row:not(.tasksp-head-row) { grid-template-columns: 26px 250px 100px 126px 118px 96px 130px 88px 94px 96px 136px 54px !important; }
@@ -6493,9 +6493,15 @@
   .tasksp-prio-select { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 3px 9px; font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; max-width: 100%; }
   .tasksp-prio-select.is-alta { background: #fcebeb; color: #791f1f; }
   .tasksp-prio-select.is-media { background: #fdf1d6; color: #7a4b05; }
-  .tasksp-prio-select.is-baixa { background: #e6f1fb; color: #0c447c; }
+  .tasksp-prio-select.is-baixa { background: #eeece4; color: #5f5e58; }
   .tasksp-prio-select.is-vazio { background: transparent; color: var(--text-muted); font-weight: 400; }
-  .tasksp-head-row .tasksp-col-prio .tasksp-head-txt { overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
+  /* 07/10 (5ª): nada cortando — Prioridade no cabeçalho, Data entrega e Responsável menores */
+  .tasksp-head-row .tasksp-col-prio .tasksp-head-txt { font-size: 11px; letter-spacing: 0; overflow: visible; }
+  .tasksp-col-entrega .tasksp-date-input { font-size: 11.5px; padding: 6px 1px; }
+  .tasksp-row .tasksp-col-assignee .tasksp-assignee-chip { font-size: 11px; padding: 2px 3px 2px 7px; gap: 1px; flex-shrink: 0; }
+  .tasksp-row .tasksp-col-assignee .tasksp-assignee-remove { padding: 0 1px; font-size: 12px; }
+  .tasksp-row .tasksp-col-assignee .tasksp-assignee-add-btn { width: 18px; height: 18px; font-size: 12px; }
+  .tasksp-row .tasksp-col-assignee .tasksp-assignee-chips { gap: 3px; }
 
 
   /* ═══ GESTÃO (07/10): protótipo do modelo de acompanhamento ═══ */
@@ -7038,9 +7044,9 @@
         <div class="tasksp-col-select"></div>
         <div class="tasksp-col-name"><button type="button" class="tasksp-filtro-btn" data-col="nome">Nome<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-status"><button type="button" class="tasksp-filtro-btn" data-col="status">Status<span class="tasksp-filtro-seta">▾</span></button></div>
-        <div class="tasksp-col-date tasksp-col-datas"><button type="button" class="tasksp-filtro-btn" data-col="inicio">Início<span class="tasksp-filtro-seta">▾</span></button><span class="tasksp-barra">/</span><button type="button" class="tasksp-filtro-btn" data-col="fim">Fim<span class="tasksp-filtro-seta">▾</span></button></div>
-        <div class="tasksp-col-date tasksp-col-entrega"><span class="tasksp-head-txt">Data entrega</span></div>
-        <div class="tasksp-col-stent"><span class="tasksp-head-txt">Status entrega</span></div>
+        <div class="tasksp-col-date tasksp-col-datas"><button type="button" class="tasksp-filtro-btn" data-col="inicio" title="Filtrar pela data de início">Período<span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-date tasksp-col-entrega"><span class="tasksp-head-txt">Finalizado em</span></div>
+        <div class="tasksp-col-stent"><span class="tasksp-head-txt">Forma</span></div>
         <div class="tasksp-col-assignee"><button type="button" class="tasksp-filtro-btn" data-col="responsavel">Responsável<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-prio"><span class="tasksp-head-txt">Prioridade</span></div>
         <div class="tasksp-col-area"><button type="button" class="tasksp-filtro-btn" data-col="area">Frente<span class="tasksp-filtro-seta">▾</span></button></div>
@@ -18059,7 +18065,7 @@ applyRolePermissions();
         </div>
         </div>
         <div class="tasksp-col-date tasksp-col-entrega" data-fill-field="dataEntrega">
-          <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="dataEntrega" value="${t.dataEntrega || ""}" title="${datasSaoAuto(t) ? "Calculada: a última data de entrega lá dentro" : "Data de entrega (prazo): é ela que marca Deadline e Late"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
+          <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="dataEntrega" value="${t.dataEntrega || ""}" title="${datasSaoAuto(t) ? "Calculada: a última data de entrega lá dentro" : "Finalizado em (prazo): é ela que marca Deadline e Late"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
           ${(canDates && !datasSaoAuto(t)) ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="dataEntrega" title="Arraste para copiar a data de entrega para as linhas ao lado"></span>` : ""}
         </div>
         <div class="tasksp-col-stent">${statusEntregaMarkup(t)}</div>
@@ -20432,22 +20438,37 @@ applyRolePermissions();
   }
 
   // ══ Piloto (07/10, Karina): limpeza das demandas da WPF ════════════════
-  // Fica só a demanda "Chegar a 20 eventos Ladies Weekend 2026" (Awareness,
-  // Captação, Formalização, Preparativos) com tudo dentro; as outras saem do
-  // piloto. A Tasks real não muda. Roda UMA vez (marca no cadastro) e, se não
-  // achar a demanda, não apaga nada.
-  const LIMPEZA_ID = "2026-10-07-so-lw";
+  // Fica só a demanda "Chegar a 20 eventos Ladies Weekend 2026" com tudo
+  // dentro; as outras saem do piloto. A Tasks real não muda.
+  // 1ª versão (só marca "feito") voltou atrás: outra aba/sincronização com a
+  // lista antiga regravou as 13 demandas. Agora os IDs apagados ficam
+  // guardados no cadastro e são tirados de novo SEMPRE que a lista chega
+  // (abrir a aba ou vir da nuvem). Linha nova tem ID novo: não é afetada.
+  const LIMPEZA_ID = "2026-10-07-so-lw-2";
   const DEMANDA_QUE_FICA = "chegar a 20 eventos ladies weekend 2026";
+  let limpezaPendente = false; // tirou na chegada da nuvem; falta gravar
+  function tirarApagadas() {
+    const ids = new Set(Array.isArray(cadastro.limpezaIds) ? cadastro.limpezaIds : []);
+    if (!ids.size || ORG_ATUAL !== "wpf") return 0;
+    const antes = tasksData.length;
+    tasksData = tasksData.filter(t => !ids.has(t.id));
+    return antes - tasksData.length;
+  }
   function limparDemandasWpf() {
-    if (ORG_ATUAL !== "wpf" || !pilotoLiberado() || !tasks2TemDados || !cadastroTemDados || cadastro.limpeza === LIMPEZA_ID) return 0;
-    const fica = tasksData.filter(t => normTag(t.name) === DEMANDA_QUE_FICA);
-    if (!fica.length) return 0;
-    const saiu = tasksData.length - fica.length;
-    tasksData = fica;
-    cadastro.limpeza = LIMPEZA_ID;
-    saveCadastro();
-    saveTasksData();
-    return saiu;
+    if (ORG_ATUAL !== "wpf" || !pilotoLiberado() || !tasks2TemDados || !cadastroTemDados) return 0;
+    if (cadastro.limpeza !== LIMPEZA_ID) {
+      const fica = tasksData.filter(t => normTag(t.name) === DEMANDA_QUE_FICA);
+      if (!fica.length) return 0;
+      cadastro.limpezaIds = tasksData.filter(t => !fica.includes(t)).map(t => t.id);
+      cadastro.limpeza = LIMPEZA_ID;
+      saveCadastro();
+    }
+    const n = tirarApagadas();
+    // forcar: a trava "encolheu demais" (lista caiu pra menos de 40%) bloqueava
+    // este envio e trazia as 13 demandas de volta da nuvem. Aqui o encolher
+    // é de propósito (pedido da Karina), então o envio vai forçado.
+    if (n || limpezaPendente) { limpezaPendente = false; saveTasksData(); scheduleCloudSave({ forcar: true }); }
+    return n;
   }
 
   // Prioridade (07/10, Karina — campo do doc do chefe): Alta, Média, Baixa ou nada.
@@ -20522,6 +20543,7 @@ applyRolePermissions();
         tasksData = data.tasks2.map(t => ensureTaskDefaults(t));
         tasks2Seeded = true;
         tasks2TemDados = true;
+        if (cadastroTemDados && cadastro.limpeza === LIMPEZA_ID && tirarApagadas()) limpezaPendente = true; // grava (forçado) ao abrir a aba // piloto: demandas apagadas não voltam
         localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksData));
       }
       if (Array.isArray(data.tasks2Areas) && data.tasks2Areas.length) {

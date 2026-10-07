@@ -12,6 +12,35 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (11ª) — Tasks (piloto): limpeza refeita, nomes de colunas, nada cortando
+
+- **Limpeza das demandas refeita.** A 1ª limpeza (8ª entrada) apagou no
+  navegador e marcou "feito" no cadastro, mas o envio pra nuvem foi
+  **barrado pela trava "encolheu demais"** (`encolheuDemais`: lista que cai
+  pra menos de 40% do tamanho não sobe e volta da nuvem). Resultado: as 13
+  demandas voltaram. Agora (marca `2026-10-07-so-lw-2`): os IDs das
+  demandas apagadas ficam em `cadastro.limpezaIds`; elas são tiradas de
+  novo sempre que a lista chega (abrir a aba ou vir da nuvem) e o envio
+  desta limpeza vai **forçado** (`scheduleCloudSave({ forcar: true })`),
+  porque o encolher é de propósito. Demanda criada depois tem ID novo e
+  não é afetada. Só fica "Chegar a 20 eventos Ladies Weekend 2026" e o que
+  está dentro. A Tasks real não muda. *Roda quando a Karina abrir a aba.*
+- **Nomes das colunas:** Início/Fim → **Período** (o filtro dele é pela
+  data de início); Data entrega → **Finalizado em**; Status entrega →
+  **Forma**. Só os nomes; o cálculo é o mesmo.
+- **Prioridade Baixa em cinza** (Média amarela e Alta vermelha, iguais).
+- **Nada cortando:** Finalizado em com letra menor; chips de Responsável
+  menores e coluna um pouco mais larga (tirado de Tags/Frente); cabeçalho
+  Prioridade com letra menor. Conferido a 1920, 1500 e 1400px sem texto
+  cortado em Responsável, cabeçalho, Objetivo e Prioridade.
+- **Onde:** `index.html`, só o bloco do piloto (`piloto_limpeza`,
+  `apply` da ponte do piloto, cabeçalho, CSS das colunas).
+- **Verificação:** 85 + 32 + 34 + 34 testes (inclui: demanda apagada que
+  volta pela nuvem sai de novo, mesmo grande o bastante pra acionar a
+  trava; demanda nova fica).
+
+---
+
 ## 2026-10-07 (10ª) — Tasks (piloto): campos que faltavam do doc do chefe
 
 Pedido da Karina: "faz tudo que falta" (comparação com os campos do doc
