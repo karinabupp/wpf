@@ -103,6 +103,18 @@ reconstruir o raciocínio.
     sex = CBTH (Isabela repassa a Tasks da CBTH); Resumo prepara a pauta de
     cada uma. E-mail "do Carinha": apelido gratuito ligado à conta da
     Karina (respostas caem pra ela).
+    **R (aprovado 07/10):** 7 telas na Dash, só pra Karina no piloto,
+    nesta ordem: Tasks (piloto) com Tags, Aguardando, Meu dia (+ agenda
+    "Planejamento"), Painel da gestora (com os indicadores do piloto), Pauta
+    (só Karina; também no WhatsApp), CRM ligado às tags, Histórico do
+    Carinha. Empresas existem por si, como as pessoas.
+    **Custo mínimo (Karina, 07/10):** tudo que é regra em código; Haiku em
+    todos os agentes, Sonnet só de reserva com teto diário (substitui o
+    Sonnet fixo do A). Estimativa ~US$ 3/mês no piloto, ~US$ 10/mês com 4.
+    **Projeto completo, com 8 fases de construção:** doc "Assistente da
+    equipe — projeto em BAIER"
+    (claude.ai/code/artifact/0c3c2576-d277-4bca-95a7-5523989c473c).
+    Aguardando a aprovação do doc pra começar a fase 1.
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
