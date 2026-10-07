@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (8ª) — Tasks (piloto): Pessoas nas tags, só a demanda do LW, "+" no lugar do contexto
+
+- **Tags › Pessoas:** o grupo Pessoas aparece sempre no painel de tags
+  (antes sumia porque o cadastro do piloto tem 0 pessoas). Junta a
+  **equipe** (Karina, Isabela, Leonardo, Roberto…, marcada "equipe") e os
+  contatos, todos com o chip 👤. Sem grupo "Equipe" separado. Dá pra criar
+  pessoa nova digitando o nome. Colar texto com o nome de alguém da equipe
+  também vira tag. *Motivo:* pedido da Karina.
+- **Limpeza das demandas (só piloto, só WPF, roda uma vez):** ficou só
+  **"Chegar a 20 eventos Ladies Weekend 2026"** (Awareness, Captação,
+  Formalização e alinhamento, Preparativos) com tudo dentro; as outras 12
+  demandas saíram do piloto (inclusive "…**no** Ladies Weekend 2026", dos
+  Stops). Marca `cadastro.limpeza = "2026-10-07-so-lw"`; se a demanda não
+  for achada, não apaga nada. **A Tasks real não mudou** (as demandas
+  continuam lá). *Motivo:* pedido da Karina.
+- **"+" no lugar do contexto:** o botão de contexto saiu; o "+" (adicionar
+  o nível de baixo) foi do fim da linha para antes da setinha. No fim da
+  linha ficou só a lixeira. Os detalhes (contexto, critério, depende de,
+  evidência, Aguardando, anexar formulário) agora **abrem clicando no
+  nome** da linha; o foco fica no nome, Esc fecha. Ao mudar o status para
+  Aguardando, os detalhes abrem sozinhos, como antes. *Motivo:* pedido da
+  Karina (aprovado: detalhes pelo clique no nome).
+- **Onde:** `index.html`, só o bloco do piloto (`limparDemandasWpf`,
+  `opcoesDeTag`/`montarTagsPainel`/`chipTag`/`textoParaTags`, linha da
+  tabela, `abrirContextoPainel(botao, opc)`, CSS `tasksp-add-nome`).
+  Bloco da Tasks real idêntico ao anterior.
+- **Verificação:** 79 + 32 + 33 + 34 testes.
+
+---
+
 ## 2026-10-07 (7ª) — Tasks (piloto): coluna Status entrega
 
 - **O que mudou:** coluna **Status entrega** logo depois de Data entrega,

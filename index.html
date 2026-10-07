@@ -6479,6 +6479,10 @@
   .tasksp-stent.is-atrasado { background: #fcebeb; color: #791f1f; }
   .tasksp-stent-vazio { color: var(--text-muted); font-size: 12px; }
   .tasksp-head-row .tasksp-col-stent .tasksp-head-txt, .tasksp-head-row .tasksp-col-entrega .tasksp-head-txt { white-space: normal; line-height: 1.15; }
+  /* 07/10 (3ª): "+" no lugar do contexto; Pessoas sempre no painel de tags */
+  .tasksp-name-row .tasksp-add-nome { flex-shrink: 0; padding: 0 4px; font-size: 16px; line-height: 1; font-weight: 600; }
+  .tasksp-name-row .tasksp-add-nome:hover { color: var(--accent); }
+  .tasksp-tags-pessoas-vazio { padding: 2px 4px 4px; }
 
 
   /* ═══ GESTÃO (07/10): protótipo do modelo de acompanhamento ═══ */
@@ -17092,7 +17096,7 @@ applyRolePermissions();
     return lista;
   }
 
-  function abrirContextoPainel(botao) {
+  function abrirContextoPainel(botao, opc) { // opc.semFoco: aberto pelo clique no nome (o foco fica no nome)
     fecharContextoPainel();
     const t = findTaskById(tasksData, botao.dataset.id);
     if (!t || !TIPOS_COM_CONTEXTO[t.rowType]) return;
@@ -17155,7 +17159,7 @@ applyRolePermissions();
     painel.style.top = Math.max(8, cabeAbaixo ? r.bottom + 4 : r.top - alto - 4) + "px";
     painel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - painel.offsetWidth - 12)) + "px";
     const primeiro = painel.querySelector("[data-det]");
-    if (primeiro) {
+    if (primeiro && !(opc && opc.semFoco)) {
       primeiro.focus();
       if (primeiro.tagName === "TEXTAREA") primeiro.setSelectionRange(primeiro.value.length, primeiro.value.length);
     }
@@ -17996,7 +18000,7 @@ applyRolePermissions();
         <div class="tasksp-col-name" data-fill-field="name" style="padding-left:${nameIndent(t, depth)}px">
           <div class="tasksp-name-row">
             ${isSub ? `<span class="tasksp-drag-handle" data-id="${t.id}" draggable="true" title="Arrastar para mover">⠿</span>` : ""}
-            ${contextoBtnMarkup(t)}
+            ${canCreate ? `<button class="tasksp-action-btn tasksp-add-nome" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
             <button class="tasksp-toggle ${hasChildren ? "" : "empty"}" data-id="${t.id}" type="button">${expanded ? "▼" : "▶"}</button>
             <span class="tasksp-type-picker" style="background:${typeIconChip(t)}; color:${typeIconColor(t)}" title="Categoria: ${type.label} — clique para trocar"><span class="tasksp-type-icon" data-type="${tipoVisual(t)}">${type.icon}</span><span class="tasksp-tipo-rotulo" data-type="${tipoVisual(t)}">${type.label}</span><select class="tasksp-type-select" data-id="${t.id}" aria-label="Categoria da linha">${taskTypeOptionsMarkup(tipoVisual(t))}</select></span>
             <span class="tasksp-name-wrap"><textarea rows="1" class="tasksp-name-input ${depth === 0 ? "tasksp-name-top" : ""}" data-id="${t.id}" data-field="name" placeholder="Digite @ para citar outra linha">${String(t.name || "").replace(/</g, "&lt;")}</textarea><button class="tasksp-name-expand is-hidden" type="button" title="Ver nome completo">▼</button></span>
@@ -18046,7 +18050,6 @@ applyRolePermissions();
           <span class="tasksp-fill-handle" data-id="${t.id}" data-field="tags" title="Arraste para copiar as tags para as linhas abaixo"></span>
         </div>
         <div class="tasksp-col-actions">
-          ${canCreate ? `<button class="tasksp-action-btn" data-id="${t.id}" data-action="add" type="button" title="Adicionar o nível de baixo dentro desta linha">+</button>` : ""}
           ${canDelete ? `<button class="tasksp-action-btn" data-id="${t.id}" data-action="delete" type="button" title="Excluir">🗑</button>` : ""}
         </div>
       </div>
@@ -18437,6 +18440,20 @@ applyRolePermissions();
         abrirContextoPainel(btn);
       });
     });
+    // Piloto (07/10): sem o botão de contexto, os detalhes abrem clicando no nome.
+    body.querySelectorAll(".tasksp-name-input").forEach(inp => {
+      inp.addEventListener("click", () => {
+        if (tasksContextoId === inp.dataset.id) return;
+        const t = findTaskById(tasksData, inp.dataset.id);
+        if (!t || !TIPOS_COM_CONTEXTO[t.rowType]) return;
+        abrirContextoPainel(inp, { semFoco: true });
+      });
+      inp.addEventListener("keydown", e => {
+        if (e.key !== "Escape" || tasksContextoId !== inp.dataset.id || document.getElementById("tasksp-mention-painel")) return;
+        fecharContextoPainel();
+        renderTasksTable();
+      });
+    });
     body.querySelectorAll(".tasksp-meta-progresso-btn").forEach(btn => {
       btn.addEventListener("click", e => {
         e.stopPropagation();
@@ -18508,7 +18525,7 @@ applyRolePermissions();
         renderTasksTable();
         // Aguardando pede quem destrava e quando cobrar: abre os detalhes da linha.
         if (virouAguardando) setTimeout(() => {
-          const b = document.querySelector(`#tasksp-table-body .tasksp-contexto-btn[data-id="${t.id}"]`);
+          const b = document.querySelector(`#tasksp-table-body .tasksp-name-input[data-id="${t.id}"]`);
           if (b) abrirContextoPainel(b);
         }, 60);
       });
@@ -19672,7 +19689,7 @@ applyRolePermissions();
   document.addEventListener("click", e => {
     fecharPainelFiltro();
     if (!e.target.closest(".tasksp-name-input") && !e.target.closest("#tasksp-mention-painel")) fecharMentionPicker();
-    if (tasksContextoId && !e.target.closest("#tasksp-contexto-painel") && !e.target.closest(".tasksp-contexto-btn")) {
+    if (tasksContextoId && !e.target.closest("#tasksp-contexto-painel") && !e.target.closest(".tasksp-contexto-btn") && !e.target.closest(".tasksp-name-input")) {
       fecharContextoPainel();
       renderTasksTable();
     }
@@ -19986,9 +20003,6 @@ applyRolePermissions();
     if (!nome) return "";
     const e = escP(nome);
     const classe = `tasksp-tag tasksp-tag-${tipo}${herdada ? " is-herdada" : ""}`;
-    if (tipo === "pessoa" && String(v).indexOf("eq:") === 0) {
-      return `<span class="${classe} tasksp-tag-equipe" title="Equipe: ${e}${herdada ? " (herdada)" : ""}"><i style="background:${corEquipe(nome)}"></i>${e}</span>`;
-    }
     const ic = tipo === "lugar" ? "📍" : tipo === "empresa" ? "🏢" : tipo === "associacao" ? "🏛" : "👤";
     const rot = tipo === "lugar" ? ROTULO_PAIS_TASKS2 : tipo === "empresa" ? "Empresa" : tipo === "associacao" ? "Associação" : "Pessoa";
     return `<span class="${classe}" title="${rot}: ${e}${herdada ? " (herdada)" : ""}">${ic} ${e}</span>`;
@@ -20030,6 +20044,8 @@ applyRolePermissions();
       const k = normTag(n);
       const p = cadastro.pessoas.find(x => normTag(x.nome) === k);
       if (p) { g.pessoas.push("p:" + p.id); achou++; return; }
+      const u = (typeof usersList !== "undefined" && usersList ? usersList : []).find(x => normTag(x.username) === k);
+      if (u) { g.pessoas.push("eq:" + u.username); achou++; return; }
       const e = cadastro.empresas.find(x => normTag(x.nome) === k);
       if (e) { g.empresas.push(e.id); achou++; return; }
       const as = (cadastro.associacoes || []).find(x => normTag(x.nome) === k);
@@ -20060,6 +20076,7 @@ applyRolePermissions();
     const casa = s => !k || normTag(s).includes(k);
     const lim = l => l.slice(0, 8);
     return {
+      equipe: lim((typeof usersList !== "undefined" && usersList ? usersList : []).map(u => u.username).filter(n => n && casa(n) && !g.pessoas.includes("eq:" + n))),
       pessoas: lim(cadastro.pessoas.filter(p => casa(p.nome) && !g.pessoas.includes("p:" + p.id))),
       empresas: lim(cadastro.empresas.filter(e => casa(e.nome) && !g.empresas.includes(e.id))),
       associacoes: lim((cadastro.associacoes || []).filter(e => casa(e.nome) && !g.associacoes.includes(e.id))),
@@ -20075,9 +20092,10 @@ applyRolePermissions();
     g.empresas.forEach(v => proprias.push(["empresa", v])); g.associacoes.forEach(v => proprias.push(["associacao", v])); g.lugares.forEach(v => proprias.push(["lugar", v])); g.pessoas.forEach(v => proprias.push(["pessoa", v]));
     const her = listaChips({ id: t.id, tags: {} });
     const o = opcoesDeTag(t, tagsBusca);
-    const grupo = (titulo, itens) => itens.length ? `<div class="tasksp-tags-grupo">${titulo}</div>${itens.join("")}` : "";
+    const grupo = (titulo, itens) => itens.length ? `${titulo ? `<div class="tasksp-tags-grupo">${titulo}</div>` : ""}${itens.join("")}` : "";
     const nomeL = ROTULO_PAIS_TASKS2 === "Estado" ? "Estados" : "Países";
     const exato = normTag(tagsBusca) && (cadastro.pessoas.some(p => normTag(p.nome) === normTag(tagsBusca)) ||
+      (typeof usersList !== "undefined" && usersList ? usersList : []).some(u => normTag(u.username) === normTag(tagsBusca)) ||
       cadastro.empresas.some(e => normTag(e.nome) === normTag(tagsBusca)) || (cadastro.associacoes || []).some(e => normTag(e.nome) === normTag(tagsBusca)));
     let criar = "";
     if (tagsCriando) {
@@ -20097,7 +20115,10 @@ applyRolePermissions();
       grupo("Empresas", o.empresas.map(e => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="empresa" data-v="${escP(e.id)}">${chipTag("empresa", e.id, false)}<small>${escP((e.lugares || []).join(", "))}</small></button>`)) +
       grupo("Associações", o.associacoes.map(e => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="associacao" data-v="${escP(e.id)}">${chipTag("associacao", e.id, false)}<small>${escP((e.lugares || []).join(", "))}</small></button>`)) +
       grupo(nomeL, o.lugares.map(l => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="lugar" data-v="${escP(l)}">${chipTag("lugar", l, false)}</button>`)) +
-      grupo("Pessoas", o.pessoas.map(p => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="p:${escP(p.id)}">${chipTag("pessoa", "p:" + p.id, false)}<small>${escP((p.lugares || []).join(", "))}</small></button>`)) +
+      // 07/10 (Karina): o grupo Pessoas aparece sempre: equipe + contatos.
+      `<div class="tasksp-tags-grupo">Pessoas</div>` + (o.equipe.length + o.pessoas.length ? "" : `<div class="tasksp-tags-nada tasksp-tags-pessoas-vazio">${tagsBusca.trim() ? "Ninguém com esse nome." : "Nenhuma pessoa cadastrada ainda."} Digite o nome na busca pra criar.</div>`) +
+      o.equipe.map(n => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="eq:${escP(n)}">${chipTag("pessoa", "eq:" + n, false)}<small>equipe</small></button>`).join("") +
+      grupo("", o.pessoas.map(p => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="pessoa" data-v="p:${escP(p.id)}">${chipTag("pessoa", "p:" + p.id, false)}<small>${escP((p.lugares || []).join(", "))}</small></button>`)) +
       (tagsBusca.trim() && !exato ? `<div class="tasksp-tags-grupo">Novo cadastro</div>
         <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="empresa">+ Criar empresa “${escP(tagsBusca.trim())}”</button>
         <button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="associacao">+ Criar associação “${escP(tagsBusca.trim())}”</button>
@@ -20370,6 +20391,25 @@ applyRolePermissions();
     return n;
   }
 
+  // ══ Piloto (07/10, Karina): limpeza das demandas da WPF ════════════════
+  // Fica só a demanda "Chegar a 20 eventos Ladies Weekend 2026" (Awareness,
+  // Captação, Formalização, Preparativos) com tudo dentro; as outras saem do
+  // piloto. A Tasks real não muda. Roda UMA vez (marca no cadastro) e, se não
+  // achar a demanda, não apaga nada.
+  const LIMPEZA_ID = "2026-10-07-so-lw";
+  const DEMANDA_QUE_FICA = "chegar a 20 eventos ladies weekend 2026";
+  function limparDemandasWpf() {
+    if (ORG_ATUAL !== "wpf" || !pilotoLiberado() || !tasks2TemDados || !cadastroTemDados || cadastro.limpeza === LIMPEZA_ID) return 0;
+    const fica = tasksData.filter(t => normTag(t.name) === DEMANDA_QUE_FICA);
+    if (!fica.length) return 0;
+    const saiu = tasksData.length - fica.length;
+    tasksData = fica;
+    cadastro.limpeza = LIMPEZA_ID;
+    saveCadastro();
+    saveTasksData();
+    return saiu;
+  }
+
   // ─── Ponte com a nuvem ────────────────────────────────────────────────
   // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
   // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as
@@ -20487,6 +20527,7 @@ applyRolePermissions();
     semearCadastroDoCrm(); // 1ª vez: contatos e empresas do CRM viram cadastro único (o CRM não muda)
     const nReorg = reorganizarWpf();
     migrarNiveis(); // 1ª vez: objetivos viram coluna; Demanda › Entrega › Item › Etapa // 1ª vez (WPF): linhas que eram país/federação/empresa ganham nome de trabalho + tags
+    limparDemandasWpf(); // 1ª vez (WPF): só fica a demanda Chegar a 20 eventos Ladies Weekend 2026
     if (nReorg) { const av = document.querySelector(".tasksp-piloto-aviso"); if (av) av.insertAdjacentHTML("beforeend", ` <b>· Reorganizei ${nReorg} linhas com tags (regras de 07/10).</b>`); }
     setTasksViewMode("list"); // ja redesenha
     // De novo aqui: no render acima a aba pode ainda nao estar visivel, e
