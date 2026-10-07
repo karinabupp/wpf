@@ -45,8 +45,15 @@ reconstruir o raciocínio.
     só depois portar pra Tasks real. Ordem: cópia com nomes/campos →
     semana 1 (detalhamento + fechamento 19h) → conexão Google → semana 2
     (abertura 9h com agenda) → Tasks real + equipe. Cada passo com OK.
+  - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
+    Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
+    entre etapas do mesmo Item; tirar um formulário anexado não tem botão
+    (só apagando o formulário); no piloto não há "Recarregar da Tasks real"
+    (pra recomeçar: apagar `tasksPiloto*` no Supabase + `wpf_tasksp_*` no
+    navegador).
   - *A decidir no passo 2:* o Carinha lê só `tasks2*`; pra pilotar com
-    dados reais, ou aponta o Carinha pra cópia, ou porta antes.
+    dados reais, ou aponta o Carinha pra cópia (`tasksPiloto*`), ou porta
+    antes.
   - *Onde:* `index.html` (Tasks), `worker/whatsapp-bridge.js`, Google Cloud
     (app OAuth interno do Workspace WPF).
   - *Aberto em:* 2026-10-07

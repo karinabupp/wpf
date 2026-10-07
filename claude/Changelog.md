@@ -12,6 +12,64 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 — Tasks (piloto): cópia da Tasks com Entrega › Item › Etapa
+
+Pedido da Karina, aprovado ("pode"), primeiro passo do plano do assistente
+da equipe (doc "Assistente da equipe × o que já temos").
+
+- **O que mudou:** aba nova **Tasks (piloto)** (ícone de frasco no menu), só
+  pro login `karina` (`PILOTO_LOGINS`). Na 1ª abertura copia a Tasks real
+  da empresa ativa (tarefas, áreas, KPIs) e daí vive por conta própria.
+  Faixa no topo avisa que é cópia separada. Na cópia:
+  1. **Nomes:** Projeto → **Entrega**, Entregável → **Item**, Tarefa →
+     **Etapa** (Objetivo e Meta iguais). Por dentro o `rowType` continua
+     `projeto`/`entregavel`/`tarefa`, pra portar e pro robô sem conversão.
+  2. **Item:** critério de conclusão (no painel de detalhes, botão 📄);
+     selo **DETALHAR** quando falta responsável, fim, critério ou etapas
+     (diz o que falta no mouse); chip **→ próxima ação** = a 1ª etapa em
+     aberto. Selos numa linha embaixo do nome.
+  3. **Etapa:** painel de detalhes com **depende de** (outras etapas do
+     mesmo Item), **link de evidência** (só http/https vira link) e
+     **Anexar formulário**.
+  4. **Status Aguardando** (roxo), em Item e Etapa: ao escolher, abre o
+     painel com quem destrava, desde (hoje, automático) e próximo retorno;
+     chip "aguarda X · retorno dd/mm" (vermelho "cobrar" quando a data
+     chega). Etapa em Aguardando **não vira Deadline/Late sozinha**. Item
+     com todas as etapas vivas em Aguardando fica Aguardando.
+  5. **Forms vira anexo:** sai do seletor de tipo; etapa com formulário
+     mostra o botão "Formulário" (mesmo popup de antes). As tarefas Forms
+     copiadas viraram etapas com o formulário anexado. Formulário criado
+     pelo piloto vai pra `wpf_forms` normal (é real).
+- **Isolamento:** o bloco JS da Tasks foi copiado e renomeado por script
+  (ids/classes `tasksp-`, chaves `wpf_tasksp_`, 330 regras de CSS
+  duplicadas com o prefixo). Nuvem: seções novas `tasksPiloto`,
+  `tasksPilotoAreas`, `tasksPilotoKpis` (+ `__cbth`); o robô não lê (ele lê
+  `tasks2*`/`members2*`); ficam fora das versões do `historicoGeral`; o
+  histórico do piloto fica só no navegador. A ponte do piloto devolve nada
+  pra quem não é Karina, então ninguém mais envia essas seções. O piloto
+  não recalcula o Avisos Gerais do CRM. Fora do bloco novo, só 4 linhas
+  do arquivo mudaram (`CLOUD_SECTIONS`, `SECOES_HISTORICO_TODAS`,
+  `secaoDaOrg`, `CATALOGO_PERMISSOES`) + acréscimos em
+  `preencherSecoesPorOrg`, `applyAllData`, `NAV_VIEWS`, `concluirLogin`
+  (classe `pode-piloto`) e `presencaOnde`.
+- **Permissão:** `tasksPiloto` no grupo "Só da Karina (fixo)" do
+  `CATALOGO_PERMISSOES` (regra de 25/09).
+- **Verificação:** JS e CSS válidos; 66 testes no Chromium com Supabase
+  simulado (`teste_piloto.mjs`, sessão de 07/10): cópia com todas as
+  linhas; nomes novos e antigos (real intacta, Forms continua tipo lá);
+  sem Forms no seletor; selo, próxima ação, critério; Aguardando (painel,
+  desde, chip, sem Late, rollup, cor); depende de; evidência (e
+  `javascript:` recusado); anexar e reabrir formulário; nova linha "Nova
+  etapa"; nuvem com os campos novos; **Tasks real na nuvem idêntica** e
+  nunca enviada pelo piloto; edição na real não toca o piloto e
+  vice-versa; F5; outro PC da Karina recebe da nuvem; Isabela não vê e não
+  envia nada do piloto; CBTH em `__cbth`; celular sem rolagem lateral;
+  sem erros de página.
+- **Publicação:** commit `eefa7cc`; sha256 do `index.html` no repo =
+  `ae176462…8acd`, igual ao testado.
+
+---
+
 ## 2026-09-25 — Settings (etapa 1 do plano "Settings e Carinha")
 
 - **O que mudou:** aba nova **Settings** (engrenagem no menu), só pro login
