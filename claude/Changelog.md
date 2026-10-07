@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (4ª) — Tasks (piloto): reorganização em lote com tags (só WPF)
+
+Regras aprovadas pela Karina ("sim"; regiões ficam; apagar só no piloto;
+"primeiro só da WPF, CBTH depois").
+
+- **O que faz:** na 1ª abertura do piloto da WPF depois desta versão, as
+  linhas que eram país, federação ou empresa ganham nome de trabalho e
+  tags: Stops › país → "Stop do Ladies Weekend" 📍; Em Abertura / Em
+  negociação / Substituições / Membros › região → "Abrir / Fechar /
+  Substituir federação" e "Manter federação-membro" 📍 + 🏢 "Fed <país>"
+  (empresa criada no cadastro, tipo Federação, ligada ao país); parcerias
+  de mídia → "Parceria de mídia" 🏢; Ladies Royale / Liga Feminina →
+  "Grupo feminino" 🏢; Grupo Fem / Contato França → 📍 France; Patrocinio
+  GG → "Patrocínio" 🏢 GG ("Reunião com GG" → "Reunião de patrocínio");
+  "Fed Basque Country" → 📍 Spain 🏢 Fed Basque Country. Agrupadores por
+  região/continente ficam. "Nova entregável" **vazio** sai do piloto.
+- **Uma vez só:** marca `reorg = "2026-10-07-wpf"` no cadastro do piloto
+  (vai pra nuvem); o aviso no topo diz quantas linhas mudaram. CBTH não é
+  tocada. A Tasks real não muda.
+- **Verificação:** 26 testes (`teste_reorg.mjs`) com os nomes reais + 66 +
+  29 anteriores.
+- **Publicação:** commit `02e50a9`; sha256 `f1109beb…af4d`, igual ao
+  testado.
+
+---
+
 ## 2026-10-07 (3ª) — Tasks (piloto), fase 1: Tags e cadastro único
 
 Primeira fase do projeto "Assistente da equipe — projeto em BAIER"

@@ -115,6 +115,10 @@ reconstruir o raciocínio.
     equipe — projeto em BAIER"
     (claude.ai/code/artifact/0c3c2576-d277-4bca-95a7-5523989c473c).
     Aguardando a aprovação do doc pra começar a fase 1.
+    **Fase 1 (07/10):** tags e cadastro único no ar; reorganização em lote
+    da WPF no ar. **Falta:** CBTH (reorganizar depois, junto com os estados
+    duplicados dentro do mesmo agrupador); tela pra editar o cadastro
+    (lugares de uma pessoa/empresa) — vem com "CRM ligado às tags" (fase 6).
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
