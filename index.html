@@ -19968,6 +19968,106 @@ applyRolePermissions();
     if (tagsPainelId && !e.target.closest("#tasksp-tags-painel") && document.contains(e.target)) fecharTagsPainel();
   });
 
+  // ══ Piloto (07/10, Karina): reorganização em lote, SÓ WPF ═══════════════
+  // Linhas que eram país, federação ou empresa passam a ter o nome do
+  // trabalho e o resto vira tag. Regras aprovadas pela Karina em 07/10.
+  // Agrupadores por região/continente ficam como estão. "Nova entregável"
+  // vazio é apagado (só no piloto). Roda UMA vez: a marca fica no cadastro
+  // (que vai pra nuvem), então outro computador não repete. CBTH fica pra
+  // depois.
+  const REORG_ID = "2026-10-07-wpf";
+  const ALIAS_LUGAR = { "usa": "United States of America", "estados unidos": "United States of America", "uk": "United Kingdom",
+    "the uk": "United Kingdom", "franca": "France", "brasil": "Brazil", "uruguai": "Uruguay", "romenia": "Romania",
+    "sweeden": "Sweden", "singapura": "Singapore", "liecheinstein": "Liechtenstein", "czech republic": "Czechia",
+    "dominican republic": "Dominican Rep.", "macau": "Macao", "inglesa/uk": "United Kingdom", "basque country": "Spain" };
+  function acharLugar(txt) {
+    const k = normTag(txt);
+    if (!k) return "";
+    if (ALIAS_LUGAR[k]) return ALIAS_LUGAR[k];
+    return paisesDisponiveis2().find(l => normTag(l) === k) || "";
+  }
+  function empresaPorNome(nome, lugar, tipo) {
+    const k = normTag(nome);
+    let e = cadastro.empresas.find(x => normTag(x.nome) === k);
+    if (!e) {
+      e = { id: novoIdTag("emp"), nome, tipo: tipo || "", email: "", tel: "", site: "", redeSocial: "", lugares: [] };
+      cadastro.empresas.push(e);
+    }
+    if (lugar && !e.lugares.includes(lugar)) e.lugares.push(lugar);
+    return e.id;
+  }
+  function addTag(t, campo, v) {
+    const g = tagsDe(t);
+    if (v && !g[campo].includes(v)) g[campo] = g[campo].concat(v);
+    t.tags = g;
+  }
+  // "Fechar Fed da Angola" → "Angola"; "Fed Inglesa/UK" → "Inglesa/UK"
+  const restoDaFed = n => String(n || "").replace(/^\s*fechar\s+/i, "").replace(/^\s*(fed|federa[cç][aã]o)\.?\s+(d[aeo]s?\s+)?/i, "").trim();
+
+  function reorganizarWpf() {
+    if (ORG_ATUAL !== "wpf" || !pilotoLiberado() || !tasks2TemDados || !cadastroTemDados) return 0;
+    if (cadastro.reorg === REORG_ID) return 0;
+    let n = 0;
+    const PAI_FED = { "em abertura": "Abrir federação", "em negociacao": "Fechar federação", "substituicoes": "Substituir federação",
+      "africa": "Manter federação-membro", "americas": "Manter federação-membro", "asia": "Manter federação-membro",
+      "europe": "Manter federação-membro", "oceania": "Manter federação-membro" };
+    const ehFed = nome => /^\s*(fechar\s+)?(fed|federa[cç][aã]o)\b/i.test(nome);
+    (function walk(lista, pai, avo) {
+      for (let i = lista.length - 1; i >= 0; i--) {
+        const t = lista[i];
+        const nome = String(t.name || "");
+        const kPai = normTag(pai && pai.name), kAvo = normTag(avo && avo.name);
+        // Linha vazia "Nova entregável" (sem nada dentro): sai do piloto.
+        if (/^nov[ao] entreg[aá]vel$/i.test(nome.trim()) && !(t.subtasks || []).length) { lista.splice(i, 1); n++; continue; }
+        const g = tagsDe(t);
+        const lugarAtual = g.lugares[0] || "";
+        if (t.rowType === "entregavel" && pai) {
+          // Regra 1: país debaixo de "Stops …"
+          if (/^stops\b/.test(kPai) && acharLugar(nome)) {
+            addTag(t, "lugares", lugarAtual || acharLugar(nome));
+            t.name = "Stop do Ladies Weekend"; n++;
+          // Regra 3: "Fed X" conforme o pai (Membros › região conta pelo pai)
+          } else if (PAI_FED[kPai] && (ehFed(nome) || (kAvo === "membros" && acharLugar(nome)))) {
+            if (PAI_FED[kPai] === "Manter federação-membro" && kAvo !== "membros") { /* região fora de Membros: deixa */ }
+            else {
+              const resto = ehFed(nome) ? restoDaFed(nome) : nome;
+              const lugar = lugarAtual || acharLugar(resto);
+              if (lugar) addTag(t, "lugares", lugar);
+              const nomeEmp = normTag(resto) === "basque country" ? "Fed Basque Country" : "Fed " + (lugar || resto);
+              addTag(t, "empresas", empresaPorNome(nomeEmp, lugar, "Federação"));
+              t.name = PAI_FED[kPai]; n++;
+            }
+          // Regra 4: empresa como nome
+          } else if (kPai === "definir parcerias com midia") {
+            addTag(t, "empresas", empresaPorNome(nome.trim(), "", "Mídia"));
+            t.name = "Parceria de mídia"; n++;
+          } else if (kPai === "grupos fems na america latina" && /^(ladies royale|liga feminina)$/i.test(nome.trim())) {
+            addTag(t, "empresas", empresaPorNome(nome.trim(), "", "Outros"));
+            t.name = "Grupo feminino"; n++;
+          // Regra 5: país no meio do nome
+          } else if (/^grupo fem\b/i.test(nome) && acharLugar(nome.replace(/^grupo fem\s+/i, ""))) {
+            addTag(t, "lugares", acharLugar(nome.replace(/^grupo fem\s+/i, "")));
+            t.name = "Grupo feminino"; n++;
+          } else if (/^contato\s+/i.test(nome) && acharLugar(nome.replace(/^contato\s+/i, ""))) {
+            addTag(t, "lugares", acharLugar(nome.replace(/^contato\s+/i, "")));
+            t.name = "Contato"; n++;
+          }
+        }
+        // Regra 4 (GG): projeto "Patrocinio GG" e a reunião dentro dele.
+        if (t.rowType === "projeto" && /^patroc[ií]nio\s+gg$/i.test(nome.trim())) {
+          addTag(t, "empresas", empresaPorNome("GG", "", "Patrocinador"));
+          t.name = "Patrocínio"; n++;
+        }
+        if (/^reuni[aã]o com gg$/i.test(nome.trim())) { t.name = "Reunião de patrocínio"; n++; }
+        walk(t.subtasks || [], t, pai);
+      }
+    })(tasksData, null, null);
+    cadastro.reorg = REORG_ID;
+    saveCadastro();
+    saveTasksData();
+    return n;
+  }
+
   // ─── Ponte com a nuvem ────────────────────────────────────────────────
   // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
   // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as
@@ -20083,6 +20183,8 @@ applyRolePermissions();
       return;
     }
     semearCadastroDoCrm(); // 1ª vez: contatos e empresas do CRM viram cadastro único (o CRM não muda)
+    const nReorg = reorganizarWpf(); // 1ª vez (WPF): linhas que eram país/federação/empresa ganham nome de trabalho + tags
+    if (nReorg) { const av = document.querySelector(".tasksp-piloto-aviso"); if (av) av.insertAdjacentHTML("beforeend", ` <b>· Reorganizei ${nReorg} linhas com tags (regras de 07/10).</b>`); }
     setTasksViewMode("list"); // ja redesenha
     // De novo aqui: no render acima a aba pode ainda nao estar visivel, e
     // sem visibilidade a medida de transbordo da 0.
