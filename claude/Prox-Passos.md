@@ -50,6 +50,17 @@ reconstruir o raciocínio.
     só depois portar pra Tasks real. Ordem: cópia com nomes/campos →
     semana 1 (detalhamento + fechamento 19h) → conexão Google → semana 2
     (abertura 9h com agenda) → Tasks real + equipe. Cada passo com OK.
+  - *Metodologia BAIER (07/10, Karina): o projeto todo passa letra a letra,
+    sem criar nada no banco até as 5 letras serem aprovadas.*
+    **B (aprovado 07/10):** plano do dia, blocos e fechamento em tabelas
+    próprias (`wpf_agente_planos`, `wpf_agente_blocos`,
+    `wpf_agente_fechamentos`, 1 linha por pessoa/dia); bloqueio atual na
+    etapa + histórico em `wpf_agente_bloqueios`; modelos de rotina numa
+    seção da Dash, editáveis na tela; tokens Google em `wpf_agente_google`
+    (trancada, só o robô lê, nunca na Dash); **CRM entra agora** como fonte
+    (contato/empresa ligado à etapa, interações); **áudio no WhatsApp
+    entra**. Entradas: tarefas, WhatsApp, Gmail, Calendar, Read AI, Slack,
+    CRM, formulários, KPIs.
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
