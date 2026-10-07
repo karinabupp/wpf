@@ -94,6 +94,15 @@ reconstruir o raciocínio.
     e-mail sai da conta e com a assinatura de quem pediu; o que não é de
     ninguém pode sair "do Carinha" (falta decidir a caixa dele). Resumo pra
     Karina às 19h30.
+    **E (aprovado 07/10):** dias úteis — 9h abertura (Planejador, blocos
+    no Calendar com "sim"); 9h30–18h Triagem e Acompanhador; Detalhador e
+    Redator a qualquer hora; 18h aviso do fechamento; 19h fechamento; 19h30
+    Resumo pra Karina. Item vago: Detalhador pergunta **na hora**. Segunda:
+    tudo normal (abertura e avisos). Reuniões seg/qua/sex 10h: seg = WPF
+    (Isabela repassa a Tasks da WPF), qua = livre (assuntos em andamento),
+    sex = CBTH (Isabela repassa a Tasks da CBTH); Resumo prepara a pauta de
+    cada uma. E-mail "do Carinha": apelido gratuito ligado à conta da
+    Karina (respostas caem pra ela).
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
