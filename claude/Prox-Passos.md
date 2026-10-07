@@ -61,6 +61,16 @@ reconstruir o raciocínio.
     (contato/empresa ligado à etapa, interações); **áudio no WhatsApp
     entra**. Entradas: tarefas, WhatsApp, Gmail, Calendar, Read AI, Slack,
     CRM, formulários, KPIs.
+    **Tags (aprovado 07/10):** linha nenhuma é mais país/pessoa/estado/
+    empresa; o trabalho é o nome e o resto vira tag. Toda linha tem
+    Responsáveis + tags de **Pessoas** (equipe e contatos do CRM, com visual
+    diferente pra cada), **Lugares** (WPF só países, CBTH só estados) e
+    **Empresas**, várias de cada. **Pessoa existe por si** e pode ser ligada
+    a um ou mais países/estados (o contato deixa de morar dentro de um país
+    do CRM). Uma coluna única "Tags" (chips por tipo) no lugar de País.
+    Linha de baixo herda as tags de cima (clarinhas) e soma as próprias.
+    Linhas que hoje são país/pessoa: o Carinha propõe em lote nome novo +
+    tags, Karina aprova. CRM e Avisos Gerais passam a ler as tags de lugar.
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
