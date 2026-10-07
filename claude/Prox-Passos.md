@@ -15,6 +15,13 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Guia Gestão (protótipo, 07/10)** — Karina olhar e dizer o que
+  levar pro projeto. Hoje é isolada (dados só no navegador). Decidir: o
+  modelo dela (Entrega › Item › Etapa + plano do dia) substitui a Tasks
+  (piloto) ou as duas convivem? Se virar o caminho, ligar à nuvem e ao
+  Carinha nas fases 2–5 do projeto BAIER.
+  - *Aberto em:* 2026-10-07
+
 - [ ] **Religar o Carinha pra Isabela, Leonardo e Roberto** — pausado em
   07/10 (`proativo = false`). Quando a Karina liberar, rodar a "volta" de
   `sql/2026-10-07_pausa_mensagens_equipe.sql`.

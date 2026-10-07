@@ -12,6 +12,52 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (5ª) — Guia Gestão: protótipo do modelo do doc do chefe
+
+Pedido da Karina: "cria uma nova guia chamada Gestão e monta um gestor de
+tarefas exatamente do jeito descrito naquele doc… quero ver como é".
+
+- **O que é:** guia nova **Gestão** (ícone de prancheta), só pro login
+  `karina`, **isolada**: dados só no navegador (`wpf_gestao_v1`), sem
+  nuvem; não lê nem grava Tasks, CRM ou Carinha. Vem com o exemplo do doc
+  (influenciadores A, B e C + uma demanda vaga) e um modelo de rotina.
+  A IA/WhatsApp/Calendar do doc ainda não existem: aqui a pessoa faz na
+  tela o que o assistente vai conduzir.
+- **Entregas:** entrega principal (resultado, escopo, responsável,
+  prioridade, prazo, critério de conclusão); o "assistente verifica" com
+  as 7 perguntas do doc → "Precisa de detalhamento" / "Pronta para
+  planejar" / "Concluída"; itens acompanhados com status próprio; etapas
+  (ação, resultado esperado, responsável, depende de, status, prazo) com
+  "próxima ação" e "esperando dependência"; Aguardando abre o bloqueio
+  (motivo, quem precisa responder, desde, ação pra destravar, próximo
+  retorno — vermelho quando vence); aplicar modelo de rotina.
+- **Meu dia:** pessoa e dia; etapas executáveis (só de entregas prontas,
+  dependências ok); aguardando terceiros à parte (não conta como horas);
+  compromissos (simulam o Calendar); linha do tempo 8h–20h com expediente
+  9h–19h, almoço 12h–13h e margem de 20%; bloco com resultado esperado,
+  recusado se sobrepõe algo; "Confirmar plano" = versão original; ajuste
+  depois disso pede motivo e vira nova versão; fechamento por bloco
+  (concluído/parcial/não iniciado/bloqueado, resultado, referência,
+  pendência), "verificado por evidência" só com link; "Fechar o dia"
+  conclui ou bloqueia as etapas; o que não foi feito não passa sozinho.
+- **Painel do gestor:** indicadores (em aberto, % claras, % com próxima
+  ação, bloqueios, sem responsável/retorno, blocos de hoje), tabela das
+  entregas com etapa atual e bloqueios, decisões necessárias, resumo de
+  hoje planejado × realizado com os motivos dos ajustes.
+- **Rotinas:** modelos editáveis; "Iniciar ocorrência" cria a entrega com
+  um item por nome e as etapas encadeadas. "Recomeçar com o exemplo".
+- **Onde:** `index.html` — HTML `#gestao-view`, `#nav-gestao`, CSS
+  `gs-*`, bloco JS "GESTÃO" (IIFE, depois do piloto), `NAV_VIEWS`,
+  `presencaOnde`, `CATALOGO_PERMISSOES` (`gestao`, fixo da Karina).
+- **Verificação:** 34 testes (`teste_gestao.mjs`) com os casos de
+  validação do doc (influenciadores, demanda vaga, agenda sem espaço,
+  dependência externa, ajuste com motivo, relato × evidência, rotina) +
+  66 + 29 + 26 das outras baterias; Tasks real e CRM intocados; nada vai
+  pra nuvem; Isabela não vê; celular sem rolagem lateral.
+- **Publicação:** commit `1bcdb69`; sha256 `c0c744a2…`, igual ao testado.
+
+---
+
 ## 2026-10-07 (4ª) — Tasks (piloto): reorganização em lote com tags (só WPF)
 
 Regras aprovadas pela Karina ("sim"; regiões ficam; apagar só no piloto;
