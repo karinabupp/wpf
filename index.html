@@ -6450,7 +6450,7 @@
   .tasksp-tags-criar-botoes button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
   .tasksp-tags-criar-botoes button:first-child { color: #fff; background: var(--accent); border-color: var(--accent); }
   /* 07/10: Demanda › Entrega › Item › Etapa; Início/Fim juntos, Data entrega, Frente, Objetivo, Tags */
-  .tasksp-row { grid-template-columns: 30px minmax(280px, 1fr) 124px 142px 132px 112px 156px 112px 116px 176px 58px; }
+  .tasksp-row { grid-template-columns: 30px minmax(280px, 1fr) 124px 142px 132px 100px 152px 108px 112px 116px 152px 58px; }
   .tasksp-col-datas { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-top: 3px !important; padding-bottom: 3px !important; }
   .tasksp-head-row .tasksp-col-datas { flex-direction: row; align-items: center; gap: 2px; }
   .tasksp-sub-data { position: relative; display: flex; align-items: center; }
@@ -6465,13 +6465,13 @@
   .tasksp-obj-select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
   .tasksp-tag-associacao { background: #e3f4f4; color: #145b5b; }
   @media (max-width: 1650px) {
-    .tasksp-row { grid-template-columns: 28px minmax(240px, 1fr) 108px 132px 122px 100px 136px 100px 104px 150px 56px; }
+    .tasksp-row { grid-template-columns: 28px minmax(240px, 1fr) 108px 132px 122px 88px 126px 104px 98px 104px 110px 52px; }
   }
   @media (max-width: 1380px) {
-    .tasksp-row { grid-template-columns: 26px minmax(210px, 1fr) 98px 124px 116px 92px 116px 90px 94px 130px 52px; }
+    .tasksp-row { grid-template-columns: 26px minmax(210px, 1fr) 98px 124px 116px 84px 108px 100px 86px 92px 94px 48px; }
   }
   @media (max-width: 760px) {
-    .tasksp-row, .tasksp-row:not(.tasksp-head-row) { grid-template-columns: 26px 250px 100px 126px 118px 96px 130px 94px 96px 136px 54px !important; }
+    .tasksp-row, .tasksp-row:not(.tasksp-head-row) { grid-template-columns: 26px 250px 100px 126px 118px 96px 130px 88px 94px 96px 136px 54px !important; }
   }
   .tasksp-col-stent { display: flex; align-items: center; min-width: 0; }
   .tasksp-stent { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
@@ -6488,6 +6488,14 @@
   .tasksp-name-row .tasksp-add-nome:hover { opacity: 1; color: var(--accent); }
   .tasksp-name-row .tasksp-toggle { height: 16px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
   .tasksp-tags-pessoas-vazio { padding: 2px 4px 4px; }
+  /* 07/10 (4ª): Prioridade */
+  .tasksp-col-prio { display: flex; align-items: center; min-width: 0; }
+  .tasksp-prio-select { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 3px 9px; font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; max-width: 100%; }
+  .tasksp-prio-select.is-alta { background: #fcebeb; color: #791f1f; }
+  .tasksp-prio-select.is-media { background: #fdf1d6; color: #7a4b05; }
+  .tasksp-prio-select.is-baixa { background: #e6f1fb; color: #0c447c; }
+  .tasksp-prio-select.is-vazio { background: transparent; color: var(--text-muted); font-weight: 400; }
+  .tasksp-head-row .tasksp-col-prio .tasksp-head-txt { overflow: hidden; text-overflow: ellipsis; padding-right: 6px; }
 
 
   /* ═══ GESTÃO (07/10): protótipo do modelo de acompanhamento ═══ */
@@ -7034,6 +7042,7 @@
         <div class="tasksp-col-date tasksp-col-entrega"><span class="tasksp-head-txt">Data entrega</span></div>
         <div class="tasksp-col-stent"><span class="tasksp-head-txt">Status entrega</span></div>
         <div class="tasksp-col-assignee"><button type="button" class="tasksp-filtro-btn" data-col="responsavel">Responsável<span class="tasksp-filtro-seta">▾</span></button></div>
+        <div class="tasksp-col-prio"><span class="tasksp-head-txt">Prioridade</span></div>
         <div class="tasksp-col-area"><button type="button" class="tasksp-filtro-btn" data-col="area">Frente<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-obj"><button type="button" class="tasksp-filtro-btn" data-col="objetivo">Objetivo<span class="tasksp-filtro-seta">▾</span></button></div>
         <div class="tasksp-col-pais"><button type="button" class="tasksp-filtro-btn" data-col="tags"><span id="tasksp-rotulo-pais">País</span><span class="tasksp-filtro-seta">▾</span></button></div>
@@ -17112,11 +17121,23 @@ applyRolePermissions();
         <textarea class="tasksp-det-texto" data-det="criterio" rows="3" placeholder="O que precisa existir pra este item estar concluído? Ex.: contrato assinado e primeiro pagamento feito.">${escP(t.criterio || "")}</textarea>
         <label class="tasksp-det-rotulo">Contexto</label>
         <textarea class="tasksp-det-texto" data-det="contexto" rows="3" placeholder="Quem está envolvido, decisões tomadas, o que não pode esquecer…">${escP(t.contexto || "")}</textarea>`;
+    } else if (t.rowType === "projeto") {
+      // 07/10 (Karina): campos da "entrega principal" do doc do chefe.
+      corpo = `<label class="tasksp-det-rotulo">Resultado esperado</label>
+        <textarea class="tasksp-det-texto" data-det="resultado" rows="2" placeholder="O que vai existir quando esta entrega estiver pronta?">${escP(t.resultado || "")}</textarea>
+        <label class="tasksp-det-rotulo">Escopo</label>
+        <textarea class="tasksp-det-texto" data-det="escopo" rows="2" placeholder="O que entra e o que não entra nesta entrega.">${escP(t.escopo || "")}</textarea>
+        <label class="tasksp-det-rotulo">Critério de conclusão</label>
+        <textarea class="tasksp-det-texto" data-det="criterio" rows="2" placeholder="Como saber que a entrega está concluída?">${escP(t.criterio || "")}</textarea>
+        <label class="tasksp-det-rotulo">Contexto</label>
+        <textarea class="tasksp-det-texto" data-det="contexto" rows="3" placeholder="Por que existe, quem está envolvido, parceiros, decisões tomadas, o que não pode esquecer…">${escP(t.contexto || "")}</textarea>`;
     } else if (t.rowType === "tarefa") {
       const ag = t.aguardando || {};
       const opcoes = candidatasDependencia(t).map(x =>
         `<option value="${escP(x.id)}" ${t.dependeDe === x.id ? "selected" : ""}>${escP(x.name || "(sem nome)")}${x.status === "Done" ? " ✓" : ""}</option>`).join("");
-      corpo = `<label class="tasksp-det-rotulo">Depende de</label>
+      corpo = `<label class="tasksp-det-rotulo">Resultado esperado</label>
+        <textarea class="tasksp-det-texto" data-det="resultado" rows="2" placeholder="O que esta etapa entrega? Ex.: proposta enviada por e-mail.">${escP(t.resultado || "")}</textarea>
+        <label class="tasksp-det-rotulo">Depende de</label>
         <select class="tasksp-det-campo" data-det="dependeDe"><option value="">— não depende de outra etapa —</option>${opcoes}</select>
         <label class="tasksp-det-rotulo">Formulário</label>
         <button type="button" class="tasksp-det-forms" data-id="${t.id}">${TASK_TYPES.forms.icon}<span>${t.formId ? "Abrir o formulário" : "Anexar formulário"}</span></button>
@@ -17124,17 +17145,21 @@ applyRolePermissions();
         <input type="url" class="tasksp-det-campo" data-det="evidencia" value="${escP(t.evidencia || "")}" placeholder="https://… (documento, e-mail, contrato)">
         ${t.status === "Aguardando" ? `<div class="tasksp-det-aguardando">
           <div class="tasksp-det-titulo">Aguardando</div>
+          <label class="tasksp-det-rotulo">Motivo</label>
+          <input type="text" class="tasksp-det-campo" data-det="ag.motivo" value="${escP(ag.motivo || "")}" placeholder="Por que parou? Ex.: esperando aprovação do orçamento">
           <label class="tasksp-det-rotulo">Quem destrava</label>
           <input type="text" class="tasksp-det-campo" data-det="ag.quem" value="${escP(ag.quem || "")}" placeholder="Ex.: influenciador A, financeiro, federação">
           <div class="tasksp-det-duas">
             <div><label class="tasksp-det-rotulo">Desde</label><input type="date" class="tasksp-det-campo" data-det="ag.desde" value="${escP(ag.desde || "")}"></div>
             <div><label class="tasksp-det-rotulo">Próximo retorno</label><input type="date" class="tasksp-det-campo" data-det="ag.retorno" value="${escP(ag.retorno || "")}"></div>
           </div>
+          <label class="tasksp-det-rotulo">Ação pra destravar</label>
+          <input type="text" class="tasksp-det-campo" data-det="ag.acao" value="${escP(ag.acao || "")}" placeholder="O que fazer pra andar? Ex.: ligar pro financeiro na quinta">
         </div>` : `<div class="tasksp-contexto-dica">Mudando o status pra <b>Aguardando</b>, aqui aparece quem destrava e quando cobrar.</div>`}`;
     } else {
       corpo = `<textarea id="tasksp-contexto-texto" data-det="contexto" placeholder="Por que existe, quem está envolvido, parceiros, decisões tomadas, o que não pode esquecer…">${escP(t.contexto || "")}</textarea>`;
     }
-    const titulo = t.rowType === "tarefa" ? "Detalhes" : t.rowType === "entregavel" ? "Critério e contexto" : "Contexto";
+    const titulo = t.rowType === "tarefa" || t.rowType === "projeto" ? "Detalhes" : t.rowType === "entregavel" ? "Critério e contexto" : "Contexto";
     const painel = document.createElement("div");
     painel.id = "tasksp-contexto-painel";
     painel.innerHTML = `<div class="tasksp-contexto-topo">
@@ -17213,7 +17238,7 @@ applyRolePermissions();
     if (t.status === "Aguardando") {
       const ag = t.aguardando || {};
       const vencido = ag.retorno && ag.retorno <= todayISO();
-      h += `<span class="tasksp-aguarda ${vencido ? "is-vencido" : ""}" title="Aguardando${ag.quem ? " " + escP(ag.quem) : ""}${ag.desde ? " desde " + diaMes(ag.desde) : ""}${ag.retorno ? " · próximo retorno " + diaMes(ag.retorno) : ""}">aguarda ${escP(ag.quem || "?")}${ag.retorno ? " · " + (vencido ? "cobrar " : "retorno ") + diaMes(ag.retorno) : ""}</span>`;
+      h += `<span class="tasksp-aguarda ${vencido ? "is-vencido" : ""}" title="Aguardando${ag.quem ? " " + escP(ag.quem) : ""}${ag.desde ? " desde " + diaMes(ag.desde) : ""}${ag.retorno ? " · próximo retorno " + diaMes(ag.retorno) : ""}${ag.motivo ? " · motivo: " + escP(ag.motivo) : ""}${ag.acao ? " · pra destravar: " + escP(ag.acao) : ""}">aguarda ${escP(ag.quem || "?")}${ag.retorno ? " · " + (vencido ? "cobrar " : "retorno ") + diaMes(ag.retorno) : ""}</span>`;
     }
     if (t.dependeDe) {
       const d = findTaskById(tasksData, t.dependeDe);
@@ -18042,6 +18067,7 @@ applyRolePermissions();
           ${responsavelIsAuto(t) ? responsavelAutoMarkup(t) : assigneeCellMarkup(t, !canAssignee)}
           ${(canAssignee && !responsavelIsAuto(t)) ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="assignees" title="Arraste para copiar os responsáveis para as linhas abaixo"></span>` : ""}
         </div>
+        <div class="tasksp-col-prio">${prioridadeCellMarkup(t)}</div>
         <div class="tasksp-col-area" data-fill-field="areaLink">
           ${areaCellMarkup(t, depth, inheritedArea)}
           <span class="tasksp-fill-handle" data-id="${t.id}" data-field="areaLink" title="Arraste para copiar a área para as linhas abaixo"></span>
@@ -18514,6 +18540,15 @@ applyRolePermissions();
         if (!t) return;
         if (select.value && !t.assignees.includes(select.value)) t.assignees.push(select.value);
         tasksAssigneePickerId = null;
+        saveTasksData();
+        renderTasksTable();
+      });
+    });
+    body.querySelectorAll(".tasksp-prio-select").forEach(select => {
+      select.addEventListener("change", () => {
+        const t = findTaskById(tasksData, select.dataset.id);
+        if (!t) return;
+        if (select.value) t.prioridade = select.value; else delete t.prioridade;
         saveTasksData();
         renderTasksTable();
       });
@@ -20415,6 +20450,13 @@ applyRolePermissions();
     return saiu;
   }
 
+  // Prioridade (07/10, Karina — campo do doc do chefe): Alta, Média, Baixa ou nada.
+  const PRIORIDADES = [["alta", "Alta"], ["media", "Média"], ["baixa", "Baixa"]];
+  function prioridadeCellMarkup(t) {
+    const v = PRIORIDADES.some(p => p[0] === t.prioridade) ? t.prioridade : "";
+    return `<select class="tasksp-prio-select ${v ? "is-" + v : "is-vazio"}" data-id="${t.id}" aria-label="Prioridade" title="Prioridade">
+      <option value="" ${v ? "" : "selected"}>—</option>${PRIORIDADES.map(p => `<option value="${p[0]}" ${v === p[0] ? "selected" : ""}>${p[1]}</option>`).join("")}</select>`;
+  }
   // ─── Ponte com a nuvem ────────────────────────────────────────────────
   // Publicada no escopo de fora pra collectAllData/applyAllData alcancarem os
   // dados desta IIFE. Enquanto ela nao existir, aquelas funcoes OMITEM as

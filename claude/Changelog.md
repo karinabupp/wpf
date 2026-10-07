@@ -12,6 +12,31 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (10ª) — Tasks (piloto): campos que faltavam do doc do chefe
+
+Pedido da Karina: "faz tudo que falta" (comparação com os campos do doc
+do chefe).
+
+- **Prioridade:** coluna nova depois de Responsável: Alta (vermelho),
+  Média (amarelo), Baixa (azul) ou "—". Vale pra qualquer linha. As
+  larguras das colunas foram reajustadas pra caber sem apertar o nome.
+- **Entrega (detalhes, clique no nome):** além do contexto, agora tem
+  **resultado esperado**, **escopo** e **critério de conclusão**
+  (opcionais; o critério obrigatório continua só no Item).
+- **Etapa (detalhes):** **resultado esperado** no topo.
+- **Aguardando:** além de quem destrava / desde / próximo retorno, agora
+  tem **motivo** e **ação pra destravar**. Aparecem no mouse sobre o selo
+  "aguarda".
+- **Onde:** `index.html`, só o bloco do piloto (`prioridadeCellMarkup`,
+  handler `.tasksp-prio-select`, `abrirContextoPainel`, selo do
+  aguardando, cabeçalho, CSS `tasksp-col-prio`/`tasksp-prio-select` e
+  grade das colunas). Campos novos na linha: `prioridade`, `resultado`,
+  `escopo`, `criterio` (Entrega), `aguardando.motivo`, `aguardando.acao`.
+- **Verificação:** 85 + 32 + 33 + 34 testes; cabeçalho e linhas com 12
+  colunas; cabeçalho conferido em print a 1500px.
+
+---
+
 ## 2026-10-07 (9ª) — Tasks (piloto): "+" mais claro e alinhado com a seta
 
 - **O que mudou:** o "+" antes da setinha ficou mais claro (sem negrito,
