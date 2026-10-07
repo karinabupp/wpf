@@ -12,6 +12,37 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (6ª) — Tasks (piloto): Demanda › Entrega › Item › Etapa, colunas novas
+
+Pedido da Karina (ajustes na Tasks piloto).
+
+- **Níveis:** Demanda › Entrega › Item › Etapa. "Objetivo" deixa de ser
+  linha e vira **coluna** (Autoridade, Alcance, Governança — a lista fixa
+  que já existia em `objetivoLink`). Na 1ª abertura, cada objetivo antigo
+  some e o que estava dentro sobe pra raiz com a coluna preenchida pelo
+  nome dele (autoridade/alcance/governança); Meta vira **Demanda** (por
+  dentro `rowType "meta"`). Demanda não exige mais número no nome.
+- **Um card só** com a lista inteira (antes, um card por objetivo).
+- **Colunas:** Nome · Status · **Início / Fim** (as duas na mesma coluna)
+  · **Data entrega** (campo novo `dataEntrega`; sobe pra linha de cima como
+  o Fim; é ela que marca **Deadline/Late** — sem ela vale o Fim) ·
+  Responsável · **Frente** (era Área) · **Objetivo** (herda de cima) ·
+  **Tags**. Arrastar e colar valem pras colunas novas; filtro por Frente e
+  Objetivo.
+- **Sem KPIs:** some o progresso da meta (pontuação/KPI automático).
+- **Tags:** saem as pessoas da **equipe** (já estão em Responsável); ficam
+  **Empresas**, entra **Associações** (🏛, cadastro próprio, com lugares),
+  **Países/Estados** e **Pessoas** (contatos), nessa ordem. **Federações
+  passam de empresa a associação** (no cadastro, nas tags e na
+  reorganização da WPF).
+- **Uma vez só:** marca `niveis = "2026-10-07-niveis"` no cadastro do
+  piloto (por empresa; vale pra WPF e CBTH).
+- **Verificação:** 72 (piloto) + 31 (tags) + 27 (reorganização) + 34
+  (Gestão), todos passando. Tasks real intocada.
+- **Publicação:** commit `264f333`; sha256 `fc677a35…`, igual ao testado.
+
+---
+
 ## 2026-10-07 (5ª) — Guia Gestão: protótipo do modelo do doc do chefe
 
 Pedido da Karina: "cria uma nova guia chamada Gestão e monta um gestor de
