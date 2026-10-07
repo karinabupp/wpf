@@ -6450,6 +6450,134 @@
   .tasksp-tags-criar-botoes button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
   .tasksp-tags-criar-botoes button:first-child { color: #fff; background: var(--accent); border-color: var(--accent); }
 
+
+  /* ═══ GESTÃO (07/10): protótipo do modelo de acompanhamento ═══ */
+  #nav-gestao { display: none; }
+  body.pode-piloto #nav-gestao { display: flex; }
+  #gs-wrap { padding: 20px 24px 60px; max-width: 1500px; }
+  .gs-topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  .gs-titulo { margin: 0; font-size: 22px; }
+  .gs-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .gs-abas { display: flex; gap: 4px; background: #eae8df; padding: 3px; border-radius: 10px; }
+  .gs-aba { border: 0; background: transparent; padding: 7px 14px; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+  .gs-aba.ativa { background: var(--panel); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .gs-cols { display: grid; grid-template-columns: 300px 1fr; gap: 16px; align-items: start; }
+  .gs-lista { display: flex; flex-direction: column; gap: 8px; }
+  .gs-lista-acoes { margin-bottom: 4px; }
+  .gs-card { text-align: left; border: 1px solid var(--border); background: var(--panel); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; font: inherit; color: var(--text); }
+  .gs-card.ativo { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(24,95,165,0.15); }
+  .gs-card b { font-size: 13.5px; }
+  .gs-card small { font-size: 11.5px; color: var(--text-muted); }
+  .gs-prox { color: var(--accent-dark) !important; font-weight: 600; }
+  .gs-detalhe, .gs-sec { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .gs-sec { margin-bottom: 12px; }
+  .gs-sec-t { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .gs-sec-t small { text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .gs-sit { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; align-self: flex-start; }
+  .gs-sit-falta { background: #fde6d2; color: #8a3b0c; }
+  .gs-sit-pronta { background: #e6f1fb; color: #0c447c; }
+  .gs-sit-ok { background: #eaf3de; color: #173404; }
+  .gs-vermelho { color: #a3312a; font-weight: 600; }
+  .gs-btn { border: 1px solid var(--border-strong); background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+  .gs-btn-pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .gs-btn-perigo { color: #a3312a; border-color: #e8c4c0; }
+  .gs-btn-link { border: 0; background: none; color: var(--accent); padding: 4px 0; }
+  .gs-x { border: 0; background: none; color: var(--text-muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; }
+  .gs-x:hover { color: #a3312a; }
+  .gs-link { border: 0; background: none; padding: 0; color: var(--accent-dark); font: inherit; font-weight: 600; cursor: pointer; text-align: left; }
+  .gs-in { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 6px; padding: 5px 7px; font: inherit; font-size: 12.5px; background: #fff; color: var(--text); }
+  .gs-in-curto { width: auto; min-width: 140px; }
+  .gs-in-item { font-weight: 700; max-width: 320px; }
+  .gs-vencido { border-color: #cf2b2b; background: #fcebeb; }
+  .gs-ed-topo { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .gs-campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .gs-campos label, .gs-nb label, .gs-bl-grade label, .gs-modelo > label { display: flex; flex-direction: column; gap: 3px; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+  .gs-larga { grid-column: 1 / -1; }
+  .gs-bloco-ck { background: #f7f6f1; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 12.5px; }
+  .gs-ck { list-style: none; margin: 6px 0 0; padding: 0; columns: 2; column-gap: 20px; }
+  .gs-ck li { padding: 2px 0; break-inside: avoid; }
+  .gs-ck li.ok { color: #1e5b36; }
+  .gs-ck li.falta { color: #8a3b0c; font-weight: 600; }
+  .gs-ck li.opc { color: var(--text-muted); }
+  .gs-nota { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+  .gs-grupo { border-top: 1px solid var(--border); padding: 10px 0 4px; }
+  .gs-grupo-topo { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 13px; }
+  .gs-grupo-topo select { max-width: 180px; }
+  .gs-it-st { font-size: 11px; font-weight: 700; color: var(--text-muted); white-space: nowrap; }
+  .gs-itens-topo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; }
+  .gs-itens-topo small { color: var(--text-muted); }
+  .gs-sep { color: var(--text-muted); }
+  .gs-tab { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .gs-tab th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); padding: 4px 4px; border-bottom: 1px solid var(--border); }
+  .gs-tab td { padding: 3px 4px; vertical-align: top; border-bottom: 1px solid #efeee8; }
+  .gs-et.is-ok .gs-in { color: var(--text-muted); }
+  .gs-tag-prox, .gs-tag-trava { display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; }
+  .gs-tag-prox { background: #e6f1fb; color: #0c447c; }
+  .gs-tag-trava { background: #f1efe8; color: #6b6a63; }
+  .gs-st-0 { background: #f1efe8; } .gs-st-1 { background: #e6f1fb; } .gs-st-2 { background: #efe9fb; color: #4b2c8f; font-weight: 600; } .gs-st-3 { background: #eaf3de; }
+  .gs-bl td { background: #f8f5fe; }
+  .gs-bl-grade { display: grid; grid-template-columns: auto 1.4fr 1fr 0.8fr 1.2fr 0.8fr; gap: 8px; align-items: end; padding: 4px 0; }
+  .gs-bl-tit { font-size: 11px; font-weight: 800; color: #4b2c8f; text-transform: uppercase; align-self: center; }
+  .gs-vazio, .gs-vazio-p { color: var(--text-muted); font-size: 12.5px; padding: 6px 0; }
+  .gs-dia-topo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: var(--text-muted); }
+  .gs-dia-topo label { display: flex; align-items: center; gap: 6px; }
+  .gs-msg { background: #fdf3d6; color: #7a5b06; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; margin-bottom: 10px; }
+  .gs-dia { display: grid; grid-template-columns: 1fr 380px 1fr; gap: 14px; align-items: start; }
+  .gs-pl-et { display: flex; gap: 8px; align-items: flex-start; padding: 5px 0; border-bottom: 1px solid #efeee8; cursor: pointer; font-size: 12.5px; }
+  .gs-pl-et span { display: flex; flex-direction: column; }
+  .gs-pl-et small, .gs-ag-l small, .gs-bl-l small { color: var(--text-muted); font-size: 11.5px; }
+  .gs-nb { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .gs-nb .gs-btn { grid-column: 1 / -1; }
+  .gs-nb-comp { grid-template-columns: 112px 112px 1fr auto; margin-top: 6px; }
+  .gs-nb-comp .gs-btn { grid-column: auto; }
+  .gs-nb-ocorr { grid-template-columns: 2fr 2fr 1.2fr 1fr auto; margin-top: 10px; }
+  .gs-nb-ocorr .gs-btn { grid-column: auto; }
+  .gs-ag-l, .gs-bl-l { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-bottom: 1px solid #efeee8; font-size: 12.5px; position: relative; }
+  .gs-bl-l .gs-x { position: absolute; right: 0; top: 4px; }
+  .gs-ag-l .gs-x { position: absolute; right: 0; top: 4px; }
+  .gs-cap { font-size: 11.5px; color: var(--text-muted); background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
+  .gs-cap.is-estouro { border-color: #e8b04b; background: #fdf3d6; color: #7a5b06; }
+  .gs-tl { position: relative; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .gs-tl-hora { position: absolute; left: 6px; font-size: 10px; color: var(--text-muted); transform: translateY(-50%); }
+  .gs-tl-hora::after { content: ""; position: absolute; left: 36px; width: 330px; top: 50%; border-top: 1px dashed #ecebe4; }
+  .gs-tl-exp { position: absolute; left: 44px; right: 6px; background: #fbfaf6; }
+  .gs-tl-caixa { position: absolute; left: 50px; right: 10px; border-radius: 6px; padding: 2px 8px; font-size: 11.5px; overflow: hidden; line-height: 1.35; box-sizing: border-box; }
+  .gs-tl-alm { background: repeating-linear-gradient(45deg, #f1efe8, #f1efe8 6px, #e9e7df 6px, #e9e7df 12px); color: var(--text-muted); }
+  .gs-tl-comp { background: #e2e0d8; color: var(--text); border-left: 3px solid #8f8d84; }
+  .gs-tl-bloco { background: #e6f1fb; color: #0c447c; border-left: 3px solid var(--accent); }
+  .gs-tl-bloco.fs-0 { background: #eaf3de; color: #173404; border-left-color: #1e8a3c; }
+  .gs-tl-bloco.fs-1 { background: #fdf3d6; color: #7a5b06; border-left-color: #c28800; }
+  .gs-tl-bloco.fs-2 { background: #f1efe8; color: #6b6a63; border-left-color: #9a9a92; }
+  .gs-tl-bloco.fs-3 { background: #fcebeb; color: #791f1f; border-left-color: #cf2b2b; }
+  .gs-versoes { margin: 0; padding-left: 18px; font-size: 12px; }
+  .gs-ver { display: flex; gap: 5px; align-items: center; font-size: 11.5px; white-space: nowrap; }
+  .gs-tiles { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 12px; }
+  .gs-tile { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+  .gs-tile b { font-size: 22px; }
+  .gs-tile span { font-size: 11.5px; color: var(--text-muted); }
+  .gs-tile.is-alerta b { color: #a3312a; }
+  .gs-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .gs-lst { margin: 0; padding-left: 18px; font-size: 12.5px; display: flex; flex-direction: column; gap: 5px; }
+  .gs-mini { font-size: 11.5px; }
+  .gs-modelo .gs-sec-t { text-transform: none; letter-spacing: 0; }
+  .gs-rodape { margin-top: 24px; }
+  @media (max-width: 1200px) {
+    .gs-dia { grid-template-columns: 1fr 1fr; }
+    .gs-dia-meio { grid-column: 1 / -1; order: -1; }
+    .gs-tiles { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 760px) {
+    #gs-wrap { padding: 12px 10px 90px; }
+    .gs-cols, .gs-dia, .gs-2col { grid-template-columns: 1fr; }
+    .gs-campos { grid-template-columns: 1fr 1fr; }
+    .gs-ck { columns: 1; }
+    .gs-tab { display: block; overflow-x: auto; }
+    .gs-bl-grade { grid-template-columns: 1fr 1fr; }
+    .gs-tiles { grid-template-columns: repeat(2, 1fr); }
+    .gs-nb-ocorr { grid-template-columns: 1fr; }
+    .gs-tl-hora::after { width: 260px; }
+  }
+
 </style>
 
 </head>
@@ -6500,6 +6628,9 @@
   </button>
   <button class="nav-icon-btn" id="nav-tasksp" data-tooltip="Tasks (piloto)" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5"/><path d="M10.5 3v5.6L5 18.2A1.9 1.9 0 0 0 6.6 21h10.8a1.9 1.9 0 0 0 1.6-2.8L13.5 8.6V3"/><path d="M7.6 14.5h8.8"/></svg>
+  </button>
+  <button class="nav-icon-btn" id="nav-gestao" data-tooltip="Gestão" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2.2 2.2 4.8-4.8"/></svg>
   </button>
   <button class="nav-icon-btn" id="nav-members2" data-tooltip="CRM" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -6915,6 +7046,28 @@
     </div>
   </div>
 </div>
+
+<!-- GESTÃO (07/10, Karina): protótipo do "assistente de organização e
+     acompanhamento da equipe" (doc do chefe, 06/10). Só pro login karina;
+     dados só neste navegador (wpf_gestao_v1). Ver bloco JS "GESTÃO". -->
+<div id="gestao-view" class="content-view hidden">
+  <div id="gs-wrap">
+    <div class="gs-topo">
+      <div>
+        <h1 class="gs-titulo">Gestão</h1>
+        <div class="gs-sub">Protótipo do modelo de acompanhamento da equipe · dados só neste navegador, nada vai pra Tasks, CRM ou Carinha</div>
+      </div>
+      <div class="gs-abas" role="tablist">
+        <button type="button" class="gs-aba ativa" data-aba="entregas">Entregas</button>
+        <button type="button" class="gs-aba" data-aba="dia">Meu dia</button>
+        <button type="button" class="gs-aba" data-aba="painel">Painel do gestor</button>
+        <button type="button" class="gs-aba" data-aba="rotinas">Rotinas</button>
+      </div>
+    </div>
+    <div id="gs-conteudo"></div>
+  </div>
+</div>
+
 
 
 
@@ -8606,6 +8759,7 @@ function formatEntryDate(dateStr) {
 const NAV_VIEWS = {
   "nav-tasks2": "tasks2-view",
   "nav-tasksp": "tasksp-view",
+  "nav-gestao": "gestao-view",
   "nav-members2": "members2-view",
   "nav-marketing": "marketing-view",
   "nav-forms": "forms-view",
@@ -20216,6 +20370,546 @@ applyRolePermissions();
   // do "+ Novo". A semeadura automatica (ensureSeeded) continua valendo
   // quando a tabela esta vazia.
 })();
+// ══════════════════════════════════════════════════════════════════════════
+// GESTÃO (07/10, Karina): protótipo do "assistente de organização e
+// acompanhamento da equipe" (doc do chefe, 06/10), do jeito que o doc
+// descreve: Entrega principal › Item acompanhado › Etapa, Bloqueio, Plano
+// diário (versão original + ajustes), Bloco, Resultado (relato × evidência),
+// Modelo de rotina e Visão do gestor. A parte de IA/WhatsApp/Calendar ainda
+// não existe: aqui a pessoa faz na tela o que o assistente vai conduzir.
+// Isolado: dados só neste navegador (wpf_gestao_v1), sem nuvem; só o login
+// karina vê (PILOTO_LOGINS). Nada daqui lê ou grava Tasks, CRM ou Carinha.
+// ══════════════════════════════════════════════════════════════════════════
+(() => {
+  const KEY = "wpf_gestao_v1";
+  const ETAPA_STATUS = ["A fazer", "Em andamento", "Aguardando", "Concluída"];
+  const PRIORIDADES = ["Alta", "Média", "Baixa"];
+  const SITUACOES_FECH = ["Concluído", "Parcial", "Não iniciado", "Bloqueado"];
+  const EXP_INI = 9 * 60, EXP_FIM = 19 * 60, ALM_INI = 12 * 60, ALM_FIM = 13 * 60, MARGEM = 0.2;
+  const pad = n => String(n).padStart(2, "0");
+  const hoje = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const addDias = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const novoId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  const dm = iso => (iso ? iso.slice(8, 10) + "/" + iso.slice(5, 7) : "");
+  const min = hhmm => { const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || ""); return m ? +m[1] * 60 + +m[2] : NaN; };
+  const hm = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+  const linkOk = u => /^https?:\/\/\S+$/i.test(String(u || "").trim());
+  const agoraTs = () => new Date().toISOString();
+  const horaDe = ts => { const d = new Date(ts); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
+  function pessoas() {
+    const nomes = (typeof usersList !== "undefined" ? usersList : []).map(u => u.username).filter(Boolean);
+    return nomes.length ? nomes : ["Karina Bupp", "Isabela Castro", "Leonardo Cavarge", "Roberto Lifschitz"];
+  }
+  function eu() { return (typeof currentUser !== "undefined" && currentUser && currentUser.username) || pessoas()[0]; }
+
+  // ── Exemplo do próprio doc: "contratar influenciadores para um evento" ──
+  function exemplo() {
+    const h = hoje(), K = "Karina Bupp", I = "Isabela Castro";
+    const et = (acao, resultado, responsavel, status, itemId, extra) => Object.assign({ id: novoId("et"), acao, resultado, responsavel, status, itemId: itemId || null, dependeDe: "", prazo: "" }, extra || {});
+    const itA = { id: novoId("it"), nome: "Contratação do influenciador A", responsavel: I };
+    const itB = { id: novoId("it"), nome: "Contratação do influenciador B", responsavel: K };
+    const itC = { id: novoId("it"), nome: "Contratação do influenciador C", responsavel: K };
+    const passos = [["Fazer contato", "Contato realizado e retorno pendente registrado"], ["Negociar condições", "Proposta com condições definidas"],
+      ["Obter aceite", "Aceite registrado"], ["Formalizar contrato", "Contrato assinado"], ["Providenciar pagamento", "Pagamento realizado ou obrigação futura registrada"]];
+    const cadeia = (item, status, extras) => {
+      let ant = "";
+      return passos.map(([a, r], i) => { const x = et(a, r, item.responsavel, status[i], item.id, Object.assign({ dependeDe: ant }, (extras || {})[i] || {})); ant = x.id; return x; });
+    };
+    const geral = et("Selecionar os influenciadores", "Lista confirmada por quem decide", K, "Concluída");
+    const eA = cadeia(itA, ["Concluída", "Aguardando", "A fazer", "A fazer", "A fazer"], { 1: { prazo: addDias(h, 3) } });
+    const eB = cadeia(itB, ["Concluída", "Concluída", "Concluída", "Em andamento", "A fazer"], { 3: { prazo: addDias(h, 2) } });
+    const eC = cadeia(itC, ["Concluída", "Concluída", "Concluída", "Concluída", "Aguardando"]);
+    eA.forEach(x => { x.dependeDe = x.dependeDe || geral.id; });
+    return {
+      versao: 1,
+      entregas: [
+        { id: novoId("en"), descricao: "Contratações de influenciadores para o Ladies Weekend 2026",
+          escopo: "3 influenciadores; aprovação interna da lista; entregas de conteúdo durante o evento",
+          responsavel: K, prioridade: "Alta", prazo: addDias(h, 20),
+          criterio: "3 contratos assinados e pagamentos feitos ou programados conforme cada acordo",
+          itens: [itA, itB, itC], etapas: [geral].concat(eA, eB, eC),
+          bloqueios: [
+            { id: novoId("bl"), etapaId: eA[1].id, motivo: "Aguardando resposta à proposta", quem: "Influenciador A", inicio: addDias(h, -2), acao: "Cobrar pelo WhatsApp", retorno: addDias(h, 1), resolvido: false },
+            { id: novoId("bl"), etapaId: eC[4].id, motivo: "Liberação financeira", quem: "Financeiro WPF", inicio: addDias(h, -1), acao: "Pedir aprovação ao Roberto", retorno: h, resolvido: false }
+          ] },
+        { id: novoId("en"), descricao: "Organizar a mídia do evento", escopo: "", responsavel: "Leonardo Cavarge", prioridade: "Média", prazo: "",
+          criterio: "", itens: [], etapas: [], bloqueios: [] }
+      ],
+      agenda: [
+        { id: novoId("ag"), pessoa: K, data: h, inicio: "10:00", fim: "11:00", titulo: "Reunião semanal" },
+        { id: novoId("ag"), pessoa: K, data: h, inicio: "15:00", fim: "15:30", titulo: "Call com patrocinador" }
+      ],
+      planos: [],
+      modelos: [{ id: novoId("md"), nome: "Contratar influenciador", criterio: "Contrato assinado e pagamento feito ou programado",
+        etapas: passos.map(([acao, resultado]) => ({ acao, resultado })) }]
+    };
+  }
+  function carregar() {
+    try { const g = JSON.parse(localStorage.getItem(KEY) || "null"); if (g && Array.isArray(g.entregas)) return g; } catch (e) {}
+    return exemplo();
+  }
+  let S = carregar();
+  function salvar() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  let aba = "entregas", selEntrega = S.entregas[0] ? S.entregas[0].id : null;
+  let diaPessoa = null, diaData = hoje(), msgDia = "", selBloco = new Set(), confirmaApagar = null;
+
+  // ── Regras da entrega ──
+  const entrega = id => S.entregas.find(e => e.id === id);
+  const etapaDe = (e, id) => e.etapas.find(x => x.id === id);
+  const depOk = (e, x) => !x.dependeDe || (etapaDe(e, x.dependeDe) || {}).status === "Concluída";
+  function checklist(e) {
+    const ets = e.etapas;
+    return [
+      ["Qual resultado deve existir ao final?", !!String(e.descricao || "").trim()],
+      ["Qual é o escopo e quais itens têm acompanhamento separado?", !!String(e.escopo || "").trim()],
+      ["Quem responde pela entrega e quem executa cada etapa?", !!e.responsavel && ets.length > 0 && ets.every(x => x.responsavel)],
+      ["Qual é o prazo? (quando aplicável)", !!e.prazo, true],
+      ["O que significa concluído?", !!String(e.criterio || "").trim()],
+      ["Quais etapas tornam o avanço e os bloqueios visíveis?", ets.length > 0 && ets.every(x => String(x.acao || "").trim() && String(x.resultado || "").trim())],
+      ["Quais dependências existem e qual é a próxima ação?", ets.length > 0 && (!!proximaAcao(e) || ets.every(x => x.status === "Concluída" || x.status === "Aguardando"))]
+    ];
+  }
+  function situacao(e) {
+    if (e.etapas.length && e.etapas.every(x => x.status === "Concluída")) return "Concluída";
+    return checklist(e).every(([, ok, opcional]) => ok || opcional) ? "Pronta para planejar" : "Precisa de detalhamento";
+  }
+  function proximaAcao(e) { return e.etapas.find(x => x.status !== "Concluída" && x.status !== "Aguardando" && depOk(e, x)) || null; }
+  const bloqueioAberto = (e, etId) => e.bloqueios.find(b => b.etapaId === etId && !b.resolvido);
+  function statusItem(e, it) {
+    const ets = e.etapas.filter(x => x.itemId === it.id);
+    if (!ets.length) return "Sem etapas";
+    if (ets.every(x => x.status === "Concluída")) return "Concluído";
+    if (ets.some(x => x.status === "Aguardando")) return "Aguardando";
+    if (ets.some(x => x.status !== "A fazer")) return "Em andamento";
+    return "Não iniciado";
+  }
+  function mudarStatusEtapa(e, x, novo) {
+    x.status = novo;
+    const aberto = bloqueioAberto(e, x.id);
+    if (novo === "Aguardando" && !aberto) e.bloqueios.push({ id: novoId("bl"), etapaId: x.id, motivo: "", quem: "", inicio: hoje(), acao: "", retorno: "", resolvido: false });
+    if (novo !== "Aguardando" && aberto) { aberto.resolvido = true; aberto.fim = hoje(); }
+  }
+  const classeSit = s => s === "Concluída" ? "ok" : s === "Pronta para planejar" ? "pronta" : "falta";
+
+  // ── Plano do dia ──
+  function plano(pessoa, data, criar) {
+    let p = S.planos.find(x => x.pessoa === pessoa && x.data === data);
+    if (!p && criar) { p = { id: novoId("pl"), pessoa, data, confirmado: "", versoes: [{ ts: agoraTs(), motivo: "", blocos: [] }], fechamento: {}, fechadoEm: "" }; S.planos.push(p); }
+    return p;
+  }
+  const blocosAtuais = p => (p ? p.versoes[p.versoes.length - 1].blocos : []);
+  function novaVersao(p, motivo) {
+    if (!p.confirmado) return blocosAtuais(p);
+    const v = { ts: agoraTs(), motivo, blocos: JSON.parse(JSON.stringify(blocosAtuais(p))) };
+    p.versoes.push(v);
+    return v.blocos;
+  }
+  function etapasDaPessoa(pessoa) {
+    const out = [];
+    S.entregas.forEach(e => e.etapas.forEach(x => { if (x.responsavel === pessoa) out.push({ e, x }); }));
+    return out;
+  }
+  const rotuloEtapa = (e, x) => {
+    const it = x.itemId ? e.itens.find(i => i.id === x.itemId) : null;
+    return `${x.acao}${it ? " · " + it.nome.replace(/^Contratação do /, "") : ""}`;
+  };
+  const acharEtapa = id => { for (const e of S.entregas) { const x = etapaDe(e, id); if (x) return { e, x }; } return null; };
+  function ocupados(pessoa, data, p, ignorarBloco) {
+    const lst = [{ ini: ALM_INI, fim: ALM_FIM, nome: "Almoço" }];
+    S.agenda.filter(a => a.pessoa === pessoa && a.data === data).forEach(a => lst.push({ ini: min(a.inicio), fim: min(a.fim), nome: a.titulo }));
+    blocosAtuais(p).forEach(b => { if (b.id !== ignorarBloco) lst.push({ ini: min(b.inicio), fim: min(b.fim), nome: "bloco " + b.inicio }); });
+    return lst;
+  }
+  function capacidade(pessoa, data, p) {
+    const total = EXP_FIM - EXP_INI - (ALM_FIM - ALM_INI);
+    const dentro = (a, b) => Math.max(0, Math.min(b, EXP_FIM) - Math.max(a, EXP_INI));
+    const comp = S.agenda.filter(a => a.pessoa === pessoa && a.data === data).reduce((s, a) => s + dentro(min(a.inicio), min(a.fim)), 0);
+    const blocos = blocosAtuais(p).reduce((s, b) => s + (min(b.fim) - min(b.inicio)), 0);
+    const margem = Math.round(total * MARGEM);
+    return { total, comp, blocos, margem, livre: total - comp - blocos, paraBlocos: total - comp - margem };
+  }
+
+  // ══ RENDER ══
+  function render() {
+    const alvo = document.getElementById("gs-conteudo");
+    if (!alvo) return;
+    document.querySelectorAll("#gestao-view .gs-aba").forEach(b => b.classList.toggle("ativa", b.dataset.aba === aba));
+    if (!diaPessoa) diaPessoa = eu();
+    alvo.innerHTML = aba === "entregas" ? htmlEntregas() : aba === "dia" ? htmlDia() : aba === "painel" ? htmlPainel() : htmlRotinas();
+  }
+  const opcoes = (lista, atual, vazio) => (vazio !== undefined ? `<option value="">${esc(vazio)}</option>` : "") +
+    lista.map(v => `<option value="${esc(v)}" ${v === atual ? "selected" : ""}>${esc(v)}</option>`).join("");
+
+  function htmlEntregas() {
+    const e = entrega(selEntrega) || S.entregas[0];
+    if (e) selEntrega = e.id;
+    const cards = S.entregas.map(x => {
+      const s = situacao(x), p = proximaAcao(x), nb = x.bloqueios.filter(b => !b.resolvido).length;
+      return `<button type="button" class="gs-card ${x.id === selEntrega ? "ativo" : ""}" data-acao="sel-entrega" data-e="${x.id}">
+        <span class="gs-sit gs-sit-${classeSit(s)}">${esc(s)}</span>
+        <b>${esc(x.descricao || "(sem descrição)")}</b>
+        <small>${esc(x.responsavel || "sem responsável")}${x.prazo ? " · até " + dm(x.prazo) : ""}${nb ? ` · <span class="gs-vermelho">${nb} bloqueio${nb > 1 ? "s" : ""}</span>` : ""}</small>
+        ${p ? `<small class="gs-prox">→ ${esc(rotuloEtapa(x, p))}</small>` : ""}
+      </button>`;
+    }).join("");
+    return `<div class="gs-cols">
+      <div class="gs-lista">
+        <div class="gs-lista-acoes"><button type="button" class="gs-btn gs-btn-pri" data-acao="nova-entrega">+ Nova demanda</button></div>
+        ${cards || `<div class="gs-vazio">Nenhuma entrega.</div>`}
+      </div>
+      <div class="gs-detalhe">${e ? htmlEditorEntrega(e) : `<div class="gs-vazio">Crie uma demanda.</div>`}</div>
+    </div>`;
+  }
+
+  function htmlEditorEntrega(e) {
+    const s = situacao(e), pess = pessoas();
+    const ck = checklist(e).map(([q, ok, opcional]) => `<li class="${ok ? "ok" : opcional ? "opc" : "falta"}">${ok ? "✓" : opcional ? "–" : "!"} ${esc(q)}</li>`).join("");
+    const outras = x => e.etapas.filter(y => y.id !== x.id);
+    const linhaEtapa = x => {
+      const prox = proximaAcao(e);
+      const bl = bloqueioAberto(e, x.id);
+      const travada = !depOk(e, x) && x.status !== "Concluída";
+      return `<tr class="gs-et ${x.status === "Concluída" ? "is-ok" : ""}">
+        <td><input class="gs-in" data-et="${x.id}" data-campo="acao" value="${esc(x.acao)}" placeholder="Ação">${prox && prox.id === x.id ? `<span class="gs-tag-prox">próxima ação</span>` : ""}${travada ? `<span class="gs-tag-trava" title="Depende de uma etapa que não terminou">esperando dependência</span>` : ""}</td>
+        <td><input class="gs-in" data-et="${x.id}" data-campo="resultado" value="${esc(x.resultado)}" placeholder="Resultado esperado"></td>
+        <td><select class="gs-in" data-et="${x.id}" data-campo="responsavel">${opcoes(pess, x.responsavel, "—")}</select></td>
+        <td><select class="gs-in" data-et="${x.id}" data-campo="dependeDe"><option value="">—</option>${outras(x).map(y => `<option value="${y.id}" ${x.dependeDe === y.id ? "selected" : ""}>${esc(rotuloEtapa(e, y))}</option>`).join("")}</select></td>
+        <td><select class="gs-in gs-st gs-st-${ETAPA_STATUS.indexOf(x.status)}" data-et="${x.id}" data-campo="status">${opcoes(ETAPA_STATUS, x.status)}</select></td>
+        <td><input type="date" class="gs-in" data-et="${x.id}" data-campo="prazo" value="${esc(x.prazo)}"></td>
+        <td><button type="button" class="gs-x" data-acao="del-etapa" data-et="${x.id}" title="Tirar etapa">×</button></td>
+      </tr>${bl ? `<tr class="gs-bl"><td colspan="7"><div class="gs-bl-grade">
+        <span class="gs-bl-tit">Bloqueio</span>
+        <label>Motivo<input class="gs-in" data-bl="${bl.id}" data-campo="motivo" value="${esc(bl.motivo)}" placeholder="O que está parado"></label>
+        <label>Quem precisa responder<input class="gs-in" data-bl="${bl.id}" data-campo="quem" value="${esc(bl.quem)}"></label>
+        <label>Desde<input type="date" class="gs-in" data-bl="${bl.id}" data-campo="inicio" value="${esc(bl.inicio)}"></label>
+        <label>Ação pra destravar<input class="gs-in" data-bl="${bl.id}" data-campo="acao" value="${esc(bl.acao)}"></label>
+        <label>Próximo retorno<input type="date" class="gs-in ${bl.retorno && bl.retorno <= hoje() ? "gs-vencido" : ""}" data-bl="${bl.id}" data-campo="retorno" value="${esc(bl.retorno)}"></label>
+      </div></td></tr>` : ""}`;
+    };
+    const grupo = (titulo, itemId, extraTopo) => {
+      const ets = e.etapas.filter(x => (x.itemId || null) === itemId);
+      return `<div class="gs-grupo">
+        <div class="gs-grupo-topo">${extraTopo || `<b>${esc(titulo)}</b>`}</div>
+        ${ets.length ? `<table class="gs-tab"><thead><tr><th>Ação</th><th>Resultado esperado</th><th>Responsável</th><th>Depende de</th><th>Status</th><th>Prazo</th><th></th></tr></thead><tbody>${ets.map(linhaEtapa).join("")}</tbody></table>` : `<div class="gs-vazio-p">Sem etapas.</div>`}
+        <button type="button" class="gs-btn gs-btn-link" data-acao="nova-etapa" data-it="${itemId || ""}">+ Etapa</button>
+      </div>`;
+    };
+    const itens = e.itens.map(it => grupo(it.nome, it.id, `<input class="gs-in gs-in-item" data-it="${it.id}" data-campo="nome" value="${esc(it.nome)}">
+        <select class="gs-in" data-it="${it.id}" data-campo="responsavel">${opcoes(pess, it.responsavel, "—")}</select>
+        <span class="gs-it-st">${esc(statusItem(e, it))}</span>
+        <button type="button" class="gs-x" data-acao="del-item" data-it="${it.id}" title="Tirar item">×</button>`)).join("");
+    return `<div class="gs-ed">
+      <div class="gs-ed-topo"><span class="gs-sit gs-sit-${classeSit(s)}">${esc(s)}</span>
+        <button type="button" class="gs-btn gs-btn-perigo" data-acao="del-entrega">${confirmaApagar === e.id ? "Apagar mesmo?" : "Apagar"}</button></div>
+      <div class="gs-campos">
+        <label class="gs-larga">Entrega principal (resultado que deve existir ao final)<input class="gs-in" data-campo="descricao" value="${esc(e.descricao)}"></label>
+        <label class="gs-larga">Escopo<textarea class="gs-in" data-campo="escopo" rows="2">${esc(e.escopo)}</textarea></label>
+        <label>Responsável<select class="gs-in" data-campo="responsavel">${opcoes(pess, e.responsavel, "—")}</select></label>
+        <label>Prioridade<select class="gs-in" data-campo="prioridade">${opcoes(PRIORIDADES, e.prioridade)}</select></label>
+        <label>Prazo<input type="date" class="gs-in" data-campo="prazo" value="${esc(e.prazo)}"></label>
+        <label class="gs-larga">Critério de conclusão (o que significa concluído)<textarea class="gs-in" data-campo="criterio" rows="2">${esc(e.criterio)}</textarea></label>
+      </div>
+      <div class="gs-bloco-ck"><b>O assistente verifica</b><ul class="gs-ck">${ck}</ul>
+        ${s === "Precisa de detalhamento" ? `<div class="gs-nota">Enquanto faltar algo, a entrega fica <b>precisa de detalhamento</b> e não entra no plano do dia. O assistente pergunta só o que falta.</div>` : ""}</div>
+      ${grupo("Etapas gerais da entrega", null)}
+      <div class="gs-itens-topo"><b>Itens acompanhados</b> <small>cada um com avanço e bloqueios próprios</small>
+        <button type="button" class="gs-btn gs-btn-link" data-acao="novo-item">+ Item</button>
+        ${S.modelos.length ? `<span class="gs-sep">·</span> Aplicar rotina: <select class="gs-in gs-in-curto" data-acao-sel="aplicar-modelo"><option value="">—</option>${S.modelos.map(m => `<option value="${m.id}">${esc(m.nome)}</option>`).join("")}</select>` : ""}
+      </div>
+      ${itens}
+    </div>`;
+  }
+
+  function htmlDia() {
+    const pess = pessoas();
+    const p = plano(diaPessoa, diaData, false);
+    const blocos = blocosAtuais(p).slice().sort((a, b) => min(a.inicio) - min(b.inicio));
+    const ets = etapasDaPessoa(diaPessoa);
+    const naoNoPlano = x => !blocos.some(b => b.etapaIds.includes(x.id));
+    const executaveis = ets.filter(({ e, x }) => situacao(e) === "Pronta para planejar" && (x.status === "A fazer" || x.status === "Em andamento") && depOk(e, x));
+    const esperando = ets.filter(({ x }) => x.status === "Aguardando");
+    const semDetalhe = S.entregas.filter(e => situacao(e) === "Precisa de detalhamento" && (e.responsavel === diaPessoa || e.etapas.some(x => x.responsavel === diaPessoa)));
+    const comp = S.agenda.filter(a => a.pessoa === diaPessoa && a.data === diaData).sort((a, b) => min(a.inicio) - min(b.inicio));
+    const cap = capacidade(diaPessoa, diaData, p);
+    const confirmado = !!(p && p.confirmado), fechado = !!(p && p.fechadoEm);
+    const H = 600, y = m => 12 + ((m - 8 * 60) / (12 * 60)) * H;
+    const caixa = (ini, fim, cls, texto, extra) => `<div class="gs-tl-caixa ${cls}" style="top:${y(ini)}px;height:${Math.max(18, y(fim) - y(ini))}px" ${extra || ""}>${texto}</div>`;
+    const horas = [];
+    for (let h = 8; h <= 20; h++) horas.push(`<div class="gs-tl-hora" style="top:${y(h * 60)}px">${pad(h)}:00</div>`);
+    const tl = `<div class="gs-tl" style="height:${H + 24}px">${horas.join("")}
+      <div class="gs-tl-exp" style="top:${y(EXP_INI)}px;height:${y(EXP_FIM) - y(EXP_INI)}px"></div>
+      ${caixa(ALM_INI, ALM_FIM, "gs-tl-alm", "Almoço")}
+      ${comp.map(a => caixa(min(a.inicio), min(a.fim), "gs-tl-comp", `${esc(a.inicio)} ${esc(a.titulo)}`)).join("")}
+      ${blocos.map(b => { const f = p && p.fechamento[b.id]; return caixa(min(b.inicio), min(b.fim), "gs-tl-bloco" + (f && f.situacao ? " fs-" + SITUACOES_FECH.indexOf(f.situacao) : ""), `<b>${esc(b.inicio)}–${esc(b.fim)}</b> ${esc(b.resultado)}`); }).join("")}
+    </div>`;
+    const capTxt = `<div class="gs-cap ${cap.blocos > cap.paraBlocos ? "is-estouro" : ""}">
+      Expediente ${hm(EXP_INI)}–${hm(EXP_FIM)} (almoço ${hm(ALM_INI)}–${hm(ALM_FIM)}): <b>${cap.total} min</b> · compromissos ${cap.comp} · blocos ${cap.blocos} · margem pra imprevisto ${cap.margem} (20%) · <b>livre pra planejar ${Math.max(0, cap.paraBlocos - cap.blocos)} min</b>
+      ${cap.blocos > cap.paraBlocos ? `<div>Os blocos passam da margem de 20%: escolha o que adiar ou escalone pro gestor.</div>` : ""}</div>`;
+    const linhaEt = ({ e, x }) => `<label class="gs-pl-et"><input type="checkbox" data-acao-chk="bloco-etapa" value="${x.id}" ${selBloco.has(x.id) ? "checked" : ""} ${fechado ? "disabled" : ""}>
+      <span><b>${esc(rotuloEtapa(e, x))}</b><small>${esc(e.descricao)} · resultado: ${esc(x.resultado || "—")}${naoNoPlano(x) ? "" : " · <i>já no plano</i>"}</small></span></label>`;
+    const versoes = p ? p.versoes.map((v, i) => `<li>v${i + 1}${i === 0 ? " (original)" : ""} · ${p.confirmado || i ? horaDe(v.ts) : "rascunho"} · ${v.blocos.length} bloco${v.blocos.length === 1 ? "" : "s"}${v.motivo ? " · motivo: " + esc(v.motivo) : ""}</li>`).join("") : "";
+    const fech = p && confirmado ? `<div class="gs-sec"><div class="gs-sec-t">Fechamento do dia ${fechado ? `<span class="gs-sit gs-sit-ok">fechado ${horaDe(p.fechadoEm)}</span>` : ""}</div>
+      <table class="gs-tab gs-tab-fech"><thead><tr><th>Bloco</th><th>Situação</th><th>Resultado informado</th><th>Referência</th><th>Verificação</th><th>Pendência / próximo passo</th></tr></thead><tbody>
+      ${blocos.map(b => { const f = p.fechamento[b.id] || {}; const pode = linkOk(f.referencia);
+        return `<tr><td><b>${esc(b.inicio)}–${esc(b.fim)}</b><br><small>${esc(b.resultado)}</small></td>
+          <td><select class="gs-in" data-fb="${b.id}" data-campo="situacao" ${fechado ? "disabled" : ""}>${opcoes(SITUACOES_FECH, f.situacao, "—")}</select></td>
+          <td><input class="gs-in" data-fb="${b.id}" data-campo="resultado" value="${esc(f.resultado)}" ${fechado ? "disabled" : ""}></td>
+          <td><input class="gs-in" data-fb="${b.id}" data-campo="referencia" value="${esc(f.referencia)}" placeholder="https://…" ${fechado ? "disabled" : ""}></td>
+          <td><label class="gs-ver" title="Só vale como verificado com um link de evidência"><input type="checkbox" data-fb="${b.id}" data-campo="verificado" ${f.verificado && pode ? "checked" : ""} ${fechado ? "disabled" : ""}> ${f.verificado && pode ? "Verificado por evidência" : "Informado pela pessoa"}</label></td>
+          <td><input class="gs-in" data-fb="${b.id}" data-campo="pendencia" value="${esc(f.pendencia)}" ${fechado ? "disabled" : ""}></td></tr>`; }).join("")}
+      </tbody></table>
+      ${fechado ? `<div class="gs-nota">O que não foi feito não passa sozinho pra amanhã: volta pra lista de etapas e entra no próximo plano depois de revisar prioridade e capacidade.</div>` :
+        `<button type="button" class="gs-btn gs-btn-pri" data-acao="fechar-dia">Fechar o dia</button> <small>Concluído conclui as etapas do bloco; Bloqueado as coloca em Aguardando.</small>`}
+    </div>` : "";
+    return `<div class="gs-dia-topo">
+        <label>Pessoa <select class="gs-in gs-in-curto" data-dia="pessoa">${opcoes(pess, diaPessoa)}</select></label>
+        <label>Dia <input type="date" class="gs-in gs-in-curto" data-dia="data" value="${esc(diaData)}"></label>
+        <span class="gs-sit ${confirmado ? "gs-sit-ok" : "gs-sit-falta"}">${fechado ? "Dia fechado" : confirmado ? "Plano confirmado " + horaDe(p.confirmado) : "Plano em rascunho"}</span>
+      </div>
+      ${msgDia ? `<div class="gs-msg">${msgDia}</div>` : ""}
+      <div class="gs-dia">
+        <div class="gs-dia-esq">
+          <div class="gs-sec"><div class="gs-sec-t">1. Etapas executáveis (de entregas prontas)</div>
+            ${executaveis.length ? executaveis.map(linhaEt).join("") : `<div class="gs-vazio-p">Nada executável pra ${esc(diaPessoa)}.</div>`}</div>
+          <div class="gs-sec"><div class="gs-sec-t">2. Novo bloco</div>
+            ${fechado ? `<div class="gs-vazio-p">Dia fechado.</div>` : `<div class="gs-nb">
+              <label>Início<input type="time" class="gs-in" id="gs-nb-ini" value="09:00" step="900"></label>
+              <label>Fim<input type="time" class="gs-in" id="gs-nb-fim" value="10:00" step="900"></label>
+              <label class="gs-larga">Resultado esperado do bloco<input class="gs-in" id="gs-nb-res" placeholder="Ex.: propostas enviadas aos influenciadores A e B"></label>
+              ${confirmado ? `<label class="gs-larga">Motivo do ajuste (o plano já foi confirmado)<input class="gs-in" id="gs-nb-motivo" placeholder="Ex.: a reunião das 15h mudou"></label>` : ""}
+              <button type="button" class="gs-btn gs-btn-pri" data-acao="add-bloco">Adicionar bloco com as etapas marcadas</button></div>`}</div>
+          <div class="gs-sec"><div class="gs-sec-t">Aguardando terceiros <small>(não conta como horas de execução)</small></div>
+            ${esperando.length ? esperando.map(({ e, x }) => { const b = bloqueioAberto(e, x.id) || {}; return `<div class="gs-ag-l"><b>${esc(rotuloEtapa(e, x))}</b><small>${esc(b.quem || "?")}${b.inicio ? " desde " + dm(b.inicio) : ""}${b.retorno ? " · retorno " + dm(b.retorno) : ""}</small></div>`; }).join("") : `<div class="gs-vazio-p">Nada esperando.</div>`}</div>
+          ${semDetalhe.length ? `<div class="gs-sec"><div class="gs-sec-t">Precisa de detalhamento <small>(fora do plano até ficar clara)</small></div>${semDetalhe.map(e => `<button type="button" class="gs-ag-l gs-link" data-acao="ir-entrega" data-e="${e.id}"><b>${esc(e.descricao)}</b></button>`).join("")}</div>` : ""}
+          <div class="gs-sec"><div class="gs-sec-t">Compromissos <small>(no piloto vem do Google Calendar)</small></div>
+            ${comp.map(a => `<div class="gs-ag-l"><b>${esc(a.inicio)}–${esc(a.fim)}</b> ${esc(a.titulo)} <button type="button" class="gs-x" data-acao="del-comp" data-ag="${a.id}">×</button></div>`).join("")}
+            <div class="gs-nb gs-nb-comp"><input type="time" class="gs-in" id="gs-cp-ini" value="14:00" step="900"><input type="time" class="gs-in" id="gs-cp-fim" value="15:00" step="900"><input class="gs-in" id="gs-cp-tit" placeholder="Compromisso"><button type="button" class="gs-btn" data-acao="add-comp">+</button></div></div>
+        </div>
+        <div class="gs-dia-meio">
+          ${capTxt}
+          ${tl}
+        </div>
+        <div class="gs-dia-dir">
+          <div class="gs-sec"><div class="gs-sec-t">3. Blocos do plano</div>
+            ${blocos.length ? blocos.map(b => `<div class="gs-bl-l"><div><b>${esc(b.inicio)}–${esc(b.fim)}</b> ${esc(b.resultado)}</div>
+              <small>${b.etapaIds.map(id => { const a = acharEtapa(id); return a ? esc(rotuloEtapa(a.e, a.x)) : ""; }).filter(Boolean).join(" · ")}</small>
+              ${fechado ? "" : `<button type="button" class="gs-x" data-acao="del-bloco" data-b="${b.id}" title="Tirar bloco">×</button>`}</div>`).join("") : `<div class="gs-vazio-p">Sem blocos ainda.</div>`}
+            ${p && !confirmado && blocos.length ? `<button type="button" class="gs-btn gs-btn-pri" data-acao="confirmar-plano">Confirmar plano</button><div class="gs-nota">Confirmado, esta vira a versão original. Ajustes depois pedem motivo e viram nova versão.</div>` : ""}
+          </div>
+          ${versoes ? `<div class="gs-sec"><div class="gs-sec-t">Versões do plano</div><ul class="gs-versoes">${versoes}</ul></div>` : ""}
+        </div>
+      </div>
+      ${fech}`;
+  }
+
+  function htmlPainel() {
+    const ents = S.entregas;
+    const prontas = ents.filter(e => situacao(e) !== "Precisa de detalhamento").length;
+    const blAbertos = [];
+    ents.forEach(e => e.bloqueios.filter(b => !b.resolvido).forEach(b => blAbertos.push({ e, b, x: etapaDe(e, b.etapaId) })));
+    const semRetorno = blAbertos.filter(({ b }) => !b.retorno || !b.quem).length;
+    const vencidos = blAbertos.filter(({ b }) => b.retorno && b.retorno <= hoje());
+    const pl = S.planos.filter(p => p.data === hoje());
+    let tb = 0, tc = 0; pl.forEach(p => { const bs = blocosAtuais(p); tb += bs.length; tc += bs.filter(b => (p.fechamento[b.id] || {}).situacao === "Concluído").length; });
+    const comProx = ents.filter(e => situacao(e) !== "Concluída").filter(e => proximaAcao(e)).length;
+    const ativas = ents.filter(e => situacao(e) !== "Concluída").length;
+    const tile = (n, rot, cls) => `<div class="gs-tile ${cls || ""}"><b>${n}</b><span>${rot}</span></div>`;
+    const decisoes = [];
+    vencidos.forEach(({ e, b, x }) => decisoes.push(`Bloqueio vencido: <b>${esc(x ? rotuloEtapa(e, x) : "")}</b> — ${esc(b.quem || "?")} devia responder até ${dm(b.retorno)}${b.acao ? " (" + esc(b.acao) + ")" : ""}`));
+    ents.filter(e => situacao(e) === "Precisa de detalhamento").forEach(e => decisoes.push(`Detalhar: <b>${esc(e.descricao || "(sem descrição)")}</b> — falta ${checklist(e).filter(([, ok, op]) => !ok && !op).length} ponto(s)`));
+    blAbertos.filter(({ b }) => !b.quem || !b.retorno).forEach(({ e, x }) => decisoes.push(`Bloqueio sem responsável ou sem retorno: <b>${esc(x ? rotuloEtapa(e, x) : "")}</b>`));
+    const resumo = pessoas().map(nome => {
+      const p = plano(nome, hoje(), false);
+      if (!p) return `<li><b>${esc(nome)}</b>: sem plano hoje</li>`;
+      const bs = blocosAtuais(p), f = id => (p.fechamento[id] || {}).situacao;
+      const cont = s => bs.filter(b => f(b.id) === s).length;
+      return `<li><b>${esc(nome)}</b>: ${bs.length} bloco(s) · ${p.confirmado ? "confirmado" : "rascunho"}${p.versoes.length > 1 ? ` · ${p.versoes.length - 1} ajuste(s): ${p.versoes.slice(1).map(v => esc(v.motivo)).join("; ")}` : ""}${p.fechadoEm ? ` · fechado: ${cont("Concluído")} concluído(s), ${cont("Parcial")} parcial(is), ${cont("Bloqueado")} bloqueado(s), ${cont("Não iniciado")} não iniciado(s)` : " · ainda não fechou"}</li>`;
+    }).join("");
+    return `<div class="gs-tiles">
+        ${tile(ativas, "entregas em aberto")}
+        ${tile(ents.length ? Math.round(prontas / ents.length * 100) + "%" : "–", "com entrega e etapas claras")}
+        ${tile(ativas ? Math.round(comProx / ativas * 100) + "%" : "–", "com próxima ação")}
+        ${tile(blAbertos.length, "bloqueios abertos", blAbertos.length ? "is-alerta" : "")}
+        ${tile(semRetorno, "bloqueios sem responsável/retorno", semRetorno ? "is-alerta" : "")}
+        ${tile(tb ? `${tc}/${tb}` : "–", "blocos de hoje concluídos")}
+      </div>
+      <div class="gs-sec"><div class="gs-sec-t">Entregas</div>
+        <table class="gs-tab"><thead><tr><th>Entrega</th><th>Responsável</th><th>Situação</th><th>Etapa atual / próxima ação</th><th>Prazo</th><th>Bloqueios</th></tr></thead><tbody>
+        ${ents.map(e => { const s = situacao(e), p = proximaAcao(e), bs = e.bloqueios.filter(b => !b.resolvido);
+          return `<tr><td><button type="button" class="gs-link" data-acao="ir-entrega" data-e="${e.id}">${esc(e.descricao || "(sem descrição)")}</button></td><td>${esc(e.responsavel || "—")}</td>
+            <td><span class="gs-sit gs-sit-${classeSit(s)}">${esc(s)}</span></td><td>${p ? esc(rotuloEtapa(e, p)) + " · " + esc(p.responsavel || "") : "—"}</td>
+            <td>${e.prazo ? dm(e.prazo) : "—"}</td><td>${bs.map(b => { const x = etapaDe(e, b.etapaId); return `<div class="gs-mini ${b.retorno && b.retorno <= hoje() ? "gs-vermelho" : ""}">${esc(x ? rotuloEtapa(e, x) : "")} · ${esc(b.quem || "?")}${b.retorno ? " · " + dm(b.retorno) : ""}</div>`; }).join("") || "—"}</td></tr>`; }).join("")}
+        </tbody></table></div>
+      <div class="gs-2col">
+        <div class="gs-sec"><div class="gs-sec-t">Decisões necessárias</div>${decisoes.length ? `<ul class="gs-lst">${decisoes.map(d => `<li>${d}</li>`).join("")}</ul>` : `<div class="gs-vazio-p">Nada pra decidir.</div>`}</div>
+        <div class="gs-sec"><div class="gs-sec-t">Resumo de hoje (planejado × realizado)</div><ul class="gs-lst">${resumo}</ul>
+          <div class="gs-nota">Mudanças justificadas ficam registradas nas versões do plano. O desempenho não é medido por horas preenchidas nem por quantidade de etapas.</div></div>
+      </div>`;
+  }
+
+  function htmlRotinas() {
+    return `<div class="gs-nota">Modelos de processos recorrentes: etapas e critério já validados. Ao iniciar uma ocorrência, só se preenche período, responsáveis, prazo e exceções.</div>
+      ${S.modelos.map(m => `<div class="gs-sec gs-modelo">
+        <div class="gs-sec-t"><input class="gs-in gs-in-item" data-md="${m.id}" data-campo="nome" value="${esc(m.nome)}"><button type="button" class="gs-x" data-acao="del-modelo" data-md="${m.id}">×</button></div>
+        <label class="gs-larga">Critério de conclusão<input class="gs-in" data-md="${m.id}" data-campo="criterio" value="${esc(m.criterio)}"></label>
+        <table class="gs-tab"><thead><tr><th>#</th><th>Ação</th><th>Resultado esperado</th><th></th></tr></thead><tbody>
+        ${m.etapas.map((x, i) => `<tr><td>${i + 1}</td><td><input class="gs-in" data-md="${m.id}" data-mi="${i}" data-campo="acao" value="${esc(x.acao)}"></td><td><input class="gs-in" data-md="${m.id}" data-mi="${i}" data-campo="resultado" value="${esc(x.resultado)}"></td><td><button type="button" class="gs-x" data-acao="del-md-etapa" data-md="${m.id}" data-mi="${i}">×</button></td></tr>`).join("")}
+        </tbody></table>
+        <button type="button" class="gs-btn gs-btn-link" data-acao="add-md-etapa" data-md="${m.id}">+ Etapa</button>
+        <div class="gs-nb gs-nb-ocorr">
+          <input class="gs-in" id="gs-oc-desc-${m.id}" placeholder="Entrega (ex.: Influenciadores da CBPE 2027)">
+          <input class="gs-in" id="gs-oc-itens-${m.id}" placeholder="Itens separados por vírgula (opcional)">
+          <select class="gs-in" id="gs-oc-resp-${m.id}">${opcoes(pessoas(), eu())}</select>
+          <input type="date" class="gs-in" id="gs-oc-prazo-${m.id}">
+          <button type="button" class="gs-btn gs-btn-pri" data-acao="iniciar-ocorrencia" data-md="${m.id}">Iniciar ocorrência</button>
+        </div>
+      </div>`).join("")}
+      <button type="button" class="gs-btn" data-acao="novo-modelo">+ Novo modelo de rotina</button>
+      <div class="gs-rodape"><button type="button" class="gs-btn gs-btn-perigo" data-acao="recomecar">${confirmaApagar === "__tudo__" ? "Recomeçar mesmo? (volta ao exemplo)" : "Recomeçar com o exemplo"}</button></div>`;
+  }
+
+  // ══ AÇÕES ══
+  function criarEtapasDoModelo(e, m, itemId, resp) {
+    let ant = "";
+    m.etapas.forEach(x => { const n = { id: novoId("et"), acao: x.acao, resultado: x.resultado, responsavel: resp, status: "A fazer", itemId: itemId || null, dependeDe: ant, prazo: "" }; e.etapas.push(n); ant = n.id; });
+  }
+  function clique(ev) {
+    const b = ev.target.closest("[data-acao]");
+    if (!b || !document.getElementById("gestao-view").contains(b)) return;
+    const a = b.dataset.acao;
+    const e = entrega(selEntrega);
+    if (a !== "del-entrega" && a !== "recomecar") confirmaApagar = null;
+    if (a === "sel-entrega" || a === "ir-entrega") { selEntrega = b.dataset.e; aba = "entregas"; }
+    else if (a === "nova-entrega") { const n = { id: novoId("en"), descricao: "", escopo: "", responsavel: eu(), prioridade: "Média", prazo: "", criterio: "", itens: [], etapas: [], bloqueios: [] }; S.entregas.unshift(n); selEntrega = n.id; }
+    else if (a === "del-entrega" && e) { if (confirmaApagar === e.id) { S.entregas = S.entregas.filter(x => x !== e); selEntrega = S.entregas[0] ? S.entregas[0].id : null; confirmaApagar = null; } else confirmaApagar = e.id; }
+    else if (a === "nova-etapa" && e) e.etapas.push({ id: novoId("et"), acao: "", resultado: "", responsavel: e.responsavel || "", status: "A fazer", itemId: b.dataset.it || null, dependeDe: "", prazo: "" });
+    else if (a === "del-etapa" && e) { const id = b.dataset.et; e.etapas = e.etapas.filter(x => x.id !== id); e.etapas.forEach(x => { if (x.dependeDe === id) x.dependeDe = ""; }); e.bloqueios = e.bloqueios.filter(x => x.etapaId !== id); }
+    else if (a === "novo-item" && e) e.itens.push({ id: novoId("it"), nome: "Novo item", responsavel: e.responsavel || "" });
+    else if (a === "del-item" && e) { const id = b.dataset.it; const ids = e.etapas.filter(x => x.itemId === id).map(x => x.id); e.itens = e.itens.filter(x => x.id !== id); e.etapas = e.etapas.filter(x => x.itemId !== id); e.bloqueios = e.bloqueios.filter(x => !ids.includes(x.etapaId)); }
+    else if (a === "add-comp") {
+      const ini = document.getElementById("gs-cp-ini").value, fim = document.getElementById("gs-cp-fim").value, tit = document.getElementById("gs-cp-tit").value.trim();
+      if (tit && min(fim) > min(ini)) S.agenda.push({ id: novoId("ag"), pessoa: diaPessoa, data: diaData, inicio: ini, fim, titulo: tit }); else msgDia = "Compromisso precisa de título e fim depois do início.";
+    }
+    else if (a === "del-comp") S.agenda = S.agenda.filter(x => x.id !== b.dataset.ag);
+    else if (a === "add-bloco") addBloco();
+    else if (a === "del-bloco") {
+      const p = plano(diaPessoa, diaData, false);
+      if (p) {
+        const motivoEl = document.getElementById("gs-nb-motivo");
+        if (p.confirmado && !(motivoEl && motivoEl.value.trim())) msgDia = "O plano já foi confirmado: escreva o motivo do ajuste antes de tirar um bloco.";
+        else { const bs = novaVersao(p, motivoEl ? motivoEl.value.trim() : ""); const i = bs.findIndex(x => x.id === b.dataset.b); if (i >= 0) bs.splice(i, 1); msgDia = ""; }
+      }
+    }
+    else if (a === "confirmar-plano") { const p = plano(diaPessoa, diaData, false); if (p) { p.confirmado = agoraTs(); p.versoes[0].ts = p.confirmado; msgDia = "Plano confirmado. Esta é a versão original."; } }
+    else if (a === "fechar-dia") fecharDia();
+    else if (a === "add-md-etapa") { const m = S.modelos.find(x => x.id === b.dataset.md); if (m) m.etapas.push({ acao: "", resultado: "" }); }
+    else if (a === "del-md-etapa") { const m = S.modelos.find(x => x.id === b.dataset.md); if (m) m.etapas.splice(+b.dataset.mi, 1); }
+    else if (a === "del-modelo") S.modelos = S.modelos.filter(x => x.id !== b.dataset.md);
+    else if (a === "novo-modelo") S.modelos.push({ id: novoId("md"), nome: "Novo modelo", criterio: "", etapas: [{ acao: "", resultado: "" }] });
+    else if (a === "iniciar-ocorrencia") {
+      const m = S.modelos.find(x => x.id === b.dataset.md); if (!m) return;
+      const v = s => (document.getElementById(`gs-oc-${s}-${m.id}`) || {}).value || "";
+      const resp = v("resp"), n = { id: novoId("en"), descricao: v("desc").trim() || m.nome, escopo: "", responsavel: resp, prioridade: "Média", prazo: v("prazo"), criterio: m.criterio, itens: [], etapas: [], bloqueios: [] };
+      const itens = v("itens").split(",").map(x => x.trim()).filter(Boolean);
+      if (itens.length) { n.escopo = itens.length + " itens: " + itens.join(", "); itens.forEach(nome => { const it = { id: novoId("it"), nome, responsavel: resp }; n.itens.push(it); criarEtapasDoModelo(n, m, it.id, resp); }); }
+      else criarEtapasDoModelo(n, m, null, resp);
+      S.entregas.unshift(n); selEntrega = n.id; aba = "entregas";
+    }
+    else if (a === "recomecar") { if (confirmaApagar === "__tudo__") { S = exemplo(); selEntrega = S.entregas[0].id; confirmaApagar = null; } else confirmaApagar = "__tudo__"; }
+    renderPendente = false;
+    salvar(); render();
+  }
+  function addBloco() {
+    const ini = document.getElementById("gs-nb-ini").value, fim = document.getElementById("gs-nb-fim").value;
+    const res = document.getElementById("gs-nb-res").value.trim();
+    const motivoEl = document.getElementById("gs-nb-motivo");
+    const a = min(ini), z = min(fim);
+    msgDia = "";
+    if (!selBloco.size) { msgDia = "Marque ao menos uma etapa executável."; return; }
+    if (!res) { msgDia = "Diga o resultado esperado do bloco (ex.: propostas enviadas a A e B)."; return; }
+    if (!(z > a)) { msgDia = "O fim tem que ser depois do início."; return; }
+    if (a < EXP_INI || z > EXP_FIM) { msgDia = `Fora do expediente (${hm(EXP_INI)}–${hm(EXP_FIM)}).`; return; }
+    let p = plano(diaPessoa, diaData, true);
+    const choque = ocupados(diaPessoa, diaData, p).find(o => a < o.fim && z > o.ini);
+    if (choque) { msgDia = `Sem espaço: o bloco bate com <b>${esc(choque.nome)}</b>. O assistente não sobrepõe — escolha outro horário, adie uma etapa ou escalone pro gestor.`; return; }
+    const cap = capacidade(diaPessoa, diaData, p);
+    if (cap.blocos + (z - a) > cap.paraBlocos) msgDia = "Atenção: com este bloco o dia passa da margem de 20% pra imprevisto.";
+    if (p.confirmado && !(motivoEl && motivoEl.value.trim())) { msgDia = "O plano já foi confirmado: escreva o motivo do ajuste."; return; }
+    const bs = novaVersao(p, motivoEl ? motivoEl.value.trim() : "");
+    bs.push({ id: novoId("bk"), inicio: ini, fim, etapaIds: [...selBloco], resultado: res });
+    selBloco.clear();
+  }
+  function fecharDia() {
+    const p = plano(diaPessoa, diaData, false);
+    if (!p) return;
+    const bs = blocosAtuais(p);
+    const sem = bs.filter(b => !(p.fechamento[b.id] || {}).situacao);
+    if (sem.length) { msgDia = `Falta a situação de ${sem.length} bloco(s).`; return; }
+    bs.forEach(b => {
+      const f = p.fechamento[b.id];
+      b.etapaIds.forEach(id => {
+        const r = acharEtapa(id); if (!r) return;
+        if (f.situacao === "Concluído") mudarStatusEtapa(r.e, r.x, "Concluída");
+        else if (f.situacao === "Bloqueado") { mudarStatusEtapa(r.e, r.x, "Aguardando"); const bl = bloqueioAberto(r.e, r.x.id); if (bl && !bl.motivo) bl.motivo = f.pendencia || f.resultado || ""; }
+        else if (f.situacao === "Parcial" && r.x.status === "A fazer") r.x.status = "Em andamento";
+      });
+    });
+    p.fechadoEm = agoraTs();
+    msgDia = "Dia fechado. Etapas atualizadas.";
+  }
+  function mudanca(ev) {
+    const el = ev.target;
+    if (!document.getElementById("gestao-view").contains(el)) return;
+    if (el.dataset.dia === "pessoa") { diaPessoa = el.value; selBloco.clear(); msgDia = ""; render(); return; }
+    if (el.dataset.dia === "data") { diaData = el.value || hoje(); selBloco.clear(); msgDia = ""; render(); return; }
+    if (el.dataset.acaoChk === "bloco-etapa") { if (el.checked) selBloco.add(el.value); else selBloco.delete(el.value); return; }
+    if (el.dataset.acaoSel === "aplicar-modelo") {
+      const e = entrega(selEntrega), m = S.modelos.find(x => x.id === el.value);
+      if (e && m) { const it = { id: novoId("it"), nome: m.nome, responsavel: e.responsavel || "" }; e.itens.push(it); criarEtapasDoModelo(e, m, it.id, it.responsavel); if (!e.criterio) e.criterio = m.criterio; }
+      salvar(); render(); return;
+    }
+    const campo = el.dataset.campo;
+    if (!campo) return;
+    const val = el.type === "checkbox" ? el.checked : el.value;
+    const e = entrega(selEntrega);
+    if (el.dataset.et && e) { const x = etapaDe(e, el.dataset.et); if (!x) return; if (campo === "status") mudarStatusEtapa(e, x, val); else x[campo] = val; }
+    else if (el.dataset.bl && e) { const b = e.bloqueios.find(x => x.id === el.dataset.bl); if (b) b[campo] = val; }
+    else if (el.dataset.it && e) { const it = e.itens.find(x => x.id === el.dataset.it); if (it) it[campo] = val; }
+    else if (el.dataset.md) { const m = S.modelos.find(x => x.id === el.dataset.md); if (!m) return; if (el.dataset.mi !== undefined) m.etapas[+el.dataset.mi][campo] = val; else m[campo] = val; }
+    else if (el.dataset.fb) {
+      const p = plano(diaPessoa, diaData, false); if (!p) return;
+      const f = Object.assign({}, p.fechamento[el.dataset.fb] || {}, { [campo]: val });
+      if (campo === "verificado" && val && !linkOk(f.referencia)) { f.verificado = false; msgDia = "Pra marcar como verificado, coloque o link da evidência. Sem ele, fica \"informado pela pessoa\"."; }
+      p.fechamento[el.dataset.fb] = f;
+    }
+    else if (e && !el.closest(".gs-dia-topo")) e[campo] = val;
+    salvar();
+    // Texto: não redesenha agora (a pessoa pode estar indo pra outro campo ou
+    // clicando num botão); redesenha quando o foco sai pra fora (focusout).
+    const ehTexto = el.tagName === "TEXTAREA" || (el.tagName === "INPUT" && /^(text|url|search|)$/.test(el.type || ""));
+    if (ehTexto) { renderPendente = true; return; }
+    render();
+  }
+  let renderPendente = false;
+  document.getElementById("gs-conteudo").addEventListener("focusout", ev => {
+    if (!renderPendente) return;
+    if (ev.relatedTarget && document.getElementById("gs-conteudo").contains(ev.relatedTarget)) return;
+    renderPendente = false;
+    setTimeout(render, 0);
+  });
+
+  document.getElementById("gs-conteudo").addEventListener("click", clique);
+  document.getElementById("gs-conteudo").addEventListener("change", mudanca);
+  document.querySelector("#gestao-view .gs-abas").addEventListener("click", ev => {
+    const b = ev.target.closest(".gs-aba"); if (!b) return;
+    aba = b.dataset.aba; msgDia = ""; confirmaApagar = null; render();
+  });
+  document.getElementById("nav-gestao").addEventListener("click", () => render());
+})();
+
 
 // ══════════════════════════════════════════════════════════
 // PRESENÇA (21/09, Karina): quem está usando a Dash e onde, como nas
@@ -20248,6 +20942,7 @@ function presencaOnde() {
   const org = typeof ORG_ATUAL !== "undefined" ? ORG_ATUAL : "wpf";
   if (id === "tasks2-view") return "Tasks" + (org !== "wpf" ? ` (${String(org).toUpperCase()})` : "");
   if (id === "tasksp-view") return "Tasks (piloto)";
+  if (id === "gestao-view") return "Gestão";
   if (id === "members2-view") {
     const pl = document.getElementById("planilha2-wrap");
     return "CRM › " + (pl && !pl.classList.contains("hidden") ? "Planilha" : "Mapa");
@@ -20633,7 +21328,8 @@ const CATALOGO_PERMISSOES = [
     { chave: "settings", rotulo: "Settings (pessoas, permissões, senhas)" },
     { chave: "carinha", rotulo: "Usar o Carinha" },
     { chave: "acoesIa", rotulo: "Ações de IA (e-mail, mensagem, pesquisa)" },
-    { chave: "tasksPiloto", rotulo: "Tasks (piloto)" }
+    { chave: "tasksPiloto", rotulo: "Tasks (piloto)" },
+    { chave: "gestao", rotulo: "Gestão (protótipo)" }
   ] }
 ];
 const CFG_VISTAS_KEY = "wpf_cfg_permissoes_vistas";
