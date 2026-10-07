@@ -23,7 +23,9 @@ reconstruir o raciocínio.
   - *Decisões da Karina (07/10):*
     1. Base continua na Dash (não vai pro Notion).
     2. Sem nível novo; renomear Projeto → **Entrega**, Entregável → **Item**,
-       Tarefa → **Etapa** (Objetivo e Meta: confirmar se mantêm o nome).
+       Tarefa → **Etapa**; Objetivo e Meta mantêm o nome. **Forms** deixa
+       de ser tipo de linha (hoje `ehForms` na tarefa) e vira um formulário
+       que se adiciona a uma etapa (confirmar: só etapa ou qualquer nível).
     3. Cada pessoa conecta o próprio Google (Gmail + Agenda) na Dash e
        recebe avisos do próprio e-mail/agenda. Todos são do Workspace da WPF
        (app interno; confirmar na doc do Google). **Substitui** as regras
