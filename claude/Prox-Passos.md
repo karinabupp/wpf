@@ -83,6 +83,17 @@ reconstruir o raciocínio.
     grátis por dia ≈ 200 min/dia; acima disso falha no plano Free, não
     cobra). Tags: Detalhador e Triagem sugerem; conector do CRM cria
     pessoa/empresa nova com "sim".
+    **I (aprovado 07/10):** instruções em `worker/instrucoes/` (1 arquivo
+    por agente) + espelho num doc pra Karina aprovar; estrutura fixa
+    (objetivo, entradas, pode/não pode, saída JSON conferida pelo código,
+    exemplos) + 6 regras comuns; bateria de casos por agente (os 8 do doc
+    do chefe + nossos) rodando com a IA antes de publicar. Persona igual à
+    de hoje. Planejador: 9h–19h, almoço 12h–13h, 20% livre. Fechamento:
+    aviso às 18h e fechamento às 19h (sem resposta → fica pra abertura).
+    Acompanhador: cobrança no máx. 1x/dia, no "próximo retorno". Redator:
+    e-mail sai da conta e com a assinatura de quem pediu; o que não é de
+    ninguém pode sair "do Carinha" (falta decidir a caixa dele). Resumo pra
+    Karina às 19h30.
   - *Passo 1 feito (07/10):* aba Tasks (piloto) no ar (Changelog 07/10).
     Karina usar e dizer o que ajustar. Faltou da lista: "depende de" só
     entre etapas do mesmo Item; tirar um formulário anexado não tem botão
