@@ -12,6 +12,19 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-07 (7ª) — Tasks (piloto): coluna Status entrega
+
+- **O que mudou:** coluna **Status entrega** logo depois de Data entrega,
+  automática (não se edita): **Atrasado** quando o Fim é depois da Data
+  de entrega; **Em dia** quando o Fim é até a Data de entrega; "—" quando
+  falta uma das duas. Vale pra todas as linhas (nas de agrupamento, com o
+  Fim e a Data de entrega calculados). No mouse, mostra as duas datas.
+- **Onde:** `index.html`, bloco do piloto (`statusEntrega`,
+  `statusEntregaMarkup`, cabeçalho e CSS `tasksp-stent`).
+- **Verificação:** 75 + 31 + 27 + 34 testes.
+
+---
+
 ## 2026-10-07 (6ª) — Tasks (piloto): Demanda › Entrega › Item › Etapa, colunas novas
 
 Pedido da Karina (ajustes na Tasks piloto).
