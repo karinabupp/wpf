@@ -15,8 +15,24 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Projetos — Bloqueios: proposta aguardando a Karina** — cada
+  bloqueio teria: o que trava, quem destrava (pessoa/org), "cobrar em"
+  (data que fica vermelha quando passa) e "resolvido" (em vez de apagar).
+  Os bloqueios ficam nas etapas e tarefas, e a entrega mostra a soma.
+  Sugerir o status Bloqueado, e o Detalhador preenche ao quebrar uma
+  entrega. **Não construir antes do OK.**
+  - *Onde:* `index.html`, bloco "PROJETOS" (`abrirPopBloqueios`,
+    `bloqueios[]`); `worker/instrucoes/detalhador.md`.
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Projetos — Carinha escrevendo no Histórico** (ideia, aguardando a
+  Karina): o robô registraria no Histórico das linhas os pedidos que
+  chegam por WhatsApp e e-mail (`registrar(e, texto, {tipo:"nota",
+  canal, pediu})`). Faz parte das fases do robô; não fazer agora.
+  - *Aberto em:* 2026-10-08
+
 - [ ] **Guia Projetos — próximos passos** — publicada em 08/10 (Changelog
-  5ª; Etapas e Tarefas na 6ª). Falta: a Karina dizer se a **ordem das
+  5ª; Etapas e Tarefas na 6ª; Notion/Checklist/Histórico na 8ª). Falta: a Karina dizer se a **ordem das
   colunas** fica por navegador (hoje) ou vai pra nuvem; confirmar os limites das cores (7 dias / 3 atrasadas); a
   Karina dizer se a coluna **País** fica (ela pediu Pessoas e Orgs).
   Decidir se Projetos substitui a Tasks (piloto)/Gestão.

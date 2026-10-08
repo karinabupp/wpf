@@ -12,6 +12,43 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (8ª) — Projetos: planilha estilo Notion (Entrega › Etapa › Tarefa numa árvore só), Checklist, Histórico, visual limpo, logo
+
+Pedido da Karina, publicado com o OK dela. Substitui o layout da 7ª
+(planilha dentro da planilha), que ela não aprovou. Uma versão
+intermediária com uma janela pop-up para as Etapas também foi rejeitada e
+**nunca foi publicada**.
+
+- **Uma tabela só, estilo Notion:** entregas, etapas e tarefas aparecem
+  na mesma planilha, com todas as colunas em todos os níveis. A setinha
+  ▸/▾ abre as etapas da entrega e as tarefas da etapa (o estado fica
+  guardado no navegador). O "+" ao lado do nome cria uma etapa ou uma
+  tarefa. **Sem recuo:** todos os nomes começam alinhados.
+- **Barrinha fina de cor** no começo de cada linha, em **degradê de
+  roxo**: entrega `#4b1fa8` (escuro), etapa `#8b5cf6` (médio), tarefa
+  `#c4b0fb` (claro). Os chips Entrega / Etapa / Tarefa ficam **só na
+  legenda do topo**, nas mesmas cores, e não aparecem nas linhas.
+- **Coluna Checklist:** mostra "☑ feitos/total" ou "+". Clicar abre a
+  lista: marcar, editar, × para tirar, Enter adiciona.
+- **Coluna Histórico:** mostra "🕘 N" ou "+". Toda edição fica registrada
+  sozinha (quem, o quê, quando), por exemplo "Prioridade: — → Alta",
+  status, prazo, responsáveis, bloqueios, tags, checklist, criar e apagar
+  (apagar fica registrado na linha de cima). Também dá para registrar à
+  mão o que foi pedido, por qual canal (WhatsApp, e-mail, telefone,
+  reunião…) e quem pediu. Guarda no máximo 300 registros por linha.
+- **Frente e Objetivo:** escolhidos na entrega; etapas e tarefas mostram
+  o valor herdado em cinza.
+- **Visual limpo:** sem grade vertical, pills suaves, e os "+" vazios só
+  aparecem ao passar o mouse na linha. Fundo branco na aba, e o logo da
+  WPF no lugar do título "Projetos" (igual em Tasks).
+- **Onde:** `index.html`, bloco JS "PROJETOS" (`COLUNAS`, `CELULAS`,
+  `render` em árvore, `registrar`/`registrarCampo`, `abrirPopChecklist`,
+  `abrirPopHistorico`; saíram `planilhaEtapas`/`listaTarefas`), HTML
+  `#projetos-view` (`.pj-logo`, `.pj-legenda`), CSS "08/10 (5ª)" a "(8ª)".
+  Dados: `checklist[]` e `historico[]` em cada linha (seção `projetos`).
+- **Por quê:** a Karina quer o modelo clássico de planilha do Notion,
+  elegante e limpo, com os três níveis conectados.
+
 ## 2026-10-08 (7ª) — Projetos: etapas numa planilha dentro da entrega, tarefas em lista; Prazo, Forma, Bloqueios
 
 Pedido da Karina, publicado com o OK dela.
