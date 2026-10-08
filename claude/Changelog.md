@@ -12,6 +12,39 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (7ª) — Projetos: etapas numa planilha dentro da entrega, tarefas em lista; Prazo, Forma, Bloqueios
+
+Pedido da Karina, publicado com o OK dela.
+
+- **Planilha dentro da planilha:** a setinha da entrega abre, logo
+  embaixo, um cartão arredondado com a **planilha das etapas** (cabeçalho
+  próprio, mesmas colunas na mesma ordem, sem Frente/Objetivo, "+ Etapa");
+  ele fica do tamanho da área visível e não rola junto com a de cima
+  (`ajustarSubs`). A setinha da etapa abre a **lista de tarefas** (Status,
+  Prazo, Finalizado, Forma, Responsável, "+ Tarefa"). O "+" que aparecia
+  ao passar o mouse na linha saiu.
+- **Prazo num selo só** (`01/12 → 15/12`; "até"/"desde" quando falta uma
+  data; ano só se não for o atual). Clicar abre Início e Fim (pop-up).
+- **Forma** depois de Finalizado: Finalizado depois do Fim = Atrasado; até
+  o Fim = Em dia (igual ao piloto).
+- **Bloqueios em lista:** a célula mostra o número (⚠ N, laranja); clicar
+  abre a lista (Enter adiciona, × tira; cada um guarda a data em que
+  entrou). Texto antigo virou o 1º bloqueio (`bloqueios` = lista).
+- **Ação atual** e **Próxima ação** separadas (`acaoAtual`,
+  `proximaAcao`; o texto antigo foi pra Ação atual).
+- **Pessoas, Orgs e Países** mostram só o número (nomes no mouse).
+- **Nomes:** Prazo, Finalizado, Países. **Falta detalhar** na cor do
+  Bloqueado.
+- **Onde:** `index.html`, bloco JS "PROJETOS" (`normalizar`, `COLUNAS`,
+  `CELULAS`, `planilhaEtapas`, `listaTarefas`, `abrirPopPrazo`,
+  `abrirPopBloqueios`), CSS "08/10 (3ª)".
+- **Verificação:** 113 testes (inclui planilha das etapas e lista de
+  tarefas, colunas certas em cada uma, cartão parado ao rolar, Prazo e
+  Forma em entrega e tarefa, Bloqueios em lista, contagem das tags,
+  migração dos campos antigos) + 3 do arraste longe + fumaça.
+
+---
+
 ## 2026-10-08 (6ª) — Projetos: Entrega › Etapa › Tarefa, Progresso, colunas arrastáveis
 
 Pedido da Karina, publicado com o OK dela.
