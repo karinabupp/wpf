@@ -15,6 +15,20 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Apagar a tabela temporária `public._mig_projetos`** (Supabase) —
+  usada só pra gravar a migração da Tasks pra Projetos em 08/10; já não
+  serve. O `drop table` precisa de confirmação da Karina no conector e não
+  foi confirmado. Está com RLS ligado (ninguém lê pela API). Rodar:
+  `drop table public._mig_projetos;`
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Projetos — o que fazer com a Tasks antiga** — a Projetos agora tem
+  o conteúdo da Tasks (`tasks2`), mas a Tasks continua igual e o robô
+  ainda lê `tasks2`. Decidir: a equipe passa a usar só a Projetos? A Tasks
+  fica só leitura / sai do menu? O robô passa a ler `projetos`? Enquanto
+  isso, mudanças numa não aparecem na outra.
+  - *Aberto em:* 2026-10-08
+
 - [ ] **Projetos — Bloqueios: proposta aguardando a Karina** — cada
   bloqueio teria: o que trava, quem destrava (pessoa/org), "cobrar em"
   (data que fica vermelha quando passa) e "resolvido" (em vez de apagar).

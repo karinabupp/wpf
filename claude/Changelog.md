@@ -12,6 +12,44 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (10ª) — Projetos recebe as tarefas da Tasks; filtro por objetivo
+
+Pedido da Karina, gravado e publicado com o OK dela.
+
+- **Dados (Supabase, seção `projetos`):** a guia Projetos foi preenchida
+  com o conteúdo da Tasks (`tasks2`), lido e convertido. A Tasks **não foi
+  alterada**. A linha de teste vazia foi apagada (pedido dela). Ficaram
+  **39 entregas, 127 etapas e 82 tarefas**.
+  - Objetivo › Meta › Projeto › Entregável › Tarefa virou Entrega › Etapa ›
+    Tarefa. As regiões (AFRICA, Stops Americas…) não viraram nível, e o que
+    passava de 3 níveis virou checklist.
+  - **Mesma ação em vários países = uma ação com checklist de países**:
+    Abrir federações observer (7 países), Substituir federações (6),
+    Federações-membro já certificadas (33), Stops do LW 2026 (13 + 8 que
+    não aconteceram), Páginas de federação. Ação de um país só vira etapa
+    "País: ação". O prazo da etapa vai do primeiro ao último país.
+  - Grupos femininos: uma entrega com as etapas Mapear grupos › Prospectar
+    › Negociar a afiliação › Fechar novos membros.
+  - Meta da Tasks foi pro **Critério** ("… · Meta: 50 feds-membros"). Objetivo
+    e Frente vieram da Tasks. País da linha → tag Países.
+  - Status: Late/Deadline/In Progress → Em andamento (o vermelho vem pela
+    data); On Hold → Bloqueado; Done → Finalizado; Cancelled → Cancelado.
+    A Tasks não guarda a data de finalização, então Finalizado fica vazio.
+  - Correções pedidas: Germany 02/11 → 13/11; "Federação certificada" das
+    substituições não veio; Leonardo Martins → Leonardo Cavarge; o modelo
+    de LW sem datas (2º objetivo "Aumentar autoridade da marca") ignorado.
+  - Cada entrega tem no Histórico de onde veio na Tasks.
+  - Como foi gravado: em partes numa tabela temporária
+    (`public._mig_projetos`, com RLS), conferidas por md5, e juntadas na
+    seção `projetos`. O md5 final bate com a prévia.
+- **Filtro por objetivo (`index.html`):** clicar em Autoridade, Alcance ou
+  Governança mostra só as entregas dele; clicar de novo mostra todas (Enter
+  também funciona). Junta com o filtro de Frente; as barras continuam
+  contando pela Frente. **Onde:** bloco "PROJETOS" (`porFrente`,
+  `objFiltro`, `filtradas`, `clicarObjetivo`), CSS "08/10 (11ª)".
+- **Por quê:** a Karina quer a gestão no modelo novo, com as tarefas que já
+  existiam, e ver por objetivo.
+
 ## 2026-10-08 (9ª) — Projetos: níveis em azul, nomes em tons de cinza, cores de status, arrastar linhas, Duplicar
 
 Pedido da Karina, publicado com o OK dela.
