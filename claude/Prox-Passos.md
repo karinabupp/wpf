@@ -15,21 +15,20 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **LW 2027 — próximos itens** — quando a Karina trouxer a lista de
-  federações com eventos (etapa até 15/12/2026), criar um item "Sondar
-  federação" por federação; países sem federação/sem interesse → "Buscar
-  parceiro host"; cada stop fechado → item "Stop do Ladies Weekend 2027".
-  Modelos de etapas estão no contexto das entregas "Captação de hosts" e
-  "Stops fechados" (demanda id `task-1791476194895`). Seguir
-  `worker/instrucoes/detalhador.md`.
+- [ ] **Guia Projetos — próximos passos** — publicada em 08/10 (Changelog
+  5ª). Falta: **Etapas** e **Tarefas** dentro de cada entrega (campo
+  `subtasks` já existe, vazio) e elas entrarem na conta das barras por
+  objetivo; confirmar os limites das cores (7 dias / 3 atrasadas); a
+  Karina dizer se a coluna **País** fica (ela pediu Pessoas e Orgs).
+  Decidir se Projetos substitui a Tasks (piloto)/Gestão.
+  - *Onde:* `index.html`, bloco JS "PROJETOS"; seção `projetos`.
   - *Aberto em:* 2026-10-08
 
-- [ ] **Gravação em `tasksPiloto` pelo conector do Supabase é cancelada** —
-  08/10: leitura funciona e gravação em `tasksPilotoCadastro` funcionou, mas
-  todo UPDATE em `tasksPiloto` voltou "cancelled" (4 tentativas, até 900
-  caracteres, com a Karina aprovando). Contorno usado: gerar o SQL e a
-  Karina roda no SQL Editor. Investigar (permissão do conector? regra de
-  aprovação?) antes do Detalhador gravar sozinho.
+- [ ] **LW 2027 — próximos itens** — os países a sondar a Karina e a
+  equipe vão pôr na mão, na entrega "Captação de hosts" (decisão de
+  08/10). "Buscar parceiro host" por enquanto não. Cada stop fechado →
+  item "Stop do Ladies Weekend 2027" em "Stops fechados" (modelo de etapas
+  no contexto das duas entregas; demanda `task-1791476194895`).
   - *Aberto em:* 2026-10-08
 
 - [ ] **Pessoa com subcategoria ("Serviços")** — a Nina está no cadastro
@@ -525,6 +524,11 @@ reconstruir o raciocínio.
 ---
 
 ## Concluídos
+
+- [x] **Gravação em `tasksPiloto` pelo conector** — resolvido em 08/10
+  (4ª): os cancelamentos não chegaram no banco; o conector grava (UPDATE
+  de teste e a reestruturação do LW 2027 passaram). Se voltar a cancelar,
+  conferir se o pedido de aprovação do Supabase apareceu pra Karina.
 
 - [x] **Limpeza da Dash (24/09)** — saíram do código Geral, Goals, Tasks
   antiga, Members, Committee, Social, Slack e Settings; metas automáticas

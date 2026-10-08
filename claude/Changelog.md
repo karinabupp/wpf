@@ -12,6 +12,88 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (5ª) — Guia Projetos (Entregas); bug do cadastro do piloto
+
+Pedido da Karina: guia nova **Projetos** com a planilha do 1º nível,
+**Entregas** (depois vêm Etapas e Tarefas dentro de cada uma).
+
+- **Onde:** botão no menu logo depois da Tasks (piloto), só pro login
+  `karina` (`PILOTO_LOGINS`); permissão `projetos` no `CATALOGO_PERMISSOES`
+  (grupo "Só da Karina"). Dados na nuvem, seção **`projetos`** (CBTH:
+  `projetos__cbth`); começa vazia. Não lê nem grava Tasks, Tasks (piloto)
+  nem CRM — as tags usam o cadastro do piloto por uma ponte nova
+  (`window.tagsPilotoApi`, só leitura + criar cadastro; nunca semeia).
+- **Colunas** (barra de rolagem horizontal, nome fixo à esquerda, fundo
+  branco no estilo do piloto): Nome da entrega (380px) · Critério de
+  conclusão · Status · Prazo (início → fim numa linha, datas pequenas) ·
+  Finalizado em · Responsável · Prioridade · Ação atual/próxima ·
+  Bloqueios · Frente · Objetivo · Pessoas · Orgs · País · lixeira.
+- **Status:** Falta detalhar · Não iniciado · Em andamento (azul) ·
+  Bloqueado (laranja) · Finalizado (verde) · Cancelado (riscado).
+  **Em andamento ou Não iniciado com o Fim vencido = vermelho** (sem
+  amarelo). Finalizado põe a data do dia em "Finalizado em" (corrigível);
+  sair do Finalizado limpa. Entrega nova nasce "Falta detalhar".
+- **Frente:** filtro no topo (entrega nova nasce na frente escolhida) +
+  coluna pra trocar.
+- **Barras por objetivo no topo** (Autoridade, Alcance, Governança):
+  cheio = finalizadas/total (canceladas fora), seguem o filtro de Frente.
+  Verde = nada atrasado; amarelo = 1–2 atrasadas há até 7 dias; vermelho =
+  atraso > 7 dias ou 3+ atrasadas (`ATRASO_POUCO_DIAS`, `ATRASADAS_MUITAS`).
+- **Tags em 3 colunas, cada uma com seu painel:** Pessoas (equipe +
+  contatos; pessoa nova com tipo Contato/Serviços/Outro, org opcional e
+  país opcional), Orgs (federações/associações + empresas + mídias; org
+  nova com tipo Empresa/Federação/Mídia/Outro — Federação vai pra
+  associações) e País. A ponte do piloto ganhou `criar(tipo, nome, lugar,
+  extra)` com categoria, org e tipo.
+- **Apagar** em dois cliques. **Sincronização:** `encolherPermitido` —
+  seção em que a pessoa apagou de propósito passa uma vez pela trava
+  "encolheu demais" (o envio que dá certo limpa a marca).
+- **Bug do piloto corrigido (OK da Karina):** `tasksPilotoBridge.apply`
+  nunca lia o cadastro da nuvem (o `data` era trocado antes) — só valia a
+  cópia local; num navegador sem cópia, o painel de tags recriava o
+  cadastro do CRM e gravava por cima. Agora lê do pacote original.
+- **Onde:** `index.html` — CSS "PROJETOS (08/10)", `#projetos-view`,
+  `#nav-projetos`, `NAV_VIEWS`, `presencaOnde`, `CLOUD_SECTIONS`,
+  `secaoDaOrg`, `projetosBridge` (collect/apply), `encolheuDemais`,
+  `tagsPilotoApi` (bloco do piloto), bloco JS "PROJETOS".
+- **Verificação:** 76 testes no Chromium com Supabase simulado (menu e
+  acesso, colunas, rolagem e nome fixo, criar/editar, cores de status,
+  Finalizado em, responsáveis, prioridade, frente, objetivo, barras e
+  cores, tags nas 3 colunas e cadastro novo, cadastro da nuvem sem cópia
+  local, filtro de frente, outro PC e F5, apagar passando a trava,
+  celular, CBTH separada, piloto intocado) + fumaça em todas as abas.
+
+---
+
+## 2026-10-08 (4ª) — LW 2027 com o nível Item; Detalhador: nunca pular nível; CRM: Andorra e Mongolia
+
+- **LW 2027 na Tasks (piloto):** a árvore criada na 2ª entrada tinha pulado
+  o nível Item (etapas direto na entrega). Agora é Demanda › Entrega ›
+  **Item** › Etapa: 15 itens novos (ids `task-1791478334727NN`, com
+  responsável, fim e critério), e as 24 etapas de antes foram pra dentro
+  deles, sem mudar nome, data, responsável nem id. Nenhum item sem etapa.
+  Entrega "Stops fechados" continua vazia (um item por stop, depois).
+  Itens: Data do LW 2027 · Formatos do evento · Pacote de contrapartidas ·
+  Prazo de envio das infos pelos stops · Estimativa de stops · Calendário
+  planejado · Ppt da proposta · Lista de federações com eventos ·
+  Calendário de postagens final · Páginas dos stops no site · Guia do
+  fluxo de mídia · Fluxo alinhado com os stops · Lista de mídias e canais
+  de poker · Press release do LW 2027 · Publicações nas mídias.
+  Gravado pelo conector do Supabase (antes, conferido sem gravar: 8 / 15 /
+  24, nenhuma etapa perdida).
+- **Detalhador, regra 6** (`worker/instrucoes/detalhador.md`): "Nunca
+  pular nível" — etapa sempre dentro de um Item; ação única vira Item +
+  Etapa; preferir item com etapas. *Motivo:* pedido da Karina.
+- **CRM (Membros - Federações):** Andorra sem status (não é membro);
+  Mongolia de Negociação para **Membro**. Continua 41 membros.
+- **Conector do Supabase grava, sim:** o cancelamento das 4 gravações da
+  2ª entrada não chegou no banco (nada nos logs do Postgres, sem trigger);
+  teste de UPDATE com 0 linhas e as gravações acima passaram. Causa
+  provável: o pedido de aprovação expirou/fechou naquela sessão.
+- **Os países a sondar** a Karina e a equipe colocam depois, na mão.
+
+---
+
 ## 2026-10-08 (3ª) — Tasks (piloto): "Finalizado em" vira data de conclusão; Frente oculta com filtro no topo
 
 - **"Finalizado em" = quando a linha foi CONCLUÍDA** (antes era tratado como
