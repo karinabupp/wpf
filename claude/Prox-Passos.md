@@ -15,6 +15,32 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **⭐ COMEÇAR POR AQUI na sessão de 09/10 (pedido da Karina em 08/10, ~1h)**
+  Ordem combinada:
+  1. **Conectar o Google (agenda + Gmail) de cada um da Dash** — Karina,
+     Isabela, Leonardo e Roberto. **Primeiro perguntar:** os e-mails são
+     Google Workspace com domínio da WPF (quem é o admin?) ou Gmail pessoal?
+     Workspace → app "Interno", sem revisão do Google (e o admin pode
+     liberar os 4 de uma vez). Gmail pessoal → escopos do Gmail exigem
+     auditoria paga do Google; em modo teste as autorizações vencem a cada
+     7 dias. Guiar a Karina passo a passo: projeto no Google Cloud, ligar
+     Calendar API e Gmail API, tela de consentimento, credencial OAuth (o
+     segredo vai pros segredos do worker, **nunca** no repo nem no chat).
+     Eu faço: login OAuth e guarda dos refresh tokens no worker/Supabase
+     (protegido), rotas que a Dash chama, e o botão "Conectar meu Google"
+     com o status de cada um.
+     **Pra quê (Karina):** o Carinha avisar cada um sobre e-mails que
+     chegam e marcar na agenda o que precisa ser feito. Combinar escopos
+     mínimos (ler e-mails, criar eventos) e o que do Gmail ele lê (tudo ou
+     só uma etiqueta). Avisos/agenda do Carinha podem ficar pra depois do
+     botão funcionar.
+  2. **Projetos — Responsável sempre numa linha:** mostrar o 1º responsável
+     + "+N" dos demais (nomes no mouse), pra linha ficar sempre fina.
+  3. **Projetos — colunas mais compactas:** tirar a largura sobrando de
+     algumas colunas sem ficar feio (conferir por foto).
+  - *Aberto em:* 2026-10-08
+
+
 - [ ] **Projetos — as outras 7 das "11 novas federações"** — a etapa
   "Fechar 11 novas federações" (entrega "Chegar a 50 federações-membro") só
   tem 4 tarefas: Angola, Reino Unido, EUA e Mongólia (as que estavam na
