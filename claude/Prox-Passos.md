@@ -38,6 +38,15 @@ reconstruir o raciocínio.
      + "+N" dos demais (nomes no mouse), pra linha ficar sempre fina.
   3. **Projetos — colunas mais compactas:** tirar a largura sobrando de
      algumas colunas sem ficar feio (conferir por foto).
+  4. **Projetos — mudar colunas (pedido de 08/10, 18:56):**
+     - tirar a coluna **Progresso**;
+     - juntar **Pessoas, Orgs e Países** numa coluna só, **Tags**;
+     - **Objetivo** e **Frente** viram colunas ocultas;
+     - **Ação atual** sai (apagar a coluna e o campo `acaoAtual`; ver se
+       algum dado gravado tem texto ali antes de apagar e mostrar pra ela);
+     - **Prioridade** vira oculta e vira **filtro** no topo, junto com o de
+       Frente.
+     Lembrar a Karina disso logo no início da sessão.
   - *Aberto em:* 2026-10-08
 
 
