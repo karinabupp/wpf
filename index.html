@@ -6450,7 +6450,7 @@
   .tasksp-tags-criar-botoes button { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; cursor: pointer; }
   .tasksp-tags-criar-botoes button:first-child { color: #fff; background: var(--accent); border-color: var(--accent); }
   /* 07/10: Demanda › Entrega › Item › Etapa; Início/Fim juntos, Data entrega, Frente, Objetivo, Tags */
-  .tasksp-row { grid-template-columns: 30px minmax(280px, 1fr) 124px 142px 132px 100px 166px 108px 108px 112px 142px 58px; }
+  .tasksp-row { grid-template-columns: 30px minmax(280px, 1fr) 124px 142px 132px 100px 166px 108px 112px 160px 58px; }
   .tasksp-col-datas { display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-top: 3px !important; padding-bottom: 3px !important; }
   .tasksp-head-row .tasksp-col-datas { flex-direction: row; align-items: center; gap: 2px; }
   .tasksp-sub-data { position: relative; display: flex; align-items: center; }
@@ -6465,13 +6465,13 @@
   .tasksp-obj-select { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
   .tasksp-tag-associacao { background: #e3f4f4; color: #145b5b; }
   @media (max-width: 1650px) {
-    .tasksp-row { grid-template-columns: 28px minmax(240px, 1fr) 108px 132px 122px 88px 142px 104px 90px 104px 98px 52px; }
+    .tasksp-row { grid-template-columns: 28px minmax(240px, 1fr) 108px 132px 122px 88px 142px 104px 104px 120px 52px; }
   }
   @media (max-width: 1380px) {
-    .tasksp-row { grid-template-columns: 26px minmax(210px, 1fr) 98px 124px 116px 84px 122px 100px 82px 92px 82px 48px; }
+    .tasksp-row { grid-template-columns: 26px minmax(210px, 1fr) 98px 124px 116px 84px 122px 100px 92px 100px 48px; }
   }
   @media (max-width: 760px) {
-    .tasksp-row, .tasksp-row:not(.tasksp-head-row) { grid-template-columns: 26px 250px 100px 126px 118px 96px 130px 88px 94px 96px 136px 54px !important; }
+    .tasksp-row, .tasksp-row:not(.tasksp-head-row) { grid-template-columns: 26px 250px 100px 126px 118px 96px 130px 88px 96px 136px 54px !important; }
   }
   .tasksp-col-stent { display: flex; align-items: center; min-width: 0; }
   .tasksp-stent { font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
@@ -6502,6 +6502,12 @@
   .tasksp-row .tasksp-col-assignee .tasksp-assignee-remove { padding: 0 1px; font-size: 12px; }
   .tasksp-row .tasksp-col-assignee .tasksp-assignee-add-btn { width: 18px; height: 18px; font-size: 12px; }
   .tasksp-row .tasksp-col-assignee .tasksp-assignee-chips { gap: 3px; }
+  /* 08/10: Frente oculta (o filtro fica no canto de cima, à direita) */
+  #tasksp-view .tasksp-col-area { display: none !important; }
+  #tasksp-logo-row { justify-content: flex-end; gap: 16px; }
+  #tasksp-frente-topo { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  #tasksp-frente-topo label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+  #tasksp-frente-sel { border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; background: var(--bg); color: var(--text); cursor: pointer; }
 
 
   /* ═══ GESTÃO (07/10): protótipo do modelo de acompanhamento ═══ */
@@ -7001,6 +7007,7 @@
   <div id="tasksp-wrap">
     <div class="tasksp-piloto-aviso"><b>Tasks (piloto)</b> · cópia separada da Tasks real. Nada aqui mexe na Tasks, no CRM nem no Carinha.</div>
     <div id="tasksp-logo-row">
+      <div id="tasksp-frente-topo"><label for="tasksp-frente-sel">Frente</label><select id="tasksp-frente-sel" aria-label="Filtrar por frente"></select></div>
       <div id="tasksp-subnav">
         <button class="tasksp-subnav-btn active" id="tasksp-nav-list" data-tooltip="List" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -16506,7 +16513,7 @@ applyRolePermissions();
     const fins = vivos.map(x => x.endDate).filter(Boolean);
     const entregas = vivos.map(x => x.dataEntrega).filter(Boolean);
     return {
-      entrega: entregas.length ? entregas.slice().sort().pop() : "",
+      entrega: (vivos.length && entregas.length === vivos.length) ? entregas.slice().sort().pop() : "", // 08/10: só quando tudo dentro foi finalizado
       // ISO (aaaa-mm-dd) ordena certo como texto, nao precisa virar Date
       inicio: inicios.length ? inicios.slice().sort()[0] : "",
       fim: fins.length ? fins.slice().sort().pop() : ""
@@ -16729,7 +16736,8 @@ applyRolePermissions();
     if (t.status === "Late Progress") t.status = "Late"; // migrate old label
     if (t.startDate === undefined) t.startDate = "";
     if (t.endDate === undefined) t.endDate = t.date || ""; // migrate old single "date" field
-    if (t.dataEntrega === undefined) t.dataEntrega = ""; // piloto: data de entrega (prazo)
+    if (t.dataEntrega === undefined) t.dataEntrega = ""; // piloto: "Finalizado em"
+    if (t.status !== "Done" && !(Array.isArray(t.subtasks) && t.subtasks.length)) t.dataEntrega = ""; // 08/10: só linha concluída tem data de finalização
     delete t.date;
     if (t.assignees === undefined) {
       t.assignees = t.assignee ? [t.assignee] : []; // migrate old single-assignee field
@@ -17478,7 +17486,7 @@ applyRolePermissions();
   // treated as finished/moot and are left alone. Runs before every render so
   // the table, Late view and Geral stats always reflect this on their own.
   // Piloto (07/10): o prazo é a Data de entrega; sem ela, vale o Fim.
-  const prazoDe = t => t.dataEntrega || t.endDate || "";
+  const prazoDe = t => t.endDate || ""; // 08/10: o prazo é o Fim; "Finalizado em" é quando concluiu
   function autoSyncLateStatuses() {
     const today = todayISO();
     const limiteDeadline = new Date(Date.parse(today + "T00:00:00Z") + DIAS_DEADLINE * 86400000).toISOString().slice(0, 10);
@@ -18065,8 +18073,8 @@ applyRolePermissions();
         </div>
         </div>
         <div class="tasksp-col-date tasksp-col-entrega" data-fill-field="dataEntrega">
-          <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="dataEntrega" value="${t.dataEntrega || ""}" title="${datasSaoAuto(t) ? "Calculada: a última data de entrega lá dentro" : "Finalizado em (prazo): é ela que marca Deadline e Late"}" ${(canDates && !datasSaoAuto(t)) ? "" : "disabled"}>
-          ${(canDates && !datasSaoAuto(t)) ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="dataEntrega" title="Arraste para copiar a data de entrega para as linhas ao lado"></span>` : ""}
+          <input type="date" class="tasksp-date-input ${datasSaoAuto(t) ? "is-auto" : ""}" data-id="${t.id}" data-field="dataEntrega" value="${t.dataEntrega || ""}" title="${datasSaoAuto(t) ? "Calculada: a última data de entrega lá dentro" : "Finalizado em: preenche sozinho quando a linha vira Done (dá pra corrigir)"}" ${(canDates && !datasSaoAuto(t) && t.status === "Done") ? "" : "disabled"}>
+          ${(canDates && !datasSaoAuto(t) && t.status === "Done") ? `<span class="tasksp-fill-handle" data-id="${t.id}" data-field="dataEntrega" title="Arraste para copiar a data de entrega para as linhas ao lado"></span>` : ""}
         </div>
         <div class="tasksp-col-stent">${statusEntregaMarkup(t)}</div>
         <div class="tasksp-col-assignee" data-fill-field="assignees">
@@ -18225,7 +18233,24 @@ applyRolePermissions();
     if (barra) barra.classList.toggle("hidden", !haFiltro());
   }
 
+  // Frente (08/10): a coluna fica oculta; o filtro mora no canto de cima.
+  function sincronizarFrenteTopo() {
+    const sel = document.getElementById("tasksp-frente-sel");
+    if (!sel) return;
+    const atual = filtros.area.size === 1 ? [...filtros.area][0] : "";
+    sel.innerHTML = `<option value="">Todas</option>` + (areasData || []).map(a => `<option value="${String(a.id).replace(/"/g, "&quot;")}">${String(a.name || "").replace(/</g, "&lt;")}</option>`).join("") + `<option value="${SEM_VALOR}">Sem frente</option>`;
+    sel.value = atual;
+    if (!sel.dataset.ligado) {
+      sel.dataset.ligado = "1";
+      sel.addEventListener("change", () => {
+        filtros.area.clear();
+        if (sel.value) filtros.area.add(sel.value);
+        renderTasksTable();
+      });
+    }
+  }
   function renderTasksTable() {
+    sincronizarFrenteTopo();
     ensureKpisSeeded(); // a coluna KPI le kpisData; sem isso a 1a pintura vem vazia
     syncKpisDasFontes(); // e o valor pode ter mudado desde o ultimo render
     autoSyncLateStatuses();
@@ -18565,6 +18590,7 @@ applyRolePermissions();
         if (!t) return;
         t.status = select.value;
         delete t.statusAntesDeadline; // escolha a mao: nada pra devolver depois
+        if (t.status === "Done") { if (!t.dataEntrega) t.dataEntrega = todayISO(); } else if (!datasSaoAuto(t)) t.dataEntrega = ""; // 08/10: Finalizado em
         const virouAguardando = t.status === "Aguardando";
         if (virouAguardando) { t.aguardando = Object.assign({}, t.aguardando || {}); if (!t.aguardando.desde) t.aguardando.desde = todayISO(); }
         saveTasksData();
@@ -20369,12 +20395,12 @@ applyRolePermissions();
   // entrega = Atrasado; Fim até a Data de entrega = Em dia; sem as duas, nada.
   function statusEntrega(t) {
     if (!t.dataEntrega || !t.endDate) return "";
-    return t.endDate > t.dataEntrega ? "Atrasado" : "Em dia";
+    return t.dataEntrega > t.endDate ? "Atrasado" : "Em dia"; // 08/10: concluiu depois do Fim = atrasado
   }
   function statusEntregaMarkup(t) {
     const s = statusEntrega(t);
-    if (!s) return `<span class="tasksp-stent-vazio" title="Aparece quando a linha tem Fim e Data de entrega">—</span>`;
-    return `<span class="tasksp-stent ${s === "Atrasado" ? "is-atrasado" : "is-emdia"}" title="Fim ${t.endDate.split("-").reverse().join("/")} × entrega ${t.dataEntrega.split("-").reverse().join("/")}">${s}</span>`;
+    if (!s) return `<span class="tasksp-stent-vazio" title="Aparece quando a linha tem Fim e foi finalizada">—</span>`;
+    return `<span class="tasksp-stent ${s === "Atrasado" ? "is-atrasado" : "is-emdia"}" title="Fim ${t.endDate.split("-").reverse().join("/")} × finalizado em ${t.dataEntrega.split("-").reverse().join("/")}">${s}</span>`;
   }
   // ══ Piloto (07/10, Karina): Demanda › Entrega › Item › Etapa ═══════════
   // "Objetivo" deixa de ser nível de linha e vira coluna (Autoridade,

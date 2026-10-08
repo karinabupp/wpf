@@ -15,6 +15,34 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **LW 2027 — próximos itens** — quando a Karina trouxer a lista de
+  federações com eventos (etapa até 15/12/2026), criar um item "Sondar
+  federação" por federação; países sem federação/sem interesse → "Buscar
+  parceiro host"; cada stop fechado → item "Stop do Ladies Weekend 2027".
+  Modelos de etapas estão no contexto das entregas "Captação de hosts" e
+  "Stops fechados" (demanda id `task-1791476194895`). Seguir
+  `worker/instrucoes/detalhador.md`.
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Gravação em `tasksPiloto` pelo conector do Supabase é cancelada** —
+  08/10: leitura funciona e gravação em `tasksPilotoCadastro` funcionou, mas
+  todo UPDATE em `tasksPiloto` voltou "cancelled" (4 tentativas, até 900
+  caracteres, com a Karina aprovando). Contorno usado: gerar o SQL e a
+  Karina roda no SQL Editor. Investigar (permissão do conector? regra de
+  aprovação?) antes do Detalhador gravar sozinho.
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Pessoa com subcategoria ("Serviços")** — a Nina está no cadastro
+  do piloto com `categoria: "Serviços"`, sem país. A Dash ainda não mostra
+  nem filtra subcategoria de pessoa (Equipe / Serviços / Contatos…).
+  Entra na tela de cadastro (fase 6 do BAIER, "CRM ligado às tags").
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Frentes** — a Karina ofereceu explicar as frentes (Federações,
+  Comitê = comitê feminino, Institucional, Marketing, Iniciativa).
+  Perguntar o que cabe em cada uma e registrar na instrução do Detalhador.
+  - *Aberto em:* 2026-10-08
+
 - [ ] **Detalhador — fase 0 em uso (08/10)** — testar com demandas reais
   aqui nas sessões (instrução em `worker/instrucoes/detalhador.md`). A cada
   demanda: anotar o que a instrução não cobriu e ajustar o arquivo (com OK

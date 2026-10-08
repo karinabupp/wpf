@@ -12,6 +12,54 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (3ª) — Tasks (piloto): "Finalizado em" vira data de conclusão; Frente oculta com filtro no topo
+
+- **"Finalizado em" = quando a linha foi CONCLUÍDA** (antes era tratado como
+  prazo). Pedido da Karina: a coluna depende da finalização e a Forma
+  checa se foi em dia ou com atraso.
+  - O **prazo é o Fim** (`prazoDe` = `endDate`): é ele que marca Deadline/Late.
+  - Linha vira **Done** → "Finalizado em" recebe a data de hoje (dá pra
+    corrigir). Sai do Done → limpa. Linha aberta: campo vazio e travado.
+  - Ao carregar, linha sem filhos que não está Done perde a data (limpa o
+    que eu tinha preenchido no LW 2027; vai pra nuvem na próxima gravação).
+  - Agrupador só tem "Finalizado em" quando **todos** os filhos (não
+    cancelados) têm; vale a última data.
+  - **Forma:** Finalizado em depois do Fim = Atrasado; até o Fim = Em dia.
+- **Frente oculta:** a coluna sumiu da tabela; no canto de cima, à
+  direita, um seletor **Frente** (Todas / cada frente / Sem frente) usa o
+  mesmo filtro de antes (`filtros.area`). Largura da Frente foi pra Tags.
+- **Instrução do Detalhador:** "Finalizado em" nunca é preenchido na
+  criação; o Fim é o prazo.
+- **Onde:** `index.html` (bloco do piloto: `prazoDe`, `statusEntrega`,
+  `computeRollupDatas`, `ensureTaskDefaults`, handler de status, input
+  `dataEntrega`, `sincronizarFrenteTopo`, `#tasksp-frente-topo`, CSS da
+  grade); `worker/instrucoes/detalhador.md`.
+- **Verificação:** 88 + 32 + 34 + 34 testes; sem texto cortado a 1500px.
+
+---
+
+## 2026-10-08 (2ª) — Detalhador fase 0: 1ª demanda real (LW 2027) criada na Tasks (piloto)
+
+- Demanda **"Ladies Weekend 2027 — 20 stops"** (Karina · Comitê ·
+  Autoridade · Alta) com 8 entregas e 24 etapas: Formato e data (até
+  31/10/2026) → Planejamento do calendário de postagens (nov) → Apresentação
+  (ppt, Karina, dez) → Captação de hosts (dez–abr) → Stops fechados (até
+  31/05/2027; critério: formulário preenchido) → Calendário de postagens
+  (jun) → Fluxo de mídia em tempo real (Roberto + Isabela, jun–ago) →
+  Divulgação nas mídias de poker (Roberto + Isabela, mar–out/2027).
+  Itens por federação e por stop entram depois (modelo no contexto das
+  entregas "Captação de hosts" e "Stops fechados").
+- **Nina** criada no cadastro do piloto como pessoa, sem país,
+  `categoria: "Serviços"` (tag 👤 nas entregas de calendário e fluxo).
+- **Como gravou:** o cadastro da Nina foi pelo conector do Supabase; a
+  demanda **não** passou pelo conector (toda gravação em `tasksPiloto` foi
+  cancelada, 4 vezes, mesmo pequenas e com a Karina aprovando). A Karina
+  rodou o SQL pronto (`lw2027_tasks_piloto.sql`) no SQL Editor.
+- **Erro meu, corrigido na 3ª entrada:** preenchi "Finalizado em" com o
+  prazo de cada linha.
+
+---
+
 ## 2026-10-08 — Detalhador (fase 0): instrução escrita e registrada no BAIER
 
 Pedido da Karina: colocar no BAIER que a quebra de demandas ("tudo

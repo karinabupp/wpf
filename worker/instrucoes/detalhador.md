@@ -44,8 +44,8 @@ Regras da estrutura:
 |---|---|---|---|---|
 | Nome | ✔ | ✔ | ✔ | ✔ (verbo) |
 | Responsável | ✔ | ✔ | **obrigatório** | **obrigatório** |
-| Período (início/fim) | calculado | calculado | fim **obrigatório** | ✔ |
-| Finalizado em (prazo) | — | ✔ quando houver | ✔ | ✔ quando houver |
+| Período (início/fim) — o **Fim é o prazo** | calculado | calculado | fim **obrigatório** | ✔ |
+| Finalizado em | **nunca preencher** — a Dash põe a data sozinha quando a linha vira Done | — | — | — |
 | Prioridade (alta/média/baixa) | ✔ | ✔ | — | — |
 | Frente (Federações, Comitê, Institucional, Marketing, Iniciativa) | ✔ | herda | herda | herda |
 | Objetivo (Autoridade, Alcance, Governança) | ✔ | herda | herda | herda |
@@ -112,7 +112,7 @@ Depois da árvore: o que ficou "a definir" e a pergunta: **"Crio assim?"**
   gravar, ela recarrega a página.
 - Formato de cada linha: `id` ("task-" + número único), `name`, `rowType`
   (`meta`/`projeto`/`entregavel`/`tarefa`), `status` ("Not Started"),
-  `startDate`, `endDate`, `dataEntrega` (AAAA-MM-DD ou ""), `assignees`
+  `startDate`, `endDate` (o prazo), `dataEntrega` **sempre ""** (é o "Finalizado em": a Dash preenche ao concluir; a coluna Forma compara com o Fim), `assignees`
   (nomes da equipe), `areaLink` (id da frente), `objetivoLink`
   (`autoridade`/`alcance`/`governanca`), `prioridade` (`alta`/`media`/
   `baixa`), `tags` {`pessoas`, `lugares`, `empresas`, `associacoes`},
