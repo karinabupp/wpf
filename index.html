@@ -6637,6 +6637,87 @@
     .gs-tl-hora::after { width: 260px; }
   }
 
+  /* ═══ PROJETOS (08/10, Karina): planilha de Entregas (1º nível) ═══ */
+  #nav-projetos { display: none; }
+  body.pode-piloto #nav-projetos { display: flex; }
+  #projetos-wrap { padding: 20px 24px 60px; }
+  .pj-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pj-titulo { margin: 0; font-size: 22px; }
+  .pj-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pj-frente { display: flex; align-items: center; gap: 8px; }
+  .pj-direita { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; justify-content: flex-end; }
+  #pj-objetivos { display: flex; gap: 18px; flex-wrap: wrap; }
+  .pj-obj-barra { display: flex; flex-direction: column; gap: 4px; min-width: 120px; cursor: help; }
+  .pj-obj-barra-topo { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+  .pj-obj-barra-topo b { color: var(--text); font-weight: 700; letter-spacing: 0; }
+  .pj-obj-trilho { height: 6px; border-radius: 999px; background: #e8e6dc; overflow: hidden; }
+  .pj-obj-cheio { height: 100%; border-radius: 999px; min-width: 6px; }
+  .pj-obj-barra.is-verde .pj-obj-cheio { background: #3b8a3e; }
+  .pj-obj-barra.is-amarelo .pj-obj-cheio { background: #d9a520; }
+  .pj-obj-barra.is-vermelho .pj-obj-cheio { background: #c94141; }
+  .pj-obj-barra.is-vazio .pj-obj-cheio { display: none; }
+  /* O trilho também leva a cor (dá pra ver mesmo com 0 finalizadas). */
+  .pj-obj-barra.is-verde .pj-obj-trilho { background: #d6e8d0; }
+  .pj-obj-barra.is-amarelo .pj-obj-trilho { background: #f5e4b5; }
+  .pj-obj-barra.is-vermelho .pj-obj-trilho { background: #f3cfcf; }
+  .pj-obj-barra.is-amarelo .pj-obj-barra-topo b { color: #8a6d1f; }
+  .pj-obj-barra.is-vermelho .pj-obj-barra-topo b { color: #a3312a; }
+  .pj-frente label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+  #pj-frente-sel { border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; background: var(--bg); color: var(--text); cursor: pointer; }
+  /* Rolagem horizontal: a tabela é mais larga que a tela; o nome fica fixo à esquerda. */
+  #pj-rolagem { overflow-x: auto; overflow-y: visible; border: 1px solid var(--border); border-radius: 10px; background: #ffffff; }
+  #pj-rolagem::-webkit-scrollbar { height: 12px; }
+  #pj-rolagem::-webkit-scrollbar-thumb { background: #cfcdc4; border-radius: 999px; border: 3px solid #ffffff; }
+  #pj-tabela { border-collapse: separate; border-spacing: 0; min-width: 2716px; width: 100%; table-layout: fixed; font-size: 13px; }
+  #pj-tabela th { position: sticky; top: 0; background: #ffffff; text-align: left; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding: 14px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  #pj-tabela td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: top; background: #ffffff; }
+  #pj-tabela tr:last-child td { border-bottom: 0; }
+  #pj-tabela th:first-child, #pj-tabela td:first-child { position: sticky; left: 0; z-index: 2; box-shadow: 1px 0 0 var(--border); }
+  #pj-tabela th:first-child { z-index: 3; }
+  #pj-tabela tbody tr:hover td { background: #fbfaf7; }
+  .pj-txt { width: 100%; box-sizing: border-box; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--text); font: inherit; font-size: 13px; padding: 4px 6px; resize: none; line-height: 1.35; overflow: hidden; min-height: 28px; display: block; }
+  .pj-txt:hover { border-color: var(--border); }
+  .pj-txt:focus { border-color: var(--accent); background: #ffffff; outline: none; }
+  .pj-txt.pj-nome { font-weight: 600; }
+  .pj-txt::placeholder { color: #b4b2a9; font-weight: 400; }
+  .pj-status { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; max-width: 100%; }
+  .pj-status.is-detalhar { background: #eeece4; color: #5f5e58; }
+  .pj-status.is-naoiniciado { background: transparent; color: var(--text); box-shadow: inset 0 0 0 1px var(--border-strong, #cfcdc4); }
+  .pj-status.is-andamento { background: #e6f1fb; color: #0c447c; }
+  .pj-status.is-atrasado { background: #fcebeb; color: #791f1f; }
+  .pj-status.is-bloqueado { background: #fde6d2; color: #8a3b0c; }
+  .pj-status.is-finalizado { background: #eaf3de; color: #173404; }
+  .pj-status.is-cancelado { background: #eeece4; color: #8a8980; text-decoration: line-through; }
+  .pj-datas { display: flex; flex-direction: row; align-items: center; gap: 3px; }
+  .pj-datas .pj-seta { color: var(--text-muted); font-size: 11px; }
+  .pj-data { border: 1px solid var(--border); border-radius: 6px; background: #ffffff; color: var(--text); font: inherit; font-size: 11px; padding: 1px 3px; height: 24px; width: 104px; box-sizing: border-box; }
+  .pj-data:disabled { background: transparent; border-color: transparent; color: var(--text-muted); }
+  .pj-resp { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
+  .pj-resp-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 3px 1px 8px; border-radius: 999px; background: #f1efe8; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .pj-resp-chip button { border: 0; background: none; color: var(--text-muted); cursor: pointer; font-size: 13px; padding: 0 2px; line-height: 1; }
+  .pj-resp-add { width: 20px; height: 20px; border-radius: 50%; border: 1px dashed var(--border-strong, #cfcdc4); background: none; color: var(--text-muted); cursor: pointer; font-size: 13px; line-height: 1; padding: 0; }
+  .pj-resp-add:hover { color: var(--accent); border-color: var(--accent); }
+  .pj-obj { appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; background: #e8e6dc; color: #45443e; max-width: 100%; }
+  .pj-obj.is-vazio { background: transparent; color: var(--text-muted); font-weight: 400; }
+  .pj-lixo { border: 0; background: none; cursor: pointer; color: var(--text-muted); font-size: 13px; padding: 4px; border-radius: 6px; white-space: nowrap; }
+  .pj-lixo:hover { color: #a3312a; background: #fcebeb; }
+  .pj-lixo.is-armado { color: #fff; background: #a3312a; font-size: 11.5px; font-weight: 700; }
+  .pj-vazio { padding: 22px 14px; font-size: 13px; color: var(--text-muted); }
+  .pj-rodape { display: flex; gap: 10px; align-items: center; margin-top: 12px; }
+  #pj-add { border: 1px solid var(--border); background: var(--bg); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer; }
+  #pj-add:hover { border-color: var(--accent); }
+  .pj-rodape small { color: var(--text-muted); font-size: 12px; }
+  #pj-pop { position: fixed; z-index: 950; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 12px 32px rgba(0,0,0,0.16); padding: 6px; min-width: 190px; max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; }
+  #pj-pop button { border: 0; background: none; text-align: left; padding: 6px 8px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; color: var(--text); }
+  #pj-pop button:hover { background: rgba(0,0,0,0.05); }
+  #pj-pop .pj-pop-nada { padding: 6px 8px; font-size: 12px; color: var(--text-muted); }
+  #projetos-tags-painel {
+    position: fixed; z-index: 950; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.16); width: 340px; max-width: calc(100vw - 24px); max-height: 440px;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  @media (max-width: 760px) { #projetos-wrap { padding: 14px 16px 60px; } }
+
 </style>
 
 </head>
@@ -6687,6 +6768,9 @@
   </button>
   <button class="nav-icon-btn" id="nav-tasksp" data-tooltip="Tasks (piloto)" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5"/><path d="M10.5 3v5.6L5 18.2A1.9 1.9 0 0 0 6.6 21h10.8a1.9 1.9 0 0 0 1.6-2.8L13.5 8.6V3"/><path d="M7.6 14.5h8.8"/></svg>
+  </button>
+  <button class="nav-icon-btn" id="nav-projetos" data-tooltip="Projetos" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M7 12.5h10"/><path d="M7 15.5h6"/></svg>
   </button>
   <button class="nav-icon-btn" id="nav-gestao" data-tooltip="Gestão" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M8.5 12.5l2.2 2.2 4.8-4.8"/></svg>
@@ -7107,6 +7191,38 @@
     <div id="tasksp-footer">
       <button id="tasksp-add-btn" type="button">+ Novo</button>
     </div>
+  </div>
+</div>
+
+<!-- PROJETOS (08/10, Karina): planilha de Entregas (1º nível; depois Etapas
+     e Tarefas). Só pro login karina no começo. Dados na nuvem, seção
+     projetos (CBTH: projetos__cbth). Ver bloco JS "PROJETOS". -->
+<div id="projetos-view" class="content-view hidden">
+  <div id="projetos-wrap">
+    <div class="pj-topo">
+      <div>
+        <h2 class="pj-titulo">Projetos</h2>
+        <div class="pj-sub">Entregas · role pro lado pra ver todas as colunas</div>
+      </div>
+      <div class="pj-direita">
+        <div id="pj-objetivos" aria-label="Andamento por objetivo"></div>
+        <div class="pj-frente"><label for="pj-frente-sel">Frente</label><select id="pj-frente-sel" aria-label="Filtrar por frente"></select></div>
+      </div>
+    </div>
+    <div id="pj-rolagem">
+      <table id="pj-tabela">
+        <colgroup>
+          <col style="width:380px"><col style="width:230px"><col style="width:150px"><col style="width:236px"><col style="width:120px">
+          <col style="width:190px"><col style="width:110px"><col style="width:240px"><col style="width:220px"><col style="width:130px"><col style="width:130px"><col style="width:190px"><col style="width:190px"><col style="width:150px"><col style="width:50px">
+        </colgroup>
+        <thead><tr>
+          <th>Nome da entrega</th><th>Critério de conclusão</th><th>Status</th><th>Prazo (início / fim)</th><th>Finalizado em</th>
+          <th>Responsável</th><th>Prioridade</th><th>Ação atual / próxima</th><th>Bloqueios</th><th>Frente</th><th>Objetivo</th><th>Pessoas</th><th>Orgs</th><th id="pj-th-lugar">País</th><th></th>
+        </tr></thead>
+        <tbody id="pj-corpo"></tbody>
+      </table>
+    </div>
+    <div class="pj-rodape"><button id="pj-add" type="button">+ Entrega</button><small id="pj-contagem"></small></div>
   </div>
 </div>
 
@@ -7560,7 +7676,9 @@ if (sbAuth) {
 const CLOUD_SECTIONS = ["users", "tasks2", "tasks2Areas", "tasks2Kpis", "tasks2Historico", "historicoGeral", "tasks2__cbth", "tasks2Areas__cbth", "tasks2Kpis__cbth", "tasks2Historico__cbth", "members2", "members2__cbth",
   // Tasks (piloto), 07/10: seções próprias, que o robô não lê (ele lê tasks2* e members2*).
   "tasksPiloto", "tasksPilotoAreas", "tasksPilotoKpis", "tasksPiloto__cbth", "tasksPilotoAreas__cbth", "tasksPilotoKpis__cbth",
-  "tasksPilotoCadastro", "tasksPilotoCadastro__cbth"];
+  "tasksPilotoCadastro", "tasksPilotoCadastro__cbth",
+  // Projetos, 08/10: planilha de Entregas (guia Projetos).
+  "projetos", "projetos__cbth"];
 // Sufixo da empresa ativa, usado nos nomes de secao acima.
 const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 
@@ -7572,6 +7690,8 @@ let tasks2Bridge = null;
 // Tasks (piloto), 07/10: ponte da cópia. Só quem está em PILOTO_LOGINS vê a aba
 // e só ele envia as seções tasksPiloto* (pra todo o resto a ponte devolve undefined).
 let tasksPilotoBridge = null;
+// Projetos, 08/10: ponte da guia Projetos (mesma regra do piloto: só PILOTO_LOGINS envia).
+let projetosBridge = null;
 const PILOTO_LOGINS = ["karina"];
 function pilotoLiberado() { return !!currentUser && PILOTO_LOGINS.includes(currentUser.login); }
 
@@ -7640,6 +7760,10 @@ function preencherSecoesPorOrg(p) {
     const cad = tasksPilotoBridge.getCadastro ? tasksPilotoBridge.getCadastro() : undefined;
     if (cad !== undefined) p["tasksPilotoCadastro" + suf] = cad;
   }
+  if (projetosBridge) {
+    const pj = projetosBridge.get();
+    if (pj !== undefined) p["projetos" + suf] = pj;
+  }
   return p;
 }
 
@@ -7653,6 +7777,7 @@ function applyAllData(data) {
   // da IIFE e precisam passar pelas migracoes de categoria e status dela.
   if (tasks2Bridge) tasks2Bridge.apply(data);
   if (tasksPilotoBridge) tasksPilotoBridge.apply(data);
+  if (projetosBridge) projetosBridge.apply(data);
   if (window.membros2Bridge && membros2Bridge.apply) {
     membros2Bridge.apply(data["members2" + SUFIXO_ORG()]);
   }
@@ -7895,7 +8020,7 @@ const ehSecaoHistorico = s => SECOES_HISTORICO.includes(s);
 
 // So as secoes que a empresa ativa usa (as da outra empresa nem sao lidas).
 function secaoDaOrg(s) {
-  const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2|tasksPiloto|tasksPilotoAreas|tasksPilotoKpis|tasksPilotoCadastro)(__.+)?$/.exec(s);
+  const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2|tasksPiloto|tasksPilotoAreas|tasksPilotoKpis|tasksPilotoCadastro|projetos)(__.+)?$/.exec(s);
   if (!porEmpresa) return true;
   return (porEmpresa[2] || "") === SUFIXO_ORG();
 }
@@ -8165,8 +8290,12 @@ async function lerSecoes(secoes) {
 // que deixaria uma seção com menos de 40% do tamanho que ela tem na nuvem
 // é bloqueado e a seção volta da nuvem. Históricos ficam de fora (encolhem
 // de propósito). Restaurar versão (forcar) passa.
+// 08/10: seções em que a pessoa APAGOU algo de propósito (ex.: entrega na
+// guia Projetos) passam pela trava uma vez; o envio que dá certo limpa a marca.
+const encolherPermitido = new Set();
 function encolheuDemais(secao, valor) {
   if (ehSecaoHistorico(secao)) return false;
+  if (encolherPermitido.has(secao)) return false;
   const antes = cloudTamanhos[secao];
   return antes > 1000 && tamanhoJson(valor) < antes * 0.4;
 }
@@ -8300,6 +8429,7 @@ async function enviarAgora(opcoes) {
       const carimbos = {};
       if (Array.isArray(resposta)) resposta.forEach(r => { if (r && r.section) carimbos[r.section] = r.updated_at; });
       enviado.forEach(r => {
+        encolherPermitido.delete(r.section);
         cloudTamanhos[r.section] = tamanhoJson(r.data);
         cloudBase[r.section] = baseDaSecao(r.data, r.section);
         cloudStamps[r.section] = carimbos[r.section] || r.updated_at;
@@ -8822,6 +8952,7 @@ function formatEntryDate(dateStr) {
 const NAV_VIEWS = {
   "nav-tasks2": "tasks2-view",
   "nav-tasksp": "tasksp-view",
+  "nav-projetos": "projetos-view",
   "nav-gestao": "gestao-view",
   "nav-members2": "members2-view",
   "nav-marketing": "marketing-view",
@@ -20282,6 +20413,40 @@ applyRolePermissions();
     if (tagsPainelId && !e.target.closest("#tasksp-tags-painel") && document.contains(e.target)) fecharTagsPainel();
   });
 
+  // 08/10 (Projetos): a guia Projetos usa o MESMO cadastro de tags do piloto
+  // (pessoas, empresas, associações, lugares). Só leitura + criar cadastro
+  // novo; nada aqui mexe nas linhas do piloto.
+  window.tagsPilotoApi = {
+    // Nunca semeia aqui: semear num navegador sem cópia local enviaria um
+    // cadastro novo por cima do da nuvem. Sem cadastro, as tags só mostram lugares e equipe.
+    pronto: () => cadastroTemDados,
+    cadastro: () => cadastro,
+    chip: (tipo, v) => chipTag(tipo, v, false),
+    rotulo: (tipo, v) => rotuloTag(tipo, v),
+    lugares: () => paisesDisponiveis2(),
+    rotuloLugar: () => ROTULO_PAIS_TASKS2,
+    norm: s => normTag(s),
+    criar: (tipo, nome, lugar, extra) => {
+      extra = extra || {};
+      let id = "";
+      if (tipo === "pessoa") {
+        const p = { id: novoIdTag("pes"), nome, cargo: "", email: "", tel: "", empresaId: extra.empresaId || "", lugares: lugar ? [lugar] : [] };
+        if (extra.categoria) p.categoria = extra.categoria;
+        cadastro.pessoas.push(p); id = "p:" + p.id;
+      } else if (tipo === "associacao") {
+        if (!Array.isArray(cadastro.associacoes)) cadastro.associacoes = [];
+        const as = { id: novoIdTag("ass"), nome, tipo: extra.tipo || "Associação", email: "", tel: "", site: "", redeSocial: "", lugares: lugar ? [lugar] : [] };
+        cadastro.associacoes.push(as); id = as.id;
+      } else {
+        const emp = { id: novoIdTag("emp"), nome, tipo: extra.tipo || "", email: "", tel: "", site: "", redeSocial: "", lugares: lugar ? [lugar] : [] };
+        cadastro.empresas.push(emp); id = emp.id;
+      }
+      cadastroTemDados = true;
+      saveCadastro();
+      return id;
+    }
+  };
+
   // ══ Piloto (07/10, Karina): reorganização em lote, SÓ WPF ═══════════════
   // Linhas que eram país, federação ou empresa passam a ter o nome do
   // trabalho e o resto vira tag. Regras aprovadas pela Karina em 07/10.
@@ -20556,6 +20721,9 @@ applyRolePermissions();
     apply: (data) => {
       // Le sempre da secao da empresa ativa.
       const suf = ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL;
+      // 08/10: o cadastro é lido do pacote ORIGINAL (antes, "data" era trocado
+      // logo abaixo e o cadastro da nuvem nunca chegava — só a cópia local).
+      const cadDaNuvem = data["tasksPilotoCadastro" + suf];
       data = {
         tasks2: data["tasksPiloto" + suf],
         tasks2Areas: data["tasksPilotoAreas" + suf],
@@ -20591,7 +20759,7 @@ applyRolePermissions();
           .sort((a, b) => (a.ts < b.ts ? 1 : -1)), HISTORICO_INTERVALO_MS, HISTORICO_MAX);
         try { localStorage.setItem(HISTORICO_STORAGE_KEY, JSON.stringify(historicoData)); } catch (e) {}
       }
-      const cad = data["tasksPilotoCadastro" + suf];
+      const cad = cadDaNuvem;
       if (cad && typeof cad === "object" && Array.isArray(cad.pessoas) && Array.isArray(cad.empresas)) {
         cadastro = cad; cadastroTemDados = true;
         try { localStorage.setItem(CADASTRO_KEY, JSON.stringify(cadastro)); } catch (e) {}
@@ -20654,6 +20822,489 @@ applyRolePermissions();
   // sincronizar, ele apagava a tabela de TODO MUNDO, e ficava a dois cliques
   // do "+ Novo". A semeadura automatica (ensureSeeded) continua valendo
   // quando a tabela esta vazia.
+})();
+// ══════════════════════════════════════════════════════════════════════════
+// PROJETOS (08/10, Karina): guia nova com a planilha de Entregas (1º nível;
+// depois vêm Etapas e Tarefas dentro de cada entrega — campo subtasks já
+// existe, vazio). Só pro login karina no começo (PILOTO_LOGINS). Dados na
+// nuvem, seção "projetos" (CBTH: "projetos__cbth"). Não lê nem grava Tasks,
+// Tasks (piloto) nem CRM; as tags usam o cadastro do piloto
+// (window.tagsPilotoApi).
+// Status: Falta detalhar · Não iniciado · Em andamento (azul; VERMELHO
+// quando passou do Fim) · Bloqueado · Finalizado (põe a data em
+// "Finalizado em") · Cancelado.
+// ══════════════════════════════════════════════════════════════════════════
+(function () {
+  const SUF = ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL;
+  const SECAO = "projetos" + SUF;
+  const LS_KEY = "wpf_projetos" + SUF;
+  const STATUS = [
+    { id: "detalhar",    nome: "Falta detalhar" },
+    { id: "naoiniciado", nome: "Não iniciado" },
+    { id: "andamento",   nome: "Em andamento" },
+    { id: "bloqueado",   nome: "Bloqueado" },
+    { id: "finalizado",  nome: "Finalizado" },
+    { id: "cancelado",   nome: "Cancelado" }
+  ];
+  const PRIORIDADES = [{ id: "alta", nome: "Alta" }, { id: "media", nome: "Média" }, { id: "baixa", nome: "Baixa" }];
+  const OBJETIVOS_PJ = [{ id: "autoridade", nome: "Autoridade" }, { id: "alcance", nome: "Alcance" }, { id: "governanca", nome: "Governança" }];
+  const FRENTES_PJ = [
+    { id: "federacoes", nome: "Federações" }, { id: "comite", nome: "Comitê" }, { id: "institucional", nome: "Institucional" },
+    { id: "marketing", nome: "Marketing" }, { id: "iniciativas", nome: "Iniciativa" }
+  ];
+  const SEM_FRENTE = "__sem__";
+  const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  const api = () => window.tagsPilotoApi || null;
+  // "Hoje" na data LOCAL (todayISO usa UTC e vira o dia às 21h em SP).
+  function hojeLocal() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  const fmtData = s => (s ? s.slice(8, 10) + "/" + s.slice(5, 7) + "/" + s.slice(0, 4) : "");
+
+  let entregas = [];
+  let temDados = false; // só envia pra nuvem depois de ter algo (nunca [] por cima do que está lá)
+  let frenteFiltro = "";
+  try {
+    const g = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (Array.isArray(g)) { entregas = g.map(normalizar); temDados = true; }
+  } catch (e) {}
+
+  function normalizar(e) {
+    e = e && typeof e === "object" ? e : {};
+    const t = e.tags || {};
+    return {
+      id: e.id || ("pj-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      nome: String(e.nome || ""), criterio: String(e.criterio || ""),
+      status: STATUS.some(s => s.id === e.status) ? e.status : "detalhar",
+      startDate: e.startDate || "", endDate: e.endDate || "", finalizadoEm: e.finalizadoEm || "",
+      assignees: Array.isArray(e.assignees) ? e.assignees.filter(Boolean) : [],
+      prioridade: e.prioridade || "", acao: String(e.acao || ""), bloqueios: String(e.bloqueios || ""),
+      objetivo: e.objetivo || "", frente: e.frente || "",
+      tags: { pessoas: Array.isArray(t.pessoas) ? t.pessoas : [], lugares: Array.isArray(t.lugares) ? t.lugares : [],
+        empresas: Array.isArray(t.empresas) ? t.empresas : [], associacoes: Array.isArray(t.associacoes) ? t.associacoes : [] },
+      subtasks: Array.isArray(e.subtasks) ? e.subtasks : []
+    };
+  }
+  const achar = id => entregas.find(e => e.id === id) || null;
+  function salvar() {
+    temDados = true;
+    try { localStorage.setItem(LS_KEY, JSON.stringify(entregas)); } catch (e) {}
+    scheduleCloudSave();
+  }
+  const visivel = () => { const v = document.getElementById("projetos-view"); return !!(v && !v.classList.contains("hidden")); };
+
+  // Em andamento ou Não iniciado que passou do Fim = vermelho (Karina, 08/10).
+  const vencida = e => (e.status === "andamento" || e.status === "naoiniciado") && !!e.endDate && hojeLocal() > e.endDate;
+  function classeStatus(e) {
+    if (vencida(e)) return "is-atrasado";
+    return "is-" + e.status;
+  }
+
+  // ── Tags (cadastro do piloto), em 3 colunas (Karina, 08/10) ──
+  // Pessoas: equipe + contatos (contato pode ser de serviço, ligado a uma org…).
+  // Orgs: empresas + federações/associações + mídias (empresa com tipo "Mídia").
+  // País: os lugares. Na entrega continua t.tags = { pessoas, empresas, associacoes, lugares }.
+  const GRUPOS_TAG = {
+    pessoas: { titulo: "Pessoas", tipos: ["pessoa"], vazio: "+ pessoa" },
+    orgs:    { titulo: "Orgs", tipos: ["empresa", "associacao"], vazio: "+ org" },
+    lugares: { titulo: "País", tipos: ["lugar"], vazio: "+ país" }
+  };
+  const CAMPO_TAG = { pessoa: "pessoas", empresa: "empresas", associacao: "associacoes", lugar: "lugares" };
+  function chipsDoGrupo(e, grupo) {
+    const a = api();
+    if (!a) return [];
+    const out = [];
+    GRUPOS_TAG[grupo].tipos.forEach(tipo => e.tags[CAMPO_TAG[tipo]].forEach(v => out.push(a.chip(tipo, v))));
+    return out.filter(Boolean);
+  }
+  function tagsCelula(e, grupo) {
+    const chips = chipsDoGrupo(e, grupo);
+    const mostra = chips.slice(0, 3).join("") + (chips.length > 3 ? `<span class="tasksp-tag tasksp-tag-mais">+${chips.length - 3}</span>` : "");
+    return `<span class="tasksp-tags-cell pj-tags-cell" data-id="${e.id}" data-grupo="${grupo}" title="Clique pra marcar ${GRUPOS_TAG[grupo].titulo.toLowerCase()}">${chips.length ? mostra : `<span class="tasksp-pais-vazio">${GRUPOS_TAG[grupo].vazio}</span>`}</span>`;
+  }
+
+  function linhaHtml(e) {
+    const st = STATUS.map(s => `<option value="${s.id}" ${s.id === e.status ? "selected" : ""}>${s.nome}</option>`).join("");
+    const atrasado = classeStatus(e) === "is-atrasado";
+    const prio = `<option value="">—</option>` + PRIORIDADES.map(p => `<option value="${p.id}" ${p.id === e.prioridade ? "selected" : ""}>${p.nome}</option>`).join("");
+    const obj = `<option value="">—</option>` + OBJETIVOS_PJ.map(o => `<option value="${o.id}" ${o.id === e.objetivo ? "selected" : ""}>${o.nome}</option>`).join("");
+    const fin = e.status === "finalizado";
+    const frenteOps = `<option value="">—</option>` + FRENTES_PJ.map(f => `<option value="${f.id}" ${f.id === e.frente ? "selected" : ""}>${f.nome}</option>`).join("");
+    return `<tr data-id="${e.id}">
+      <td><textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da entrega">${esc(e.nome)}</textarea></td>
+      <td><textarea class="pj-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea></td>
+      <td><select class="pj-status ${classeStatus(e)}" data-campo="status" title="${atrasado ? "Passou do prazo (Fim " + fmtData(e.endDate) + ")" : ""}">${st}</select></td>
+      <td><div class="pj-datas">
+        <input type="date" class="pj-data" data-campo="startDate" value="${esc(e.startDate)}" title="Início">
+        <span class="pj-seta">→</span>
+        <input type="date" class="pj-data" data-campo="endDate" value="${esc(e.endDate)}" title="Fim (prazo)">
+      </div></td>
+      <td><input type="date" class="pj-data" data-campo="finalizadoEm" value="${esc(e.finalizadoEm)}" ${fin ? "" : "disabled"} title="${fin ? "Data em que foi finalizada (dá pra corrigir)" : "Preenche sozinho quando o status vira Finalizado"}"></td>
+      <td><div class="pj-resp">${e.assignees.map(n => `<span class="pj-resp-chip">${esc(n)}<button type="button" data-acao="tirar-resp" data-nome="${esc(n)}" title="Tirar">×</button></span>`).join("")}<button type="button" class="pj-resp-add" data-acao="add-resp" title="Adicionar responsável">+</button></div></td>
+      <td><select class="tasksp-prio-select is-${e.prioridade || "vazio"}" data-campo="prioridade">${prio}</select></td>
+      <td><textarea class="pj-txt" data-campo="acao" rows="1" placeholder="Próximo passo">${esc(e.acao)}</textarea></td>
+      <td><textarea class="pj-txt" data-campo="bloqueios" rows="1" placeholder="O que está travando">${esc(e.bloqueios)}</textarea></td>
+      <td><select class="pj-obj ${e.frente ? "" : "is-vazio"}" data-campo="frente">${frenteOps}</select></td>
+      <td><select class="pj-obj ${e.objetivo ? "" : "is-vazio"}" data-campo="objetivo">${obj}</select></td>
+      <td>${tagsCelula(e, "pessoas")}</td>
+      <td>${tagsCelula(e, "orgs")}</td>
+      <td>${tagsCelula(e, "lugares")}</td>
+      <td><button type="button" class="pj-lixo" data-acao="apagar" title="Apagar entrega">🗑</button></td>
+    </tr>`;
+  }
+
+  function ajustarAltura(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
+
+  function sincronizarFrente() {
+    const sel = document.getElementById("pj-frente-sel");
+    if (!sel) return;
+    sel.innerHTML = `<option value="">Todas</option>` + FRENTES_PJ.map(f => `<option value="${f.id}">${f.nome}</option>`).join("") + `<option value="${SEM_FRENTE}">Sem frente</option>`;
+    sel.value = frenteFiltro;
+  }
+  function filtradas() {
+    if (!frenteFiltro) return entregas;
+    if (frenteFiltro === SEM_FRENTE) return entregas.filter(e => !e.frente);
+    return entregas.filter(e => e.frente === frenteFiltro);
+  }
+
+  // Barras por objetivo (Karina, 08/10): o cheio = entregas finalizadas; a cor
+  // diz se está em dia. Verde: nada atrasado. Amarelo: pouco atraso (até
+  // ATRASO_POUCO_DIAS e menos de ATRASADAS_MUITAS entregas). Vermelho: mais
+  // que isso. Atrasada = não finalizada/cancelada com o Fim já passado.
+  // Quando as Etapas/Tarefas existirem, elas entram na conta.
+  const ATRASO_POUCO_DIAS = 7, ATRASADAS_MUITAS = 3;
+  const diasEntre = (a, b) => Math.round((Date.parse(b + "T12:00:00") - Date.parse(a + "T12:00:00")) / 86400000);
+  function resumoObjetivo(lista, objId) {
+    const doObj = lista.filter(e => e.objetivo === objId && e.status !== "cancelado");
+    const feitas = doObj.filter(e => e.status === "finalizado").length;
+    const hoje = hojeLocal();
+    const atrasadas = doObj.filter(e => e.status !== "finalizado" && e.endDate && hoje > e.endDate);
+    const maxDias = atrasadas.reduce((m, e) => Math.max(m, diasEntre(e.endDate, hoje)), 0);
+    let cor = "verde";
+    if (!doObj.length) cor = "vazio";
+    else if (atrasadas.length >= ATRASADAS_MUITAS || maxDias > ATRASO_POUCO_DIAS) cor = "vermelho";
+    else if (atrasadas.length) cor = "amarelo";
+    return { total: doObj.length, feitas, atrasadas: atrasadas.length, maxDias, cor };
+  }
+  function renderObjetivos(lista) {
+    const el = document.getElementById("pj-objetivos");
+    if (!el) return;
+    el.innerHTML = OBJETIVOS_PJ.map(o => {
+      const r = resumoObjetivo(lista, o.id);
+      const pct = r.total ? Math.round((r.feitas / r.total) * 100) : 0;
+      const dica = !r.total ? `${o.nome}: nenhuma entrega` :
+        `${o.nome}: ${r.feitas} de ${r.total} finalizada${r.total === 1 ? "" : "s"}` +
+        (r.atrasadas ? ` · ${r.atrasadas} atrasada${r.atrasadas === 1 ? "" : "s"} (até ${r.maxDias} dia${r.maxDias === 1 ? "" : "s"})` : " · em dia");
+      return `<div class="pj-obj-barra is-${r.cor}" title="${esc(dica)}" data-obj="${o.id}">
+        <div class="pj-obj-barra-topo"><span>${o.nome}</span><b>${r.total ? r.feitas + "/" + r.total : "—"}</b></div>
+        <div class="pj-obj-trilho"><div class="pj-obj-cheio" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join("");
+  }
+
+  function render() {
+    fecharPop();
+    sincronizarFrente();
+    renderObjetivos(filtradas());
+    const corpo = document.getElementById("pj-corpo");
+    if (!corpo) return;
+    const lista = filtradas();
+    corpo.innerHTML = lista.length ? lista.map(linhaHtml).join("")
+      : `<tr><td colspan="15" class="pj-vazio">${entregas.length ? "Nenhuma entrega nesta frente." : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
+    corpo.querySelectorAll("textarea.pj-txt").forEach(ajustarAltura);
+    const c = document.getElementById("pj-contagem");
+    if (c) c.textContent = entregas.length ? `${lista.length} de ${entregas.length} entrega${entregas.length === 1 ? "" : "s"}` : "";
+  }
+
+  // ── Edição ──
+  function aoMudar(ev) {
+    const el = ev.target.closest("[data-campo]");
+    if (!el) return;
+    const tr = el.closest("tr[data-id]");
+    const e = tr && achar(tr.dataset.id);
+    if (!e) return;
+    const campo = el.dataset.campo;
+    if (el.tagName === "TEXTAREA") {
+      e[campo] = el.value;
+      ajustarAltura(el);
+      salvar();
+      return;
+    }
+    if (ev.type === "input" && el.tagName !== "TEXTAREA") return; // selects e datas: só no change
+    if (campo === "status") {
+      const antes = e.status;
+      e.status = el.value;
+      if (e.status === "finalizado" && antes !== "finalizado" && !e.finalizadoEm) e.finalizadoEm = hojeLocal();
+      if (e.status !== "finalizado") e.finalizadoEm = "";
+    } else {
+      e[campo] = el.value;
+    }
+    salvar();
+    render();
+  }
+
+  // Responsável: lista da equipe num pop-up.
+  let popPara = null;
+  function fecharPop() { const p = document.getElementById("pj-pop"); if (p) p.remove(); popPara = null; }
+  function abrirPopResp(botao, e) {
+    fecharPop();
+    popPara = e.id;
+    const nomes = (typeof usersList !== "undefined" && usersList ? usersList : []).map(u => u.username).filter(n => n && !e.assignees.includes(n));
+    const pop = document.createElement("div");
+    pop.id = "pj-pop";
+    pop.innerHTML = nomes.length ? nomes.map(n => `<button type="button" data-nome="${esc(n)}">${esc(n)}</button>`).join("") : `<div class="pj-pop-nada">Todo mundo já está nesta entrega.</div>`;
+    document.body.appendChild(pop);
+    const r = botao.getBoundingClientRect();
+    pop.style.top = Math.min(r.bottom + 4, window.innerHeight - pop.offsetHeight - 8) + "px";
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 12)) + "px";
+    pop.addEventListener("click", ev => {
+      const b = ev.target.closest("button[data-nome]");
+      const alvo = achar(popPara);
+      if (!b || !alvo) return;
+      alvo.assignees = alvo.assignees.concat(b.dataset.nome);
+      salvar();
+      render();
+    });
+  }
+
+  // Apagar em dois cliques.
+  let armado = null, armadoTimer = null;
+  function desarmar() {
+    clearTimeout(armadoTimer);
+    const b = document.querySelector(".pj-lixo.is-armado");
+    if (b) { b.classList.remove("is-armado"); b.textContent = "🗑"; }
+    armado = null;
+  }
+
+  function aoClicar(ev) {
+    const b = ev.target.closest("[data-acao]");
+    const tr = ev.target.closest("tr[data-id]");
+    const e = tr && achar(tr.dataset.id);
+    if (b && b.dataset.acao !== "apagar") desarmar();
+    if (!b || !e) {
+      const cel = ev.target.closest(".pj-tags-cell");
+      if (cel) { const alvo = achar(cel.dataset.id); if (alvo) abrirTags(cel, alvo); }
+      return;
+    }
+    const acao = b.dataset.acao;
+    if (acao === "add-resp") { ev.stopPropagation(); abrirPopResp(b, e); return; }
+    if (acao === "tirar-resp") { e.assignees = e.assignees.filter(n => n !== b.dataset.nome); salvar(); render(); return; }
+    if (acao === "apagar") {
+      if (armado !== e.id) {
+        desarmar();
+        armado = e.id;
+        b.classList.add("is-armado"); b.textContent = "Apagar?";
+        armadoTimer = setTimeout(desarmar, 4000);
+        return;
+      }
+      desarmar();
+      entregas = entregas.filter(x => x.id !== e.id);
+      // Apagar é de propósito: libera a trava "encolheu demais" desta seção.
+      if (typeof encolherPermitido !== "undefined") encolherPermitido.add(SECAO);
+      salvar();
+      render();
+    }
+  }
+
+  // ── Painel de tags (mesmo visual do piloto), um por coluna ──
+  let tagsId = null, tagsGrupo = "pessoas", tagsBusca = "", tagsCriando = null;
+  const CATEGORIAS_PESSOA = ["Contato", "Serviços", "Outro"];
+  const TIPOS_ORG = [
+    { id: "Empresa", nome: "Empresa" }, { id: "Federação", nome: "Federação" },
+    { id: "Mídia", nome: "Mídia" }, { id: "Outro", nome: "Outro" }
+  ];
+  function fecharTags(redesenhar) {
+    const el = document.getElementById("projetos-tags-painel");
+    if (el) el.remove();
+    const tinha = tagsId;
+    tagsId = null; tagsBusca = ""; tagsCriando = null;
+    if (tinha && redesenhar !== false) render();
+  }
+  function nomeOrg(cad, id) {
+    const o = (cad.empresas || []).concat(cad.associacoes || []).find(x => x.id === id);
+    return o ? o.nome : "";
+  }
+  function montarTags() {
+    const painel = document.getElementById("projetos-tags-painel");
+    const e = achar(tagsId), a = api();
+    if (!painel || !e || !a) return;
+    const cel = document.querySelector(`#pj-corpo .pj-tags-cell[data-id="${e.id}"][data-grupo="${tagsGrupo}"]`);
+    if (cel) cel.outerHTML = tagsCelula(e, tagsGrupo);
+    const cad = a.cadastro(), g = e.tags, k = a.norm(tagsBusca);
+    const casa = s => !k || a.norm(s).includes(k);
+    const lim = l => l.slice(0, 10);
+    const equipe = (typeof usersList !== "undefined" && usersList ? usersList : []).map(u => u.username);
+    const estado = a.rotuloLugar() === "Estado";
+    const op = (t, v, extra) => `<button type="button" class="tasksp-tags-opcao" data-acao="add" data-tipo="${t}" data-v="${esc(v)}">${a.chip(t, v)}${extra ? `<small>${esc(extra)}</small>` : ""}</button>`;
+    const grupo = (t, itens) => (itens.length ? `<div class="tasksp-tags-grupo">${t}</div>${itens.join("")}` : "");
+    // Marcadas nesta coluna
+    const proprias = [];
+    GRUPOS_TAG[tagsGrupo].tipos.forEach(tipo => g[CAMPO_TAG[tipo]].forEach(v => proprias.push([tipo, v])));
+    painel.querySelector(".tasksp-tags-proprias").innerHTML = proprias.length
+      ? proprias.map(([t, v]) => `<span class="tasksp-tag-tirar">${a.chip(t, v)}<button type="button" data-acao="tirar" data-tipo="${t}" data-v="${esc(v)}" title="Tirar">×</button></span>`).join("")
+      : `<span class="tasksp-tags-nada">Nada marcado nesta coluna.</span>`;
+    const lugarSel = `<label>${estado ? "Estado" : "País"} (opcional)</label>
+        <select class="pj-criar-lugar"><option value="">—</option>${a.lugares().map(l => `<option value="${esc(l)}" ${g.lugares[0] === l ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`;
+    let html = "";
+    if (tagsCriando && tagsCriando.tipo === "pessoa") {
+      const orgs = (cad.empresas || []).concat(cad.associacoes || []).slice().sort((x, y) => x.nome.localeCompare(y.nome, "pt-BR"));
+      html = `<div class="tasksp-tags-criar">
+        <div>Nova pessoa: <b>${esc(tagsCriando.nome)}</b></div>
+        <label>Tipo</label>
+        <select class="pj-criar-categoria">${CATEGORIAS_PESSOA.map(c => `<option>${c}</option>`).join("")}</select>
+        <label>Ligada a qual org? (opcional)</label>
+        <select class="pj-criar-org"><option value="">—</option>${orgs.map(o => `<option value="${esc(o.id)}">${esc(o.nome)}</option>`).join("")}</select>
+        ${lugarSel}
+        <div class="tasksp-tags-criar-botoes"><button type="button" data-acao="criar-ok">Criar e marcar</button><button type="button" data-acao="criar-cancelar">Cancelar</button></div>
+      </div>`;
+    } else if (tagsCriando && tagsCriando.tipo === "org") {
+      html = `<div class="tasksp-tags-criar">
+        <div>Nova org: <b>${esc(tagsCriando.nome)}</b></div>
+        <label>Tipo</label>
+        <select class="pj-criar-tipo-org">${TIPOS_ORG.map(t => `<option value="${t.id}">${t.nome}</option>`).join("")}</select>
+        ${lugarSel}
+        <div class="tasksp-tags-criar-botoes"><button type="button" data-acao="criar-ok">Criar e marcar</button><button type="button" data-acao="criar-cancelar">Cancelar</button></div>
+      </div>`;
+    } else if (tagsGrupo === "pessoas") {
+      const eq = lim(equipe.filter(n => n && casa(n) && !g.pessoas.includes("eq:" + n)));
+      const ps = lim((cad.pessoas || []).filter(p => casa(p.nome) && !g.pessoas.includes("p:" + p.id)));
+      const exato = k && ((cad.pessoas || []).some(p => a.norm(p.nome) === k) || equipe.some(n => a.norm(n) === k));
+      html = grupo("Equipe", eq.map(n => op("pessoa", "eq:" + n))) +
+        grupo("Contatos", ps.map(p => op("pessoa", "p:" + p.id, [p.categoria, nomeOrg(cad, p.empresaId), (p.lugares || []).join(", ")].filter(Boolean).join(" · ")))) +
+        (eq.length + ps.length ? "" : `<div class="tasksp-tags-nada tasksp-tags-pessoas-vazio">${tagsBusca.trim() ? "Ninguém com esse nome." : "Nenhuma pessoa cadastrada ainda."}</div>`) +
+        (tagsBusca.trim() && !exato ? `<div class="tasksp-tags-grupo">Novo cadastro</div><button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="pessoa">+ Criar pessoa “${esc(tagsBusca.trim())}”</button>` : "");
+    } else if (tagsGrupo === "orgs") {
+      const emps = lim((cad.empresas || []).filter(x => casa(x.nome) && !g.empresas.includes(x.id)));
+      const assoc = lim((cad.associacoes || []).filter(x => casa(x.nome) && !g.associacoes.includes(x.id)));
+      const exato = k && (cad.empresas || []).concat(cad.associacoes || []).some(x => a.norm(x.nome) === k);
+      html = grupo("Federações e associações", assoc.map(x => op("associacao", x.id, [x.tipo, (x.lugares || []).join(", ")].filter(Boolean).join(" · ")))) +
+        grupo("Empresas e mídias", emps.map(x => op("empresa", x.id, [x.tipo, (x.lugares || []).join(", ")].filter(Boolean).join(" · ")))) +
+        (emps.length + assoc.length ? "" : `<div class="tasksp-tags-nada">${tagsBusca.trim() ? "Nenhuma org com esse nome." : "Nenhuma org cadastrada ainda."}</div>`) +
+        (tagsBusca.trim() && !exato ? `<div class="tasksp-tags-grupo">Novo cadastro</div><button type="button" class="tasksp-tags-opcao" data-acao="criar" data-tipo="org">+ Criar org “${esc(tagsBusca.trim())}”</button>` : "");
+    } else {
+      const ls = lim(a.lugares().filter(l => casa(l) && !g.lugares.includes(l)));
+      html = ls.length ? ls.map(l => op("lugar", l)).join("") : `<div class="tasksp-tags-nada">Nada encontrado.</div>`;
+    }
+    painel.querySelector(".tasksp-tags-lista").innerHTML = html;
+  }
+  function abrirTags(celula, e) {
+    const grupoCel = celula.dataset.grupo || "pessoas";
+    if (tagsId === e.id && tagsGrupo === grupoCel) { fecharTags(); return; }
+    fecharTags(false);
+    const a = api();
+    if (!a) return;
+    a.pronto();
+    tagsId = e.id; tagsGrupo = grupoCel;
+    const painel = document.createElement("div");
+    painel.id = "projetos-tags-painel";
+    const estado = a.rotuloLugar() === "Estado";
+    const busca0 = tagsGrupo === "pessoas" ? "Buscar pessoa…" : tagsGrupo === "orgs" ? "Buscar empresa, federação ou mídia…" : `Buscar ${estado ? "estado" : "país"}…`;
+    const titulo = tagsGrupo === "lugares" ? (estado ? "Estado" : "País") : GRUPOS_TAG[tagsGrupo].titulo;
+    painel.innerHTML = `<div class="tasksp-contexto-topo"><span title="${esc(e.nome)}">${titulo} · ${esc(e.nome || "Entrega")}</span><button type="button" data-acao="fechar" title="Fechar">×</button></div>
+      <div class="tasksp-tags-proprias"></div>
+      <input type="text" class="tasksp-tags-busca" placeholder="${busca0}" autocomplete="off">
+      <div class="tasksp-tags-lista"></div>`;
+    document.body.appendChild(painel);
+    montarTags();
+    const r = celula.getBoundingClientRect();
+    const alto = Math.min(painel.offsetHeight, 440);
+    const cabe = r.bottom + 4 + alto < window.innerHeight - 8;
+    painel.style.top = Math.max(8, cabe ? r.bottom + 4 : r.top - alto - 4) + "px";
+    painel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - painel.offsetWidth - 12)) + "px";
+    const busca = painel.querySelector(".tasksp-tags-busca");
+    busca.addEventListener("input", () => { tagsBusca = busca.value; tagsCriando = null; montarTags(); });
+    busca.addEventListener("keydown", ev => {
+      if (ev.key === "Escape") { ev.preventDefault(); fecharTags(); }
+      if (ev.key === "Enter") { ev.preventDefault(); const b = painel.querySelector(".tasksp-tags-opcao"); if (b) b.click(); }
+    });
+    painel.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-acao]");
+      const alvo = achar(tagsId);
+      if (!b || !alvo) return;
+      const acao = b.dataset.acao;
+      if (acao === "fechar") { fecharTags(); return; }
+      if (acao === "add" || acao === "tirar") {
+        const c = CAMPO_TAG[b.dataset.tipo];
+        alvo.tags[c] = acao === "add" ? [...new Set(alvo.tags[c].concat(b.dataset.v))] : alvo.tags[c].filter(v => v !== b.dataset.v);
+        salvar();
+        tagsBusca = ""; busca.value = "";
+        montarTags(); busca.focus();
+        return;
+      }
+      if (acao === "criar") { tagsCriando = { tipo: b.dataset.tipo, nome: tagsBusca.trim() }; montarTags(); return; }
+      if (acao === "criar-cancelar") { tagsCriando = null; montarTags(); return; }
+      if (acao === "criar-ok" && tagsCriando) {
+        const val = sel => ((painel.querySelector(sel) || {}).value || "");
+        const lugar = val(".pj-criar-lugar");
+        let tipo, extra;
+        if (tagsCriando.tipo === "pessoa") {
+          tipo = "pessoa"; extra = { categoria: val(".pj-criar-categoria"), empresaId: val(".pj-criar-org") };
+        } else {
+          const t = val(".pj-criar-tipo-org") || "Empresa";
+          tipo = t === "Federação" ? "associacao" : "empresa"; extra = { tipo: t };
+        }
+        const id = api().criar(tipo, tagsCriando.nome, lugar, extra);
+        const c = CAMPO_TAG[tipo];
+        alvo.tags[c] = alvo.tags[c].concat(id);
+        salvar();
+        tagsCriando = null; tagsBusca = ""; busca.value = "";
+        montarTags();
+      }
+    });
+    busca.focus();
+  }
+
+  // ── Ligações ──
+  (function () { const th = document.getElementById("pj-th-lugar"); if (th && ORG_ATUAL === "cbth") th.textContent = "Estado"; })();
+  const corpo = document.getElementById("pj-corpo");
+  corpo.addEventListener("input", aoMudar);
+  corpo.addEventListener("change", aoMudar);
+  corpo.addEventListener("click", aoClicar);
+  document.addEventListener("click", ev => {
+    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add")) fecharPop();
+    if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
+    if (armado && !ev.target.closest(".pj-lixo")) desarmar();
+  });
+  document.addEventListener("keydown", ev => {
+    if (ev.key !== "Escape") return;
+    if (popPara) fecharPop();
+    if (tagsId) fecharTags();
+  });
+  document.getElementById("pj-frente-sel").addEventListener("change", ev => { frenteFiltro = ev.target.value; render(); });
+  document.getElementById("pj-add").addEventListener("click", () => {
+    // A entrega nova nasce na frente escolhida no topo.
+    const frente = frenteFiltro && frenteFiltro !== SEM_FRENTE ? frenteFiltro : "";
+    const nova = normalizar({ status: "detalhar", frente });
+    entregas.push(nova);
+    salvar();
+    render();
+    const ta = document.querySelector(`#pj-corpo tr[data-id="${nova.id}"] .pj-nome`);
+    if (ta) { ta.focus(); ta.closest("#pj-rolagem").scrollLeft = 0; }
+  });
+  document.getElementById("nav-projetos").addEventListener("click", async () => {
+    if (!temDados) {
+      document.getElementById("pj-corpo").innerHTML = `<tr><td colspan="15" class="pj-vazio">Carregando…</td></tr>`;
+      await initialCloudLoadPromise.catch(() => {});
+    }
+    const a = api();
+    if (a) a.pronto();
+    render();
+  });
+  // Virada do dia (Em andamento → vermelho) sem precisar recarregar.
+  setInterval(() => { if (visivel() && !usuarioOcupado()) render(); }, 10 * 60 * 1000);
+
+  projetosBridge = {
+    get: () => (temDados && pilotoLiberado() ? entregas : undefined),
+    apply: (data) => {
+      const lista = data && data[SECAO];
+      if (!Array.isArray(lista)) return;
+      entregas = lista.map(normalizar);
+      temDados = true;
+      try { localStorage.setItem(LS_KEY, JSON.stringify(entregas)); } catch (e) {}
+      if (visivel()) render();
+    }
+  };
 })();
 // ══════════════════════════════════════════════════════════════════════════
 // GESTÃO (07/10, Karina): protótipo do "assistente de organização e
@@ -21228,6 +21879,7 @@ function presencaOnde() {
   if (id === "tasks2-view") return "Tasks" + (org !== "wpf" ? ` (${String(org).toUpperCase()})` : "");
   if (id === "tasksp-view") return "Tasks (piloto)";
   if (id === "gestao-view") return "Gestão";
+  if (id === "projetos-view") return "Projetos";
   if (id === "members2-view") {
     const pl = document.getElementById("planilha2-wrap");
     return "CRM › " + (pl && !pl.classList.contains("hidden") ? "Planilha" : "Mapa");
@@ -21614,7 +22266,8 @@ const CATALOGO_PERMISSOES = [
     { chave: "carinha", rotulo: "Usar o Carinha" },
     { chave: "acoesIa", rotulo: "Ações de IA (e-mail, mensagem, pesquisa)" },
     { chave: "tasksPiloto", rotulo: "Tasks (piloto)" },
-    { chave: "gestao", rotulo: "Gestão (protótipo)" }
+    { chave: "gestao", rotulo: "Gestão (protótipo)" },
+    { chave: "projetos", rotulo: "Projetos (Entregas)" }
   ] }
 ];
 const CFG_VISTAS_KEY = "wpf_cfg_permissoes_vistas";
