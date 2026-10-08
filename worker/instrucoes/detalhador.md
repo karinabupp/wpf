@@ -35,8 +35,13 @@ Regras da estrutura:
 5. Itens repetidos (um por parceiro, por país, por evento) têm o **mesmo
    nome e as mesmas etapas**; o que muda é a tag. Se existir modelo de
    rotina, usar o modelo.
-6. Não criar nível vazio só pra preencher: se a entrega não tem itens
-   separados, as etapas podem ficar direto na entrega.
+6. **Nunca pular nível** (Karina, 08/10): toda etapa fica dentro de um
+   **Item**, e todo item fica dentro de uma entrega — etapa nunca fica
+   direto na entrega. Se a entrega tem uma ação só, ela vira um Item (nome
+   de coisa: "Data do LW 2027") com a Etapa embaixo ("Definir a data do LW
+   2027"). Preferir sempre item **com** etapas; item sem etapa só quando
+   ainda não dá pra saber as ações (fica com o selo "detalhar"). Entrega
+   pode ficar vazia se os itens dela entram depois (ex.: um por stop).
 
 ## Campos de cada nível
 
