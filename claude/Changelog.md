@@ -12,6 +12,35 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (9ª) — Projetos: níveis em azul, nomes em tons de cinza, cores de status, arrastar linhas, Duplicar
+
+Pedido da Karina, publicado com o OK dela.
+
+- **Níveis em degradê de azul** (barrinha das linhas e chips da legenda),
+  no lugar do roxo da 8ª: entrega `#1f3b64` (escuro), etapa `#4a78b5`
+  (médio), tarefa `#a9c3e4` na barrinha, com o chip `#dbe7f5` (claro).
+- **Texto do Nome em tons de cinza:** entrega `#1f1e1b` (quase preto,
+  negrito), etapa `#55534d` (médio), tarefa `#858379` (claro), todos
+  legíveis.
+- **Cores de status:** Em andamento em amarelo. Atrasado (Em andamento ou
+  Não iniciado com o Fim já passado), Bloqueado e Falta detalhar em
+  vermelho. Os outros status não mudaram.
+- **Arrastar linhas** pela alça ⠿, que aparece antes do nome ao passar o
+  mouse. A linha vai pra junto de outra do mesmo nível (antes ou depois)
+  ou pra dentro de uma linha do nível de cima: uma tarefa pode ir pra uma
+  etapa de outra entrega, e uma etapa pra outra entrega. Níveis errados
+  não aceitam a linha. A mudança de lugar fica no Histórico da linha e das
+  duas de cima (de onde saiu e pra onde foi).
+- **Botão direito → Duplicar:** a cópia leva tudo (etapas e tarefas de
+  dentro, checklist, bloqueios) com ids novos, entra logo embaixo da
+  original com "(cópia)" no nome, e o Histórico dela começa do zero
+  ("Duplicou de …").
+- **Onde:** `index.html`, bloco JS "PROJETOS" (`CELULAS.nome` com
+  `.pj-alca`, `moverLinha`, `alvoDrop`, `duplicarLinha`, menu `#pj-menu`),
+  CSS "08/10 (8ª→10ª)" e "08/10 (9ª)".
+- **Por quê:** a Karina quer os níveis fáceis de distinguir, poder
+  reorganizar as linhas e duplicar linhas.
+
 ## 2026-10-08 (8ª) — Projetos: planilha estilo Notion (Entrega › Etapa › Tarefa numa árvore só), Checklist, Histórico, visual limpo, logo
 
 Pedido da Karina, publicado com o OK dela. Substitui o layout da 7ª
