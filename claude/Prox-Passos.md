@@ -15,6 +15,23 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Projetos — as outras 7 das "11 novas federações"** — a etapa
+  "Fechar 11 novas federações" (entrega "Chegar a 50 federações-membro") só
+  tem 4 tarefas: Angola, Reino Unido, EUA e Mongólia (as que estavam na
+  Tasks). A Karina passa as outras 7, e cada uma vira uma tarefa "Fechar a
+  federação de X como membro".
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Projetos — Wrap Up de 2026: responsáveis e prazos** — a entrega
+  nova tem 9 tarefas sugeridas, sem responsável nem prazo.
+  - *Aberto em:* 2026-10-08
+
+- [ ] **Projetos — progresso pela checklist (ideia)** — tarefa com
+  checklist mostra 0% até ser marcada como finalizada (ex.: Angola com 4 de
+  5 passos feitos). Dá pra calcular o progresso da tarefa pela checklist.
+  Só se a Karina quiser.
+  - *Aberto em:* 2026-10-08
+
 - [ ] **Apagar a tabela temporária `public._mig_projetos`** (Supabase) —
   usada só pra gravar a migração da Tasks pra Projetos em 08/10; já não
   serve. O `drop table` precisa de confirmação da Karina no conector e não

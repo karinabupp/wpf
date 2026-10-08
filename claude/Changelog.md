@@ -12,6 +12,41 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (11ª) — Projetos reorganizada: cada entrega é uma meta (11 entregas); tela branca; balão no Histórico
+
+Pedido da Karina, com o OK dela ("faz isso").
+
+- **Dados (seção `projetos`):** a versão de 39 entregas (10ª) foi trocada por
+  **11 entregas, 45 etapas e 163 tarefas**, sempre com as três camadas
+  (Entrega › Etapa › Tarefa). O que tinha mais um nível embaixo da tarefa
+  virou checklist; mesma ação em vários países continua sendo uma tarefa
+  com checklist de países.
+  1. **Chegar a 50 federações-membro** — etapas: Fechar 11 novas federações
+     (tarefas "Fechar a federação da Angola como membro", Reino Unido, EUA,
+     Mongólia; os passos em checklist), Fechar 7 federações em abertura,
+     Substituir 6 federações, 33 federações-membro já certificadas.
+  2. **Evento Ladies Weekend 2026 com 20 paradas** — no modelo do LW 2027:
+     Captação de hosts, Stops fechados (o que falta do Brasil fica como
+     tarefa com prazo), Fluxo de mídia e cobertura, Calendário de postagens
+     (pré, Sorteio, Reels, durante, pós) e Divulgação nas mídias de poker.
+     Fases do modelo sem registro em 2026 ficaram de fora.
+  3. **Wrap Up de 2026 pros parceiros** (nova; Institucional) — PPT Ladies
+     Weekend, E-mail de fim de ano, Programar e-mails de Holidays, com 3
+     tarefas cada (sem responsável e sem prazo ainda).
+  4. Chegar a 10 grupos femininos no Comitê · 5. Promover WPF+TDA em 4
+     continentes (+ firmar a parceria) · 6. Promover 2 Nations Cups ·
+     7. Organizar o 1º Campeonato Mundial · 8. Chegar a 23.260 acessos no
+     site (SEO, Adwords, atualizar o site) · 9. Chegar a 16 mil seguidores no
+     IG · 10. Chegar a 185 menções (uma etapa por mídia) · 11. Organizar a
+     dash com as 4 áreas.
+  - Gravado em partes na tabela temporária, conferido por md5 (bate com a
+    prévia). Antes de trocar, conferi que ninguém tinha mexido na versão 10ª.
+- **Tela toda branca** na Projetos (não só o painel):
+  `body:has(#projetos-view:not(.hidden))`. **Histórico** com balão de fala
+  (SVG `BALAO`) no lugar do 🕘, na célula e no cabeçalho. CSS "08/10 (12ª)".
+- **Por quê:** a Karina quer a gestão sucinta e fácil de seguir: poucas
+  entregas grandes (as metas), com as três camadas sempre.
+
 ## 2026-10-08 (10ª) — Projetos recebe as tarefas da Tasks; filtro por objetivo
 
 Pedido da Karina, gravado e publicado com o OK dela.
