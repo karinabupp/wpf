@@ -6744,6 +6744,51 @@
   #pj-tabela th.pj-th-antes { box-shadow: inset 3px 0 0 var(--accent); }
   #pj-tabela th.pj-th-depois { box-shadow: inset -3px 0 0 var(--accent); }
   #pj-tabela th:first-child.pj-th-depois { box-shadow: inset -3px 0 0 var(--accent), 1px 0 0 var(--border); }
+  /* 08/10 (3ª): planilha das etapas dentro da entrega, lista de tarefas, Prazo num selo, Bloqueios e tags com número */
+  .pj-status.is-detalhar { background: #fde6d2; color: #8a3b0c; }
+  .pj-seta-abrir.is-sem { opacity: 0.45; }
+  .pj-nome-linha .pj-seta-abrir { margin-top: 0; }
+  #pj-tabela td.pj-sub-td { position: static; box-shadow: none; padding: 0 0 14px; background: #fbfaf7 !important; }
+  #pj-tabela td.pj-tar-td { background: #ffffff !important; padding: 0 0 10px; }
+  .pj-sub-wrap { position: sticky; left: 0; box-sizing: border-box; padding: 0 14px 0 34px; }
+  .pj-sub-card { border: 1px solid var(--border); border-radius: 10px; background: #ffffff; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .pj-sub-topo { display: flex; align-items: center; gap: 8px; padding: 10px 12px 8px; border-bottom: 1px solid var(--border); }
+  .pj-sub-topo .pj-nivel { margin-top: 0; }
+  .pj-sub-titulo { font-size: 12.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pj-sub-n { font-size: 11px; color: var(--text-muted); background: #f1efe8; border-radius: 999px; padding: 0 7px; }
+  .pj-sub-rolagem { overflow-x: auto; }
+  .pj-sub-tabela, .pj-tar-tabela { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; font-size: 13px; }
+  #pj-tabela .pj-sub-tabela th, #pj-tabela .pj-tar-tabela th { position: static; font-size: 11px; padding: 8px 10px; background: #ffffff; }
+  #pj-tabela .pj-sub-tabela th:first-child, #pj-tabela .pj-tar-tabela th:first-child { position: sticky; left: 0; z-index: 2; }
+  .pj-sub-add { margin: 8px 12px 10px; border: 1px dashed var(--border-strong, #cfcdc4); background: #ffffff; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--accent); cursor: pointer; }
+  .pj-sub-add:hover { border-color: var(--accent); border-style: solid; }
+  .pj-tar-lista { margin: 4px 0 0; border-left: 3px solid #e6f1fb; border-radius: 0 8px 8px 0; background: #fbfaf7; padding: 2px 0 0; }
+  #pj-tabela .pj-tar-tabela th, #pj-tabela .pj-tar-tabela td { background: #fbfaf7; }
+  #pj-tabela .pj-tar-tabela td { padding: 6px 10px; }
+  .pj-prazo { border: 1px solid var(--border); border-radius: 999px; background: #ffffff; padding: 3px 10px; font: inherit; font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; white-space: nowrap; margin-top: 3px; }
+  .pj-prazo:hover { border-color: var(--accent); }
+  .pj-prazo.is-vazio { color: var(--text-muted); font-weight: 400; border-style: dashed; }
+  .pj-forma { display: inline-block; margin-top: 4px; }
+  .pj-bloq { border: 1px dashed var(--border-strong, #cfcdc4); border-radius: 999px; background: none; padding: 2px 10px; font: inherit; font-size: 12px; color: var(--text-muted); cursor: pointer; margin-top: 3px; }
+  .pj-bloq.tem { border: 0; background: #fde6d2; color: #8a3b0c; font-weight: 700; }
+  .pj-tag-num { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-top: 3px; }
+  .pj-tag-num-pessoas { background: #f1efe8; color: var(--text); }
+  .pj-tag-num-orgs { background: #e7f4ec; color: #1e5b36; }
+  .pj-tag-num-lugares { background: #e6f1fb; color: #0c447c; }
+  .pj-tags-cell .tasksp-pais-vazio { display: inline-block; margin-top: 3px; padding: 1px 9px; border: 1px dashed var(--border-strong, #cfcdc4); border-radius: 999px; }
+  #pj-pop.pj-pop-form { padding: 10px 12px; gap: 8px; min-width: 230px; }
+  .pj-pop-titulo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+  #pj-pop.pj-pop-form label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); }
+  #pj-pop .pj-pop-data { width: 100%; height: 30px; font-size: 13px; }
+  .pj-pop-botoes { display: flex; justify-content: space-between; gap: 8px; }
+  #pj-pop .pj-pop-botoes button { border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12px; }
+  #pj-pop .pj-pop-botoes button.is-ok { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pj-pop-bloq { width: 320px; }
+  .pj-bloq-item { display: flex; align-items: flex-start; gap: 6px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .pj-bloq-item .pj-txt { flex: 1; border-color: var(--border); }
+  .pj-bloq-item small { flex-shrink: 0; font-size: 10.5px; color: var(--text-muted); margin-top: 7px; }
+  #pj-pop .pj-bloq-item button { padding: 4px 6px; color: var(--text-muted); }
+  .pj-bloq-novo { border: 1px dashed var(--border-strong, #cfcdc4); border-radius: 6px; padding: 6px 8px; font: inherit; font-size: 13px; background: #ffffff; color: var(--text); }
   @media (max-width: 760px) { #projetos-wrap { padding: 14px 16px 60px; } }
 
 </style>
@@ -20846,9 +20891,11 @@ applyRolePermissions();
   // quando a tabela esta vazia.
 })();
 // ══════════════════════════════════════════════════════════════════════════
-// PROJETOS (08/10, Karina): guia nova com a planilha Entrega › Etapa ›
-// Tarefa (etapas em entrega.subtasks, tarefas em etapa.subtasks), selo do
-// nível antes do nome, coluna Progresso e colunas arrastáveis. Só pro login karina no começo (PILOTO_LOGINS). Dados na
+// PROJETOS (08/10, Karina): planilha de Entregas; a setinha da entrega abre
+// a planilha das Etapas dentro dela, e a da etapa abre a lista de Tarefas
+// (etapas em entrega.subtasks, tarefas em etapa.subtasks). Selo do nível
+// antes do nome, Progresso, Prazo num selo só, Forma, Bloqueios em lista,
+// tags com número e colunas arrastáveis. Só pro login karina no começo (PILOTO_LOGINS). Dados na
 // nuvem, seção "projetos" (CBTH: "projetos__cbth"). Não lê nem grava Tasks,
 // Tasks (piloto) nem CRM; as tags usam o cadastro do piloto
 // (window.tagsPilotoApi).
@@ -20900,13 +20947,23 @@ applyRolePermissions();
     e = e && typeof e === "object" ? e : {};
     nivel = nivel || 0;
     const t = e.tags || {};
+    // Bloqueios viraram lista (08/10): o texto antigo vira o 1º bloqueio.
+    let bloq = e.bloqueios;
+    if (typeof bloq === "string") bloq = bloq.trim() ? [{ texto: bloq.trim(), desde: "" }] : [];
+    bloq = (Array.isArray(bloq) ? bloq : []).filter(b => b && typeof b === "object").map(b => ({
+      id: b.id || ("bq-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+      texto: String(b.texto || ""), desde: b.desde || ""
+    }));
     return {
       id: e.id || ("pj-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
       nome: String(e.nome || ""), criterio: String(e.criterio || ""),
       status: STATUS.some(s => s.id === e.status) ? e.status : (nivel ? "naoiniciado" : "detalhar"),
       startDate: e.startDate || "", endDate: e.endDate || "", finalizadoEm: e.finalizadoEm || "",
       assignees: Array.isArray(e.assignees) ? e.assignees.filter(Boolean) : [],
-      prioridade: e.prioridade || "", acao: String(e.acao || ""), bloqueios: String(e.bloqueios || ""),
+      prioridade: e.prioridade || "",
+      // "Ação atual / próxima" (uma coluna) virou duas; o texto antigo fica em Ação atual.
+      acaoAtual: String(e.acaoAtual != null ? e.acaoAtual : (e.acao || "")), proximaAcao: String(e.proximaAcao || ""),
+      bloqueios: bloq,
       objetivo: e.objetivo || "", frente: e.frente || "",
       tags: { pessoas: Array.isArray(t.pessoas) ? t.pessoas : [], lugares: Array.isArray(t.lugares) ? t.lugares : [],
         empresas: Array.isArray(t.empresas) ? t.empresas : [], associacoes: Array.isArray(t.associacoes) ? t.associacoes : [] },
@@ -20969,7 +21026,7 @@ applyRolePermissions();
   const GRUPOS_TAG = {
     pessoas: { titulo: "Pessoas", tipos: ["pessoa"], vazio: "+ pessoa" },
     orgs:    { titulo: "Orgs", tipos: ["empresa", "associacao"], vazio: "+ org" },
-    lugares: { titulo: "País", tipos: ["lugar"], vazio: "+ país" }
+    lugares: { titulo: "Países", tipos: ["lugar"], vazio: "+ país" }
   };
   const CAMPO_TAG = { pessoa: "pessoas", empresa: "empresas", associacao: "associacoes", lugar: "lugares" };
   function chipsDoGrupo(e, grupo) {
@@ -20979,32 +21036,41 @@ applyRolePermissions();
     GRUPOS_TAG[grupo].tipos.forEach(tipo => e.tags[CAMPO_TAG[tipo]].forEach(v => out.push(a.chip(tipo, v))));
     return out.filter(Boolean);
   }
+  // Na célula só o número de tags (Karina, 08/10); os nomes ficam no mouse e no painel.
+  const ICONE_GRUPO = { pessoas: "👤", orgs: "🏢", lugares: "📍" };
   function tagsCelula(e, grupo) {
-    const chips = chipsDoGrupo(e, grupo);
-    const mostra = chips.slice(0, 3).join("") + (chips.length > 3 ? `<span class="tasksp-tag tasksp-tag-mais">+${chips.length - 3}</span>` : "");
-    return `<span class="tasksp-tags-cell pj-tags-cell" data-id="${e.id}" data-grupo="${grupo}" title="Clique pra marcar ${GRUPOS_TAG[grupo].titulo.toLowerCase()}">${chips.length ? mostra : `<span class="tasksp-pais-vazio">${GRUPOS_TAG[grupo].vazio}</span>`}</span>`;
+    const a = api();
+    const nomes = [];
+    if (a) GRUPOS_TAG[grupo].tipos.forEach(tipo => e.tags[CAMPO_TAG[tipo]].forEach(v => { const n = a.rotulo(tipo, v); if (n) nomes.push(n); }));
+    const n = nomes.length;
+    return `<span class="tasksp-tags-cell pj-tags-cell" data-id="${e.id}" data-grupo="${grupo}" title="${n ? esc(nomes.join(", ")) : "Clique pra marcar " + GRUPOS_TAG[grupo].titulo.toLowerCase()}">` +
+      (n ? `<span class="pj-tag-num pj-tag-num-${grupo}">${ICONE_GRUPO[grupo]} ${n}</span>` : `<span class="tasksp-pais-vazio">+</span>`) + `</span>`;
   }
 
   // ── Colunas (arrastáveis: a ordem fica salva neste navegador) ──
   // "Nome" fica sempre na 1ª posição (é a coluna fixa ao rolar pro lado) e a
-  // lixeira sempre no fim; as outras a Karina arrasta pelo cabeçalho.
+  // lixeira sempre no fim; as outras a Karina arrasta pelo cabeçalho. A
+  // planilha das etapas segue a mesma ordem (sem Frente e Objetivo).
   const COLUNAS = [
-    { id: "nome",       titulo: "Nome",                  largura: 400 },
-    { id: "criterio",   titulo: "Critério de conclusão", largura: 230 },
-    { id: "status",     titulo: "Status",                largura: 150 },
-    { id: "progresso",  titulo: "Progresso",             largura: 130 },
-    { id: "prazo",      titulo: "Prazo (início / fim)",  largura: 236 },
-    { id: "finalizado", titulo: "Finalizado em",         largura: 145 },
-    { id: "resp",       titulo: "Responsável",           largura: 190 },
-    { id: "prio",       titulo: "Prioridade",            largura: 110 },
-    { id: "acao",       titulo: "Ação atual / próxima",  largura: 240 },
-    { id: "bloq",       titulo: "Bloqueios",             largura: 220 },
-    { id: "frente",     titulo: "Frente",                largura: 130 },
-    { id: "obj",        titulo: "Objetivo",              largura: 130 },
-    { id: "pessoas",    titulo: "Pessoas",               largura: 190 },
-    { id: "orgs",       titulo: "Orgs",                  largura: 190 },
-    { id: "lugares",    titulo: ORG_ATUAL === "cbth" ? "Estado" : "País", largura: 150 }
+    { id: "nome",        titulo: "Nome",                  largura: 400 },
+    { id: "criterio",    titulo: "Critério de conclusão", largura: 230 },
+    { id: "status",      titulo: "Status",                largura: 150 },
+    { id: "progresso",   titulo: "Progresso",             largura: 130 },
+    { id: "prazo",       titulo: "Prazo",                 largura: 160 },
+    { id: "finalizado",  titulo: "Finalizado",            largura: 145 },
+    { id: "forma",       titulo: "Forma",                 largura: 110 },
+    { id: "resp",        titulo: "Responsável",           largura: 190 },
+    { id: "prio",        titulo: "Prioridade",            largura: 110 },
+    { id: "acaoAtual",   titulo: "Ação atual",            largura: 220 },
+    { id: "proximaAcao", titulo: "Próxima ação",          largura: 220 },
+    { id: "bloq",        titulo: "Bloqueios",             largura: 115 },
+    { id: "frente",      titulo: "Frente",                largura: 130 },
+    { id: "obj",         titulo: "Objetivo",              largura: 130 },
+    { id: "pessoas",     titulo: "Pessoas",               largura: 105 },
+    { id: "orgs",        titulo: "Orgs",                  largura: 105 },
+    { id: "lugares",     titulo: ORG_ATUAL === "cbth" ? "Estados" : "Países", largura: 105 }
   ];
+  const SO_ENTREGA = ["frente", "obj"];
   const LARGURA_LIXO = 50;
   const ORDEM_KEY = "wpf_projetos_colunas";
   function ordemValida(l) {
@@ -21020,22 +21086,40 @@ applyRolePermissions();
   let ordemColunas = ordemValida(null);
   try { ordemColunas = ordemValida(JSON.parse(localStorage.getItem(ORDEM_KEY) || "null")); } catch (e) {}
   const colunaDe = id => COLUNAS.find(c => c.id === id);
+  const colunasEtapas = () => ordemColunas.filter(id => !SO_ENTREGA.includes(id));
+  const larguraDe = cols => cols.reduce((s, id) => s + colunaDe(id).largura, 0) + LARGURA_LIXO;
 
   function opcoes(lista, atual) {
     return `<option value="">—</option>` + lista.map(x => `<option value="${x.id}" ${x.id === atual ? "selected" : ""}>${x.nome}</option>`).join("");
+  }
+  // Prazo numa coisa só: "01/12 → 15/12" (ano só quando não é o de agora).
+  function dataCurta(s) {
+    if (!s) return "";
+    const ano = s.slice(0, 4), agora = hojeLocal().slice(0, 4);
+    return s.slice(8, 10) + "/" + s.slice(5, 7) + (ano !== agora ? "/" + ano.slice(2) : "");
+  }
+  function prazoTexto(e) {
+    if (!e.startDate && !e.endDate) return "";
+    if (!e.startDate) return "até " + dataCurta(e.endDate);
+    if (!e.endDate) return "desde " + dataCurta(e.startDate);
+    return dataCurta(e.startDate) + " → " + dataCurta(e.endDate);
+  }
+  // Forma: Finalizado depois do Fim = Atrasado; até o Fim = Em dia (igual ao piloto).
+  function forma(e) {
+    if (!e.finalizadoEm || !e.endDate) return "";
+    return e.finalizadoEm > e.endDate ? "atrasado" : "emdia";
   }
   // Conteúdo de cada célula. loc = localizar(linha.id).
   const CELULAS = {
     nome: (e, loc) => {
       const nivel = NIVEIS[loc.nivel];
-      const temFilhos = e.subtasks && e.subtasks.length;
-      const seta = temFilhos
-        ? `<button type="button" class="pj-seta-abrir" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : "Abrir"}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
-        : `<span class="pj-seta-abrir is-vazio"></span>`;
-      const filho = loc.nivel === 0 ? "etapa" : loc.nivel === 1 ? "tarefa" : "";
-      return `<div class="pj-nome-linha" style="padding-left:${loc.nivel * 22}px">${seta}<span class="pj-nivel is-${nivel}">${NOME_NIVEL[nivel]}</span>` +
-        `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
-        (filho ? `<button type="button" class="pj-add-filho" data-acao="add-filho" title="Adicionar ${filho}">+</button>` : "") + `</div>`;
+      const temSetinha = loc.nivel < 2;
+      const n = (e.subtasks || []).length;
+      const seta = temSetinha
+        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : "Abrir " + (loc.nivel === 0 ? "as etapas" : "as tarefas")}${n ? " (" + n + ")" : ""}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+        : "";
+      return `<div class="pj-nome-linha">${seta}<span class="pj-nivel is-${nivel}">${NOME_NIVEL[nivel]}</span>` +
+        `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea></div>`;
     },
     criterio: e => `<textarea class="pj-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
     status: e => {
@@ -21048,47 +21132,98 @@ applyRolePermissions();
       const dica = p.temFilhos ? `${p.feitas} de ${p.total} finalizada${p.total === 1 ? "" : "s"}` : (p.pct === 100 ? "Finalizada" : "Ainda não finalizada");
       return `<div class="pj-prog ${p.pct === 100 ? "is-completo" : ""}" title="${dica}"><div class="pj-prog-trilho"><div class="pj-prog-cheio" style="width:${p.pct}%"></div></div><span>${p.pct}%</span></div>`;
     },
-    prazo: e => `<div class="pj-datas">
-        <input type="date" class="pj-data" data-campo="startDate" value="${esc(e.startDate)}" title="Início">
-        <span class="pj-seta">→</span>
-        <input type="date" class="pj-data" data-campo="endDate" value="${esc(e.endDate)}" title="Fim (prazo)">
-      </div>`,
+    prazo: e => {
+      const txt = prazoTexto(e);
+      return `<button type="button" class="pj-prazo ${txt ? "" : "is-vazio"}" data-acao="prazo" title="${e.startDate || e.endDate ? "Início " + (fmtData(e.startDate) || "—") + " · Fim " + (fmtData(e.endDate) || "—") : "Escolher início e fim"}">${txt ? esc(txt) : "+ prazo"}</button>`;
+    },
     finalizado: e => {
       const fin = e.status === "finalizado";
       return `<input type="date" class="pj-data" data-campo="finalizadoEm" value="${esc(e.finalizadoEm)}" ${fin ? "" : "disabled"} title="${fin ? "Data em que foi finalizada (dá pra corrigir)" : "Preenche sozinho quando o status vira Finalizado"}">`;
     },
+    forma: e => {
+      const f = forma(e);
+      return f ? `<span class="tasksp-stent pj-forma is-${f}" title="Finalizado ${fmtData(e.finalizadoEm)} · Fim ${fmtData(e.endDate)}">${f === "emdia" ? "Em dia" : "Atrasado"}</span>`
+        : `<span class="pj-prog-vazio" title="Aparece quando tiver Fim e Finalizado">—</span>`;
+    },
     resp: e => `<div class="pj-resp">${e.assignees.map(n => `<span class="pj-resp-chip">${esc(n)}<button type="button" data-acao="tirar-resp" data-nome="${esc(n)}" title="Tirar">×</button></span>`).join("")}<button type="button" class="pj-resp-add" data-acao="add-resp" title="Adicionar responsável">+</button></div>`,
     prio: e => `<select class="tasksp-prio-select is-${e.prioridade || "vazio"}" data-campo="prioridade">${opcoes(PRIORIDADES, e.prioridade)}</select>`,
-    acao: e => `<textarea class="pj-txt" data-campo="acao" rows="1" placeholder="Próximo passo">${esc(e.acao)}</textarea>`,
-    bloq: e => `<textarea class="pj-txt" data-campo="bloqueios" rows="1" placeholder="O que está travando">${esc(e.bloqueios)}</textarea>`,
-    // Frente e Objetivo são da entrega; etapas e tarefas mostram o dela (cinza).
-    frente: (e, loc) => loc.nivel === 0
-      ? `<select class="pj-obj ${e.frente ? "" : "is-vazio"}" data-campo="frente">${opcoes(FRENTES_PJ, e.frente)}</select>`
-      : `<span class="pj-herdado" title="Vem da entrega">${esc((FRENTES_PJ.find(f => f.id === loc.entrega.frente) || {}).nome || "—")}</span>`,
-    obj: (e, loc) => loc.nivel === 0
-      ? `<select class="pj-obj ${e.objetivo ? "" : "is-vazio"}" data-campo="objetivo">${opcoes(OBJETIVOS_PJ, e.objetivo)}</select>`
-      : `<span class="pj-herdado" title="Vem da entrega">${esc((OBJETIVOS_PJ.find(o => o.id === loc.entrega.objetivo) || {}).nome || "—")}</span>`,
+    acaoAtual: e => `<textarea class="pj-txt" data-campo="acaoAtual" rows="1" placeholder="O que está sendo feito">${esc(e.acaoAtual)}</textarea>`,
+    proximaAcao: e => `<textarea class="pj-txt" data-campo="proximaAcao" rows="1" placeholder="Próximo passo">${esc(e.proximaAcao)}</textarea>`,
+    bloq: e => {
+      const n = e.bloqueios.filter(b => b.texto.trim()).length;
+      return `<button type="button" class="pj-bloq ${n ? "tem" : ""}" data-acao="bloqueios" title="${n ? esc(e.bloqueios.map(b => b.texto).filter(Boolean).join(" · ")) : "Adicionar bloqueio"}">${n ? "⚠ " + n : "+"}</button>`;
+    },
+    frente: e => `<select class="pj-obj ${e.frente ? "" : "is-vazio"}" data-campo="frente">${opcoes(FRENTES_PJ, e.frente)}</select>`,
+    obj: e => `<select class="pj-obj ${e.objetivo ? "" : "is-vazio"}" data-campo="objetivo">${opcoes(OBJETIVOS_PJ, e.objetivo)}</select>`,
     pessoas: e => tagsCelula(e, "pessoas"),
     orgs: e => tagsCelula(e, "orgs"),
     lugares: e => tagsCelula(e, "lugares")
   };
-
-  function linhaHtml(e, loc) {
+  function lixoHtml(e, loc) {
+    const nivel = NIVEIS[loc.nivel];
+    return `<button type="button" class="pj-lixo" data-acao="apagar" title="Apagar ${NOME_NIVEL[nivel].toLowerCase()}${e.subtasks && e.subtasks.length ? " (e o que está dentro)" : ""}">🗑</button>`;
+  }
+  function linhaHtml(e, loc, cols) {
     const nivel = NIVEIS[loc.nivel];
     return `<tr data-id="${e.id}" class="pj-linha is-${nivel}">` +
-      ordemColunas.map(id => `<td data-col="${id}">${CELULAS[id](e, loc)}</td>`).join("") +
-      `<td data-col="lixo"><button type="button" class="pj-lixo" data-acao="apagar" title="Apagar ${NOME_NIVEL[nivel].toLowerCase()}${e.subtasks && e.subtasks.length ? " (e o que está dentro)" : ""}">🗑</button></td></tr>`;
+      cols.map(id => `<td data-col="${id}">${CELULAS[id](e, loc)}</td>`).join("") +
+      `<td data-col="lixo">${lixoHtml(e, loc)}</td></tr>`;
+  }
+  function colgroupHtml(cols) {
+    return cols.map(id => `<col style="width:${colunaDe(id).largura}px">`).join("") + `<col style="width:${LARGURA_LIXO}px">`;
   }
   function cabecalho() {
-    const tabela = document.getElementById("pj-tabela");
-    const total = ordemColunas.reduce((s, id) => s + colunaDe(id).largura, 0) + LARGURA_LIXO;
-    tabela.style.minWidth = total + "px";
-    document.getElementById("pj-colgroup").innerHTML = ordemColunas.map(id => `<col style="width:${colunaDe(id).largura}px">`).join("") + `<col style="width:${LARGURA_LIXO}px">`;
+    document.getElementById("pj-tabela").style.minWidth = larguraDe(ordemColunas) + "px";
+    document.getElementById("pj-colgroup").innerHTML = colgroupHtml(ordemColunas);
     document.getElementById("pj-cabeca").innerHTML = `<tr>` + ordemColunas.map(id => id === "nome"
       ? `<th data-col="nome">${colunaDe(id).titulo}</th>`
       : `<th data-col="${id}" draggable="true" title="Arraste pra mudar a coluna de lugar"><span class="pj-th-alca">⋮⋮</span>${colunaDe(id).titulo}</th>`).join("") + `<th data-col="lixo"></th></tr>`;
   }
 
+  // ── Planilha das etapas (dentro da entrega) e lista de tarefas (dentro da etapa) ──
+  function planilhaEtapas(ent, span) {
+    const cols = colunasEtapas();
+    const etapas = ent.subtasks || [];
+    const linhas = etapas.map(et => {
+      const loc = { linha: et, nivel: 1, pai: ent, lista: etapas, entrega: ent };
+      return linhaHtml(et, loc, cols) + (abertas.has(et.id) ? listaTarefas(et, ent, cols.length + 1) : "");
+    }).join("");
+    return `<tr class="pj-sub-tr" data-sub="${ent.id}"><td colspan="${span}" class="pj-sub-td"><div class="pj-sub-wrap">
+      <div class="pj-sub-card">
+        <div class="pj-sub-topo"><span class="pj-nivel is-etapa">Etapas</span><span class="pj-sub-titulo">${esc(ent.nome || "Entrega sem nome")}</span><span class="pj-sub-n">${etapas.length}</span></div>
+        <div class="pj-sub-rolagem">
+          <table class="pj-sub-tabela" style="min-width:${larguraDe(cols)}px">
+            <colgroup>${colgroupHtml(cols)}</colgroup>
+            <thead><tr>${cols.map(id => `<th data-col="${id}">${colunaDe(id).titulo}</th>`).join("")}<th data-col="lixo"></th></tr></thead>
+            <tbody>${linhas || `<tr><td colspan="${cols.length + 1}" class="pj-vazio">Nenhuma etapa ainda.</td></tr>`}</tbody>
+          </table>
+        </div>
+        <button type="button" class="pj-sub-add" data-acao="add-etapa" data-pai="${ent.id}">+ Etapa</button>
+      </div></div></td></tr>`;
+  }
+  // Tarefas: lista mais simples — Nome, Status, Prazo (início → fim), Finalizado, Forma, Responsável.
+  const COLS_TAREFA = ["nome", "status", "prazo", "finalizado", "forma", "resp"];
+  function listaTarefas(et, ent, span) {
+    const tarefas = et.subtasks || [];
+    const linhas = tarefas.map(ta => linhaHtml(ta, { linha: ta, nivel: 2, pai: et, lista: tarefas, entrega: ent }, COLS_TAREFA)).join("");
+    return `<tr class="pj-tar-tr" data-sub="${et.id}"><td colspan="${span}" class="pj-sub-td pj-tar-td"><div class="pj-sub-wrap">
+      <div class="pj-tar-lista">
+        <table class="pj-tar-tabela">
+          <colgroup><col style="width:340px"><col style="width:150px"><col style="width:160px"><col style="width:145px"><col style="width:110px"><col style="width:200px"><col style="width:${LARGURA_LIXO}px"></colgroup>
+          <thead><tr><th>Tarefas</th><th>Status</th><th>Prazo</th><th>Finalizado</th><th>Forma</th><th>Responsável</th><th></th></tr></thead>
+          <tbody>${linhas || `<tr><td colspan="7" class="pj-vazio">Nenhuma tarefa ainda.</td></tr>`}</tbody>
+        </table>
+        <button type="button" class="pj-sub-add" data-acao="add-tarefa" data-pai="${et.id}">+ Tarefa</button>
+      </div></div></td></tr>`;
+  }
+  // As planilhas de dentro ficam do tamanho da área visível (não rolam junto
+  // com a de cima pro lado).
+  function ajustarSubs() {
+    document.querySelectorAll("#pj-corpo .pj-sub-wrap").forEach(w => {
+      const caixa = w.parentElement.closest(".pj-sub-rolagem") || document.getElementById("pj-rolagem");
+      w.style.width = Math.max(320, caixa.clientWidth - 2) + "px";
+    });
+  }
   function ajustarAltura(ta) { ta.style.height = "auto"; ta.style.height = ta.scrollHeight + "px"; }
 
   function sincronizarFrente() {
@@ -21148,16 +21283,14 @@ applyRolePermissions();
     cabecalho();
     const corpo = document.getElementById("pj-corpo");
     if (!corpo) return;
-    const linhas = [];
-    (function walk(l, nivel, pai, topo) {
-      l.forEach(x => {
-        const ent = nivel === 0 ? x : topo;
-        linhas.push(linhaHtml(x, { linha: x, nivel, pai, lista: l, entrega: ent }));
-        if (abertas.has(x.id)) walk(x.subtasks || [], nivel + 1, x, ent);
-      });
-    })(lista, 0, null, null);
+    const span = ordemColunas.length + 1;
+    const linhas = lista.map(ent => {
+      const loc = { linha: ent, nivel: 0, pai: null, lista: entregas, entrega: ent };
+      return linhaHtml(ent, loc, ordemColunas) + (abertas.has(ent.id) ? planilhaEtapas(ent, span) : "");
+    });
     corpo.innerHTML = linhas.length ? linhas.join("")
-      : `<tr><td colspan="${ordemColunas.length + 1}" class="pj-vazio">${entregas.length ? "Nenhuma entrega nesta frente." : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
+      : `<tr><td colspan="${span}" class="pj-vazio">${entregas.length ? "Nenhuma entrega nesta frente." : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
+    ajustarSubs();
     corpo.querySelectorAll("textarea.pj-txt").forEach(ajustarAltura);
     const c = document.getElementById("pj-contagem");
     if (c) c.textContent = entregas.length ? `${lista.length} de ${entregas.length} entrega${entregas.length === 1 ? "" : "s"}` : "";
@@ -21258,6 +21391,99 @@ applyRolePermissions();
     });
   }
 
+  // Prazo (início → fim) e Bloqueios: pop-ups pequenos. O que muda grava na
+  // hora; a tabela se redesenha quando o pop-up fecha.
+  let popMudou = false;
+  function fecharPopERedesenhar() {
+    const mudou = popMudou;
+    fecharPop();
+    popMudou = false;
+    if (mudou) render();
+  }
+  function posicionarPop(pop, botao) {
+    const r = botao.getBoundingClientRect();
+    const alto = pop.offsetHeight;
+    pop.style.top = (r.bottom + 4 + alto < window.innerHeight - 8 ? r.bottom + 4 : Math.max(8, r.top - alto - 4)) + "px";
+    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 12)) + "px";
+  }
+  function abrirPopPrazo(botao, e) {
+    fecharPopERedesenhar();
+    popPara = e.id;
+    const pop = document.createElement("div");
+    pop.id = "pj-pop";
+    pop.className = "pj-pop-form";
+    pop.innerHTML = `<div class="pj-pop-titulo">Prazo</div>
+      <label>Início<input type="date" class="pj-data pj-pop-data" data-pc="startDate" value="${esc(e.startDate)}"></label>
+      <label>Fim (prazo)<input type="date" class="pj-data pj-pop-data" data-pc="endDate" value="${esc(e.endDate)}"></label>
+      <div class="pj-pop-botoes"><button type="button" data-pa="limpar">Limpar</button><button type="button" data-pa="ok" class="is-ok">Pronto</button></div>`;
+    document.body.appendChild(pop);
+    posicionarPop(pop, botao);
+    pop.addEventListener("change", ev => {
+      const inp = ev.target.closest("[data-pc]");
+      const alvo = achar(popPara);
+      if (!inp || !alvo) return;
+      alvo[inp.dataset.pc] = inp.value;
+      popMudou = true;
+      salvar();
+      botao.textContent = prazoTexto(alvo) || "+ prazo";
+    });
+    pop.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-pa]");
+      const alvo = achar(popPara);
+      if (!b || !alvo) return;
+      if (b.dataset.pa === "limpar") { alvo.startDate = ""; alvo.endDate = ""; popMudou = true; salvar(); }
+      fecharPopERedesenhar();
+    });
+    const primeiro = pop.querySelector("input");
+    if (primeiro) primeiro.focus();
+  }
+  function abrirPopBloqueios(botao, e) {
+    fecharPopERedesenhar();
+    popPara = e.id;
+    const pop = document.createElement("div");
+    pop.id = "pj-pop";
+    pop.className = "pj-pop-form pj-pop-bloq";
+    document.body.appendChild(pop);
+    function montar() {
+      const alvo = achar(popPara);
+      if (!alvo) return;
+      pop.innerHTML = `<div class="pj-pop-titulo">Bloqueios · ${esc(alvo.nome || NOME_NIVEL[NIVEIS[(localizar(alvo.id) || { nivel: 0 }).nivel]])}</div>` +
+        (alvo.bloqueios.length ? alvo.bloqueios.map(b => `<div class="pj-bloq-item" data-bq="${b.id}">
+            <textarea class="pj-txt pj-bloq-txt" rows="1" placeholder="O que está travando">${esc(b.texto)}</textarea>
+            <small>${b.desde ? "desde " + fmtData(b.desde) : ""}</small>
+            <button type="button" data-pa="tirar" title="Tirar este bloqueio">×</button>
+          </div>`).join("") : `<div class="pj-pop-nada">Nenhum bloqueio.</div>`) +
+        `<input type="text" class="pj-bloq-novo" placeholder="+ Novo bloqueio (Enter)">`;
+      pop.querySelectorAll("textarea").forEach(ajustarAltura);
+    }
+    montar();
+    posicionarPop(pop, botao);
+    pop.addEventListener("input", ev => {
+      const ta = ev.target.closest(".pj-bloq-txt");
+      const alvo = achar(popPara);
+      if (!ta || !alvo) return;
+      const b = alvo.bloqueios.find(x => x.id === ta.closest("[data-bq]").dataset.bq);
+      if (b) { b.texto = ta.value; ajustarAltura(ta); popMudou = true; salvar(); }
+    });
+    pop.addEventListener("keydown", ev => {
+      const inp = ev.target.closest(".pj-bloq-novo");
+      const alvo = achar(popPara);
+      if (!inp || !alvo || ev.key !== "Enter" || !inp.value.trim()) return;
+      ev.preventDefault();
+      alvo.bloqueios.push({ id: "bq-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), texto: inp.value.trim(), desde: hojeLocal() });
+      popMudou = true; salvar(); montar();
+      const novo = pop.querySelector(".pj-bloq-novo"); if (novo) novo.focus();
+    });
+    pop.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-pa=tirar]");
+      const alvo = achar(popPara);
+      if (!b || !alvo) return;
+      const id = b.closest("[data-bq]").dataset.bq;
+      alvo.bloqueios = alvo.bloqueios.filter(x => x.id !== id);
+      popMudou = true; salvar(); montar();
+    });
+    const novo = pop.querySelector(".pj-bloq-novo"); if (novo) novo.focus();
+  }
   // Apagar em dois cliques.
   let armado = null, armadoTimer = null;
   function desarmar() {
@@ -21267,12 +21493,24 @@ applyRolePermissions();
     armado = null;
   }
 
+  function novoFilho(paiId) {
+    const loc = localizar(paiId);
+    if (!loc || loc.nivel >= 2) return;
+    const novo = normalizar({ status: "naoiniciado" }, loc.nivel + 1);
+    loc.linha.subtasks.push(novo);
+    abertas.add(loc.linha.id); guardarAbertas();
+    salvar();
+    render();
+    const ta = document.querySelector(`#pj-corpo tr[data-id="${novo.id}"] .pj-nome`);
+    if (ta) ta.focus();
+  }
   function aoClicar(ev) {
     const b = ev.target.closest("[data-acao]");
+    if (b && b.dataset.acao !== "apagar") desarmar();
+    if (b && (b.dataset.acao === "add-etapa" || b.dataset.acao === "add-tarefa")) { novoFilho(b.dataset.pai); return; }
     const tr = ev.target.closest("tr[data-id]");
     const loc = tr && localizar(tr.dataset.id);
     const e = loc && loc.linha;
-    if (b && b.dataset.acao !== "apagar") desarmar();
     if (!b || !e) {
       const cel = ev.target.closest(".pj-tags-cell");
       if (cel) { const alvo = achar(cel.dataset.id); if (alvo) abrirTags(cel, alvo); }
@@ -21285,16 +21523,8 @@ applyRolePermissions();
       render();
       return;
     }
-    if (acao === "add-filho" && loc.nivel < 2) {
-      const novo = normalizar({ status: "naoiniciado" }, loc.nivel + 1);
-      e.subtasks.push(novo);
-      abertas.add(e.id); guardarAbertas();
-      salvar();
-      render();
-      const ta = document.querySelector(`#pj-corpo tr[data-id="${novo.id}"] .pj-nome`);
-      if (ta) { ta.focus(); ta.closest("#pj-rolagem").scrollLeft = 0; }
-      return;
-    }
+    if (acao === "prazo") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-form:not(.pj-pop-bloq)")) { fecharPopERedesenhar(); return; } abrirPopPrazo(b, e); return; }
+    if (acao === "bloqueios") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-bloq")) { fecharPopERedesenhar(); return; } abrirPopBloqueios(b, e); return; }
     if (acao === "add-resp") { ev.stopPropagation(); abrirPopResp(b, e); return; }
     if (acao === "tirar-resp") { e.assignees = e.assignees.filter(n => n !== b.dataset.nome); salvar(); render(); return; }
     if (acao === "apagar") {
@@ -21409,7 +21639,7 @@ applyRolePermissions();
     painel.id = "projetos-tags-painel";
     const estado = a.rotuloLugar() === "Estado";
     const busca0 = tagsGrupo === "pessoas" ? "Buscar pessoa…" : tagsGrupo === "orgs" ? "Buscar empresa, federação ou mídia…" : `Buscar ${estado ? "estado" : "país"}…`;
-    const titulo = tagsGrupo === "lugares" ? (estado ? "Estado" : "País") : GRUPOS_TAG[tagsGrupo].titulo;
+    const titulo = tagsGrupo === "lugares" ? (estado ? "Estados" : "Países") : GRUPOS_TAG[tagsGrupo].titulo;
     painel.innerHTML = `<div class="tasksp-contexto-topo"><span title="${esc(e.nome)}">${titulo} · ${esc(e.nome || "Entrega")}</span><button type="button" data-acao="fechar" title="Fechar">×</button></div>
       <div class="tasksp-tags-proprias"></div>
       <input type="text" class="tasksp-tags-busca" placeholder="${busca0}" autocomplete="off">
@@ -21470,13 +21700,13 @@ applyRolePermissions();
   corpo.addEventListener("change", aoMudar);
   corpo.addEventListener("click", aoClicar);
   document.addEventListener("click", ev => {
-    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add")) fecharPop();
+    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add") && document.contains(ev.target)) fecharPopERedesenhar();
     if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
     if (armado && !ev.target.closest(".pj-lixo")) desarmar();
   });
   document.addEventListener("keydown", ev => {
     if (ev.key !== "Escape") return;
-    if (popPara) fecharPop();
+    if (popPara) fecharPopERedesenhar();
     if (tagsId) fecharTags();
   });
   document.getElementById("pj-frente-sel").addEventListener("change", ev => { frenteFiltro = ev.target.value; render(); });
@@ -21492,13 +21722,14 @@ applyRolePermissions();
   });
   document.getElementById("nav-projetos").addEventListener("click", async () => {
     if (!temDados) {
-      document.getElementById("pj-corpo").innerHTML = `<tr><td colspan="15" class="pj-vazio">Carregando…</td></tr>`;
+      document.getElementById("pj-corpo").innerHTML = `<tr><td colspan="${ordemColunas.length + 1}" class="pj-vazio">Carregando…</td></tr>`;
       await initialCloudLoadPromise.catch(() => {});
     }
     const a = api();
     if (a) a.pronto();
     render();
   });
+  window.addEventListener("resize", () => { if (visivel()) ajustarSubs(); });
   // Virada do dia (Em andamento → vermelho) sem precisar recarregar.
   setInterval(() => { if (visivel() && !usuarioOcupado()) render(); }, 10 * 60 * 1000);
 
