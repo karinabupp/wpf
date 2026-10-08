@@ -6880,13 +6880,30 @@
   #pj-tabela .pj-txt::placeholder { color: transparent; }
   #pj-tabela tr:hover .pj-txt::placeholder, #pj-tabela .pj-txt:focus::placeholder { color: #c4c2b9; }
   #pj-tabela .pj-nome::placeholder { color: #c4c2b9; }
-  /* 08/10 (8ª): níveis em degradê de roxo — entrega escuro, etapa médio, tarefa claro */
-  .pj-nivel.is-entrega { background: #4b1fa8; color: #ffffff; }
-  .pj-nivel.is-etapa { background: #8b5cf6; color: #ffffff; }
-  .pj-nivel.is-tarefa { background: #ddd0fd; color: #4b2c8f; }
-  .pj-linha.is-entrega { --pj-cor-nivel: #4b1fa8; }
-  .pj-linha.is-etapa { --pj-cor-nivel: #8b5cf6; }
-  .pj-linha.is-tarefa { --pj-cor-nivel: #c4b0fb; }
+  /* 08/10 (8ª→10ª): níveis em degradê de azul — entrega escuro, etapa médio, tarefa claro */
+  .pj-nivel.is-entrega { background: #1f3b64; color: #ffffff; }
+  .pj-nivel.is-etapa { background: #4a78b5; color: #ffffff; }
+  .pj-nivel.is-tarefa { background: #dbe7f5; color: #2b4f80; }
+  .pj-linha.is-entrega { --pj-cor-nivel: #1f3b64; }
+  .pj-linha.is-etapa { --pj-cor-nivel: #4a78b5; }
+  .pj-linha.is-tarefa { --pj-cor-nivel: #a9c3e4; }
+  /* 08/10 (9ª): nome em tons de cinza por nível (preto, médio, claro); status: andamento amarelo, atrasado/bloqueado/falta detalhar vermelho; arrastar linhas; menu Duplicar */
+  #pj-tabela .pj-linha.is-entrega .pj-txt.pj-nome { color: #1f1e1b; }
+  #pj-tabela .pj-linha.is-etapa .pj-txt.pj-nome { color: #55534d; }
+  #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #858379; }
+  .pj-status.is-andamento, #pj-tabela .pj-status.is-andamento { background: #fdf1c7; color: #6f4b00; }
+  .pj-status.is-atrasado, .pj-status.is-bloqueado, .pj-status.is-detalhar,
+  #pj-tabela .pj-status.is-atrasado, #pj-tabela .pj-status.is-bloqueado, #pj-tabela .pj-status.is-detalhar { background: #fbe3e3; color: #9b1c1c; }
+  .pj-nome-linha { position: relative; }
+  .pj-alca { position: absolute; left: -11px; top: 50%; transform: translateY(-50%); width: 10px; font-size: 11px; line-height: 1; color: #b9b7b0; cursor: grab; opacity: 0; user-select: none; text-align: center; }
+  #pj-tabela tr:hover .pj-alca { opacity: 1; }
+  .pj-linha-arrastando { opacity: 0.45; }
+  #pj-tabela tr.pj-drop-antes > td { box-shadow: inset 0 2px 0 #4a78b5; }
+  #pj-tabela tr.pj-drop-depois > td { box-shadow: inset 0 -2px 0 #4a78b5; }
+  #pj-tabela tr.pj-drop-dentro > td { background: #eef3fa; }
+  #pj-menu { position: fixed; z-index: 1000; background: #fff; border: 1px solid #e3e2de; border-radius: 8px; box-shadow: 0 8px 24px rgba(15,15,15,0.14); padding: 4px; min-width: 150px; }
+  #pj-menu button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 5px; font: inherit; font-size: 13px; color: #37352f; cursor: pointer; }
+  #pj-menu button:hover { background: rgba(55,53,47,0.07); }
   /* 08/10 (7ª): fundo branco na aba; logo no topo */
   #projetos-view { background: #ffffff; min-height: 100vh; }
   .pj-legenda { margin-top: 10px; }
@@ -21231,7 +21248,7 @@ applyRolePermissions();
         ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Sem " + (loc.nivel === 0 ? "etapas" : "tarefas") + " ainda"}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
         : `<span class="pj-seta-abrir is-vazio"></span>`;
       const filho = loc.nivel === 0 ? "etapa" : loc.nivel === 1 ? "tarefa" : "";
-      return `<div class="pj-nome-linha" title="${NOME_NIVEL[nivel]}">${seta}` +
+      return `<div class="pj-nome-linha" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
         `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
         (filho ? `<button type="button" class="pj-add-filho" data-acao="add-filho" title="Adicionar ${filho}">+</button>` : "") + `</div>`;
     },
@@ -21968,6 +21985,128 @@ applyRolePermissions();
   corpo.addEventListener("change", aoMudar);
   corpo.addEventListener("click", aoClicar);
   corpo.addEventListener("focusin", aoFocar);
+
+  // ── Arrastar linhas (Karina, 08/10): pela alça ⠿. Cada linha só vai pra
+  // junto de outras do mesmo nível (antes/depois), ou pra dentro de uma linha
+  // do nível de cima (tarefa → outra etapa, de qualquer entrega; etapa →
+  // outra entrega). Mudança de lugar fica no Histórico. ──
+  let linhaArrastada = null;
+  const nomeOu = x => (x && x.nome) || "sem nome";
+  function limparMarcasLinha() {
+    corpo.querySelectorAll(".pj-drop-antes, .pj-drop-depois, .pj-drop-dentro").forEach(tr => tr.classList.remove("pj-drop-antes", "pj-drop-depois", "pj-drop-dentro"));
+  }
+  function alvoDrop(tr, ev) {
+    if (!linhaArrastada || !tr) return null;
+    const de = localizar(linhaArrastada), para = localizar(tr.dataset.id);
+    if (!de || !para || para.linha === de.linha) return null;
+    if (para.nivel === de.nivel) {
+      const r = tr.getBoundingClientRect();
+      return { tipo: ev.clientY < r.top + r.height / 2 ? "antes" : "depois", para };
+    }
+    if (para.nivel === de.nivel - 1) return { tipo: "dentro", para };
+    return null;
+  }
+  function moverLinha(id, a) {
+    const de = localizar(id);
+    if (!de) return;
+    const e = de.linha, paiAntes = de.pai;
+    de.lista.splice(de.lista.indexOf(e), 1);
+    let paiDepois;
+    if (a.tipo === "dentro") {
+      a.para.linha.subtasks.push(e);
+      paiDepois = a.para.linha;
+      abertas.add(paiDepois.id); guardarAbertas();
+    } else {
+      const lista = a.para.lista;
+      lista.splice(lista.indexOf(a.para.linha) + (a.tipo === "depois" ? 1 : 0), 0, e);
+      paiDepois = a.para.pai;
+    }
+    if (paiAntes !== paiDepois) {
+      const tipo = NOME_NIVEL[NIVEIS[de.nivel]].toLowerCase();
+      registrar(e, `Mudou de “${nomeOu(paiAntes)}” para “${nomeOu(paiDepois)}”`);
+      if (paiAntes) registrar(paiAntes, `Saiu a ${tipo} “${nomeOu(e)}” (foi para “${nomeOu(paiDepois)}”)`);
+      if (paiDepois) registrar(paiDepois, `Entrou a ${tipo} “${nomeOu(e)}” (veio de “${nomeOu(paiAntes)}”)`);
+    }
+    salvar();
+    render();
+  }
+  corpo.addEventListener("dragstart", ev => {
+    const h = ev.target.closest && ev.target.closest(".pj-alca");
+    if (!h) return;
+    const tr = h.closest("tr[data-id]");
+    linhaArrastada = tr.dataset.id;
+    tr.classList.add("pj-linha-arrastando");
+    try { ev.dataTransfer.setData("text/plain", linhaArrastada); ev.dataTransfer.effectAllowed = "move"; ev.dataTransfer.setDragImage(tr, 16, 16); } catch (e) {}
+  });
+  corpo.addEventListener("dragover", ev => {
+    if (!linhaArrastada) return;
+    const tr = ev.target.closest("tr[data-id]");
+    const a = alvoDrop(tr, ev);
+    limparMarcasLinha();
+    if (!a) return;
+    ev.preventDefault();
+    tr.classList.add("pj-drop-" + a.tipo);
+  });
+  corpo.addEventListener("drop", ev => {
+    if (!linhaArrastada) return;
+    const tr = ev.target.closest("tr[data-id]");
+    const a = alvoDrop(tr, ev);
+    limparMarcasLinha();
+    if (!a) return;
+    ev.preventDefault();
+    const id = linhaArrastada;
+    linhaArrastada = null;
+    moverLinha(id, a);
+  });
+  corpo.addEventListener("dragend", () => {
+    linhaArrastada = null;
+    limparMarcasLinha();
+    corpo.querySelectorAll(".pj-linha-arrastando").forEach(tr => tr.classList.remove("pj-linha-arrastando"));
+  });
+
+  // ── Botão direito numa linha: menu com Duplicar (Karina, 08/10). A cópia
+  // leva tudo (inclusive etapas/tarefas de dentro), com nome "(cópia)", logo
+  // embaixo da original; o Histórico da cópia começa do zero. ──
+  function duplicarLinha(id) {
+    const loc = localizar(id);
+    if (!loc) return;
+    const limpa = x => Object.assign({}, x, {
+      id: undefined, historico: [],
+      checklist: (x.checklist || []).map(c => ({ texto: c.texto, feito: c.feito })),
+      bloqueios: (x.bloqueios || []).map(b => ({ texto: b.texto, desde: b.desde })),
+      subtasks: (x.subtasks || []).map(limpa)
+    });
+    const copia = normalizar(JSON.parse(JSON.stringify(limpa(loc.linha))), loc.nivel);
+    copia.nome = (loc.linha.nome || "") + " (cópia)";
+    const tipo = NOME_NIVEL[NIVEIS[loc.nivel]].toLowerCase();
+    registrar(copia, `Duplicou de “${nomeOu(loc.linha)}”`);
+    (function walk(l) { l.forEach(x => { registrar(x, "Criada ao duplicar"); walk(x.subtasks || []); }); })(copia.subtasks);
+    if (loc.pai) registrar(loc.pai, `Duplicou a ${tipo} “${nomeOu(loc.linha)}”`);
+    loc.lista.splice(loc.lista.indexOf(loc.linha) + 1, 0, copia);
+    salvar();
+    render();
+    const ta = document.querySelector(`tr[data-id="${copia.id}"] .pj-nome`);
+    if (ta) ta.focus();
+  }
+  function fecharMenuLinha() { const m = document.getElementById("pj-menu"); if (m) m.remove(); }
+  corpo.addEventListener("contextmenu", ev => {
+    const tr = ev.target.closest("tr[data-id]");
+    if (!tr || !achar(tr.dataset.id)) return;
+    ev.preventDefault();
+    fecharMenuLinha();
+    const m = document.createElement("div");
+    m.id = "pj-menu";
+    m.innerHTML = `<button type="button" data-menu="duplicar">⧉ Duplicar</button>`;
+    document.body.appendChild(m);
+    const w = m.offsetWidth, h = m.offsetHeight;
+    m.style.left = Math.min(ev.clientX, window.innerWidth - w - 8) + "px";
+    m.style.top = Math.min(ev.clientY, window.innerHeight - h - 8) + "px";
+    const id = tr.dataset.id;
+    m.addEventListener("click", e2 => { if (e2.target.closest("[data-menu=duplicar]")) { fecharMenuLinha(); duplicarLinha(id); } });
+  });
+  document.addEventListener("mousedown", ev => { if (!ev.target.closest("#pj-menu")) fecharMenuLinha(); });
+  document.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharMenuLinha(); });
+  window.addEventListener("scroll", fecharMenuLinha, true);
   document.addEventListener("click", ev => {
     if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add") && document.contains(ev.target)) fecharPopERedesenhar();
     if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
