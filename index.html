@@ -6909,6 +6909,9 @@
   #pj-objetivos .pj-obj-barra:hover { background: rgba(55,53,47,0.05); }
   #pj-objetivos .pj-obj-barra.is-ativo { background: rgba(31,59,100,0.08); box-shadow: inset 0 0 0 1px rgba(31,59,100,0.25); }
   #pj-objetivos .pj-obj-barra.is-apagado { opacity: 0.4; }
+  /* 08/10 (12ª): a tela toda branca na Projetos (não só o painel); balão no Histórico */
+  body:has(#projetos-view:not(.hidden)) { background: #ffffff; }
+  .pj-balao { vertical-align: -2px; }
   /* 08/10 (7ª): fundo branco na aba; logo no topo */
   #projetos-view { background: #ffffff; min-height: 100vh; }
   .pj-legenda { margin-top: 10px; }
@@ -21218,9 +21221,11 @@ applyRolePermissions();
   const colunaDe = id => COLUNAS.find(c => c.id === id);
   // Ícone de cada coluna no cabeçalho (como no Notion).
   const ICONE_COL = { nome: "Aa", criterio: "≡", status: "◉", progresso: "%", prazo: "◷", finalizado: "✓", forma: "◐",
-    resp: "@", prio: "⚑", acaoAtual: "≡", proximaAcao: "≡", bloq: "⚠", checklist: "☑", historico: "↺",
+    resp: "@", prio: "⚑", acaoAtual: "≡", proximaAcao: "≡", bloq: "⚠", checklist: "☑", historico: "💬",
     frente: "◇", obj: "◇", pessoas: "@", orgs: "#", lugares: "⌖" };
-  const tituloCol = id => `<span class="pj-th-ico">${ICONE_COL[id] || "≡"}</span>${colunaDe(id).titulo}`;
+  // Balão de fala (Karina, 08/10: no lugar do relógio, no Histórico).
+  const BALAO = `<svg class="pj-balao" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7l-3 2.5V11.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+  const tituloCol = id => `<span class="pj-th-ico">${id === "historico" ? BALAO : (ICONE_COL[id] || "≡")}</span>${colunaDe(id).titulo}`;
   const colunasEtapas = () => ordemColunas.filter(id => !SO_ENTREGA.includes(id));
   const larguraDe = cols => cols.reduce((s, id) => s + colunaDe(id).largura, 0) + LARGURA_LIXO;
 
@@ -21264,7 +21269,7 @@ applyRolePermissions();
     historico: e => {
       const n = (e.historico || []).length;
       const ult = n ? e.historico[n - 1] : null;
-      return `<button type="button" class="pj-mini ${n ? "tem" : ""}" data-acao="historico" title="${ult ? esc(dataHora(ult.quando) + " · " + (ult.autor || "") + ": " + ult.texto) : "Registrar no histórico"}">${n ? "🕘 " + n : "+"}</button>`;
+      return `<button type="button" class="pj-mini ${n ? "tem" : ""}" data-acao="historico" title="${ult ? esc(dataHora(ult.quando) + " · " + (ult.autor || "") + ": " + ult.texto) : "Registrar no histórico"}">${n ? BALAO + " " + n : "+"}</button>`;
     },
     criterio: e => `<textarea class="pj-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
     status: e => {
