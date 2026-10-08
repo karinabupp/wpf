@@ -16,9 +16,8 @@ reconstruir o raciocínio.
 ## Em aberto
 
 - [ ] **Guia Projetos — próximos passos** — publicada em 08/10 (Changelog
-  5ª). Falta: **Etapas** e **Tarefas** dentro de cada entrega (campo
-  `subtasks` já existe, vazio) e elas entrarem na conta das barras por
-  objetivo; confirmar os limites das cores (7 dias / 3 atrasadas); a
+  5ª; Etapas e Tarefas na 6ª). Falta: a Karina dizer se a **ordem das
+  colunas** fica por navegador (hoje) ou vai pra nuvem; confirmar os limites das cores (7 dias / 3 atrasadas); a
   Karina dizer se a coluna **País** fica (ela pediu Pessoas e Orgs).
   Decidir se Projetos substitui a Tasks (piloto)/Gestão.
   - *Onde:* `index.html`, bloco JS "PROJETOS"; seção `projetos`.

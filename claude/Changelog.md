@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 (6ª) — Projetos: Entrega › Etapa › Tarefa, Progresso, colunas arrastáveis
+
+Pedido da Karina, publicado com o OK dela.
+
+- **Três níveis:** Entrega (etapas em `entrega.subtasks`) › Etapa (tarefas
+  em `etapa.subtasks`) › Tarefa (último nível). **Selo do nível antes do
+  nome** (Entrega roxo, Etapa azul, Tarefa cinza). Setinha abre/fecha
+  (lembrado no navegador: `wpf_projetos_abertas`); **+** ao passar o mouse
+  cria etapa/tarefa embaixo (foco no nome). Etapa/tarefa nascem "Não
+  iniciado". Frente e Objetivo são da entrega (etapas/tarefas mostram o
+  dela, em cinza). Apagar leva o que está dentro (dois cliques).
+- **Coluna Progresso** depois de Status: % das linhas da ponta embaixo que
+  estão finalizadas (canceladas fora); sem nada embaixo = 0% ou 100%.
+  Azul; verde em 100%.
+- **"Nome da entrega" → "Nome".**
+- **Colunas arrastáveis** pelo cabeçalho (alça ⋮⋮, linha roxa onde cai;
+  a tabela rola sozinha perto da borda). Nome sempre 1ª, lixeira sempre no
+  fim. Ordem salva **no navegador** (`wpf_projetos_colunas`). Colunas
+  passaram a ser geradas pelo JS (`COLUNAS`, `CELULAS`, `ordemColunas`).
+- **Barras por objetivo:** etapas e tarefas atrasadas também contam pra
+  amarelo/vermelho.
+- **Onde:** `index.html`, bloco JS "PROJETOS" (reorganizado), tabela
+  `#pj-colgroup`/`#pj-cabeca`, CSS "08/10 (2ª)".
+- **Verificação:** 104 testes (níveis, selos, +, foco, recuo, herança de
+  frente/objetivo, progresso, cancelada fora, abrir/fechar, nuvem com a
+  árvore, apagar com filhos, etapa vencida na barra, arrastar e F5) + 3 do
+  arraste longe com rolagem + fumaça em todas as abas.
+
+---
+
 ## 2026-10-08 (5ª) — Guia Projetos (Entregas); bug do cadastro do piloto
 
 Pedido da Karina: guia nova **Projetos** com a planilha do 1º nível,
