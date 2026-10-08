@@ -15,6 +15,13 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Detalhador — fase 0 em uso (08/10)** — testar com demandas reais
+  aqui nas sessões (instrução em `worker/instrucoes/detalhador.md`). A cada
+  demanda: anotar o que a instrução não cobriu e ajustar o arquivo (com OK
+  da Karina). As demandas feitas viram exemplos e casos de teste do
+  Carinha na fase 3 do BAIER.
+  - *Aberto em:* 2026-10-08
+
 - [ ] **Guia Gestão (protótipo, 07/10)** — Karina olhar e dizer o que
   levar pro projeto. Hoje é isolada (dados só no navegador). Decidir: o
   modelo dela (Entrega › Item › Etapa + plano do dia) substitui a Tasks

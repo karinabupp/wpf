@@ -68,6 +68,13 @@ dois arquivos antes de propor qualquer coisa**:
 - **Robô — quem cria linha pra outras pessoas:** admin, ou quem tem
   `cria_para_outros = true` em `wpf_agente_pessoas` (hoje: Isabela).
 
+- **Detalhador — fase 0 (08/10):** quando a Karina descrever uma demanda pra
+  virar tarefas, seguir **`worker/instrucoes/detalhador.md`**: perguntar só o
+  que falta, mostrar a árvore Demanda › Entrega › Item › Etapa e, com "sim",
+  gravar na Tasks (piloto) (`tasksPiloto` no Supabase; nunca `tasks2`), com
+  a Dash dela salva antes e recarregada depois. Registrar no Changelog o que
+  foi criado. A mesma instrução vira a do Carinha na fase 3 do projeto BAIER.
+
 ## O que o Claude NÃO consegue fazer sozinho
 
 Publicar no GitHub, sim. Mas **Cloudflare, Supabase e Meta dependem da

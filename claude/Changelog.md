@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-08 — Detalhador (fase 0): instrução escrita e registrada no BAIER
+
+Pedido da Karina: colocar no BAIER que a quebra de demandas ("tudo
+picadinho") pode ser testada primeiro aqui com o Claude e depois o Carinha
+faz igual: ela descreve a demanda, o Claude pergunta o que falta e monta
+tudo na Tasks sozinho.
+
+- **Instrução nova:** `worker/instrucoes/detalhador.md` — estrutura
+  Demanda › Entrega › Item › Etapa (o que é cada nível, teste rápido,
+  exemplo), regras do picadinho (etapa com verbo, uma pessoa, até ~2h;
+  nome é o trabalho, o resto é tag; espera de terceiro = Aguardando),
+  campos por nível, as 7 perguntas do doc do chefe, como perguntar (uma
+  rodada, só o que falta, sem inventar), formato da proposta, gravação na
+  Tasks (piloto) só com "sim", o que não pode e 3 exemplos. É a mesma que o
+  Carinha vai usar na fase 3.
+- **Doc BAIER** (claude.ai/code/artifact/0c3c2576-…): estrutura atualizada
+  pra Demanda › Entrega › Item › Etapa (Entradas, Detalhador, fase 3);
+  parágrafo novo "Fase 0 — Detalhador manual" na Ordem de construção;
+  fase 3 diz que o Carinha assume o Detalhador com a mesma instrução.
+- **LEIA-PRIMEIRO:** regra da fase 0 (seguir a instrução quando a Karina
+  descrever uma demanda).
+- **Obs.:** o push em `worker/` dispara o deploy automático do Worker do
+  WhatsApp (mesmo código; só entrou um .md).
+
+---
+
 ## 2026-10-07 (11ª) — Tasks (piloto): limpeza refeita, nomes de colunas, nada cortando
 
 - **Limpeza das demandas refeita.** A 1ª limpeza (8ª entrada) apagou no
