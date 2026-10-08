@@ -6904,6 +6904,11 @@
   #pj-menu { position: fixed; z-index: 1000; background: #fff; border: 1px solid #e3e2de; border-radius: 8px; box-shadow: 0 8px 24px rgba(15,15,15,0.14); padding: 4px; min-width: 150px; }
   #pj-menu button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 5px; font: inherit; font-size: 13px; color: #37352f; cursor: pointer; }
   #pj-menu button:hover { background: rgba(55,53,47,0.07); }
+  /* 08/10 (11ª): barra de objetivo clicável = filtro */
+  #pj-objetivos .pj-obj-barra { cursor: pointer; padding: 4px 6px; margin: -4px -6px; border-radius: 6px; transition: opacity .12s, background .12s; }
+  #pj-objetivos .pj-obj-barra:hover { background: rgba(55,53,47,0.05); }
+  #pj-objetivos .pj-obj-barra.is-ativo { background: rgba(31,59,100,0.08); box-shadow: inset 0 0 0 1px rgba(31,59,100,0.25); }
+  #pj-objetivos .pj-obj-barra.is-apagado { opacity: 0.4; }
   /* 08/10 (7ª): fundo branco na aba; logo no topo */
   #projetos-view { background: #ffffff; min-height: 100vh; }
   .pj-legenda { margin-top: 10px; }
@@ -21342,10 +21347,16 @@ applyRolePermissions();
     sel.innerHTML = `<option value="">Todas</option>` + FRENTES_PJ.map(f => `<option value="${f.id}">${f.nome}</option>`).join("") + `<option value="${SEM_FRENTE}">Sem frente</option>`;
     sel.value = frenteFiltro;
   }
-  function filtradas() {
+  function porFrente() {
     if (!frenteFiltro) return entregas;
     if (frenteFiltro === SEM_FRENTE) return entregas.filter(e => !e.frente);
     return entregas.filter(e => e.frente === frenteFiltro);
+  }
+  // Clicar numa barra de objetivo filtra as entregas dele; clicar de novo tira (Karina, 08/10).
+  let objFiltro = "";
+  function filtradas() {
+    const l = porFrente();
+    return objFiltro ? l.filter(e => e.objetivo === objFiltro) : l;
   }
 
   // Barras por objetivo (Karina, 08/10): o cheio = entregas finalizadas; a cor
@@ -21378,7 +21389,7 @@ applyRolePermissions();
       const dica = !r.total ? `${o.nome}: nenhuma entrega` :
         `${o.nome}: ${r.feitas} de ${r.total} entrega${r.total === 1 ? "" : "s"} finalizada${r.total === 1 ? "" : "s"}` +
         (r.atrasadas ? ` · ${r.atrasadas} linha${r.atrasadas === 1 ? "" : "s"} atrasada${r.atrasadas === 1 ? "" : "s"} (até ${r.maxDias} dia${r.maxDias === 1 ? "" : "s"})` : " · em dia");
-      return `<div class="pj-obj-barra is-${r.cor}" title="${esc(dica)}" data-obj="${o.id}">
+      return `<div class="pj-obj-barra is-${r.cor}${objFiltro === o.id ? " is-ativo" : objFiltro ? " is-apagado" : ""}" title="${esc(dica)} · ${objFiltro === o.id ? "clique pra ver todas" : "clique pra ver só as entregas dele"}" data-obj="${o.id}" role="button" tabindex="0" aria-pressed="${objFiltro === o.id}">
         <div class="pj-obj-barra-topo"><span>${o.nome}</span><b>${r.total ? r.feitas + "/" + r.total : "—"}</b></div>
         <div class="pj-obj-trilho"><div class="pj-obj-cheio" style="width:${pct}%"></div></div>
       </div>`;
@@ -21389,7 +21400,7 @@ applyRolePermissions();
     fecharPop();
     sincronizarFrente();
     const lista = filtradas();
-    renderObjetivos(lista);
+    renderObjetivos(porFrente());
     cabecalho();
     const corpo = document.getElementById("pj-corpo");
     if (!corpo) return;
@@ -21404,7 +21415,7 @@ applyRolePermissions();
       });
     })(lista, 0, null, null);
     corpo.innerHTML = linhas.length ? linhas.join("")
-      : `<tr><td colspan="${span}" class="pj-vazio">${entregas.length ? "Nenhuma entrega nesta frente." : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
+      : `<tr><td colspan="${span}" class="pj-vazio">${entregas.length ? (objFiltro ? "Nenhuma entrega neste objetivo" + (frenteFiltro ? " nesta frente." : ".") : "Nenhuma entrega nesta frente.") : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
     ajustarSubs();
     corpo.querySelectorAll("textarea.pj-txt").forEach(ajustarAltura);
     const c = document.getElementById("pj-contagem");
@@ -22118,6 +22129,16 @@ applyRolePermissions();
     if (tagsId) fecharTags();
   });
   document.getElementById("pj-frente-sel").addEventListener("change", ev => { frenteFiltro = ev.target.value; render(); });
+  const barrasObj = document.getElementById("pj-objetivos");
+  function clicarObjetivo(ev) {
+    const b = ev.target.closest("[data-obj]");
+    if (!b || (ev.type === "keydown" && ev.key !== "Enter" && ev.key !== " ")) return;
+    if (ev.type === "keydown") ev.preventDefault();
+    objFiltro = objFiltro === b.dataset.obj ? "" : b.dataset.obj;
+    render();
+  }
+  barrasObj.addEventListener("click", clicarObjetivo);
+  barrasObj.addEventListener("keydown", clicarObjetivo);
   document.getElementById("pj-add").addEventListener("click", () => {
     // A entrega nova nasce na frente escolhida no topo.
     const frente = frenteFiltro && frenteFiltro !== SEM_FRENTE ? frenteFiltro : "";
