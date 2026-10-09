@@ -12,6 +12,45 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (2ª) — Projetos: citação com @ no lugar da coluna Tags, cores, barras, rolagem no topo, larguras ajustáveis, Enter cria linha, menu do +
+
+Pedidos da Karina em 09/10, publicados com o OK dela ("dps disso publica tudo").
+
+- **Citação com @ (substitui a coluna Tags):** a coluna **Tags saiu**. No
+  nome da linha, digitar **@** abre a lista (equipe, contatos, federações,
+  empresas/mídias, países); ↑/↓ e Enter/Tab ou clique escolhem e escrevem
+  "@Nome " — e a tag é marcada. Apagar o @ do nome tira a tag (as outras
+  tags da linha ficam). Linha com "@Nome" no nome (ex.: criada pelo
+  Carinha) ganha a tag sozinha ao abrir a Dash (só acrescenta). Histórico
+  registra "Citou @X" / "Tirou a citação @X". Os dados continuam em
+  `tags` (nada foi apagado); as tags antigas que não estão citadas no nome
+  seguem gravadas, só não aparecem mais numa coluna.
+- **Cores do status:** Falta detalhar e Bloqueado voltaram pro **laranja**;
+  só Atrasado fica vermelho.
+- **Barras de nível mais grossas (5px) e em escada:** entrega começa na
+  borda, etapa onde a da entrega termina, tarefa onde a da etapa termina.
+- **Barra de rolagem também no topo** da planilha (sincronizada com a de baixo).
+- **Larguras ajustáveis:** arrastar a borda direita do cabeçalho; duplo
+  clique volta ao padrão; salvo por navegador (`wpf_projetos_larguras`).
+- **Fundo bege da página de volta**; só a planilha fica branca.
+- **Setinha:** em linha sem filhos cria a 1ª etapa/tarefa. **Enter** no
+  nome cria a próxima linha logo abaixo, no mesmo nível (Shift+Enter quebra linha).
+- **Botão +** ao lado do nome abre menu: **Checklist** (abre a checklist
+  da linha) e **Formulário** ("em breve"). Linha com checklist mostra ☑ ao
+  lado do nome; a bolinha de atualizações já está pronta pra quando o
+  formulário existir.
+- **Carinha/agentes:** `worker/instrucoes/detalhador.md` ganhou a regra
+  1a (citar com @ no nome, nome igual ao do cadastro) e a tabela de
+  campos/regra 5 passaram a falar de citação em vez de tag.
+- **Onde:** `index.html`, bloco "PROJETOS" (`COLUNAS` sem `tags`,
+  `candidatosMencao`/`mencoesDe`/`sincronizarMencoes`/
+  `mencoesParaTagsEmTudo`/`checarMencao`/`escolherMencao`, `#pj-mencao`,
+  `aoMudar`, `render`, Enter no nome, `abrirMenuAnexo`, `larguraCol`,
+  `sincronizarRolagemTopo`), CSS "09/10"; `worker/instrucoes/detalhador.md`.
+- **Testes:** 135 da guia + 25 de linhas + 9 de filtros + 8 de fumaça, todos ok.
+
+---
+
 ## 2026-10-09 — Projetos: colunas novas, Tags numa coluna, Responsável numa linha, Critério numa linha, filtro de Prioridade
 
 Pedido da Karina (combinado em 08/10), publicado com o OK dela.

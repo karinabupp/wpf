@@ -30,6 +30,25 @@ reconstruir o raciocínio.
   - *Aberto em:* 2026-10-08 · itens 2–4 (colunas, responsável, larguras)
     feitos em 09/10 (Changelog).
 
+- [ ] **Projetos — Formulário no botão + (aguarda a Karina)** — o menu
+  do + já tem "Formulário (em breve)" e a bolinha de atualizações está
+  pronta. Falta ela responder: (1) quem preenche — gente de fora por link
+  ou só a equipe?; (2) que campos e como montar; (3) o que a bolinha conta
+  (sugestão: respostas não lidas).
+  - *Aberto em:* 2026-10-09
+
+- [ ] **Projetos — citações (@) no nome: próximos detalhes (ideias, 09/10)**
+  - Linhas antigas: as tags já marcadas não estão escritas no nome. Dá pra
+    converter (ex.: "Stop do LW" + 📍 Chile → "Stop do LW em @Chile") — só
+    com o OK dela, linha por linha ou em lote.
+  - O @ aparece como texto comum no nome (campo de texto não colore). Se
+    ela quiser destaque, dá pra mostrar o nome formatado fora da edição.
+  - Criar cadastro novo direto pelo @ (pessoa/org que não existe) ainda
+    não existe; hoje o @ sem cadastro fica só texto. O código do painel
+    antigo de tags continua no arquivo, sem uso — dá pra reaproveitar ou apagar.
+  - *Onde:* `index.html`, bloco "PROJETOS" (funções `mencoes*`).
+  - *Aberto em:* 2026-10-09
+
 - [ ] **Projetos — Nome numa linha só (ideia, 09/10)** — linhas ainda
   crescem com nome longo; dá pra fazer igual ao Critério (… e clicar
   expande). Só se a Karina quiser.
