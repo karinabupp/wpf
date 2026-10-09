@@ -15,6 +15,19 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Projetos — etapa "Membros" acompanhar o CRM (ideia, 09/10)** — hoje
+  as 41 tarefas "@País" da etapa "Membros" (entrega "50 Federações Membros 2")
+  são uma foto do CRM em 09/10: país que virar Membro depois não entra, e
+  país que deixar de ser Membro não sai. Ideia: a Dash conferir a etapa com o
+  quadro *Membros - Federações* (status Membro) e criar/sinalizar a diferença
+  (ex.: cria a tarefa do país novo; marca, sem apagar, a do que saiu).
+  - *Contexto:* criadas por SQL em 09/10 (Changelog "09/10 (7ª)"), ids
+    `pj-cl-mbr-01`..`41`. Decidir com a Karina: automático ou botão
+    "atualizar com o CRM"; o que fazer com país que sai (cancelar? avisar?).
+  - *Onde:* `index.html`, bloco "PROJETOS" + `membros2Bridge`; seções
+    `projetos` e `members2` no Supabase.
+  - *Aberto em:* 2026-10-09
+
 - [ ] **⭐ Conectar o Google (agenda + Gmail) de cada um da Dash** — Karina,
   Isabela, Leonardo e Roberto. Pra quê (Karina): o Carinha avisar cada um
   sobre e-mails que chegam e marcar na agenda o que precisa ser feito.
