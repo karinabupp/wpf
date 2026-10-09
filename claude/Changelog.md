@@ -12,6 +12,34 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (3ª) — Projetos: Próxima ação automática, barras sem buraco, sem coluna Checklist, citação azul com cartão, rolagem do topo suave
+
+Pedidos da Karina em 09/10 (09:10), aprovados por ela ("pode").
+
+- **Próxima ação automática:** deixou de ser campo de escrever. Na entrega
+  e na etapa mostra a 1ª tarefa ainda não finalizada/cancelada (na ordem da
+  planilha; se a etapa não tem tarefas, ela mesma conta) + o responsável;
+  clicar abre o caminho e leva até a linha (pisca em amarelo). Na tarefa:
+  "—". Antes conferi na nuvem: 0 de 220 linhas tinham texto ali (nada perdido).
+- **Barras sem espaço em branco:** na etapa o trecho antes da barra dela
+  vem na cor da entrega; na tarefa, entrega + etapa + tarefa (degraus contínuos).
+- **Coluna Checklist saiu.** A checklist fica no + e no ícone ☑ ao lado do
+  nome. No menu do +, Checklist ganhou emoji (✅), igual ao 📝 do Formulário.
+- **Citação azul:** fora da edição o nome mostra a citação sem o @, em azul
+  (link). Clicar na pessoa/org abre cartão (cargo, org, e-mail, telefone,
+  site, rede social, países, pessoas da org) + "Linhas da Projetos que
+  citam"; clicar no país abre tudo ligado a ele (federações, empresas,
+  pessoas, linhas que citam). Clicar no resto do nome volta pra edição,
+  onde o @ aparece (decisão padrão: ela não escolheu entre as opções).
+- **Barra de rolagem de cima** fina e clarinha.
+- **Onde:** `index.html`, bloco "PROJETOS" (`COLUNAS` sem `checklist`,
+  célula `proximaAcao`, `proximaTarefa`, `irParaLinha`, `partesMencao`,
+  `htmlNomeComMencoes`, `nomeSemArroba`, `abrirPopMencao`, `.pj-nome-ver`),
+  CSS "09/10 (3ª)".
+- **Testes:** 147 da guia + 25 de linhas + 9 de filtros + 8 de fumaça, todos ok.
+
+---
+
 ## 2026-10-09 (2ª) — Projetos: citação com @ no lugar da coluna Tags, cores, barras, rolagem no topo, larguras ajustáveis, Enter cria linha, menu do +
 
 Pedidos da Karina em 09/10, publicados com o OK dela ("dps disso publica tudo").

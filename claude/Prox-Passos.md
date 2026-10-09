@@ -41,12 +41,19 @@ reconstruir o raciocínio.
   - Linhas antigas: as tags já marcadas não estão escritas no nome. Dá pra
     converter (ex.: "Stop do LW" + 📍 Chile → "Stop do LW em @Chile") — só
     com o OK dela, linha por linha ou em lote.
-  - O @ aparece como texto comum no nome (campo de texto não colore). Se
-    ela quiser destaque, dá pra mostrar o nome formatado fora da edição.
+  - Feito em 09/10: fora da edição a citação já aparece azul e sem @. Na
+    edição o @ ainda aparece (texto simples). Opção mais trabalhosa, se ela
+    quiser: citação como bloco azul também durante a edição.
   - Criar cadastro novo direto pelo @ (pessoa/org que não existe) ainda
     não existe; hoje o @ sem cadastro fica só texto. O código do painel
     antigo de tags continua no arquivo, sem uso — dá pra reaproveitar ou apagar.
   - *Onde:* `index.html`, bloco "PROJETOS" (funções `mencoes*`).
+  - *Aberto em:* 2026-10-09
+
+- [ ] **Projetos — Próxima ação na tarefa (confirmar com a Karina)** —
+  hoje a tarefa mostra "—"; ela não respondeu se preferia mostrar a
+  própria tarefa. Também: a Próxima ação pula tarefa finalizada/cancelada,
+  mas não pula Bloqueado nem respeita dependência — perguntar se deve.
   - *Aberto em:* 2026-10-09
 
 - [ ] **Projetos — Nome numa linha só (ideia, 09/10)** — linhas ainda

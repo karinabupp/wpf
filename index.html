@@ -6940,11 +6940,18 @@
   /* 09/10 (2ª): barrinha de nível mais grossa e em degrau (entrega 0–5px, etapa 5–10px, tarefa 10–15px) */
   #pj-tabela tr.pj-linha > td:first-child { box-shadow: none; padding-left: 20px; }
   #pj-tabela tr.pj-linha > td:first-child::before { content: ""; position: absolute; top: 0; bottom: 0; left: var(--pj-barra-x, 0px); width: 5px; background: var(--pj-cor-nivel); }
+  /* 09/10 (3ª): sem buraco antes da barra — o degrau de cima vem pintado na cor do nível de cima */
+  #pj-tabela tr.pj-linha.is-etapa > td:first-child::before { left: 0; width: 10px; background: linear-gradient(to right, #1f3b64 0 5px, #4a78b5 5px 10px); }
+  #pj-tabela tr.pj-linha.is-tarefa > td:first-child::before { left: 0; width: 15px; background: linear-gradient(to right, #1f3b64 0 5px, #4a78b5 5px 10px, #a9c3e4 10px 15px); }
   .pj-linha.is-entrega { --pj-barra-x: 0px; }
   .pj-linha.is-etapa { --pj-barra-x: 5px; }
   .pj-linha.is-tarefa { --pj-barra-x: 10px; }
   /* barra de rolagem em cima */
-  #pj-rolagem-topo { overflow-x: auto; overflow-y: hidden; height: 14px; margin-bottom: 2px; }
+  #pj-rolagem-topo { overflow-x: auto; overflow-y: hidden; height: 10px; margin-bottom: 2px; scrollbar-width: thin; scrollbar-color: #d9d7cf transparent; }
+  #pj-rolagem-topo::-webkit-scrollbar { height: 8px; }
+  #pj-rolagem-topo::-webkit-scrollbar-track { background: transparent; }
+  #pj-rolagem-topo::-webkit-scrollbar-thumb { background: #d9d7cf; border-radius: 999px; }
+  #pj-rolagem-topo::-webkit-scrollbar-thumb:hover { background: #c4c2b9; }
   #pj-rolagem-topo > div { height: 1px; }
   #pj-rolagem-topo.is-sem { visibility: hidden; }
   /* larguras ajustáveis */
@@ -6965,6 +6972,31 @@
   #pj-mencao button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 5px; font: inherit; font-size: 13px; cursor: pointer; color: #37352f; }
   #pj-mencao button.is-sel, #pj-mencao button:hover { background: rgba(55,53,47,0.08); }
   #pj-mencao small { color: #9b9a97; font-size: 11px; white-space: nowrap; }
+  /* 09/10 (3ª): fora da edição o nome mostra a citação em azul, sem o @ */
+  .pj-nome-ver { display: none; cursor: text; white-space: pre-wrap; word-break: break-word; }
+  .pj-nome-linha.tem-mencao:not(.is-editando) .pj-nome-ver { display: block; }
+  .pj-nome-linha.tem-mencao:not(.is-editando) textarea.pj-nome { display: none; }
+  .pj-mencao-link { color: #2f6fd0; cursor: pointer; text-decoration: none; border-radius: 3px; }
+  .pj-mencao-link:hover { text-decoration: underline; background: rgba(47,111,208,0.08); }
+  #pj-pop.pj-pop-mencao { min-width: 260px; max-width: 360px; max-height: 70vh; overflow-y: auto; }
+  .pj-pop-mencao .pj-men-nome { font-size: 15px; font-weight: 700; color: #37352f; }
+  .pj-pop-mencao .pj-men-sub { color: #9b9a97; font-size: 12px; margin: 1px 0 8px; }
+  .pj-pop-mencao dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0 0 6px; font-size: 12.5px; }
+  .pj-pop-mencao dt { color: #9b9a97; }
+  .pj-pop-mencao dd { margin: 0; color: #37352f; word-break: break-word; }
+  .pj-pop-mencao .pj-men-lista { margin: 2px 0 6px; padding: 0; list-style: none; font-size: 12.5px; }
+  .pj-pop-mencao .pj-men-lista li { padding: 2px 0; }
+  .pj-pop-mencao .pj-men-lista small { color: #9b9a97; }
+  #pj-pop.pj-pop-mencao button.pj-men-ir { margin: 0; width: auto; border: 0; background: none; padding: 0; font: inherit; color: #2f6fd0; cursor: pointer; text-align: left; }
+  #pj-pop.pj-pop-mencao button.pj-men-ir:hover { text-decoration: underline; }
+  /* Próxima ação automática */
+  .pj-prox { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%; border: 0; background: none; padding: 3px 6px; border-radius: 5px; font: inherit; font-size: 12.5px; text-align: left; color: #37352f; cursor: pointer; line-height: 1.3; }
+  .pj-prox:hover { background: rgba(55,53,47,0.06); }
+  .pj-prox span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pj-prox small { color: #9b9a97; font-size: 11px; }
+  .pj-prox-vazio { color: #c4c2b9; font-size: 12px; padding: 0 6px; }
+  @keyframes pjDestaque { from { background: #fff4c2; } to { background: transparent; } }
+  #pj-tabela tr.pj-linha-destaque > td { animation: pjDestaque 1.8s ease-out; }
   .pj-pop-anexo small { margin-left: auto; font-size: 11px; }
   /* 08/10 (12ª): a tela toda branca na Projetos (não só o painel); balão no Histórico */
   /* 09/10 (2ª): fundo bege de volta na página; só a planilha branca */
@@ -21269,7 +21301,6 @@ applyRolePermissions();
     { id: "prio",        titulo: "Prioridade",            largura: 100 },
     { id: "proximaAcao", titulo: "Próxima ação",          largura: 200 },
     { id: "bloq",        titulo: "Bloqueios",             largura: 100 },
-    { id: "checklist",   titulo: "Checklist",             largura: 100 },
     { id: "historico",   titulo: "Histórico",             largura: 100 },
     { id: "frente",      titulo: "Frente",                largura: 120 },
     { id: "obj",         titulo: "Objetivo",              largura: 110 }
@@ -21342,8 +21373,10 @@ applyRolePermissions();
       // Ícones ao lado do nome (09/10): checklist (e, depois, formulário), com bolinha de novidades.
       const t = e.checklist.length, f = e.checklist.filter(c => c.feito).length;
       const icones = t ? `<button type="button" class="pj-ico-anexo ${f === t ? "is-completo" : ""}" data-acao="checklist" title="Checklist: ${f} de ${t} feitos">☑</button>` : "";
-      return `<div class="pj-nome-linha" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
+      const ver = htmlNomeComMencoes(e.nome);
+      return `<div class="pj-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
         `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
+        `<div class="pj-txt pj-nome pj-nome-ver">${ver}</div>` +
         icones + `<button type="button" class="pj-add-filho" data-acao="anexar" title="Adicionar checklist ou formulário">+</button></div>`;
     },
     checklist: e => {
@@ -21383,7 +21416,15 @@ applyRolePermissions();
       return `<button type="button" class="pj-resp1" data-acao="add-resp" title="${esc(a.join(", "))}"><span class="pj-resp-nome">${esc(a[0])}</span>${a.length > 1 ? `<span class="pj-resp-mais">+${a.length - 1}</span>` : ""}</button>`;
     },
     prio: e => `<select class="tasksp-prio-select is-${e.prioridade || "vazio"}" data-campo="prioridade">${opcoes(PRIORIDADES, e.prioridade)}</select>`,
-    proximaAcao: e => `<textarea class="pj-txt" data-campo="proximaAcao" rows="1" placeholder="Próximo passo">${esc(e.proximaAcao)}</textarea>`,
+    // 09/10 (Karina): Próxima ação é automática — a 1ª tarefa não finalizada
+    // (na ordem da planilha) dentro da entrega/etapa. Na tarefa: "—".
+    proximaAcao: (e, loc) => {
+      if (!loc || loc.nivel >= 2) return `<span class="pj-prox-vazio">—</span>`;
+      const p = proximaTarefa(e);
+      if (!p) return `<span class="pj-prox-vazio">${(e.subtasks || []).length ? "Tudo feito" : "—"}</span>`;
+      const r = (p.assignees || [])[0];
+      return `<button type="button" class="pj-prox" data-acao="ir" data-alvo="${esc(p.id)}" title="Ir pra linha: ${esc(nomeSemArroba(p.nome))}"><span>${esc(nomeSemArroba(p.nome) || "(sem nome)")}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>`;
+    },
     bloq: e => {
       const n = e.bloqueios.filter(b => b.texto.trim()).length;
       return `<button type="button" class="pj-bloq ${n ? "tem" : ""}" data-acao="bloqueios" title="${n ? esc(e.bloqueios.map(b => b.texto).filter(Boolean).join(" · ")) : "Adicionar bloqueio"}">${n ? "⚠ " + n : "+"}</button>`;
@@ -21494,6 +21535,7 @@ applyRolePermissions();
   function render() {
     fecharPop();
     fecharMencao();
+    candsCache = null;
     if (mencoesParaTagsEmTudo()) salvar();
     sincronizarFrente();
     const lista = filtradas();
@@ -21527,7 +21569,7 @@ applyRolePermissions();
     const pop = document.createElement("div");
     pop.id = "pj-pop";
     pop.className = "pj-pop-form pj-pop-anexo";
-    pop.innerHTML = `<button type="button" data-anexo="checklist">☑ Checklist</button>
+    pop.innerHTML = `<button type="button" data-anexo="checklist">✅ Checklist</button>
       <button type="button" data-anexo="form" disabled title="Em breve">📝 Formulário <small>em breve</small></button>`;
     document.body.appendChild(pop);
     posicionarPop(pop, botao);
@@ -22018,6 +22060,7 @@ applyRolePermissions();
     if (acao === "checklist") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-check")) { fecharPopERedesenhar(); return; } abrirPopChecklist(b, e); return; }
     if (acao === "historico") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-hist")) { fecharPopERedesenhar(); return; } abrirPopHistorico(b, e); return; }
     if (acao === "anexar") { ev.stopPropagation(); abrirMenuAnexo(b, e); return; }
+    if (acao === "ir") { irParaLinha(b.dataset.alvo); return; }
     if (acao === "abrir") {
       // Setinha numa linha sem nada embaixo já cria a 1ª etapa/tarefa (Karina, 09/10).
       if (!(e.subtasks || []).length && loc.nivel < 2) { novoFilho(e.id); return; }
@@ -22233,16 +22276,133 @@ applyRolePermissions();
     return out;
   }
   // Acha as citações conhecidas no texto (a mais comprida ganha: "@Ladies Weekend" antes de "@Ladies").
-  function mencoesDe(txt, cands) {
+  // Posições das citações no texto: [{ i, fim, c }] (i = posição do @).
+  function partesMencao(txt, cands) {
     const s = String(txt || "");
     if (s.indexOf("@") < 0) return [];
     const lista = (cands || candidatosMencao()).slice().sort((x, y) => y.r.length - x.r.length);
     const low = s.toLowerCase(), out = [];
     for (let i = low.indexOf("@"); i >= 0; i = low.indexOf("@", i + 1)) {
       const c = lista.find(c => low.startsWith(c.r.toLowerCase(), i + 1) && !/[\p{L}\p{N}]/u.test(s.charAt(i + 1 + c.r.length)));
-      if (c && !out.some(o => o.tipo === c.tipo && o.v === c.v)) out.push(c);
+      if (c) { out.push({ i, fim: i + 1 + c.r.length, c }); i += c.r.length; }
     }
     return out;
+  }
+  function mencoesDe(txt, cands) {
+    const out = [];
+    partesMencao(txt, cands).forEach(({ c }) => { if (!out.some(o => o.tipo === c.tipo && o.v === c.v)) out.push(c); });
+    return out;
+  }
+  // Nome pra mostrar: citação em azul (link), sem o @. "" quando não tem citação.
+  let candsCache = null;
+  function htmlNomeComMencoes(nome) {
+    const s = String(nome || "");
+    if (s.indexOf("@") < 0) return "";
+    const ps = partesMencao(s, candsCache || (candsCache = candidatosMencao()));
+    if (!ps.length) return "";
+    let html = "", pos = 0;
+    ps.forEach(({ i, fim, c }) => {
+      html += esc(s.slice(pos, i)) + `<a class="pj-mencao-link" data-tipo="${c.tipo}" data-v="${esc(c.v)}" title="Ver ${esc(c.r)}">${esc(c.r)}</a>`;
+      pos = fim;
+    });
+    return html + esc(s.slice(pos));
+  }
+  function nomeSemArroba(nome) {
+    const s = String(nome || "");
+    if (s.indexOf("@") < 0) return s;
+    let out = "", pos = 0;
+    partesMencao(s, candsCache || (candsCache = candidatosMencao())).forEach(({ i, fim, c }) => { out += s.slice(pos, i) + c.r; pos = fim; });
+    return out + s.slice(pos);
+  }
+  // Próxima ação: 1ª linha sem filhos e não finalizada/cancelada, na ordem, dentro de e.
+  function proximaTarefa(e) {
+    let achou = null;
+    (function walk(l) {
+      for (const x of l || []) {
+        if (achou) return;
+        if ((x.subtasks || []).length) walk(x.subtasks);
+        else if (x.status !== "finalizado" && x.status !== "cancelado") achou = x;
+      }
+    })(e.subtasks);
+    return achou;
+  }
+  function irParaLinha(id) {
+    const cam = [];
+    (function walk(l, pais) {
+      for (const x of l || []) {
+        if (x.id === id) { cam.push(...pais); return true; }
+        if (walk(x.subtasks, pais.concat(x.id))) return true;
+      }
+      return false;
+    })(entregas, []);
+    let abriu = false;
+    cam.forEach(pid => { if (!abertas.has(pid)) { abertas.add(pid); abriu = true; } });
+    if (abriu) { guardarAbertas(); render(); }
+    const tr = document.querySelector(`#pj-corpo tr[data-id="${CSS.escape(id)}"]`);
+    if (!tr) return;
+    tr.scrollIntoView({ block: "center", behavior: "smooth" });
+    tr.classList.remove("pj-linha-destaque"); void tr.offsetWidth; tr.classList.add("pj-linha-destaque");
+  }
+  // Cartão da citação: pessoa/org mostra o cadastro; país mostra tudo ligado a ele.
+  function linhasQueCitam(tipo, v) {
+    const c = CAMPO_TAG[tipo], out = [];
+    (function walk(l, nivel) {
+      (l || []).forEach(x => {
+        if (x.tags && Array.isArray(x.tags[c]) && x.tags[c].includes(v)) out.push({ x, nivel });
+        walk(x.subtasks, nivel + 1);
+      });
+    })(entregas, 0);
+    return out;
+  }
+  function abrirPopMencao(link, e) {
+    fecharPopERedesenhar();
+    const a = api();
+    if (!a) return;
+    popPara = e.id;
+    const tipo = link.dataset.tipo, v = link.dataset.v;
+    const cad = a.cadastro() || {};
+    const nomeOrg = id => { const o = (cad.empresas || []).concat(cad.associacoes || []).find(x => x.id === id); return o ? o.nome : ""; };
+    const campos = pares => { const f = pares.filter(([, val]) => val); return f.length ? `<dl>${f.map(([k, val]) => `<dt>${k}</dt><dd>${esc(val)}</dd>`).join("")}</dl>` : ""; };
+    const lista = (titulo, itens) => itens.length ? `<div class="pj-pop-titulo pj-pop-sub">${titulo} (${itens.length})</div><ul class="pj-men-lista">${itens.join("")}</ul>` : "";
+    const linhas = linhasQueCitam(tipo, v).map(({ x, nivel }) => `<li><button type="button" class="pj-men-ir" data-ir="${esc(x.id)}">${esc(nomeSemArroba(x.nome) || "(sem nome)")}</button> <small>${NOME_NIVEL[NIVEIS[nivel]] || ""}</small></li>`);
+    const rotulo = a.rotulo(tipo, v) || v;
+    let html = "";
+    if (tipo === "pessoa" && String(v).indexOf("eq:") === 0) {
+      const u = (typeof usersList !== "undefined" && usersList ? usersList : []).find(x => x.username === rotulo) || {};
+      html = `<div class="pj-men-nome">${esc(rotulo)}</div><div class="pj-men-sub">Equipe WPF</div>` + campos([["E-mail", u.email], ["Papel", u.role === "adm" ? "Administradora" : u.role ? "Colaborador(a)" : ""]]);
+    } else if (tipo === "pessoa") {
+      const pz = (cad.pessoas || []).find(x => "p:" + x.id === v) || {};
+      html = `<div class="pj-men-nome">${esc(rotulo)}</div><div class="pj-men-sub">${esc(pz.categoria || "Contato")}</div>` +
+        campos([["Cargo", pz.cargo], ["Org", nomeOrg(pz.empresaId)], ["E-mail", pz.email], ["Telefone", pz.tel], ["Países", (pz.lugares || []).join(", ")]]);
+    } else if (tipo === "empresa" || tipo === "associacao") {
+      const o = (tipo === "empresa" ? cad.empresas : cad.associacoes || []).find(x => x.id === v) || {};
+      const gente = (cad.pessoas || []).filter(pz => pz.empresaId === v).map(pz => `<li>${esc(pz.nome)} <small>${esc([pz.cargo, pz.email].filter(Boolean).join(" · "))}</small></li>`);
+      html = `<div class="pj-men-nome">${esc(rotulo)}</div><div class="pj-men-sub">${esc(o.tipo || (tipo === "associacao" ? "Federação" : "Empresa"))}</div>` +
+        campos([["E-mail", o.email], ["Telefone", o.tel], ["Site", o.site], ["Rede social", o.redeSocial], ["Países", (o.lugares || []).join(", ")]]) + lista("Pessoas", gente);
+    } else {
+      const noLugar = x => (x.lugares || []).includes(v);
+      const gente = (cad.pessoas || []).filter(noLugar).map(pz => `<li>${esc(pz.nome)} <small>${esc([pz.cargo, nomeOrg(pz.empresaId), pz.email].filter(Boolean).join(" · "))}</small></li>`);
+      const feds = (cad.associacoes || []).filter(noLugar).map(o => `<li>${esc(o.nome)} <small>${esc([o.tipo, o.email].filter(Boolean).join(" · "))}</small></li>`);
+      const emps = (cad.empresas || []).filter(noLugar).map(o => `<li>${esc(o.nome)} <small>${esc([o.tipo, o.email].filter(Boolean).join(" · "))}</small></li>`);
+      html = `<div class="pj-men-nome">📍 ${esc(rotulo)}</div><div class="pj-men-sub">${a.rotuloLugar() === "Estado" ? "Estado" : "País"}</div>` +
+        lista("Federações e associações", feds) + lista("Empresas e mídias", emps) + lista("Pessoas", gente) +
+        (gente.length + feds.length + emps.length ? "" : `<div class="pj-pop-nada">Nada no cadastro ligado a este ${a.rotuloLugar() === "Estado" ? "estado" : "país"}.</div>`);
+    }
+    html += lista("Linhas da Projetos que citam", linhas);
+    const pop = document.createElement("div");
+    pop.id = "pj-pop";
+    pop.className = "pj-pop-form pj-pop-mencao";
+    pop.dataset.chave = tipo + "|" + v;
+    pop.innerHTML = html;
+    document.body.appendChild(pop);
+    posicionarPop(pop, link);
+    pop.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-ir]");
+      if (!b) return;
+      ev.stopPropagation();
+      fecharPopERedesenhar();
+      irParaLinha(b.dataset.ir);
+    });
   }
   function garantirTags(e) {
     if (!e.tags || typeof e.tags !== "object") e.tags = {};
@@ -22362,7 +22522,39 @@ applyRolePermissions();
       escolherMencao(mencao.itens[mencao.sel]);
     } else if (ev.key === "Escape") { ev.preventDefault(); fecharMencao(); }
   });
-  corpo.addEventListener("focusout", ev => { if (mencao && ev.target === mencao.ta) fecharMencao(); });
+  corpo.addEventListener("focusout", ev => {
+    if (mencao && ev.target === mencao.ta) fecharMencao();
+    const ta = ev.target.closest && ev.target.closest("textarea.pj-nome");
+    if (!ta) return;
+    const linha = ta.closest(".pj-nome-linha"), ver = linha && linha.querySelector(".pj-nome-ver");
+    if (!ver) return;
+    candsCache = null;
+    const html = htmlNomeComMencoes(ta.value);
+    ver.innerHTML = html;
+    linha.classList.toggle("tem-mencao", !!html);
+    linha.classList.remove("is-editando");
+  });
+  // Clicar na citação abre o cartão; clicar no resto do nome entra na edição.
+  corpo.addEventListener("click", ev => {
+    const link = ev.target.closest && ev.target.closest(".pj-mencao-link");
+    const tr = ev.target.closest && ev.target.closest("tr[data-id]");
+    if (link && tr) {
+      ev.stopPropagation();
+      const e = achar(tr.dataset.id);
+      if (!e) return;
+      const aberto = document.querySelector("#pj-pop.pj-pop-mencao");
+      if (popPara === e.id && aberto && aberto.dataset.chave === link.dataset.tipo + "|" + link.dataset.v) { fecharPopERedesenhar(); return; }
+      abrirPopMencao(link, e);
+      return;
+    }
+    const ver = ev.target.closest && ev.target.closest(".pj-nome-ver");
+    if (!ver) return;
+    const linha = ver.closest(".pj-nome-linha"), ta = linha.querySelector("textarea.pj-nome");
+    linha.classList.add("is-editando");
+    ajustarAltura(ta);
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
   // Enter no nome cria a próxima linha logo embaixo, no mesmo nível (Karina, 09/10; Shift+Enter quebra linha).
   corpo.addEventListener("keydown", ev => {
     if (ev.key !== "Enter" || ev.shiftKey || ev.isComposing || ev.defaultPrevented || mencao) return;
@@ -22510,7 +22702,7 @@ applyRolePermissions();
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharMenuLinha(); });
   window.addEventListener("scroll", fecharMenuLinha, true);
   document.addEventListener("click", ev => {
-    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add, .pj-resp1, .pj-cols-btn, .pj-add-filho, .pj-ico-anexo") && document.contains(ev.target)) fecharPopERedesenhar();
+    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add, .pj-resp1, .pj-cols-btn, .pj-add-filho, .pj-ico-anexo, .pj-mencao-link") && document.contains(ev.target)) fecharPopERedesenhar();
     if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
     if (armado && !ev.target.closest(".pj-lixo")) desarmar();
   });
