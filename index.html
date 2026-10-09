@@ -6663,7 +6663,7 @@
   .pj-obj-barra.is-amarelo .pj-obj-barra-topo b { color: #8a6d1f; }
   .pj-obj-barra.is-vermelho .pj-obj-barra-topo b { color: #a3312a; }
   .pj-frente label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
-  #pj-frente-sel { border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; background: var(--bg); color: var(--text); cursor: pointer; }
+  #pj-frente-sel, #pj-prio-sel { border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; background: var(--bg); color: var(--text); cursor: pointer; }
   /* Rolagem horizontal: a tabela é mais larga que a tela; o nome fica fixo à esquerda. */
   #pj-rolagem { overflow-x: auto; overflow-y: visible; border: 1px solid var(--border); border-radius: 10px; background: #ffffff; }
   #pj-rolagem::-webkit-scrollbar { height: 12px; }
@@ -6909,6 +6909,32 @@
   #pj-objetivos .pj-obj-barra:hover { background: rgba(55,53,47,0.05); }
   #pj-objetivos .pj-obj-barra.is-ativo { background: rgba(31,59,100,0.08); box-shadow: inset 0 0 0 1px rgba(31,59,100,0.25); }
   #pj-objetivos .pj-obj-barra.is-apagado { opacity: 0.4; }
+  /* 09/10: Critério numa linha (clicar expande); Responsável 1º + "+N"; Tags numa coluna; ⋯ colunas */
+  #pj-tabela td[data-col=criterio] .pj-crit { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: text; padding: 3px 0; color: #37352f; }
+  #pj-tabela td[data-col=criterio] .pj-crit.is-vazio { color: #b9b7b0; opacity: 0; }
+  #pj-tabela tr:hover td[data-col=criterio] .pj-crit.is-vazio { opacity: 1; }
+  #pj-tabela td[data-col=criterio] .pj-crit-txt { display: none; }
+  #pj-tabela td[data-col=criterio].is-editando .pj-crit { display: none; }
+  #pj-tabela td[data-col=criterio].is-editando .pj-crit-txt { display: block; }
+  .pj-resp1 { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; border: 0; background: none; padding: 2px 4px; border-radius: 4px; font: inherit; font-size: 12.5px; color: #37352f; cursor: pointer; white-space: nowrap; }
+  .pj-resp1:hover { background: rgba(55,53,47,0.06); }
+  .pj-resp-nome { overflow: hidden; text-overflow: ellipsis; }
+  .pj-resp-mais { flex-shrink: 0; font-size: 11px; font-weight: 600; color: #6f6e69; background: #efeeea; border-radius: 999px; padding: 0 6px; }
+  .pj-pop-resp .pj-resp-linha { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 3px 2px; font-size: 13px; }
+  .pj-pop-resp .pj-resp-linha button { border: 0; background: none; color: #9b9a97; cursor: pointer; font-size: 15px; }
+  .pj-pop-resp .pj-resp-op { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 5px 4px; border-radius: 5px; font: inherit; font-size: 13px; cursor: pointer; }
+  .pj-pop-resp .pj-resp-op:hover { background: rgba(55,53,47,0.07); }
+  .pj-pop-sub { margin-top: 8px; }
+  #pj-tabela .pj-tags-cell { display: inline-flex; gap: 6px; flex-wrap: nowrap; white-space: nowrap; }
+  .pj-tags-abas { display: flex; gap: 4px; padding: 6px 10px 2px; }
+  .pj-tags-abas button { border: 1px solid #e3e2de; background: #fff; border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; color: #5f5e58; }
+  .pj-tags-abas button.is-ativa { background: #1f3b64; border-color: #1f3b64; color: #fff; }
+  .pj-cols-btn { border: 0; background: none; color: #9b9a97; font-size: 16px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+  .pj-cols-btn:hover { background: rgba(55,53,47,0.07); color: #37352f; }
+  #pj-pop.pj-pop-cols { max-height: 70vh; overflow-y: auto; min-width: 210px; }
+  #pj-pop.pj-pop-cols label.pj-col-op { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 2px; margin: 0; font-size: 13px; font-weight: 500; text-align: left; text-transform: none; letter-spacing: 0; color: #37352f; cursor: pointer; white-space: nowrap; }
+  #pj-pop.pj-pop-cols label.pj-col-op input { width: auto; margin: 0; }
+  #pj-tabela td[data-col=status] .pj-status { max-width: 112px; }
   /* 08/10 (12ª): a tela toda branca na Projetos (não só o painel); balão no Histórico */
   body:has(#projetos-view:not(.hidden)) { background: #ffffff; }
   .pj-balao { vertical-align: -2px; }
@@ -7406,6 +7432,7 @@
       <div class="pj-direita">
         <div id="pj-objetivos" aria-label="Andamento por objetivo"></div>
         <div class="pj-frente"><label for="pj-frente-sel">Frente</label><select id="pj-frente-sel" aria-label="Filtrar por frente"></select></div>
+        <div class="pj-frente"><label for="pj-prio-sel">Prioridade</label><select id="pj-prio-sel" aria-label="Filtrar por prioridade"><option value="">Todas</option><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option><option value="__sem__">Sem prioridade</option></select></div>
       </div>
     </div>
     <div id="pj-rolagem">
@@ -21089,7 +21116,7 @@ applyRolePermissions();
       assignees: Array.isArray(e.assignees) ? e.assignees.filter(Boolean) : [],
       prioridade: e.prioridade || "",
       // "Ação atual / próxima" (uma coluna) virou duas; o texto antigo fica em Ação atual.
-      acaoAtual: String(e.acaoAtual != null ? e.acaoAtual : (e.acao || "")), proximaAcao: String(e.proximaAcao || ""),
+      proximaAcao: String(e.proximaAcao || ""), // Ação atual saiu (Karina, 09/10)
       bloqueios: bloq,
       // Checklist e Histórico (08/10): em todas as linhas.
       checklist: (Array.isArray(e.checklist) ? e.checklist : []).filter(c => c && typeof c === "object")
@@ -21178,30 +21205,43 @@ applyRolePermissions();
       (n ? `<span class="pj-tag-num pj-tag-num-${grupo}">${ICONE_GRUPO[grupo]} ${n}</span>` : `<span class="tasksp-pais-vazio">+</span>`) + `</span>`;
   }
 
+  // Tags numa coluna só (Karina, 09/10): 👤 pessoas, 🏢 orgs, 📍 países, só o
+  // que tem. Clicar abre o painel com abas (Pessoas / Orgs / Países).
+  function tagsCelulaTodas(e) {
+    const a = api();
+    const partes = [], nomes = [];
+    ["pessoas", "orgs", "lugares"].forEach(gr => {
+      let n = 0;
+      if (a) GRUPOS_TAG[gr].tipos.forEach(tipo => e.tags[CAMPO_TAG[tipo]].forEach(v => { const r = a.rotulo(tipo, v); if (r) { n++; nomes.push(r); } }));
+      if (n) partes.push(`<span class="pj-tag-num pj-tag-num-${gr}">${ICONE_GRUPO[gr]} ${n}</span>`);
+    });
+    return `<span class="tasksp-tags-cell pj-tags-cell" data-id="${e.id}" data-grupo="tags" title="${partes.length ? esc(nomes.join(", ")) : "Clique pra marcar pessoas, orgs e países"}">` +
+      (partes.length ? partes.join("") : `<span class="tasksp-pais-vazio">+</span>`) + `</span>`;
+  }
+
   // ── Colunas (arrastáveis: a ordem fica salva neste navegador) ──
   // "Nome" fica sempre na 1ª posição (é a coluna fixa ao rolar pro lado) e a
   // lixeira sempre no fim; as outras a Karina arrasta pelo cabeçalho. A
   // planilha das etapas segue a mesma ordem (sem Frente e Objetivo).
+  // 09/10 (Karina): sem Progresso e Ação atual; Pessoas/Orgs/Países viraram
+  // uma coluna só (Tags); larguras enxutas. Objetivo, Frente e Prioridade
+  // nascem ocultas (botão ⋯ no fim do cabeçalho mostra/oculta colunas).
   const COLUNAS = [
-    { id: "nome",        titulo: "Nome",                  largura: 420 },
-    { id: "criterio",    titulo: "Critério de conclusão", largura: 230 },
-    { id: "status",      titulo: "Status",                largura: 150 },
-    { id: "progresso",   titulo: "Progresso",             largura: 130 },
-    { id: "prazo",       titulo: "Prazo",                 largura: 160 },
-    { id: "finalizado",  titulo: "Finalizado",            largura: 145 },
-    { id: "forma",       titulo: "Forma",                 largura: 110 },
-    { id: "resp",        titulo: "Responsável",           largura: 190 },
-    { id: "prio",        titulo: "Prioridade",            largura: 110 },
-    { id: "acaoAtual",   titulo: "Ação atual",            largura: 220 },
-    { id: "proximaAcao", titulo: "Próxima ação",          largura: 220 },
-    { id: "bloq",        titulo: "Bloqueios",             largura: 115 },
-    { id: "checklist",   titulo: "Checklist",             largura: 110 },
-    { id: "historico",   titulo: "Histórico",             largura: 110 },
-    { id: "frente",      titulo: "Frente",                largura: 130 },
-    { id: "obj",         titulo: "Objetivo",              largura: 130 },
-    { id: "pessoas",     titulo: "Pessoas",               largura: 105 },
-    { id: "orgs",        titulo: "Orgs",                  largura: 105 },
-    { id: "lugares",     titulo: ORG_ATUAL === "cbth" ? "Estados" : "Países", largura: 105 }
+    { id: "nome",        titulo: "Nome",                  largura: 360 },
+    { id: "criterio",    titulo: "Critério de conclusão", largura: 220 },
+    { id: "status",      titulo: "Status",                largura: 128 },
+    { id: "prazo",       titulo: "Prazo",                 largura: 128 },
+    { id: "finalizado",  titulo: "Finalizado",            largura: 118 },
+    { id: "forma",       titulo: "Forma",                 largura: 84 },
+    { id: "resp",        titulo: "Responsável",           largura: 150 },
+    { id: "prio",        titulo: "Prioridade",            largura: 100 },
+    { id: "proximaAcao", titulo: "Próxima ação",          largura: 200 },
+    { id: "bloq",        titulo: "Bloqueios",             largura: 100 },
+    { id: "checklist",   titulo: "Checklist",             largura: 100 },
+    { id: "historico",   titulo: "Histórico",             largura: 100 },
+    { id: "tags",        titulo: "Tags",                  largura: 120 },
+    { id: "frente",      titulo: "Frente",                largura: 120 },
+    { id: "obj",         titulo: "Objetivo",              largura: 110 }
   ];
   const SO_ENTREGA = ["frente", "obj"];
   const LARGURA_LIXO = 50;
@@ -21219,10 +21259,16 @@ applyRolePermissions();
   let ordemColunas = ordemValida(null);
   try { ordemColunas = ordemValida(JSON.parse(localStorage.getItem(ORDEM_KEY) || "null")); } catch (e) {}
   const colunaDe = id => COLUNAS.find(c => c.id === id);
+  // Colunas ocultas (09/10): ficam fora da tabela; o botão ⋯ do cabeçalho
+  // mostra/oculta (por navegador). Padrão: Objetivo, Frente e Prioridade.
+  const OCULTAS_KEY = "wpf_projetos_ocultas";
+  let ocultas = new Set(["frente", "obj", "prio"]);
+  try { const o = JSON.parse(localStorage.getItem(OCULTAS_KEY) || "null"); if (Array.isArray(o)) ocultas = new Set(o.filter(id => id !== "nome")); } catch (e) {}
+  const visiveis = () => ordemColunas.filter(id => !ocultas.has(id));
   // Ícone de cada coluna no cabeçalho (como no Notion).
-  const ICONE_COL = { nome: "Aa", criterio: "≡", status: "◉", progresso: "%", prazo: "◷", finalizado: "✓", forma: "◐",
-    resp: "@", prio: "⚑", acaoAtual: "≡", proximaAcao: "≡", bloq: "⚠", checklist: "☑", historico: "💬",
-    frente: "◇", obj: "◇", pessoas: "@", orgs: "#", lugares: "⌖" };
+  const ICONE_COL = { nome: "Aa", criterio: "≡", status: "◉", prazo: "◷", finalizado: "✓", forma: "◐",
+    resp: "@", prio: "⚑", proximaAcao: "≡", bloq: "⚠", checklist: "☑", historico: "💬",
+    frente: "◇", obj: "◇", tags: "#" };
   // Balão de fala (Karina, 08/10: no lugar do relógio, no Histórico).
   const BALAO = `<svg class="pj-balao" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7l-3 2.5V11.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
   const tituloCol = id => `<span class="pj-th-ico">${id === "historico" ? BALAO : (ICONE_COL[id] || "≡")}</span>${colunaDe(id).titulo}`;
@@ -21271,16 +21317,12 @@ applyRolePermissions();
       const ult = n ? e.historico[n - 1] : null;
       return `<button type="button" class="pj-mini ${n ? "tem" : ""}" data-acao="historico" title="${ult ? esc(dataHora(ult.quando) + " · " + (ult.autor || "") + ": " + ult.texto) : "Registrar no histórico"}">${n ? BALAO + " " + n : "+"}</button>`;
     },
-    criterio: e => `<textarea class="pj-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
+    // Critério numa linha só (Karina, 09/10); clicar expande pra ler/editar inteiro.
+    criterio: e => `<div class="pj-crit ${e.criterio ? "" : "is-vazio"}" data-acao="crit" title="${esc(e.criterio || "Clique pra escrever")}">${esc(e.criterio) || "O que é pronto?"}</div>` +
+      `<textarea class="pj-txt pj-crit-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
     status: e => {
       const atrasado = classeStatus(e) === "is-atrasado";
       return `<select class="pj-status ${classeStatus(e)}" data-campo="status" title="${atrasado ? "Passou do prazo (Fim " + fmtData(e.endDate) + ")" : ""}">${STATUS.map(s => `<option value="${s.id}" ${s.id === e.status ? "selected" : ""}>${s.nome}</option>`).join("")}</select>`;
-    },
-    progresso: e => {
-      const p = progresso(e);
-      if (!p) return `<span class="pj-prog-vazio">—</span>`;
-      const dica = p.temFilhos ? `${p.feitas} de ${p.total} finalizada${p.total === 1 ? "" : "s"}` : (p.pct === 100 ? "Finalizada" : "Ainda não finalizada");
-      return `<div class="pj-prog ${p.pct === 100 ? "is-completo" : ""}" title="${dica}"><div class="pj-prog-trilho"><div class="pj-prog-cheio" style="width:${p.pct}%"></div></div><span>${p.pct}%</span></div>`;
     },
     prazo: e => {
       const txt = prazoTexto(e);
@@ -21296,9 +21338,13 @@ applyRolePermissions();
       return f ? `<span class="tasksp-stent pj-forma is-${f}" title="Finalizado ${fmtData(e.finalizadoEm)} · Fim ${fmtData(e.endDate)}">${f === "emdia" ? "Em dia" : "Atrasado"}</span>`
         : `<span class="pj-prog-vazio" title="Aparece quando tiver Fim e Finalizado">—</span>`;
     },
-    resp: e => `<div class="pj-resp">${e.assignees.map(n => `<span class="pj-resp-chip">${esc(n)}<button type="button" data-acao="tirar-resp" data-nome="${esc(n)}" title="Tirar">×</button></span>`).join("")}<button type="button" class="pj-resp-add" data-acao="add-resp" title="Adicionar responsável">+</button></div>`,
+    // Responsável numa linha (Karina, 09/10): 1º nome + "+N"; clicar abre a lista.
+    resp: e => {
+      const a = e.assignees;
+      if (!a.length) return `<button type="button" class="pj-resp-add" data-acao="add-resp" title="Adicionar responsável">+</button>`;
+      return `<button type="button" class="pj-resp1" data-acao="add-resp" title="${esc(a.join(", "))}"><span class="pj-resp-nome">${esc(a[0])}</span>${a.length > 1 ? `<span class="pj-resp-mais">+${a.length - 1}</span>` : ""}</button>`;
+    },
     prio: e => `<select class="tasksp-prio-select is-${e.prioridade || "vazio"}" data-campo="prioridade">${opcoes(PRIORIDADES, e.prioridade)}</select>`,
-    acaoAtual: e => `<textarea class="pj-txt" data-campo="acaoAtual" rows="1" placeholder="O que está sendo feito">${esc(e.acaoAtual)}</textarea>`,
     proximaAcao: e => `<textarea class="pj-txt" data-campo="proximaAcao" rows="1" placeholder="Próximo passo">${esc(e.proximaAcao)}</textarea>`,
     bloq: e => {
       const n = e.bloqueios.filter(b => b.texto.trim()).length;
@@ -21311,9 +21357,7 @@ applyRolePermissions();
     obj: (e, loc) => loc.nivel === 0
       ? `<select class="pj-obj ${e.objetivo ? "" : "is-vazio"}" data-campo="objetivo">${opcoes(OBJETIVOS_PJ, e.objetivo)}</select>`
       : `<span class="pj-herdado" title="Vem da entrega">${esc((OBJETIVOS_PJ.find(o => o.id === loc.entrega.objetivo) || {}).nome || "—")}</span>`,
-    pessoas: e => tagsCelula(e, "pessoas"),
-    orgs: e => tagsCelula(e, "orgs"),
-    lugares: e => tagsCelula(e, "lugares")
+    tags: e => tagsCelulaTodas(e)
   };
   function lixoHtml(e, loc) {
     const nivel = NIVEIS[loc.nivel];
@@ -21329,11 +21373,13 @@ applyRolePermissions();
     return cols.map(id => `<col style="width:${colunaDe(id).largura}px">`).join("") + `<col style="width:${LARGURA_LIXO}px">`;
   }
   function cabecalho() {
-    document.getElementById("pj-tabela").style.minWidth = larguraDe(ordemColunas) + "px";
-    document.getElementById("pj-colgroup").innerHTML = colgroupHtml(ordemColunas);
-    document.getElementById("pj-cabeca").innerHTML = `<tr>` + ordemColunas.map(id => id === "nome"
+    const cols = visiveis();
+    document.getElementById("pj-tabela").style.minWidth = larguraDe(cols) + "px";
+    document.getElementById("pj-colgroup").innerHTML = colgroupHtml(cols);
+    document.getElementById("pj-cabeca").innerHTML = `<tr>` + cols.map(id => id === "nome"
       ? `<th data-col="nome">${tituloCol(id)}</th>`
-      : `<th data-col="${id}" draggable="true" title="Arraste pra mudar a coluna de lugar">${tituloCol(id)}</th>`).join("") + `<th data-col="lixo"></th></tr>`;
+      : `<th data-col="${id}" draggable="true" title="Arraste pra mudar a coluna de lugar">${tituloCol(id)}</th>`).join("") +
+      `<th data-col="lixo"><button type="button" class="pj-cols-btn" data-acao-cab="colunas" title="Mostrar ou ocultar colunas${ocultas.size ? " (" + ocultas.size + " oculta" + (ocultas.size === 1 ? "" : "s") + ")" : ""}">⋯</button></th></tr>`;
   }
 
   // As planilhas de dentro ficam do tamanho da área visível (não rolam junto
@@ -21359,9 +21405,15 @@ applyRolePermissions();
   }
   // Clicar numa barra de objetivo filtra as entregas dele; clicar de novo tira (Karina, 08/10).
   let objFiltro = "";
+  // Prioridade virou filtro (Karina, 09/10): a entrega aparece se ela ou
+  // alguma etapa/tarefa dela tiver a prioridade escolhida.
+  let prioFiltro = "";
+  const temPrio = (x, p) => (p === "__sem__" ? !x.prioridade : x.prioridade === p) || (x.subtasks || []).some(s => temPrio(s, p));
   function filtradas() {
-    const l = porFrente();
-    return objFiltro ? l.filter(e => e.objetivo === objFiltro) : l;
+    let l = porFrente();
+    if (objFiltro) l = l.filter(e => e.objetivo === objFiltro);
+    if (prioFiltro) l = l.filter(e => prioFiltro === "__sem__" ? !e.prioridade : temPrio(e, prioFiltro));
+    return l;
   }
 
   // Barras por objetivo (Karina, 08/10): o cheio = entregas finalizadas; a cor
@@ -21409,22 +21461,43 @@ applyRolePermissions();
     cabecalho();
     const corpo = document.getElementById("pj-corpo");
     if (!corpo) return;
-    const span = ordemColunas.length + 1;
+    const span = visiveis().length + 1;
     // Entregas, etapas e tarefas na mesma tabela (estilo Notion, com setinha).
     const linhas = [];
     (function walk(l, nivel, pai, topo) {
       l.forEach(x => {
         const ent = nivel === 0 ? x : topo;
-        linhas.push(linhaHtml(x, { linha: x, nivel, pai, lista: l, entrega: ent }, ordemColunas));
+        linhas.push(linhaHtml(x, { linha: x, nivel, pai, lista: l, entrega: ent }, visiveis()));
         if (nivel < 2 && abertas.has(x.id)) walk(x.subtasks || [], nivel + 1, x, ent);
       });
     })(lista, 0, null, null);
     corpo.innerHTML = linhas.length ? linhas.join("")
-      : `<tr><td colspan="${span}" class="pj-vazio">${entregas.length ? (objFiltro ? "Nenhuma entrega neste objetivo" + (frenteFiltro ? " nesta frente." : ".") : "Nenhuma entrega nesta frente.") : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
+      : `<tr><td colspan="${span}" class="pj-vazio">${entregas.length ? (objFiltro ? "Nenhuma entrega neste objetivo" + (frenteFiltro || prioFiltro ? " com esses filtros." : ".") : prioFiltro ? "Nenhuma entrega com essa prioridade." : "Nenhuma entrega nesta frente.") : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
     ajustarSubs();
     corpo.querySelectorAll("textarea.pj-txt").forEach(ajustarAltura);
     const c = document.getElementById("pj-contagem");
     if (c) c.textContent = entregas.length ? `${lista.length} de ${entregas.length} entrega${entregas.length === 1 ? "" : "s"}` : "";
+  }
+
+  // ── Mostrar/ocultar colunas (botão ⋯ no fim do cabeçalho) ──
+  function abrirPopColunas(botao) {
+    fecharPopERedesenhar();
+    popPara = "__colunas__";
+    const pop = document.createElement("div");
+    pop.id = "pj-pop";
+    pop.className = "pj-pop-form pj-pop-cols";
+    pop.innerHTML = `<div class="pj-pop-titulo">Colunas</div>` + ordemColunas.filter(id => id !== "nome").map(id =>
+      `<label class="pj-col-op"><input type="checkbox" data-col="${id}" ${ocultas.has(id) ? "" : "checked"}> ${colunaDe(id).titulo}</label>`).join("");
+    document.body.appendChild(pop);
+    posicionarPop(pop, botao);
+    pop.style.left = Math.max(8, Math.min(botao.getBoundingClientRect().right - pop.offsetWidth, window.innerWidth - pop.offsetWidth - 12)) + "px";
+    pop.addEventListener("change", ev => {
+      const id = ev.target.dataset.col;
+      if (!id) return;
+      if (ev.target.checked) ocultas.delete(id); else ocultas.add(id);
+      try { localStorage.setItem(OCULTAS_KEY, JSON.stringify([...ocultas])); } catch (e) {}
+      popMudou = true;
+    });
   }
 
   // ── Arrastar colunas pelo cabeçalho ──
@@ -21432,6 +21505,13 @@ applyRolePermissions();
   const cabeca = document.getElementById("pj-cabeca");
   function limparMarcas() { cabeca.querySelectorAll(".pj-th-antes, .pj-th-depois").forEach(th => th.classList.remove("pj-th-antes", "pj-th-depois")); }
   function ladoDoMouse(th, ev) { const r = th.getBoundingClientRect(); return ev.clientX < r.left + r.width / 2 ? "antes" : "depois"; }
+  cabeca.addEventListener("click", ev => {
+    const b = ev.target.closest("[data-acao-cab=colunas]");
+    if (!b) return;
+    ev.stopPropagation();
+    if (popPara === "__colunas__") { fecharPopERedesenhar(); return; }
+    abrirPopColunas(b);
+  });
   cabeca.addEventListener("dragstart", ev => {
     const th = ev.target.closest("th[draggable]");
     if (!th) return;
@@ -21517,24 +21597,30 @@ applyRolePermissions();
   let popPara = null;
   function fecharPop() { const p = document.getElementById("pj-pop"); if (p) p.remove(); popPara = null; }
   function abrirPopResp(botao, e) {
-    fecharPop();
+    fecharPopERedesenhar();
     popPara = e.id;
-    const nomes = (typeof usersList !== "undefined" && usersList ? usersList : []).map(u => u.username).filter(n => n && !e.assignees.includes(n));
     const pop = document.createElement("div");
     pop.id = "pj-pop";
-    pop.innerHTML = nomes.length ? nomes.map(n => `<button type="button" data-nome="${esc(n)}">${esc(n)}</button>`).join("") : `<div class="pj-pop-nada">Todo mundo já está nesta entrega.</div>`;
+    pop.className = "pj-pop-form pj-pop-resp";
     document.body.appendChild(pop);
-    const r = botao.getBoundingClientRect();
-    pop.style.top = Math.min(r.bottom + 4, window.innerHeight - pop.offsetHeight - 8) + "px";
-    pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 12)) + "px";
-    pop.addEventListener("click", ev => {
-      const b = ev.target.closest("button[data-nome]");
+    function montar() {
       const alvo = achar(popPara);
-      if (!b || !alvo) return;
-      alvo.assignees = alvo.assignees.concat(b.dataset.nome);
-      registrar(alvo, `Responsável: + ${b.dataset.nome}`);
-      salvar();
-      render();
+      if (!alvo) return;
+      const livres = (typeof usersList !== "undefined" && usersList ? usersList : []).map(u => u.username).filter(n => n && !alvo.assignees.includes(n));
+      pop.innerHTML = `<div class="pj-pop-titulo">Responsáveis</div>` +
+        (alvo.assignees.length ? alvo.assignees.map((n, i) => `<div class="pj-resp-linha">${i === 0 ? "<b>" + esc(n) + "</b>" : esc(n)}<button type="button" data-tirar="${esc(n)}" title="Tirar">×</button></div>`).join("") : `<div class="pj-pop-nada">Ninguém ainda.</div>`) +
+        (livres.length ? `<div class="pj-pop-titulo pj-pop-sub">Adicionar</div>` + livres.map(n => `<button type="button" class="pj-resp-op" data-nome="${esc(n)}">+ ${esc(n)}</button>`).join("") : "");
+    }
+    montar();
+    posicionarPop(pop, botao);
+    pop.addEventListener("click", ev => {
+      const alvo = achar(popPara);
+      if (!alvo) return;
+      const add = ev.target.closest("[data-nome]"), tira = ev.target.closest("[data-tirar]");
+      if (add) { alvo.assignees = alvo.assignees.concat(add.dataset.nome); registrar(alvo, `Responsável: + ${add.dataset.nome}`); }
+      else if (tira) { alvo.assignees = alvo.assignees.filter(n => n !== tira.dataset.tirar); registrar(alvo, `Responsável: tirou ${tira.dataset.tirar}`); }
+      else return;
+      popMudou = true; salvar(); montar();
     });
   }
 
@@ -21640,7 +21726,7 @@ applyRolePermissions();
   // por onde (WhatsApp, e-mail, telefone…). ──
   const CANAIS = ["Conversa", "WhatsApp", "E-mail", "Telefone", "Reunião", "Slack", "Outro"];
   const ROTULO_CAMPO = { nome: "Nome", criterio: "Critério", status: "Status", startDate: "Início", endDate: "Fim",
-    finalizadoEm: "Finalizado", prioridade: "Prioridade", acaoAtual: "Ação atual", proximaAcao: "Próxima ação",
+    finalizadoEm: "Finalizado", prioridade: "Prioridade", proximaAcao: "Próxima ação",
     frente: "Frente", objetivo: "Objetivo" };
   const novoIdH = () => "h-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const quemSou = () => (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
@@ -21803,6 +21889,13 @@ applyRolePermissions();
     }
     const acao = b.dataset.acao;
     if (acao === "add-filho") { novoFilho(e.id); return; }
+    if (acao === "crit") {
+      const td = b.closest("td");
+      td.classList.add("is-editando");
+      const ta = td.querySelector(".pj-crit-txt");
+      ajustarAltura(ta); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+      return;
+    }
     if (acao === "checklist") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-check")) { fecharPopERedesenhar(); return; } abrirPopChecklist(b, e); return; }
     if (acao === "historico") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-hist")) { fecharPopERedesenhar(); return; } abrirPopHistorico(b, e); return; }
     if (acao === "abrir") {
@@ -21813,7 +21906,7 @@ applyRolePermissions();
     }
     if (acao === "prazo") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-prazo")) { fecharPopERedesenhar(); return; } abrirPopPrazo(b, e); return; }
     if (acao === "bloqueios") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-bloq")) { fecharPopERedesenhar(); return; } abrirPopBloqueios(b, e); return; }
-    if (acao === "add-resp") { ev.stopPropagation(); abrirPopResp(b, e); return; }
+    if (acao === "add-resp") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-resp")) { fecharPopERedesenhar(); return; } abrirPopResp(b, e); return; }
     if (acao === "tirar-resp") { e.assignees = e.assignees.filter(n => n !== b.dataset.nome); registrar(e, `Responsável: tirou ${b.dataset.nome}`); salvar(); render(); return; }
     if (acao === "apagar") {
       if (armado !== e.id) {
@@ -21857,8 +21950,14 @@ applyRolePermissions();
     const painel = document.getElementById("projetos-tags-painel");
     const e = achar(tagsId), a = api();
     if (!painel || !e || !a) return;
-    const cel = document.querySelector(`#pj-corpo .pj-tags-cell[data-id="${e.id}"][data-grupo="${tagsGrupo}"]`);
-    if (cel) cel.outerHTML = tagsCelula(e, tagsGrupo);
+    const cel = document.querySelector(`#pj-corpo .pj-tags-cell[data-id="${e.id}"]`);
+    if (cel) cel.outerHTML = tagsCelulaTodas(e);
+    painel.querySelectorAll("[data-aba]").forEach(b => b.classList.toggle("is-ativa", b.dataset.aba === tagsGrupo));
+    const estadoT = a.rotuloLugar() === "Estado";
+    const tit = painel.querySelector(".pj-tags-titulo");
+    if (tit) tit.textContent = (tagsGrupo === "lugares" ? (estadoT ? "Estados" : "Países") : GRUPOS_TAG[tagsGrupo].titulo) + " · " + (e.nome || "Entrega");
+    const bx = painel.querySelector(".tasksp-tags-busca");
+    if (bx) bx.placeholder = tagsGrupo === "pessoas" ? "Buscar pessoa…" : tagsGrupo === "orgs" ? "Buscar empresa, federação ou mídia…" : `Buscar ${estadoT ? "estado" : "país"}…`;
     const cad = a.cadastro(), g = e.tags, k = a.norm(tagsBusca);
     const casa = s => !k || a.norm(s).includes(k);
     const lim = l => l.slice(0, 10);
@@ -21917,7 +22016,11 @@ applyRolePermissions();
     painel.querySelector(".tasksp-tags-lista").innerHTML = html;
   }
   function abrirTags(celula, e) {
-    const grupoCel = celula.dataset.grupo || "pessoas";
+    let grupoCel = celula.dataset.grupo || "pessoas";
+    if (grupoCel === "tags") {
+      if (tagsId === e.id) { fecharTags(); return; }
+      grupoCel = ["pessoas", "orgs", "lugares"].find(gr => GRUPOS_TAG[gr].tipos.some(t => e.tags[CAMPO_TAG[t]].length)) || "pessoas";
+    }
     if (tagsId === e.id && tagsGrupo === grupoCel) { fecharTags(); return; }
     fecharTags(false);
     const a = api();
@@ -21929,7 +22032,8 @@ applyRolePermissions();
     const estado = a.rotuloLugar() === "Estado";
     const busca0 = tagsGrupo === "pessoas" ? "Buscar pessoa…" : tagsGrupo === "orgs" ? "Buscar empresa, federação ou mídia…" : `Buscar ${estado ? "estado" : "país"}…`;
     const titulo = tagsGrupo === "lugares" ? (estado ? "Estados" : "Países") : GRUPOS_TAG[tagsGrupo].titulo;
-    painel.innerHTML = `<div class="tasksp-contexto-topo"><span title="${esc(e.nome)}">${titulo} · ${esc(e.nome || "Entrega")}</span><button type="button" data-acao="fechar" title="Fechar">×</button></div>
+    painel.innerHTML = `<div class="tasksp-contexto-topo"><span class="pj-tags-titulo" title="${esc(e.nome)}">${titulo} · ${esc(e.nome || "Entrega")}</span><button type="button" data-acao="fechar" title="Fechar">×</button></div>
+      <div class="pj-tags-abas"><button type="button" data-aba="pessoas">👤 Pessoas</button><button type="button" data-aba="orgs">🏢 Orgs</button><button type="button" data-aba="lugares">📍 ${estado ? "Estados" : "Países"}</button></div>
       <div class="tasksp-tags-proprias"></div>
       <input type="text" class="tasksp-tags-busca" placeholder="${busca0}" autocomplete="off">
       <div class="tasksp-tags-lista"></div>`;
@@ -21947,6 +22051,8 @@ applyRolePermissions();
       if (ev.key === "Enter") { ev.preventDefault(); const b = painel.querySelector(".tasksp-tags-opcao"); if (b) b.click(); }
     });
     painel.addEventListener("click", ev => {
+      const aba = ev.target.closest("[data-aba]");
+      if (aba) { tagsGrupo = aba.dataset.aba; tagsBusca = ""; tagsCriando = null; const bx = painel.querySelector(".tasksp-tags-busca"); if (bx) { bx.value = ""; bx.focus(); } montarTags(); return; }
       const b = ev.target.closest("[data-acao]");
       const alvo = achar(tagsId);
       if (!b || !alvo) return;
@@ -22001,6 +22107,13 @@ applyRolePermissions();
   corpo.addEventListener("change", aoMudar);
   corpo.addEventListener("click", aoClicar);
   corpo.addEventListener("focusin", aoFocar);
+  corpo.addEventListener("focusout", ev => {
+    const ta = ev.target.closest && ev.target.closest(".pj-crit-txt");
+    if (!ta) return;
+    const td = ta.closest("td"), d = td.querySelector(".pj-crit");
+    td.classList.remove("is-editando");
+    d.textContent = ta.value || "O que é pronto?"; d.title = ta.value || "Clique pra escrever"; d.classList.toggle("is-vazio", !ta.value);
+  });
 
   // ── Arrastar linhas (Karina, 08/10): pela alça ⠿. Cada linha só vai pra
   // junto de outras do mesmo nível (antes/depois), ou pra dentro de uma linha
@@ -22124,7 +22237,7 @@ applyRolePermissions();
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharMenuLinha(); });
   window.addEventListener("scroll", fecharMenuLinha, true);
   document.addEventListener("click", ev => {
-    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add") && document.contains(ev.target)) fecharPopERedesenhar();
+    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add, .pj-resp1, .pj-cols-btn") && document.contains(ev.target)) fecharPopERedesenhar();
     if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
     if (armado && !ev.target.closest(".pj-lixo")) desarmar();
   });
@@ -22134,6 +22247,7 @@ applyRolePermissions();
     if (tagsId) fecharTags();
   });
   document.getElementById("pj-frente-sel").addEventListener("change", ev => { frenteFiltro = ev.target.value; render(); });
+  document.getElementById("pj-prio-sel").addEventListener("change", ev => { prioFiltro = ev.target.value; render(); });
   const barrasObj = document.getElementById("pj-objetivos");
   function clicarObjetivo(ev) {
     const b = ev.target.closest("[data-obj]");
@@ -22157,7 +22271,7 @@ applyRolePermissions();
   });
   document.getElementById("nav-projetos").addEventListener("click", async () => {
     if (!temDados) {
-      document.getElementById("pj-corpo").innerHTML = `<tr><td colspan="${ordemColunas.length + 1}" class="pj-vazio">Carregando…</td></tr>`;
+      document.getElementById("pj-corpo").innerHTML = `<tr><td colspan="${visiveis().length + 1}" class="pj-vazio">Carregando…</td></tr>`;
       await initialCloudLoadPromise.catch(() => {});
     }
     const a = api();
