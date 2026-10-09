@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (6ª) — Projetos: bloqueios automáticos (Depende de) + 26 dependências cadastradas
+
+Pedido da Karina em 09/10 (09:54–09:56), aprovado por ela ("manda bala").
+Decisão dela: "aguardando é uma trava" — esperar outra tarefa conta como bloqueio.
+
+- **Campo "Depende de"** na tarefa/subtarefa (no pop-up da coluna
+  Bloqueios; lista as tarefas da mesma entrega, por etapa). Campo novo
+  `dependeDe` (id da tarefa).
+- **Travas automáticas na coluna Bloqueios:** tarefa que depende de outra
+  não finalizada/cancelada mostra 🔒 laranja ("Travada, esperando: X");
+  se a outra está Bloqueada (ou com bloqueio escrito, ou travada por
+  bloqueio — em cadeia), 🔒 vermelho ("Travada por bloqueio: X"). Status
+  não muda sozinho. Quando a de antes termina, a trava some.
+- **Entrega e etapa** mostram "🔒 N" = tarefas de dentro bloqueadas ou
+  travadas; o pop-up lista cada uma com link pra ir até ela. Bloqueio
+  escrito à mão continua ("Escritos à mão").
+- **Dados (nuvem, via SQL, depois do código publicado):** 26 dependências
+  cadastradas — Canada (Fechar a nova associação ← Canada: contato com
+  MSPT, confirmado por ela), adesivos do Brasil, vídeo do Bill, pagamento
+  Rafael, sorteio, Reels, Promover na Ásia, Asia Nations Cup, 3 posts
+  durante o evento, PPT, e-mail de fim de ano, Holidays. Conferido: 26
+  linhas com `dependeDe` (de 414 linhas; as 194 subtarefas da checklist
+  já estavam salvas na nuvem).
+- **Onde:** `index.html`, bloco "PROJETOS" (`normalizar` → `dependeDe`,
+  `travaDe`, `travadasDentro`, `opcoesDependencia`, célula `bloq`,
+  `abrirPopBloqueios`), CSS "travas automáticas"; seção `projetos` no Supabase.
+- **Testes:** 161 da guia + 25 de linhas + 9 de filtros + 8 de fumaça, todos ok.
+
+---
+
 ## 2026-10-09 (5ª) — Projetos: cantos arredondados, letra mais escura, recuo por nível
 
 Pedido da Karina em 09/10 (09:48), aprovado por ela ("pode").

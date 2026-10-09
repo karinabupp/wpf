@@ -63,6 +63,12 @@ reconstruir o raciocínio.
   arquivo sem uso: dá pra apagar numa limpeza, com OK.
   - *Aberto em:* 2026-10-09
 
+- [ ] **Projetos — dependências: próximos (ideias, 09/10)** — (1) o
+  Carinha/detalhador já tem `dependeDe` no formato; falta ele preencher ao
+  criar sequências. (2) Próxima ação ainda não pula tarefa travada —
+  perguntar se deve. (3) Depende de só aceita tarefa da mesma entrega.
+  - *Aberto em:* 2026-10-09
+
 - [ ] **Projetos — Nome numa linha só (ideia, 09/10)** — linhas ainda
   crescem com nome longo; dá pra fazer igual ao Critério (… e clicar
   expande). Só se a Karina quiser.
