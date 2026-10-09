@@ -64,6 +64,11 @@ quando precisar; o modelo não os usa.
   pode renomear, reordenar e acertar status fora de ordem pra história
   funcionar (ex.: passo depois de uma aprovação não pode estar "em
   andamento" antes da aprovação). Sempre propondo antes e registrando.
+- **Evento com vários países/stops = organizar por país** (Karina, 09/10):
+  uma etapa "Stops" com cada país e o processo do stop dentro (igual à
+  entrega das federações); o que é geral fica em etapas próprias
+  (Preparativos, Calendário de Social, Alinhamento de Mídia, Divulgação,
+  Fechamento).
 - Exemplo pronto: entrega "Realizar Ladies Weekend 2026" (09/10).
 
 ## Critério de conclusão (Karina, 09/10)

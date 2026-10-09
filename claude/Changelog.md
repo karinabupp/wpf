@@ -12,6 +12,42 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (22ª) — Ladies Weekend 2026 reorganizado por país
+
+Pedido da Karina às 16:23; respostas às 16:28 (uma etapa só de Stops;
+material do evento vem de cada stop; ordem das etapas definida por ela).
+
+- **Backup antes:** `bkp_projetos_2026-10-09_antes_lw_por_pais` (rev. 7892).
+- **Etapas (nesta ordem):**
+  1. **Preparativos** (nova, ✓): Criar o formulário › Criar a apresentação
+     inicial › Definir as datas do evento.
+  2. **Stops** (`pj-v4-0035`): os **14 países** (`pj-cl-pp-xx`), cada um com
+     o mesmo processo, montado com as linhas que estavam espalhadas (mantendo
+     status e Histórico): Fechar o stop › Coletar as infos › Receber o
+     formulário preenchido › Passar o contato de mídia › Alinhar o
+     compartilhamento › Compartilhar o sorteio › Enviar o vídeo da host pros
+     Reels (só quem participou, com o nome da host) › Enviar o material do
+     evento (fotos da abertura › vídeos de ação › campeã) › Coletar os
+     resultados (nº de jogadoras › campeã › fotos). Específicos dentro do
+     país: Brazil (Fechar o stop no H2, Vídeo do Bill, Adesivos, Cobertura),
+     Bulgaria (Página e arte do insta), Liechtenstein (Confirmar se vai
+     acontecer), UK (Kerryjane). No fim, os stops que não aconteceram
+     (cancelados, Belgium incluída).
+  3. **Calendário de Social** (`pj-cl-lw-124`): Pré-evento, Sorteio (sem a
+     lista por país), Reels (sem a coleta por país), Durante o evento (cada
+     post: Enviar pra Nina › Aprovar › Postar), Pós-evento.
+  4. **Alinhamento de Mídia (DMCs)** (`pj-v4-0036`): Preparar material pros
+     stops + passos do grupo (sem o pedido por país).
+  5. **Divulgação nas Mídias** (`pj-v4-0056`).
+  6. **Fechamento** (`pj-cl-lw-210`): relatório, agradecimento, Wrap Up.
+- Saíram as listas antigas e as etapas Captação de hosts / Alinhamentos
+  Brasil (tudo foi pra dentro dos países). "Fechar o stop no H2 (…)" →
+  "Fechar o stop no H2" (regra dos parênteses).
+- **Onde:** Supabase `projetos` (bloco SQL com funções temporárias da sessão,
+  `pg_temp`). Revisão → 7894.
+
+---
+
 ## 2026-10-09 (21ª) — Grupos femininos com storyline; LW: resultados sem parênteses
 
 Pedido da Karina às 16:02, respostas às 16:11 e "pode gravar tudo" às 16:14.
