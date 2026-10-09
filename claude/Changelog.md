@@ -12,6 +12,22 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (5ª) — Projetos: cantos arredondados, letra mais escura, recuo por nível
+
+Pedido da Karina em 09/10 (09:48), aprovado por ela ("pode").
+
+- **Planilha arredondada:** caixa com cantos de 12px; barrinhas de cor de
+  cada linha com a ponta direita arredondada.
+- **Letra um pouco mais escura:** etapa #45433e, tarefa #62605a,
+  subtarefa #7b7972 (entrega segue quase preta).
+- **Recuo leve a cada nível (12px):** entrega 0, etapa +12, tarefa +24,
+  subtarefa +36 — desfaz a decisão de 08/10 (etapa alinhada com a entrega).
+- **Legenda:** saiu o chip "Subtarefa" (ficam Entrega, Etapa, Tarefa).
+- **Onde:** `index.html`, CSS "09/10 (5ª)" e legenda da Projetos.
+- **Testes:** 153 da guia + 25 de linhas + 9 de filtros + 8 de fumaça, todos ok.
+
+---
+
 ## 2026-10-09 (4ª) — Projetos: Checklist vira Subtarefa, barras numa cor só, Próxima ação numa linha
 
 Pedidos da Karina em 09/10 (09:38), aprovados por ela ("manda bala").

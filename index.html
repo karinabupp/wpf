@@ -6946,8 +6946,16 @@
   #pj-tabela tr.pj-linha.is-tarefa > td:first-child::before { left: 0; width: 15px; background: #a9c3e4; }
   #pj-tabela tr.pj-linha.is-subtarefa > td:first-child::before { left: 0; width: 20px; background: #d4e2f2; }
   .pj-linha.is-subtarefa { --pj-cor-nivel: #d4e2f2; }
-  #pj-tabela tr.pj-linha.is-subtarefa > td:first-child { padding-left: 44px; }
-  #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #9b9a93; font-weight: 400; }
+  #pj-tabela tr.pj-linha.is-subtarefa > td:first-child { padding-left: 56px; }
+  /* 09/10 (5ª, Karina): planilha com cantos arredondados, barrinhas com ponta redonda,
+     letra um pouco mais escura e recuo leve a cada nível (12px) */
+  #pj-rolagem { border: 1px solid #e9e9e7; border-radius: 12px; }
+  #pj-tabela tr.pj-linha > td:first-child::before { border-radius: 0 4px 4px 0; }
+  #pj-tabela tr.pj-linha.is-etapa > td:first-child { padding-left: 32px; }
+  #pj-tabela tr.pj-linha.is-tarefa > td:first-child { padding-left: 44px; }
+  #pj-tabela .pj-linha.is-etapa .pj-txt.pj-nome { color: #45433e; }
+  #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #62605a; }
+  #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #7b7972; font-weight: 400; }
   .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
   /* Próxima ação numa linha (… e clicar expande) */
   .pj-prox span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; -webkit-line-clamp: unset; }
@@ -7503,7 +7511,7 @@
     <div class="pj-topo">
       <div>
         <div class="pj-logo" aria-label="WPF"></div>
-        <div class="pj-legenda"><span class="pj-nivel is-entrega">Entrega</span><span class="pj-nivel is-etapa">Etapa</span><span class="pj-nivel is-tarefa">Tarefa</span><span class="pj-nivel is-subtarefa">Subtarefa</span></div>
+        <div class="pj-legenda"><span class="pj-nivel is-entrega">Entrega</span><span class="pj-nivel is-etapa">Etapa</span><span class="pj-nivel is-tarefa">Tarefa</span></div>
       </div>
       <div class="pj-direita">
         <div id="pj-objetivos" aria-label="Andamento por objetivo"></div>
