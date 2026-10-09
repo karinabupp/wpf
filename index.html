@@ -19,12 +19,21 @@
     --accent-dark: #0c447c;
   }
   * { box-sizing: border-box; }
+  /* 09/10 (Karina): bandeiras em emoji no Windows (que não desenha bandeira e
+     mostra as letras). Fonte só com as bandeiras (unicode-range), o resto do
+     texto não muda. */
+  @font-face {
+    font-family: "Twemoji Country Flags";
+    unicode-range: U+1F1E6-1F1FF;
+    src: url("https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1/dist/TwemojiCountryFlags.woff2") format("woff2");
+    font-display: swap;
+  }
   html { scrollbar-gutter: stable; }
   body {
     margin: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: "Twemoji Country Flags", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: row;
     align-items: stretch;
@@ -6968,6 +6977,7 @@
   #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #7b7972; font-weight: 400; }
   .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
   /* 09/10 (10ª, Karina): ↗ andamento — pop-up pequeno e branco, só os números */
+  .pj-band-img { display: inline-block; width: 1.25em; height: 0.72em; vertical-align: -0.06em; border-radius: 2px; }
   .pj-crit-seta { flex: none; border: 0; background: none; width: 20px; height: 20px; border-radius: 4px; padding: 0; font-size: 13px; line-height: 20px; color: #b1afa8; cursor: pointer; }
   .pj-crit-seta:hover { background: rgba(55,53,47,0.08); color: #37352f; }
   #pj-pop.pj-pop-critcomp { background: #ffffff; min-width: 0; width: auto; padding: 10px 14px; gap: 4px; }
@@ -21488,7 +21498,7 @@ applyRolePermissions();
       const p = proximaTarefa(e);
       if (!p) return `<span class="pj-prox-vazio">${(e.subtasks || []).length ? "Tudo feito" : "—"}</span>`;
       const r = (p.assignees || [])[0];
-      return `<button type="button" class="pj-prox" data-acao="prox-abrir" title="${esc(nomeSemArroba(p.nome))}${r ? " · " + esc(r) : ""}"><span>${esc(nomeSemArroba(p.nome) || "(sem nome)")}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>` +
+      return `<button type="button" class="pj-prox" data-acao="prox-abrir" title="${esc(nomeSemArroba(p.nome))}${r ? " · " + esc(r) : ""}"><span>${comBandeiras(esc(nomeSemArroba(p.nome) || "(sem nome)"))}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>` +
         `<button type="button" class="pj-prox-ir" data-acao="ir" data-alvo="${esc(p.id)}">ir pra tarefa →</button>`;
     },
     // 09/10 (Karina): bloqueios automáticos. Tarefa que depende de outra não
@@ -22472,17 +22482,24 @@ applyRolePermissions();
   }
   // Nome pra mostrar: citação em azul (link), sem o @. "" quando não tem citação.
   let candsCache = null;
+  // Bandeira do País Basco não existe em emoji: a sequência (🏴 + tags es-pv)
+  // vira uma imagem pequena (ikurriña) na hora de mostrar o nome (09/10).
+  const SEQ_EUSKADI = "\u{1F3F4}\u{E0065}\u{E0073}\u{E0070}\u{E0076}\u{E007F}";
+  const IMG_EUSKADI = `<svg class="pj-band-img" viewBox="0 0 25 14" role="img" aria-label="Basque Country"><rect width="25" height="14" fill="#d52b1e"/><path d="M0 0L25 14M25 0L0 14" stroke="#009b48" stroke-width="2.4"/><path d="M12.5 0V14M0 7H25" stroke="#fff" stroke-width="2.4"/></svg>`;
+  function comBandeiras(html) { return html.indexOf(SEQ_EUSKADI) < 0 ? html : html.split(SEQ_EUSKADI).join(IMG_EUSKADI); }
   function htmlNomeComMencoes(nome) {
     const s = String(nome || "");
-    if (s.indexOf("@") < 0) return "";
+    // Sem citação, o nome só ganha a versão "pra ver" se tiver a bandeira basca.
+    const soBandeira = () => (s.indexOf(SEQ_EUSKADI) >= 0 ? comBandeiras(esc(s)) : "");
+    if (s.indexOf("@") < 0) return soBandeira();
     const ps = partesMencao(s, candsCache || (candsCache = candidatosMencao()));
-    if (!ps.length) return "";
+    if (!ps.length) return soBandeira();
     let html = "", pos = 0;
     ps.forEach(({ i, fim, c }) => {
       html += esc(s.slice(pos, i)) + `<a class="pj-mencao-link" data-tipo="${c.tipo}" data-v="${esc(c.v)}" title="Ver ${esc(c.r)}">${esc(c.r)}</a>`;
       pos = fim;
     });
-    return html + esc(s.slice(pos));
+    return comBandeiras(html + esc(s.slice(pos)));
   }
   function nomeSemArroba(nome) {
     const s = String(nome || "");

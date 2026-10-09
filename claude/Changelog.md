@@ -12,6 +12,29 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (12ª) — Bandeiras aparecem no Windows; bandeira basca como imagem
+
+Pedido da Karina em 09/10 (14:40: "ficaram iniciais"), aprovado às 14:42.
+
+- **O que mudou:** o Windows não desenha bandeira em emoji (mostra as duas
+  letras). A Dash agora carrega a fonte *Twemoji Country Flags* (só os
+  caracteres de bandeira, `unicode-range: U+1F1E6-1F1FF`; ~78 KB, jsdelivr,
+  pacote `country-flag-emoji-polyfill@0.1`) e põe ela primeiro no `body`.
+  Vale pra qualquer bandeira em emoji em toda a Dash; o resto do texto não muda.
+- **Basque Country:** não existe emoji da ikurriña. A sequência gravada
+  (🏴 + tags es-pv) vira uma imagem SVG pequena da bandeira basca na hora de
+  mostrar o nome (e na Próxima ação). Os dados não mudaram.
+- **Onde:** `index.html` — `@font-face` + `font-family` do `body` (topo do
+  CSS); bloco "PROJETOS": `SEQ_EUSKADI`, `IMG_EUSKADI`, `comBandeiras`,
+  `htmlNomeComMencoes` (mostra a imagem mesmo sem citação reconhecida),
+  célula `proximaAcao`; CSS `.pj-band-img`.
+- **Testes (navegador sem fonte de emoji, como o Windows):** 🇦🇷 e 🇹🇼
+  desenhadas pela fonte; bandeira basca como imagem; sem erros.
+- Obs.: não havia nenhum jeito anterior de bandeira na Dash (procurado no
+  código e no Changelog).
+
+---
+
 ## 2026-10-09 (11ª) — Projetos: ↗ vira pop-up pequeno só com os números
 
 Pedido da Karina em 09/10 (14:11), aprovado às 14:13.
