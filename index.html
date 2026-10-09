@@ -21262,6 +21262,7 @@ applyRolePermissions();
       startDate: e.startDate || "", endDate: e.endDate || "", finalizadoEm: e.finalizadoEm || "",
       assignees: Array.isArray(e.assignees) ? e.assignees.filter(Boolean) : [],
       prioridade: e.prioridade || "",
+      dificuldade: ["alta", "media", "baixa"].includes(e.dificuldade) ? e.dificuldade : "", // esforço (Karina, 09/10)
       // "Ação atual / próxima" (uma coluna) virou duas; o texto antigo fica em Ação atual.
       proximaAcao: String(e.proximaAcao || ""), // Ação atual saiu (Karina, 09/10)
       bloqueios: bloq,
@@ -21395,6 +21396,7 @@ applyRolePermissions();
     { id: "forma",       titulo: "Forma",                 largura: 84 },
     { id: "resp",        titulo: "Responsável",           largura: 150 },
     { id: "prio",        titulo: "Prioridade",            largura: 100 },
+    { id: "dific",       titulo: "Dificuldade",           largura: 100 },
     { id: "proximaAcao", titulo: "Próxima ação",          largura: 200 },
     { id: "bloq",        titulo: "Bloqueios",             largura: 100 },
     { id: "historico",   titulo: "Histórico",             largura: 100 },
@@ -21420,12 +21422,14 @@ applyRolePermissions();
   // Colunas ocultas (09/10): ficam fora da tabela; o botão ⋯ do cabeçalho
   // mostra/oculta (por navegador). Padrão: Objetivo, Frente e Prioridade.
   const OCULTAS_KEY = "wpf_projetos_ocultas";
-  let ocultas = new Set(["frente", "obj", "prio"]);
+  let ocultas = new Set(["frente", "obj", "prio", "dific"]);
   try { const o = JSON.parse(localStorage.getItem(OCULTAS_KEY) || "null"); if (Array.isArray(o)) ocultas = new Set(o.filter(id => id !== "nome")); } catch (e) {}
+  // Dificuldade (09/10) nasce oculta também pra quem já tinha a lista salva (uma vez só).
+  try { if (!localStorage.getItem("wpf_projetos_ocultas_dific")) { ocultas.add("dific"); localStorage.setItem(OCULTAS_KEY, JSON.stringify([...ocultas])); localStorage.setItem("wpf_projetos_ocultas_dific", "1"); } } catch (e) { ocultas.add("dific"); }
   const visiveis = () => ordemColunas.filter(id => !ocultas.has(id));
   // Ícone de cada coluna no cabeçalho (como no Notion).
   const ICONE_COL = { nome: "Aa", criterio: "≡", status: "◉", prazo: "◷", finalizado: "✓", forma: "◐",
-    resp: "@", prio: "⚑", proximaAcao: "≡", bloq: "⚠", checklist: "☑", historico: "💬",
+    resp: "@", prio: "⚑", dific: "▲", proximaAcao: "≡", bloq: "⚠", checklist: "☑", historico: "💬",
     frente: "◇", obj: "◇", tags: "#" };
   // Balão de fala (Karina, 08/10: no lugar do relógio, no Histórico).
   const BALAO = `<svg class="pj-balao" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7l-3 2.5V11.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
@@ -21513,6 +21517,8 @@ applyRolePermissions();
       return `<button type="button" class="pj-resp1" data-acao="add-resp" title="${esc(a.join(", "))}"><span class="pj-resp-nome">${esc(a[0])}</span>${a.length > 1 ? `<span class="pj-resp-mais">+${a.length - 1}</span>` : ""}</button>`;
     },
     prio: e => `<select class="tasksp-prio-select is-${e.prioridade || "vazio"}" data-campo="prioridade">${opcoes(PRIORIDADES, e.prioridade)}</select>`,
+    // Dificuldade = esforço da linha (Karina, 09/10); usa as mesmas cores da Prioridade.
+    dific: e => `<select class="tasksp-prio-select is-${e.dificuldade || "vazio"}" data-campo="dificuldade" title="Esforço">${opcoes(PRIORIDADES, e.dificuldade)}</select>`,
     // 09/10 (Karina): Próxima ação é automática — a 1ª tarefa não finalizada
     // (na ordem da planilha) dentro da entrega/etapa. Na tarefa: "—".
     // 09/10 (Karina, 14:51): só AÇÃO de fato (linha sem nada dentro); várias
@@ -22074,14 +22080,14 @@ applyRolePermissions();
   // por onde (WhatsApp, e-mail, telefone…). ──
   const CANAIS = ["Conversa", "WhatsApp", "E-mail", "Telefone", "Reunião", "Slack", "Outro"];
   const ROTULO_CAMPO = { nome: "Nome", criterio: "Critério", status: "Status", startDate: "Início", endDate: "Fim",
-    finalizadoEm: "Finalizado", prioridade: "Prioridade", proximaAcao: "Próxima ação",
+    finalizadoEm: "Finalizado", prioridade: "Prioridade", dificuldade: "Dificuldade", proximaAcao: "Próxima ação",
     frente: "Frente", objetivo: "Objetivo" };
   const novoIdH = () => "h-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const quemSou = () => (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
   function valorLegivel(campo, v) {
     if (!v) return "—";
     if (campo === "status") return (STATUS.find(s => s.id === v) || {}).nome || v;
-    if (campo === "prioridade") return (PRIORIDADES.find(s => s.id === v) || {}).nome || v;
+    if (campo === "prioridade" || campo === "dificuldade") return (PRIORIDADES.find(s => s.id === v) || {}).nome || v;
     if (campo === "frente") return (FRENTES_PJ.find(s => s.id === v) || {}).nome || v;
     if (campo === "objetivo") return (OBJETIVOS_PJ.find(s => s.id === v) || {}).nome || v;
     if (/Date$|finalizadoEm/.test(campo)) return fmtData(v);
