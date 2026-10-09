@@ -22504,10 +22504,53 @@ applyRolePermissions();
   const SEQ_EUSKADI = "\u{1F3F4}\u{E0065}\u{E0073}\u{E0070}\u{E0076}\u{E007F}";
   const IMG_EUSKADI = `<svg class="pj-band-img" viewBox="0 0 25 14" width="20" height="11" style="display:inline-block;width:1.25em;height:0.72em;vertical-align:-0.06em;border-radius:2px" role="img" aria-label="Basque Country"><rect width="25" height="14" fill="#d52b1e"/><path d="M0 0L25 14M25 0L0 14" stroke="#009b48" stroke-width="2.4"/><path d="M12.5 0V14M0 7H25" stroke="#fff" stroke-width="2.4"/></svg>`;
   function comBandeiras(html) { return html.indexOf(SEQ_EUSKADI) < 0 ? html : html.split(SEQ_EUSKADI).join(IMG_EUSKADI); }
+  // Bandeirinha automática (Karina, 09/10): linha cujo nome é SÓ um país (com
+  // ou sem @, em inglês ou português, ou apelido: USA, EUA, UK, Brasil…) ganha
+  // a bandeira na frente na hora de mostrar. Nome que já começa com bandeira
+  // não duplica. Basque Country usa a imagem da ikurriña.
+  let mapaPaises = null;
+  function normPais(t) { return String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim(); }
+  function isoDoPais(nome) {
+    if (!mapaPaises) {
+      mapaPaises = {};
+      try {
+        const L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const dn = ["en", "pt"].map(l => new Intl.DisplayNames([l], { type: "region" }));
+        for (const x of L) for (const y of L) {
+          const c = x + y;
+          dn.forEach(d => { const n = d.of(c); if (n && n !== c) mapaPaises[normPais(n)] = c; });
+        }
+      } catch (e) {}
+      Object.assign(mapaPaises, {
+        "usa": "US", "eua": "US", "united states of america": "US", "estados unidos": "US", "uk": "GB", "england": "GB",
+        "united kingdom": "GB", "reino unido": "GB", "brasil": "BR", "brazil": "BR", "the philippines": "PH", "philippines": "PH",
+        "dominican rep.": "DO", "bosnia and herz.": "BA", "czech republic": "CZ", "macao": "MO", "macau": "MO", "hong kong": "HK",
+        "south korea": "KR", "korea": "KR", "taiwan": "TW", "russia": "RU", "vietnam": "VN", "kosovo": "XK", "turkey": "TR",
+        "ivory coast": "CI", "north macedonia": "MK", "macedonia": "MK", "palestine": "PS", "basque country": "EUS", "pais basco": "EUS"
+      });
+    }
+    return mapaPaises[normPais(nome)] || "";
+  }
+  function bandeiraHtml(iso) {
+    if (iso === "EUS") return IMG_EUSKADI;
+    if (!/^[A-Z]{2}$/.test(iso)) return "";
+    return String.fromCodePoint(...[...iso].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65));
+  }
+  // Prefixo de bandeira quando o nome é só um país e ainda não tem bandeira.
+  function bandeiraDoNome(s) {
+    if (/^\s*(\p{Regional_Indicator}{2}|\u{1F3F4})/u.test(s)) return "";
+    const nucleo = s.replace(/^\s*@/, "").trim();
+    let nome = nucleo;
+    const ps = s.indexOf("@") >= 0 ? partesMencao(s, candsCache || (candsCache = candidatosMencao())) : [];
+    if (ps.length === 1 && !s.slice(0, ps[0].i).trim() && !s.slice(ps[0].fim).trim()) nome = ps[0].c.r;
+    const iso = isoDoPais(nome) || isoDoPais(nucleo);
+    return iso ? bandeiraHtml(iso) + " " : "";
+  }
   function htmlNomeComMencoes(nome) {
     const s = String(nome || "");
-    // Sem citação, o nome só ganha a versão "pra ver" se tiver a bandeira basca.
-    const soBandeira = () => (s.indexOf(SEQ_EUSKADI) >= 0 ? comBandeiras(esc(s)) : "");
+    const band = bandeiraDoNome(s);
+    // Sem citação, o nome só ganha a versão "pra ver" se tiver bandeira (basca ou automática).
+    const soBandeira = () => (band || s.indexOf(SEQ_EUSKADI) >= 0 ? band + comBandeiras(esc(s.replace(/^\s*@(?=\S)/, ""))) : "");
     if (s.indexOf("@") < 0) return soBandeira();
     const ps = partesMencao(s, candsCache || (candsCache = candidatosMencao()));
     if (!ps.length) return soBandeira();
@@ -22516,7 +22559,7 @@ applyRolePermissions();
       html += esc(s.slice(pos, i)) + `<a class="pj-mencao-link" data-tipo="${c.tipo}" data-v="${esc(c.v)}" title="Ver ${esc(c.r)}">${esc(c.r)}</a>`;
       pos = fim;
     });
-    return comBandeiras(html + esc(s.slice(pos)));
+    return band + comBandeiras(html + esc(s.slice(pos)));
   }
   function nomeSemArroba(nome) {
     const s = String(nome || "");

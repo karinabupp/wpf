@@ -12,6 +12,25 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (23ª) — Projetos: bandeirinha automática em nome que é só um país
+
+Pedido da Karina às 16:34, aprovado às 16:35.
+
+- **O que mudou (só código, nenhum dado):** toda linha cujo nome é **só um
+  país** — com ou sem @, em inglês ou português (nomes do `Intl.DisplayNames`)
+  ou apelido (USA, EUA, UK, Brasil, The Philippines, Macao/Macau, Dominican
+  Rep.…) — aparece com a bandeira na frente. Nome que já começa com bandeira
+  (entrega das federações) não duplica. Basque Country → imagem da ikurriña.
+  Nomes com mais texto ("Enviar o vídeo…", "Europa") não ganham.
+- **Onde:** `index.html`, bloco "PROJETOS": `normPais`, `isoDoPais`
+  (`mapaPaises`), `bandeiraHtml`, `bandeiraDoNome`, `htmlNomeComMencoes`.
+- **Testes:** 13 nomes (Brazil, Uruguay, USA, UK, The Philippines, Hong Kong,
+  🇦🇷 @Argentina sem duplicar, Basque Country com imagem, United States of
+  America, Japão; "Enviar o vídeo", "Europa", "Grupo novo 4" sem bandeira);
+  sem erros.
+
+---
+
 ## 2026-10-09 (22ª) — Ladies Weekend 2026 reorganizado por país
 
 Pedido da Karina às 16:23; respostas às 16:28 (uma etapa só de Stops;
