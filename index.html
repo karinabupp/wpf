@@ -6771,6 +6771,16 @@
   .pj-forma { display: inline-block; margin-top: 4px; }
   .pj-bloq { border: 1px dashed var(--border-strong, #cfcdc4); border-radius: 999px; background: none; padding: 2px 10px; font: inherit; font-size: 12px; color: var(--text-muted); cursor: pointer; margin-top: 3px; }
   .pj-bloq.tem { border: 0; background: #fde6d2; color: #8a3b0c; font-weight: 700; }
+  /* 09/10 (Karina): travas automáticas (Depende de) */
+  .pj-bloq.is-grave { background: #fbe3e3; color: #9b1c1c; }
+  .pj-pop-bloq .pj-trava { font-size: 12.5px; padding: 6px 8px; border-radius: 6px; background: #fde6d2; color: #8a3b0c; margin-bottom: 6px; }
+  .pj-pop-bloq .pj-trava.is-grave { background: #fbe3e3; color: #9b1c1c; }
+  .pj-pop-bloq .pj-trava button, .pj-pop-bloq .pj-dentro button { border: 0; background: none; padding: 0; margin: 0; width: auto; font: inherit; color: #2f6fd0; cursor: pointer; text-align: left; }
+  .pj-pop-bloq .pj-dentro { list-style: none; margin: 0 0 8px; padding: 0; font-size: 12.5px; }
+  .pj-pop-bloq .pj-dentro li { padding: 2px 0; }
+  .pj-pop-bloq .pj-dentro small { color: #9b9a97; }
+  .pj-pop-bloq .pj-dep { display: flex; flex-direction: column; gap: 3px; margin: 2px 0 8px; font-size: 12px; color: #6f6e69; }
+  .pj-pop-bloq .pj-dep select { font: inherit; font-size: 12.5px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; background: #fff; max-width: 320px; }
   .pj-tag-num { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-top: 3px; }
   .pj-tag-num-pessoas { background: #f1efe8; color: var(--text); }
   .pj-tag-num-orgs { background: #e7f4ec; color: #1e5b36; }
@@ -21221,6 +21231,7 @@ applyRolePermissions();
       // "Ação atual / próxima" (uma coluna) virou duas; o texto antigo fica em Ação atual.
       proximaAcao: String(e.proximaAcao || ""), // Ação atual saiu (Karina, 09/10)
       bloqueios: bloq,
+      dependeDe: String(e.dependeDe || ""), // tarefa da qual esta depende (09/10)
       // Checklist e Histórico (08/10): em todas as linhas.
       checklist: (Array.isArray(e.checklist) ? e.checklist : []).filter(c => c && typeof c === "object")
         .map(c => ({ id: c.id || ("ck-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), texto: String(c.texto || ""), feito: !!c.feito })),
@@ -21466,9 +21477,20 @@ applyRolePermissions();
       return `<button type="button" class="pj-prox" data-acao="prox-abrir" title="${esc(nomeSemArroba(p.nome))}${r ? " · " + esc(r) : ""}"><span>${esc(nomeSemArroba(p.nome) || "(sem nome)")}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>` +
         `<button type="button" class="pj-prox-ir" data-acao="ir" data-alvo="${esc(p.id)}">ir pra tarefa →</button>`;
     },
+    // 09/10 (Karina): bloqueios automáticos. Tarefa que depende de outra não
+    // terminada fica travada (🔒); se a outra está bloqueada, a trava é grave
+    // (vermelha). Entrega/etapa mostram quantas travadas tem dentro.
     bloq: e => {
       const n = e.bloqueios.filter(b => b.texto.trim()).length;
-      return `<button type="button" class="pj-bloq ${n ? "tem" : ""}" data-acao="bloqueios" title="${n ? esc(e.bloqueios.map(b => b.texto).filter(Boolean).join(" · ")) : "Adicionar bloqueio"}">${n ? "⚠ " + n : "+"}</button>`;
+      const tr = travaDe(e), dentro = travadasDentro(e);
+      const grave = (tr && tr.grave) || dentro.some(d => d.grave);
+      const partes = [];
+      if (n) partes.push("⚠ " + n);
+      if (tr) partes.push("🔒");
+      if (dentro.length) partes.push("🔒 " + dentro.length);
+      const dica = [].concat(e.bloqueios.map(b => b.texto).filter(Boolean),
+        tr ? [textoTrava(tr)] : [], dentro.map(d => nomeSemArroba(d.x.nome) + ": " + d.motivo)).join(" · ");
+      return `<button type="button" class="pj-bloq ${partes.length ? "tem" : ""} ${grave ? "is-grave" : ""}" data-acao="bloqueios" title="${esc(dica || "Adicionar bloqueio")}">${partes.length ? partes.join(" ") : "+"}</button>`;
     },
     // Frente e Objetivo são da entrega; etapas e tarefas mostram o dela (cinza).
     frente: (e, loc) => loc.nivel === 0
@@ -21873,6 +21895,45 @@ applyRolePermissions();
     const primeiro = pop.querySelector("input");
     if (primeiro) primeiro.focus();
   }
+  const feita = x => x.status === "finalizado" || x.status === "cancelado";
+  function travaDe(e, vistos) {
+    if (!e || !e.dependeDe || feita(e)) return null;
+    vistos = vistos || new Set([e.id]);
+    if (vistos.has(e.dependeDe)) return null;
+    const dep = achar(e.dependeDe);
+    if (!dep || feita(dep)) return null;
+    vistos.add(dep.id);
+    const sub = travaDe(dep, vistos);
+    const grave = dep.status === "bloqueado" || dep.bloqueios.some(b => b.texto.trim()) || !!(sub && sub.grave);
+    return { dep, grave };
+  }
+  const textoTrava = tr => (tr.grave ? "Travada por bloqueio: " : "Travada, esperando: ") + nomeSemArroba(tr.dep.nome);
+  // Linhas de dentro bloqueadas (status/bloqueio escrito) ou travadas por dependência.
+  function travadasDentro(e) {
+    const out = [];
+    (function walk(l) {
+      (l || []).forEach(x => {
+        if (!feita(x)) {
+          const tr = travaDe(x), escritos = x.bloqueios.filter(b => b.texto.trim());
+          if (x.status === "bloqueado" || escritos.length) out.push({ x, grave: true, motivo: escritos.length ? escritos.map(b => b.texto).join(" · ") : "Bloqueada" });
+          else if (tr) out.push({ x, grave: tr.grave, motivo: textoTrava(tr) });
+        }
+        walk(x.subtasks);
+      });
+    })(e.subtasks);
+    return out;
+  }
+  // Tarefas da mesma entrega que podem ser "Depende de".
+  function opcoesDependencia(e) {
+    const loc = localizar(e.id);
+    if (!loc) return "";
+    let html = "";
+    (loc.entrega.subtasks || []).forEach(et => {
+      const ops = (et.subtasks || []).filter(t => t.id !== e.id).map(t => `<option value="${esc(t.id)}" ${e.dependeDe === t.id ? "selected" : ""}>${esc(nomeSemArroba(t.nome) || "(sem nome)")}</option>`);
+      if (ops.length) html += `<optgroup label="${esc(nomeSemArroba(et.nome) || "Etapa")}">${ops.join("")}</optgroup>`;
+    });
+    return html;
+  }
   function abrirPopBloqueios(botao, e) {
     fecharPopERedesenhar();
     popPara = e.id;
@@ -21883,7 +21944,14 @@ applyRolePermissions();
     function montar() {
       const alvo = achar(popPara);
       if (!alvo) return;
-      pop.innerHTML = `<div class="pj-pop-titulo">Bloqueios · ${esc(alvo.nome || NOME_NIVEL[NIVEIS[(localizar(alvo.id) || { nivel: 0 }).nivel]])}</div>` +
+      const locA = localizar(alvo.id) || { nivel: 0 };
+      const tr = travaDe(alvo), dentro = travadasDentro(alvo);
+      pop.innerHTML = `<div class="pj-pop-titulo">Bloqueios · ${esc(nomeSemArroba(alvo.nome) || NOME_NIVEL[NIVEIS[locA.nivel]])}</div>` +
+        (tr ? `<div class="pj-trava ${tr.grave ? "is-grave" : ""}">🔒 ${tr.grave ? "Travada por bloqueio" : "Travada, esperando"}: <button type="button" data-ir="${esc(tr.dep.id)}">${esc(nomeSemArroba(tr.dep.nome) || "(sem nome)")}</button></div>` : "") +
+        (dentro.length ? `<div class="pj-pop-titulo pj-pop-sub">Travadas aqui dentro (${dentro.length})</div><ul class="pj-dentro">` +
+          dentro.map(d => `<li>${d.grave ? "🔴" : "🟠"} <button type="button" data-ir="${esc(d.x.id)}">${esc(nomeSemArroba(d.x.nome) || "(sem nome)")}</button> <small>${esc(d.motivo)}</small></li>`).join("") + `</ul>` : "") +
+        (locA.nivel >= 2 ? `<label class="pj-dep">Depende de<select class="pj-dep-sel"><option value="">— nenhuma —</option>${opcoesDependencia(alvo)}</select></label>` : "") +
+        `<div class="pj-pop-titulo pj-pop-sub">Escritos à mão</div>` +
         (alvo.bloqueios.length ? alvo.bloqueios.map(b => `<div class="pj-bloq-item" data-bq="${b.id}">
             <textarea class="pj-txt pj-bloq-txt" rows="1" placeholder="O que está travando">${esc(b.texto)}</textarea>
             <small>${b.desde ? "desde " + fmtData(b.desde) : ""}</small>
@@ -21911,7 +21979,19 @@ applyRolePermissions();
       popMudou = true; salvar(); montar();
       const novo = pop.querySelector(".pj-bloq-novo"); if (novo) novo.focus();
     });
+    pop.addEventListener("change", ev => {
+      const sel = ev.target.closest(".pj-dep-sel");
+      const alvo = achar(popPara);
+      if (!sel || !alvo) return;
+      const antes = alvo.dependeDe;
+      alvo.dependeDe = sel.value;
+      const nomeDe = id => { const x = id && achar(id); return x ? nomeSemArroba(x.nome) : "—"; };
+      registrar(alvo, `Depende de: ${nomeDe(antes)} → ${nomeDe(alvo.dependeDe)}`);
+      popMudou = true; salvar(); montar();
+    });
     pop.addEventListener("click", ev => {
+      const ir = ev.target.closest("[data-ir]");
+      if (ir) { ev.stopPropagation(); popMudou = true; fecharPopERedesenhar(); irParaLinha(ir.dataset.ir); return; }
       const b = ev.target.closest("[data-pa=tirar]");
       const alvo = achar(popPara);
       if (!b || !alvo) return;
