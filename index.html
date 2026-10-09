@@ -6979,14 +6979,9 @@
   #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #62605a; }
   #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #7b7972; font-weight: 400; }
   .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
-  /* 09/10 (10ª, Karina): ↗ andamento — pop-up pequeno e branco, só os números */
-  .pj-band-img { display: inline-block; width: 1.25em; height: 0.72em; vertical-align: -0.06em; border-radius: 2px; }
-  .pj-crit-seta { flex: none; border: 0; background: none; width: 20px; height: 20px; border-radius: 4px; padding: 0; font-size: 13px; line-height: 20px; color: #b1afa8; cursor: pointer; }
-  .pj-crit-seta:hover { background: rgba(55,53,47,0.08); color: #37352f; }
-  #pj-pop.pj-pop-critcomp { background: #ffffff; min-width: 0; width: auto; padding: 10px 14px; gap: 4px; }
-  .pj-cc-meta { font-size: 15px; color: #37352f; }
-  .pj-cc-meta small { display: block; font-size: 11.5px; color: #9b9a97; }
-  .pj-cc-itens { font-size: 12.5px; color: #5f5e58; }
+  /* 09/10 (14:57, Karina): chip de contagem finalizados/total (substituiu a ↗) */
+  .pj-contagem { flex: none; font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 999px; background: #f1f1ef; color: #9b9a97; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .pj-contagem.is-completo { background: #eaf3de; color: #4b7a2b; }
   /* 09/10 (7ª, Karina): 5º e 6º níveis (também Subtarefa) — degrau de 5px e recuo de 12px a mais cada */
   #pj-tabela tr.pj-linha.is-subtarefa2 > td:first-child::before { left: 0; width: 25px; background: #dfe9f5; }
   #pj-tabela tr.pj-linha.is-subtarefa3 > td:first-child::before { left: 0; width: 30px; background: #e9f0f8; }
@@ -21477,7 +21472,7 @@ applyRolePermissions();
       return `<div class="pj-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
         `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
         `<div class="pj-txt pj-nome pj-nome-ver">${ver}</div>` +
-        setaCriterio(e) + icones + `</div>`;
+        chipContagem(e) + icones + `</div>`;
     },
     checklist: e => {
       const t = e.checklist.length, f = e.checklist.filter(c => c.feito).length;
@@ -22059,39 +22054,19 @@ applyRolePermissions();
     });
     const novo = pop.querySelector(".pj-bloq-novo"); if (novo) novo.focus();
   }
-  // ── ↗ Andamento (Karina, 09/10): setinha depois do nome (linhas com
-  // critério) abre um pop-up pequeno e branco só com os números: "X de N"
-  // (quando o nome começa com número; conta as tarefas finalizadas da
-  // entrega) e "itens finalizados" (as pontas da árvore). Nada mais.
-  function topicosCriterio(txt) {
-    return String(txt || "").split("\n").map(l => l.replace(/^\s*[•\-*]\s*/, "").trim()).filter(Boolean);
+  // ── Contagem (Karina, 09/10, 14:57): chip discreto depois do nome em toda
+  // linha que tem algo dentro: finalizados / total de TUDO abaixo dela (todos
+  // os níveis), sem contar os cancelados. Substituiu a ↗.
+  function contagemDentro(e) {
+    let feitos = 0, total = 0;
+    (function walk(l) { (l || []).forEach(x => { if (x.status !== "cancelado") { total++; if (x.status === "finalizado") feitos++; } walk(x.subtasks); }); })(e.subtasks);
+    return { feitos, total };
   }
-  function setaCriterio(e) {
-    if (!topicosCriterio(e.criterio).length) return "";
-    return `<button type="button" class="pj-crit-seta" data-acao="crit-comp" title="Andamento">↗</button>`;
-  }
-  function abrirPopCriterio(botao, e) {
-    fecharPopERedesenhar();
-    popPara = e.id;
-    const pop = document.createElement("div");
-    pop.id = "pj-pop";
-    pop.className = "pj-pop-critcomp";
-    const desc = [];
-    (function walk(l, d) { (l || []).forEach(x => { desc.push({ x, d }); walk(x.subtasks, d + 1); }); })(e.subtasks, 1);
-    const p = progresso(e);
-    const m = String(e.nome || "").replace(/^[^\p{L}\p{N}]+/u, "").match(/^(\d[\d.]*)\s/);
-    const meta = m ? parseInt(m[1].replace(/\./g, ""), 10) : 0;
-    let html = "";
-    if (meta) {
-      const loc = localizar(e.id), ehEntrega = !loc || loc.nivel === 0;
-      const unidades = desc.filter(({ d }) => d === (ehEntrega ? 2 : 1)).map(({ x }) => x).filter(x => x.status !== "cancelado");
-      const feitas = unidades.filter(x => x.status === "finalizado").length;
-      html += `<div class="pj-cc-meta"><b>${feitas}</b> de <b>${meta}</b> (${Math.min(100, Math.round(feitas / meta * 100))}%)<small>${ehEntrega ? "tarefas" : "linhas"} finalizadas · ${unidades.length} na lista</small></div>`;
-    }
-    html += p ? `<div class="pj-cc-itens">${p.feitas} de ${p.total} itens finalizados (${p.pct}%)</div>` : `<div class="pj-cc-itens">Sem tarefas ainda.</div>`;
-    pop.innerHTML = html;
-    document.body.appendChild(pop);
-    posicionarPop(pop, botao);
+  function chipContagem(e) {
+    if (!(e.subtasks || []).length) return "";
+    const c = contagemDentro(e);
+    if (!c.total) return "";
+    return `<span class="pj-contagem ${c.feitos === c.total ? "is-completo" : ""}" title="${c.feitos} de ${c.total} itens finalizados aqui dentro">${c.feitos}/${c.total}</span>`;
   }
   // ── Histórico (Karina, 08/10): tudo o que muda numa linha fica registrado
   // aqui (quem, o quê, quando), e dá pra registrar à mão o que foi pedido e
@@ -22261,7 +22236,6 @@ applyRolePermissions();
     }
     const acao = b.dataset.acao;
     if (acao === "add-filho") { novoFilho(e.id); return; }
-    if (acao === "crit-comp") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-critcomp")) { fecharPopERedesenhar(); return; } abrirPopCriterio(b, e); return; }
     if (acao === "crit") {
       const td = b.closest("td");
       td.classList.add("is-editando");

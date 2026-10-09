@@ -12,6 +12,25 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (15ª) — Projetos: ↗ sai, entra o chip de contagem finalizados/total
+
+Pedido da Karina em 09/10 (14:56), ajustado e aprovado às 14:57 ("em tudo
+que tenha sub item tem o chip, é uma contagem").
+
+- **O que mudou:** a ↗ e o pop-up dela saíram. Depois do nome, em **toda
+  linha que tem algo dentro** (entrega, etapa, tarefa, subtarefa), um chip
+  discreto cinza "**feitos/total**" — conta **tudo abaixo** da linha, em todos
+  os níveis, sem os cancelados. Fica verde quando está tudo finalizado.
+  Ex. entrega 14: 388/662 (41 países + 347 passos de 5 + 73 + 584).
+- **Onde:** `index.html`, bloco "PROJETOS": `contagemDentro`, `chipContagem`
+  (no lugar de `setaCriterio`/`abrirPopCriterio`, removidas), clique
+  `crit-comp` removido; CSS `.pj-contagem` (no lugar do da ↗).
+  `organizacao-projetos.md`: frase da ↗ trocada pela do chip.
+- **Testes:** contagens conferidas à mão (8/22, 7/15, 4/4 verde, 0/4, 2/4,
+  1/5, 0/3, 1/5, 1/1 verde); nenhuma ↗ sobrando; sem erros.
+
+---
+
 ## 2026-10-09 (14ª) — Projetos: Próxima ação só com ações de fato (+N quando há várias)
 
 Pedido da Karina em 09/10 (14:51: "próxima ação diz Macao… tem que ser

@@ -44,7 +44,8 @@ quando precisar; o modelo não os usa.
 - Ao criar ou revisar uma entrega, conferir se cada tópico do critério tem
   tarefas que o comprovem; se faltar, apontar e propor as tarefas que faltam.
   (A Dash não liga tópico a tarefa — a ideia de ligar/avisar está no Prox
-  Passos.) A ↗ ao lado do nome só mostra os números do andamento.
+  Passos.) O chip ao lado do nome mostra finalizados/total de tudo o que
+  está dentro da linha.
 
 ## Exemplo — 50 Federações Membros (09/10)
 
