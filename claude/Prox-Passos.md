@@ -20,20 +20,16 @@ reconstruir o raciocínio.
   recebem de manhã um resumo do que precisa ser feito (sem nada = não recebe
   nada) e, no fim do dia, uma mensagem perguntando o que foi feito e o que
   não foi.
-  - *Contexto / proposta feita em 09/10 (falta o OK dela nas decisões):*
-    horários 9h e 19h, dias úteis (ritual decidido em 07/10); fonte = guia
-    **Projetos** (o robô hoje só lê `tasks2*`/`members2*` → ensinar a ler
-    `projetos`); "precisa ser feito" = ações (linhas sem nada dentro) da
-    pessoa, não finalizadas, atrasadas / Fim em até 3 dias / Em andamento;
-    ação sem responsável não vai pra ninguém (entrega 14 está toda sem
-    responsável) — decidir se vai pra Karina; resposta do fim do dia vira
-    proposta de mudança de status com confirmação (fluxo que já existe).
-    **WhatsApp:** fora da janela de 24h só com template aprovado na Meta
-    (pago) → criar templates "resumo_dia" e "fechamento_dia" no WhatsApp
-    Manager; e o check-in "nada em aberto" de 9h25 (que mantém a janela
-    aberta) conflita com "sem nada, não recebe nada" — decidir. Precisa
-    também religar `proativo` de Isabela/Leonardo/Roberto (pausa de 07/10).
-    Respeitar a REGRA DO ROBÔ (cada um só o que é seu).
+  - *Decisões dela (09/10, 15:09):* (1) o robô passa a ler a **Projetos**
+    — a Tasks vai deixar de existir; (2) ação sem pessoa / faltando
+    informação → mensagem pra Karina dizer de quem é, e o Claude preenche;
+    (3) o check-in da manhã **fica** e vira o check-in das tarefas;
+    (4) **não religar** Isabela/Leonardo/Roberto por enquanto.
+    Regras de quando lembrar + rotatividade (máx. 5/dia por pessoa):
+    **`worker/instrucoes/lembretes.md`** (aprovadas às 15:11).
+    Falta: criar templates na Meta ("resumo_dia"/"fechamento_dia") pro fim do
+    dia com a janela fechada; guardar "quando cada item foi mostrado"; cron
+    das 19h. Só ligar quando ela liberar.
   - *Onde:* `worker/whatsapp-bridge.js` (`rodadaProativa`, crons em
     `worker/wrangler.toml`), `wpf_agente_pessoas`, Meta (templates).
   - *Aberto em:* 2026-10-09

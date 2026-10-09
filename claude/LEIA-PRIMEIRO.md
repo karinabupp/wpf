@@ -81,6 +81,10 @@ dois arquivos antes de propor qualquer coisa**:
   pelo menos N) › Subtarefas (o processo padrão, igual em todas). Exemplo:
   "50 Federações Membros". Propor antes, gravar só com "sim".
 
+- **Lembretes do Carinha (09/10):** quando e o quê lembrar (por Dificuldade,
+  período, rotatividade, máx. 5/dia) em **`worker/instrucoes/lembretes.md`**.
+  Ainda não ligado (aguarda a Karina liberar).
+
 ## O que o Claude NÃO consegue fazer sozinho
 
 Publicar no GitHub, sim. Mas **Cloudflare, Supabase e Meta dependem da

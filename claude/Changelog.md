@@ -12,6 +12,35 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (17ª) — Projetos: coluna Dificuldade; prioridade e dificuldade na entrega 14; regras de lembrete
+
+Pedido da Karina em 09/10 (15:09), aprovado às 15:11 ("manda bala").
+
+- **Coluna nova "Dificuldade"** (esforço: Alta/Média/Baixa), **oculta por
+  padrão** — inclusive pra quem já tinha a lista de colunas salva (uma vez
+  só, chave `wpf_projetos_ocultas_dific`); aparece pelo ⋯. Campo
+  `dificuldade`; vai pro Histórico. Mesmas cores da Prioridade.
+  **Onde:** `index.html` — `normalizar`, `COLUNAS` (`dific`), `ocultas`,
+  `ICONE_COL`, `CELULAS.dific`, `ROTULO_CAMPO`, `valorLegivel`.
+- **Dados (Supabase, entrega 14, via SQL):** prioridade e dificuldade em
+  todos os países e passos, pelo CRM:
+  Abertura → Alta/Média · Negociação → Alta/Alta · Lead → Média/Alta ·
+  Membro → Baixa/Baixa. Passos: dificuldade pelo tipo (Buscar e contatar
+  Alta · Apresentar Média · Abrir a federação Alta · Coletar documentos
+  Média · Verificar, Coletar infos, Criar e Postar página Baixa) e prioridade
+  herdada do país. Histórico em cada linha. 71 países (a Karina tirou China
+  e Kazakhstan e renomeou "@Fed Basque Country" antes) e 568 passos.
+  Revisão → 7816.
+- **Regras do Carinha** em `worker/instrucoes/lembretes.md` (aviso no
+  LEIA-PRIMEIRO): quando lembrar por Dificuldade/período, rotatividade (máx.
+  5 itens/dia por pessoa, por nota de prioridade + prazo + tempo sem
+  aparecer), sem dono/sem data → Karina, ritual manhã/19h. **Ainda não
+  ligado** (aguarda liberação; decisões no Prox Passos).
+- **Testes:** coluna oculta por padrão (com e sem lista salva), aparece ao
+  mostrar, troca grava e vai pro Histórico; sem erros.
+
+---
+
 ## 2026-10-09 (16ª) — Correção: bandeira basca enorme
 
 Karina, 09/10 15:01: a bandeira do Basque Country aparecia ENORME.
