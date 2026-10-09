@@ -12,6 +12,26 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (13ª) — Projetos: cores do status por prazo (azul / amarelo / vermelho)
+
+Pedido da Karina em 09/10 (14:49), aprovado na hora ("três dias, manda bala").
+
+- **Em andamento** passa a ser **azul** (antes amarelo).
+- **Prazo próximo = amarelo:** Não iniciado ou Em andamento com Fim entre
+  hoje e daqui a **3 dias** (inclusive). Dica ao passar o mouse: "Prazo
+  próximo (Fim dd/mm/aaaa)".
+- **Atrasado = vermelho** (como antes): Não iniciado ou Em andamento com Fim
+  já passado.
+- Sem Fim, Não iniciado fica cinza e Em andamento azul. Falta detalhar,
+  Bloqueado, Finalizado e Cancelado não mudaram.
+- **Onde:** `index.html`, bloco "PROJETOS" (`DIAS_PROXIMO`, `somaDias`,
+  `proximaDoPrazo`, `classeStatus`, célula `status`); CSS "09/10 (Karina,
+  14:49)" (`.pj-status.is-andamento` azul, `.pj-status.is-proximo`).
+- **Testes:** 11 casos (sem prazo, longe, hoje, +2, +3, +4, atrasado,
+  finalizado/bloqueado com prazo próximo), todos certos; sem erros.
+
+---
+
 ## 2026-10-09 (12ª) — Bandeiras aparecem no Windows; bandeira basca como imagem
 
 Pedido da Karina em 09/10 (14:40: "ficaram iniciais"), aprovado às 14:42.

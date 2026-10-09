@@ -6912,6 +6912,9 @@
   #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #858379; }
   .pj-status.is-andamento, #pj-tabela .pj-status.is-andamento { background: #fdf1c7; color: #6f4b00; }
   .pj-status.is-atrasado, #pj-tabela .pj-status.is-atrasado { background: #fbe3e3; color: #9b1c1c; }
+  /* 09/10 (Karina, 14:49): Em andamento azul; Não iniciado ou Em andamento com prazo em até 3 dias = amarelo; atrasado vermelho */
+  .pj-status.is-andamento, #pj-tabela .pj-status.is-andamento { background: #e6f1fb; color: #0c447c; }
+  .pj-status.is-proximo, #pj-tabela .pj-status.is-proximo { background: #fdf1c7; color: #6f4b00; }
   /* 09/10 (Karina): Falta detalhar e Bloqueado voltam pro laranja; só Atrasado fica vermelho */
   .pj-status.is-bloqueado, .pj-status.is-detalhar,
   #pj-tabela .pj-status.is-bloqueado, #pj-tabela .pj-status.is-detalhar { background: #fde6d2; color: #8a3b0c; }
@@ -21311,8 +21314,19 @@ applyRolePermissions();
 
   // Em andamento ou Não iniciado que passou do Fim = vermelho (Karina, 08/10).
   const vencida = e => (e.status === "andamento" || e.status === "naoiniciado") && !!e.endDate && hojeLocal() > e.endDate;
+  // Prazo próximo (Karina, 09/10): Não iniciado ou Em andamento com Fim entre
+  // hoje e daqui a 3 dias = amarelo. Atrasado continua vermelho.
+  const DIAS_PROXIMO = 3;
+  function somaDias(iso, n) {
+    const [a, m, d] = iso.split("-").map(Number);
+    const dt = new Date(a, m - 1, d + n);
+    return dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+  }
+  const proximaDoPrazo = e => (e.status === "andamento" || e.status === "naoiniciado") && !!e.endDate &&
+    e.endDate >= hojeLocal() && e.endDate <= somaDias(hojeLocal(), DIAS_PROXIMO);
   function classeStatus(e) {
     if (vencida(e)) return "is-atrasado";
+    if (proximaDoPrazo(e)) return "is-proximo";
     return "is-" + e.status;
   }
 
@@ -21467,8 +21481,9 @@ applyRolePermissions();
     criterio: e => `<div class="pj-crit ${e.criterio ? "" : "is-vazio"}" data-acao="crit" title="${esc(e.criterio || "Clique pra escrever")}">${esc(e.criterio) || "O que é pronto?"}</div>` +
       `<textarea class="pj-txt pj-crit-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
     status: e => {
-      const atrasado = classeStatus(e) === "is-atrasado";
-      return `<select class="pj-status ${classeStatus(e)}" data-campo="status" title="${atrasado ? "Passou do prazo (Fim " + fmtData(e.endDate) + ")" : ""}">${STATUS.map(s => `<option value="${s.id}" ${s.id === e.status ? "selected" : ""}>${s.nome}</option>`).join("")}</select>`;
+      const cls = classeStatus(e);
+      const dica = cls === "is-atrasado" ? "Passou do prazo (Fim " + fmtData(e.endDate) + ")" : cls === "is-proximo" ? "Prazo próximo (Fim " + fmtData(e.endDate) + ")" : "";
+      return `<select class="pj-status ${cls}" data-campo="status" title="${dica}">${STATUS.map(s => `<option value="${s.id}" ${s.id === e.status ? "selected" : ""}>${s.nome}</option>`).join("")}</select>`;
     },
     prazo: e => {
       const txt = prazoTexto(e);
