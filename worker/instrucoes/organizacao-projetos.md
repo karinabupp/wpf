@@ -55,6 +55,10 @@ quando precisar; o modelo não os usa.
 - **Mesmo começo = grupo:** várias tarefas começando igual ("Brasil: …",
   "Cobertura Brasil: …") viram uma linha "Brasil" com as tarefas dentro, sem
   o prefixo.
+- **Nada de lista entre parênteses** (Karina, 09/10): "Coletar os resultados
+  (nº de jogadoras, campeã, fotos)" NÃO pode. O que está entre parênteses
+  vira itens dentro da linha (em cada unidade: Coletar o nº de jogadoras ›
+  Coletar a campeã › Coletar as fotos).
 - Aprovações citam quem aprova (ex. "Aprovar (Karina, Lifas e Isa)").
 - **Reescrever e reorganizar quando precisar** (Karina, 09/10): o agente
   pode renomear, reordenar e acertar status fora de ordem pra história

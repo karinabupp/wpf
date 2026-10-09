@@ -12,6 +12,30 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (21ª) — Grupos femininos com storyline; LW: resultados sem parênteses
+
+Pedido da Karina às 16:02, respostas às 16:11 e "pode gravar tudo" às 16:14.
+
+- **Chegar a 10 grupos femininos no Comitê** (`pj-v4-0075`): prazo
+  01/11/2026 → 31/08/2027. Etapas: **Mapeamento** (`pj-mig-0243`, nov/2026:
+  Pesquisar por região — 5 regiões — › Consolidar a lista de candidatos) e
+  **Grupos** (`pj-cl-gf-002`) com 10 unidades e o processo dela em todas:
+  Mapear o grupo › Entrar em contato › Apresentar a WPF › Receber os
+  documentos de registro da associação (Karina) › Mandar o certificado ›
+  Pegar as informações pro site › Enviar pro Lifas › Subir a página
+  (Isabela). FLP&Co FR, Liga Feminina BR e Ladies Royale BR com 1–3 feitos
+  (estavam "finalizado", voltaram pra Em andamento — faltam docs,
+  certificado e site); "Grupo novo 4" a "10" (`pj-cl-gf-g04..g10`) a renomear
+  com @ no mapeamento. Dificuldade por passo. Saíram Prospectar/Negociar/
+  Fechar (genéricas). Afiliação no Comitê = grupo certificado pela WPF.
+- **LW 2026:** "Coletar os resultados de cada stop (nº de jogadoras, campeã,
+  fotos)" → sem parênteses; cada um dos 14 países ganhou 3 itens: Coletar o
+  nº de jogadoras › Coletar a campeã › Coletar as fotos.
+- **Regra nova** em `organizacao-projetos.md`: nada de lista entre parênteses.
+- **Onde:** Supabase `projetos` (bloco SQL por id). Revisão → 7883.
+
+---
+
 ## 2026-10-09 (20ª) — Ladies Weekend 2026: correções (Japan, Belgium, listas, adesivos)
 
 Respostas da Karina às 15:58.
