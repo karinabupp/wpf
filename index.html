@@ -6999,6 +6999,17 @@
   .pj-prox small { display: none; }
   td.pj-prox-aberta .pj-prox span { white-space: normal; overflow: visible; }
   td.pj-prox-aberta .pj-prox small, td.pj-prox-aberta .pj-prox-ir { display: block; }
+  /* 09/10 (14:51): 1ª ação + "+N"; clicar abre a lista de todas */
+  #pj-tabela .pj-prox { display: flex; flex-direction: row; align-items: center; gap: 6px; max-width: 100%; }
+  #pj-tabela .pj-prox .pj-prox-1 { display: block; flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pj-prox-mais { flex: none; font-size: 11px; font-weight: 600; color: #5f5e58; background: #efeee9; border-radius: 999px; padding: 1px 6px; }
+  .pj-prox-lista { display: none; list-style: none; margin: 4px 0 2px; padding: 0; max-height: 220px; overflow-y: auto; font-size: 12.5px; }
+  td.pj-prox-aberta .pj-prox-lista { display: block; }
+  .pj-prox-lista li { padding: 2px 0; border-top: 1px dashed #efeee9; }
+  .pj-prox-lista button { border: 0; background: none; padding: 0; font: inherit; color: #2f6fd0; cursor: pointer; text-align: left; }
+  .pj-prox-lista button:hover { text-decoration: underline; }
+  .pj-prox-lista small { display: block; color: #9b9a97; font-size: 11px; }
+  .pj-prox-falta { font-size: 12.5px; color: #8a3b0c; background: #fde6d2; border-radius: 4px; padding: 1px 6px; }
   .pj-prox-ir { display: none; border: 0; background: none; padding: 2px 6px 4px; font: inherit; font-size: 12px; color: #2f6fd0; cursor: pointer; }
   .pj-prox-ir:hover { text-decoration: underline; }
   .pj-linha.is-entrega { --pj-barra-x: 0px; }
@@ -21508,13 +21519,19 @@ applyRolePermissions();
     prio: e => `<select class="tasksp-prio-select is-${e.prioridade || "vazio"}" data-campo="prioridade">${opcoes(PRIORIDADES, e.prioridade)}</select>`,
     // 09/10 (Karina): Próxima ação é automática — a 1ª tarefa não finalizada
     // (na ordem da planilha) dentro da entrega/etapa. Na tarefa: "—".
+    // 09/10 (Karina, 14:51): só AÇÃO de fato (linha sem nada dentro); várias
+    // ao mesmo tempo (uma por unidade) = a 1ª + "+N"; clicar abre a lista.
     proximaAcao: (e, loc) => {
-      if (!loc || loc.nivel >= 2) return `<span class="pj-prox-vazio">—</span>`;
-      const p = proximaTarefa(e);
-      if (!p) return `<span class="pj-prox-vazio">${(e.subtasks || []).length ? "Tudo feito" : "—"}</span>`;
-      const r = (p.assignees || [])[0];
-      return `<button type="button" class="pj-prox" data-acao="prox-abrir" title="${esc(nomeSemArroba(p.nome))}${r ? " · " + esc(r) : ""}"><span>${comBandeiras(esc(nomeSemArroba(p.nome) || "(sem nome)"))}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>` +
-        `<button type="button" class="pj-prox-ir" data-acao="ir" data-alvo="${esc(p.id)}">ir pra tarefa →</button>`;
+      if (!loc || !(e.subtasks || []).length) return `<span class="pj-prox-vazio">—</span>`;
+      const { acoes, soUnidades } = proximasAcoes(e);
+      if (!acoes.length) return soUnidades
+        ? `<span class="pj-prox-falta" title="Só tem unidades (ex.: países) sem ações dentro">Falta detalhar</span>`
+        : `<span class="pj-prox-vazio">Tudo feito</span>`;
+      const rot = a => comBandeiras(esc(a.rotulo));
+      const a0 = acoes[0], r = (a0.x.assignees || [])[0];
+      const mais = acoes.length - 1;
+      return `<button type="button" class="pj-prox" data-acao="prox-abrir" title="${esc(a0.rotulo)}${r ? " · " + esc(r) : ""}${mais ? " (+" + mais + ")" : ""}"><span class="pj-prox-1">${rot(a0)}</span>${mais ? `<b class="pj-prox-mais">+${mais}</b>` : ""}</button>` +
+        `<ul class="pj-prox-lista">${acoes.slice(0, 200).map(a => `<li><button type="button" data-acao="ir" data-alvo="${esc(a.x.id)}">${rot(a)}</button>${(a.x.assignees || [])[0] ? `<small>${esc(a.x.assignees[0])}</small>` : ""}</li>`).join("")}</ul>`;
     },
     // 09/10 (Karina): bloqueios automáticos. Tarefa que depende de outra não
     // terminada fica travada (🔒); se a outra está bloqueada, a trava é grave
@@ -22522,6 +22539,45 @@ applyRolePermissions();
     let out = "", pos = 0;
     partesMencao(s, candsCache || (candsCache = candidatosMencao())).forEach(({ i, fim, c }) => { out += s.slice(pos, i) + c.r; pos = fim; });
     return out + s.slice(pos);
+  }
+  // Próximas ações (Karina, 09/10, 14:51): só ação de fato = linha sem nada
+  // dentro, não finalizada/cancelada. Cada grupo de ações (os filhos-folha de
+  // uma mesma linha: os passos de um país, as tarefas de uma etapa) dá a sua
+  // 1ª pendente. Folha cujo nome é só citação/bandeira (ex.: "🇦🇷 @Argentina"
+  // sem passos) é unidade, não ação. Quando o nome da ação se repete entre
+  // grupos (mesmo processo em vários países), o rótulo leva a unidade.
+  function soCitacao(nome) {
+    const s = String(nome || "");
+    if (s.indexOf("@") < 0) return false;
+    let resto = "", pos = 0;
+    partesMencao(s, candsCache || (candsCache = candidatosMencao())).forEach(({ i, fim }) => { resto += s.slice(pos, i); pos = fim; });
+    resto += s.slice(pos);
+    if (!partesMencao(s, candsCache).length) resto = s.replace(/@[^\s]+(\s[A-Z][^\s]*)*/g, "");
+    return !resto.replace(/[^\p{L}\p{N}]/gu, "");
+  }
+  function proximasAcoes(e) {
+    const acoes = [];
+    let soUnidades = false;
+    (function walk(pai) {
+      const filhos = (pai.subtasks || []).filter(x => x.status !== "cancelado");
+      const folha = filhos.find(x => !(x.subtasks || []).length && x.status !== "finalizado");
+      if (folha) {
+        if (soCitacao(folha.nome)) {
+          const real = filhos.find(x => !(x.subtasks || []).length && x.status !== "finalizado" && !soCitacao(x.nome));
+          if (real) acoes.push({ x: real, unid: pai }); else soUnidades = true;
+        } else acoes.push({ x: folha, unid: pai });
+      }
+      filhos.forEach(x => { if ((x.subtasks || []).length) walk(x); });
+    })(e);
+    const conta = {};
+    acoes.forEach(a => { const n = nomeSemArroba(a.x.nome); conta[n] = (conta[n] || 0) + 1; });
+    acoes.forEach(a => {
+      const n = nomeSemArroba(a.x.nome) || "(sem nome)";
+      // Unidade junto quando ela é uma citação (ex.: o país) ou quando o nome se repete.
+      const comUnid = a.unid !== e && (String(a.unid.nome || "").indexOf("@") >= 0 || conta[n] > 1);
+      a.rotulo = comUnid ? n + " · " + nomeSemArroba(a.unid.nome) : n;
+    });
+    return { acoes, soUnidades };
   }
   // Próxima ação: 1ª linha sem filhos e não finalizada/cancelada, na ordem, dentro de e.
   // A tarefa é a unidade (subtarefa não conta); etapa sem tarefas conta ela mesma.

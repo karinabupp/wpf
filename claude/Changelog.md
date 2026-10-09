@@ -12,6 +12,33 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (14ª) — Projetos: Próxima ação só com ações de fato (+N quando há várias)
+
+Pedido da Karina em 09/10 (14:51: "próxima ação diz Macao… tem que ser
+tarefas de fato, ações, e não organizacional"), aprovado às 14:53.
+
+- **Regra nova:** ação = linha **sem nada dentro**, não finalizada/cancelada,
+  em qualquer nível. Linha com filhos (entrega, continente, país) nunca é
+  ação. Folha cujo nome é só citação/bandeira ("🇦🇷 @Argentina" sem passos)
+  é unidade, não ação; se a linha só tiver isso → **"Falta detalhar"**.
+- **Várias ao mesmo tempo:** cada grupo de ações (os passos de um país, as
+  tarefas de uma etapa) dá a sua 1ª pendente. A célula mostra a 1ª (com "…")
+  e um selo **"+N"**; clicar abre a lista de todas, cada uma levando até a
+  linha. Quando a unidade é citação (o país) — ou o nome se repete — o
+  rótulo leva a unidade: "Buscar e contatar candidato · 🇦🇱 Albania".
+- Vale também na tarefa com subtarefas (ex.: o país mostra o próximo passo).
+  "Tudo feito" quando não sobra nada.
+- **Onde:** `index.html`, bloco "PROJETOS": `soCitacao`, `proximasAcoes`
+  (no lugar de `proximaTarefa` na célula; a função antiga ficou sem uso),
+  célula `proximaAcao`; CSS "09/10 (14:51)" (`.pj-prox-mais`,
+  `.pj-prox-lista`, `.pj-prox-falta`).
+- **Testes:** entrega com países (1ª + "+2" e lista com país), continente,
+  país finalizado ("Tudo feito"), país com passo pendente, entrega só com
+  "@País" ("Falta detalhar"), entrega com etapas/tarefas simples ("+1"),
+  clique na lista leva à linha; sem erros.
+
+---
+
 ## 2026-10-09 (13ª) — Projetos: cores do status por prazo (azul / amarelo / vermelho)
 
 Pedido da Karina em 09/10 (14:49), aprovado na hora ("três dias, manda bala").
