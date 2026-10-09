@@ -12,6 +12,28 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (7ª) — Projetos: 41 países-membros como tarefas em "Membros" (entrega 13)
+
+Pedido da Karina em 09/10 (13:06), aprovado por ela às 13:08 ("cita, não só
+o nome"; "mexe na entrega 13 apenas").
+
+- **O que mudou (só dados, nenhum código):** dentro da entrega
+  **"50 Federações Membros 2"** › etapa **"Membros"** entraram **41 tarefas**,
+  uma por país com status **Membro** no CRM (quadro *Membros - Federações*,
+  seção `members2`), em ordem alfabética: @Argentina … @Zambia.
+- Nome com citação (`@País`), pra virar link azul e ganhar a tag de lugar
+  sozinha ao abrir a Dash. Status *Não iniciado*; sem responsável, prazo ou
+  prioridade. Ids `pj-cl-mbr-01` a `pj-cl-mbr-41`; Histórico "Criou a
+  tarefa" (autor "Claude (a pedido da Karina)").
+- **Não mexido:** a etapa "Membros" em si, o resto da entrega 13, a entrega
+  12 ("@Taiwan", deixada como está a pedido dela), as demais entregas e o CRM.
+- **Onde:** Supabase, seção `projetos` (`data[12].subtasks[0].subtasks`), via
+  SQL com trava (só gravava se a etapa ainda estivesse vazia). Revisão
+  7676 → 7677. Conferido: 13 entregas, 41 tarefas, 1ª @Argentina, última @Zambia.
+- **Por quê:** acompanhar cada federação-membro dentro da meta das 50.
+
+---
+
 ## 2026-10-09 (6ª) — Projetos: bloqueios automáticos (Depende de) + 26 dependências cadastradas
 
 Pedido da Karina em 09/10 (09:54–09:56), aprovado por ela ("manda bala").
