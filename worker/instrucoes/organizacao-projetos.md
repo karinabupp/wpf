@@ -56,6 +56,10 @@ quando precisar; o modelo não os usa.
   "Cobertura Brasil: …") viram uma linha "Brasil" com as tarefas dentro, sem
   o prefixo.
 - Aprovações citam quem aprova (ex. "Aprovar (Karina, Lifas e Isa)").
+- **Reescrever e reorganizar quando precisar** (Karina, 09/10): o agente
+  pode renomear, reordenar e acertar status fora de ordem pra história
+  funcionar (ex.: passo depois de uma aprovação não pode estar "em
+  andamento" antes da aprovação). Sempre propondo antes e registrando.
 - Exemplo pronto: entrega "Realizar Ladies Weekend 2026" (09/10).
 
 ## Critério de conclusão (Karina, 09/10)

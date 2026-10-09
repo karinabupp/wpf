@@ -21,12 +21,7 @@ reconstruir o raciocínio.
   (regra em `organizacao-projetos.md`). Já mapeados os grupos por prefixo:
   Singapura (1.2), Armenia (1.4), Asia Nations Cup (6), SEO (8), "Adwords:"
   repetido (8.3), "No ar: país" (8.4.2 → agrupar por país).
-  - *Pendências do LW achadas na revisão (perguntar à Karina):* Reels — só 9
-    dos 14 hosts na coleta (faltam Belgium, Estonia, Nigeria, South Africa,
-    Taiwan?); Coletar infos e Alinhar compartilhamento sem Philippines/
-    Belgium/Brazil/USA; Adesivos com status fora de ordem (Aprovar, OK e
-    Pagamento "em andamento" antes de receber a proposta); "Fazer lista de
-    e-mails de mídias" finalizada com 3 itens abertos.
+  - Pendências do LW achadas na revisão: resolvidas em 09/10 (Changelog 20ª).
   - *Aberto em:* 2026-10-09
 
 - [ ] **⭐ Resumo diário + fechamento do dia pra todos (aguarda a Karina LIBERAR)**

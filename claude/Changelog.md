@@ -12,6 +12,31 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (20ª) — Ladies Weekend 2026: correções (Japan, Belgium, listas, adesivos)
+
+Respostas da Karina às 15:58.
+
+- **Japan aconteceu; Belgium cancelou e nunca entra:** Japan volta pra
+  "Fechar os stops" (finalizado) e é reativado em Coletar infos (finalizado)
+  e Garantir que stops compartilhem (não iniciado); entra em Garantir
+  recebimento e Pedir contato de mídia (finalizado) e Coletar resultados (não
+  iniciado). Belgium sai de todas as listas e fica só em "Stops que não
+  aconteceram", como **cancelado**. Reels: ficam como estão (foi só com alguns).
+- **Listas completas e finalizadas:** Coletar infos + Philippines e Brazil;
+  Alinhar compartilhamento + USA, Japan e Brazil.
+- **Adesivos reorganizados** (ela pediu pra reorganizar o que não funciona):
+  Receber proposta ✓ › Enviar pra aprovação ✓ › **Aprovar (em andamento)** ›
+  OK pro fornecedor e Pagamento voltam pra não iniciado (vêm depois da
+  aprovação).
+- **Lista de e-mails de mídias:** PokerLife, Focus Gaming News e PokerBrasil
+  finalizados.
+- **Regra:** `organizacao-projetos.md` — o agente pode reescrever/reorganizar
+  (nome, ordem, status fora de ordem) pra história funcionar.
+- **Onde:** Supabase `projetos`, via bloco SQL que acha cada linha pelo id
+  (25 operações); Histórico em cada mudança. Revisão → 7841.
+
+---
+
 ## 2026-10-09 (19ª) — Ladies Weekend 2026: storyline completo (7 etapas)
 
 Pedido da Karina em 09/10 (15:27–15:37), com as respostas dela.
