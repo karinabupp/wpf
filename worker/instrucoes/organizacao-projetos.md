@@ -39,18 +39,12 @@ quando precisar; o modelo não os usa.
 7. Entrega nova vai **no fim** da lista. Não mexer em outras entregas.
 8. Toda criação vai pro Changelog (o que foi criado, ids, contagens).
 
-## Critério × andamento (Karina, 09/10)
+## Critério de conclusão (Karina, 09/10)
 
-- Cada tópico do Critério de conclusão precisa de **pelo menos uma linha
-  que o confirme** (etapa, tarefa ou subtarefa), ligada no pop-up ↗ ao lado
-  do nome ("Confirmado por"). Cada tópico tem ainda uma marca
-  ✓ atingido / ◐ parcial / ✗ não (campo `criterioCheck` da linha).
-- Tópico sem linha que confirme = **falta detalhar** (a ↗ fica laranja).
-  Ao criar ou revisar uma entrega, o agente **aponta esses tópicos e pede
-  que a entrega seja preenchida** (propor as tarefas que faltam), antes de
-  dar a entrega por organizada.
-- O Carinha ainda não lê a Projetos; quando ler, faz o mesmo aviso (ver
-  Prox Passos).
+- Ao criar ou revisar uma entrega, conferir se cada tópico do critério tem
+  tarefas que o comprovem; se faltar, apontar e propor as tarefas que faltam.
+  (A Dash não liga tópico a tarefa — a ideia de ligar/avisar está no Prox
+  Passos.) A ↗ ao lado do nome só mostra os números do andamento.
 
 ## Exemplo — 50 Federações Membros (09/10)
 

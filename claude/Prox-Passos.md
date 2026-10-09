@@ -15,17 +15,17 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Carinha — avisar "falta detalhar" no critério das entregas (09/10)**
-  — Karina quer que, quando nenhum tópico do Critério de conclusão tiver
-  tarefa que o confirme, o Carinha peça que a entrega seja preenchida e
-  aponte que falta detalhar. Hoje o robô **não lê a Projetos** (só `tasks2*`
-  e `members2*`, ver `worker/whatsapp-bridge.js` linha ~313).
-  - *Contexto:* a Dash já marca (↗ laranja + aviso no pop-up). Regra escrita
-    em `worker/instrucoes/organizacao-projetos.md`. Depende da decisão
-    "o robô passa a ler `projetos`?" (item "o que fazer com a Tasks antiga").
-    Aviso só pra quem responde pela entrega / Karina (REGRA DO ROBÔ).
-    Lógica: `topicosCriterio` + `criterioCheck[topico].ligadas` existentes.
-  - *Onde:* Worker (`worker/whatsapp-bridge.js`), seção `projetos`.
+- [ ] **Critério × tarefas: ligar e avisar "falta detalhar" (ideia, 09/10)**
+  — Karina quis que, quando um tópico do Critério de conclusão não tiver
+  tarefa que o confirme, o Carinha peça pra preencher a entrega e aponte que
+  falta detalhar. Chegou a existir na ↗ (marcas ✓/◐/✗ + "Confirmado por" +
+  ↗ laranja), mas ela preferiu a ↗ só com os números (09/10, 14:11) e a parte
+  da ligação saiu. Fica a ideia pra retomar quando ela quiser.
+  - *Contexto:* o robô não lê a Projetos (só `tasks2*`/`members2*`, ver
+    `worker/whatsapp-bridge.js` ~linha 313); depende da decisão "o robô passa
+    a ler `projetos`?". Aviso só pra responsável/Karina (REGRA DO ROBÔ).
+    Código antigo da ligação: commit 0c3a492 (`abrirPopCriterio`, `criterioCheck`).
+  - *Onde:* `index.html` bloco "PROJETOS"; Worker.
   - *Aberto em:* 2026-10-09
 
 - [ ] **Projetos — etapa "Membros" acompanhar o CRM (ideia, 09/10)** — hoje

@@ -12,6 +12,27 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (11ª) — Projetos: ↗ vira pop-up pequeno só com os números
+
+Pedido da Karina em 09/10 (14:11), aprovado às 14:13.
+
+- **O que mudou:** o pop-up da ↗ agora é pequeno e branco e mostra só:
+  "**X de N** (%) / tarefas finalizadas · M na lista" (quando o nome começa
+  com número) e "A de B itens finalizados (%)". Ex. entrega 14: 41 de 50 ·
+  73 na lista · 346/347 de 584.
+- **Saiu** (da 10ª): tópicos do critério, marcas ✓/◐/✗, "Confirmado por",
+  aviso "Falta detalhar", ↗ laranja, lista por etapa, travadas e próxima ação.
+  Campo `criterioCheck` removido do `normalizar` (nada tinha sido gravado
+  além de testes). A ideia ficou no Prox Passos ("Critério × tarefas").
+- **Regra:** `organizacao-projetos.md` — a seção virou "Critério de
+  conclusão" (agente confere e propõe tarefas, sem ligação na Dash).
+- **Onde:** `index.html` — `setaCriterio`, `abrirPopCriterio` (reescrita),
+  `normalizar`, CSS "↗ andamento".
+- **Testes:** pop-up branco (216px) com as 2 linhas; seta só com critério;
+  fecha ao clicar fora; sem erros.
+
+---
+
 ## 2026-10-09 (10ª) — Projetos: membros finalizados, bandeiras, ↗ Critério × andamento
 
 Pedidos da Karina em 09/10 (13:59 e 14:04), aprovados às 14:01 e 14:05.

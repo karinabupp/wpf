@@ -6967,38 +6967,13 @@
   #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #62605a; }
   #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #7b7972; font-weight: 400; }
   .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
-  /* 09/10 (10ª, Karina): ↗ critério × andamento */
+  /* 09/10 (10ª, Karina): ↗ andamento — pop-up pequeno e branco, só os números */
   .pj-crit-seta { flex: none; border: 0; background: none; width: 20px; height: 20px; border-radius: 4px; padding: 0; font-size: 13px; line-height: 20px; color: #b1afa8; cursor: pointer; }
   .pj-crit-seta:hover { background: rgba(55,53,47,0.08); color: #37352f; }
-  .pj-crit-seta.is-falta { color: #d9730d; font-weight: 700; }
-  #pj-pop.pj-pop-critcomp { width: min(760px, calc(100vw - 24px)); max-height: 80vh; padding: 10px 12px; }
-  .pj-cc-aviso { background: #fdecc8; color: #7a4b0a; border-radius: 6px; padding: 6px 8px; font-size: 12.5px; margin: 2px 0 8px; }
-  .pj-cc-cols { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
-  @media (max-width: 640px) { .pj-cc-cols { grid-template-columns: 1fr; } }
-  .pj-cc-top { border: 1px solid #ecebe7; border-radius: 8px; padding: 7px 8px; margin-bottom: 6px; }
-  .pj-cc-cab { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
-  .pj-cc-txt { font-size: 13px; color: #37352f; }
-  .pj-cc-marcas { display: inline-flex; gap: 3px; flex: none; }
-  #pj-pop .pj-cc-m { width: 24px !important; height: 22px; padding: 0 !important; margin: 0 !important; border: 1px solid #e3e2de; border-radius: 5px; background: #fff; color: #9b9a97; cursor: pointer; font-size: 12px; }
-  #pj-pop .pj-cc-m.is-ok.is-on { background: #dbeddb; border-color: #9fd1a6; color: #1d6b34; }
-  #pj-pop .pj-cc-m.is-parcial.is-on { background: #fdecc8; border-color: #f0c674; color: #8a5a00; }
-  #pj-pop .pj-cc-m.is-nao.is-on { background: #fbe3e3; border-color: #f0a8a8; color: #9b1c1c; }
-  .pj-cc-lig { list-style: none; margin: 5px 0 3px; padding: 0; font-size: 12.5px; }
-  .pj-cc-lig li { padding: 1px 0; }
-  .pj-cc-lig small { color: #9b9a97; }
-  .pj-pop-critcomp button[data-ir] { border: 0; background: none; padding: 0; margin: 0; width: auto; font: inherit; color: #2f6fd0; cursor: pointer; text-align: left; }
-  .pj-cc-tirar { border: 0 !important; background: none !important; width: auto !important; padding: 0 4px !important; margin: 0 !important; color: #b1afa8; cursor: pointer; }
-  .pj-cc-falta { font-size: 12px; color: #d9730d; margin: 4px 0; }
-  .pj-cc-sel { font: inherit; font-size: 12px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 6px; background: #fff; max-width: 100%; margin-top: 3px; }
-  .pj-cc-meta { font-size: 22px; color: #37352f; margin-bottom: 8px; }
+  #pj-pop.pj-pop-critcomp { background: #ffffff; min-width: 0; width: auto; padding: 10px 14px; gap: 4px; }
+  .pj-cc-meta { font-size: 15px; color: #37352f; }
   .pj-cc-meta small { display: block; font-size: 11.5px; color: #9b9a97; }
-  .pj-cc-barra { height: 6px; background: #ecebe7; border-radius: 999px; overflow: hidden; }
-  .pj-cc-barra span { display: block; height: 100%; background: #4a78b5; }
-  .pj-cc-prog small { font-size: 12px; color: #787774; }
-  .pj-cc-etapas { list-style: none; margin: 8px 0; padding: 0; font-size: 12.5px; }
-  .pj-cc-etapas li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dashed #efeee9; }
-  .pj-cc-etapas span { color: #787774; flex: none; }
-  .pj-cc-bloq, .pj-cc-prox { font-size: 12.5px; margin-top: 6px; color: #5f5e58; }
+  .pj-cc-itens { font-size: 12.5px; color: #5f5e58; }
   /* 09/10 (7ª, Karina): 5º e 6º níveis (também Subtarefa) — degrau de 5px e recuo de 12px a mais cada */
   #pj-tabela tr.pj-linha.is-subtarefa2 > td:first-child::before { left: 0; width: 25px; background: #dfe9f5; }
   #pj-tabela tr.pj-linha.is-subtarefa3 > td:first-child::before { left: 0; width: 30px; background: #e9f0f8; }
@@ -21271,12 +21246,6 @@ applyRolePermissions();
       proximaAcao: String(e.proximaAcao || ""), // Ação atual saiu (Karina, 09/10)
       bloqueios: bloq,
       dependeDe: String(e.dependeDe || ""), // tarefa da qual esta depende (09/10)
-      // Critério × andamento (09/10, 10ª): por tópico do critério (chave = texto
-      // do tópico), a marca (ok/parcial/nao) e as linhas que o confirmam.
-      criterioCheck: (e.criterioCheck && typeof e.criterioCheck === "object" && !Array.isArray(e.criterioCheck))
-        ? Object.fromEntries(Object.entries(e.criterioCheck).filter(([k, v]) => k && v && typeof v === "object")
-            .map(([k, v]) => [k, { marca: ["ok", "parcial", "nao"].includes(v.marca) ? v.marca : "", ligadas: Array.isArray(v.ligadas) ? v.ligadas.filter(Boolean).map(String) : [] }]))
-        : {},
       // Checklist e Histórico (08/10): em todas as linhas.
       checklist: (Array.isArray(e.checklist) ? e.checklist : []).filter(c => c && typeof c === "object")
         .map(c => ({ id: c.id || ("ck-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), texto: String(c.texto || ""), feito: !!c.feito })),
@@ -22048,123 +22017,39 @@ applyRolePermissions();
     });
     const novo = pop.querySelector(".pj-bloq-novo"); if (novo) novo.focus();
   }
-  // ── Critério × andamento (Karina, 09/10): ↗ depois do nome abre o pop-up que
-  // compara cada tópico do critério com o que já foi feito. Cada tópico tem
-  // marca (✓ atingido / ◐ parcial / ✗ não) e as linhas que o confirmam
-  // ("Confirmado por"). Tópico sem nenhuma linha = "falta detalhar" (a ↗ fica
-  // laranja). À direita, a situação calculada sozinha.
+  // ── ↗ Andamento (Karina, 09/10): setinha depois do nome (linhas com
+  // critério) abre um pop-up pequeno e branco só com os números: "X de N"
+  // (quando o nome começa com número; conta as tarefas finalizadas da
+  // entrega) e "itens finalizados" (as pontas da árvore). Nada mais.
   function topicosCriterio(txt) {
     return String(txt || "").split("\n").map(l => l.replace(/^\s*[•\-*]\s*/, "").trim()).filter(Boolean);
   }
-  function topicosSemConfirmacao(e) {
-    return topicosCriterio(e.criterio).filter(t => {
-      const c = e.criterioCheck[t];
-      return !c || !c.ligadas.some(id => achar(id));
-    });
-  }
   function setaCriterio(e) {
     if (!topicosCriterio(e.criterio).length) return "";
-    const falta = topicosSemConfirmacao(e).length;
-    return `<button type="button" class="pj-crit-seta ${falta ? "is-falta" : ""}" data-acao="crit-comp" title="${falta ? "Falta detalhar: " + falta + " tópico(s) do critério sem tarefa que confirme" : "Critério × andamento"}">↗</button>`;
+    return `<button type="button" class="pj-crit-seta" data-acao="crit-comp" title="Andamento">↗</button>`;
   }
-  // Linhas dentro de e (todas as profundidades), com o nível relativo.
-  function descendentes(e) {
-    const out = [];
-    (function walk(l, d) { (l || []).forEach(x => { out.push({ x, d }); walk(x.subtasks, d + 1); }); })(e.subtasks, 1);
-    return out;
-  }
-  function textoProg(x) {
-    const p = progresso(x);
-    if (!p) return STATUS.find(s => s.id === x.status) ? STATUS.find(s => s.id === x.status).nome : "";
-    return p.temFilhos ? `${p.feitas}/${p.total} (${p.pct}%)` : (x.status === "finalizado" ? "Finalizado" : (STATUS.find(s => s.id === x.status) || {}).nome || "");
-  }
-  const MARCAS_CRIT = [{ id: "ok", ic: "✓", nome: "Atingido" }, { id: "parcial", ic: "◐", nome: "Parcial" }, { id: "nao", ic: "✗", nome: "Não" }];
   function abrirPopCriterio(botao, e) {
     fecharPopERedesenhar();
     popPara = e.id;
     const pop = document.createElement("div");
     pop.id = "pj-pop";
-    pop.className = "pj-pop-form pj-pop-critcomp";
-    document.body.appendChild(pop);
-    function montar() {
-      const alvo = achar(popPara);
-      if (!alvo) return;
-      const tops = topicosCriterio(alvo.criterio);
-      const desc = descendentes(alvo);
-      const opcoes = ligadas => desc.filter(({ x }) => !ligadas.includes(x.id))
-        .map(({ x, d }) => `<option value="${esc(x.id)}">${"  ".repeat(d - 1)}${esc(nomeSemArroba(x.nome) || "(sem nome)")}</option>`).join("");
-      const esq = tops.map((t, i) => {
-        const c = alvo.criterioCheck[t] || { marca: "", ligadas: [] };
-        const lig = c.ligadas.map(id => achar(id)).filter(Boolean);
-        return `<div class="pj-cc-top" data-i="${i}">
-          <div class="pj-cc-cab"><span class="pj-cc-txt">${esc(t)}</span>
-            <span class="pj-cc-marcas">${MARCAS_CRIT.map(m => `<button type="button" class="pj-cc-m is-${m.id} ${c.marca === m.id ? "is-on" : ""}" data-marca="${m.id}" title="${m.nome}">${m.ic}</button>`).join("")}</span></div>
-          ${lig.length ? `<ul class="pj-cc-lig">${lig.map(x => `<li><button type="button" data-ir="${esc(x.id)}">${esc(nomeSemArroba(x.nome) || "(sem nome)")}</button> <small>${esc(textoProg(x))}</small> <button type="button" class="pj-cc-tirar" data-tirar="${esc(x.id)}" title="Desligar">×</button></li>`).join("")}</ul>`
-            : `<div class="pj-cc-falta">⚠ Falta detalhar: nenhuma tarefa confirma este tópico</div>`}
-          ${desc.length ? `<select class="pj-cc-sel"><option value="">+ Confirmado por…</option>${opcoes(c.ligadas)}</select>` : `<div class="pj-cc-falta">Crie etapas/tarefas nesta linha pra poder ligar.</div>`}
-        </div>`;
-      }).join("");
-      // Situação atual (calculada)
-      const p = progresso(alvo);
-      const filhos = alvo.subtasks || [];
-      const m = String(alvo.nome || "").replace(/^[^\p{L}\p{N}]+/u, "").match(/^(\d[\d.]*)\s/);
-      const meta = m ? parseInt(m[1].replace(/\./g, ""), 10) : 0;
-      let metaHtml = "";
-      if (meta) {
-        // Unidade da meta: na entrega, as tarefas (ex.: os países); noutro nível, o que está logo dentro.
-        const loc = localizar(alvo.id), ehEntrega = !loc || loc.nivel === 0;
-        const unidades = desc.filter(({ d }) => d === (ehEntrega ? 2 : 1)).map(({ x }) => x).filter(x => x.status !== "cancelado");
-        const feitas = unidades.filter(x => x.status === "finalizado").length;
-        metaHtml = `<div class="pj-cc-meta"><b>${feitas}</b> de <b>${meta}</b> (${Math.min(100, Math.round(feitas / meta * 100))}%)<small>${ehEntrega ? "tarefas" : "linhas"} finalizadas · ${unidades.length} na lista</small></div>`;
-      }
-      const bloqs = travadasDentro(alvo);
-      const prox = proximaTarefa(alvo);
-      const dir = metaHtml +
-        (p ? `<div class="pj-cc-prog"><div class="pj-cc-barra"><span style="width:${p.pct}%"></span></div><small>${p.feitas} de ${p.total} itens finalizados (${p.pct}%)</small></div>` : `<div class="pj-pop-nada">Sem tarefas ainda.</div>`) +
-        (filhos.length ? `<ul class="pj-cc-etapas">${filhos.map(f => { const q = progresso(f); return `<li><button type="button" data-ir="${esc(f.id)}">${esc(nomeSemArroba(f.nome) || "(sem nome)")}</button><span>${q ? q.feitas + "/" + q.total : esc((STATUS.find(s => s.id === f.status) || {}).nome || "")}</span></li>`; }).join("")}</ul>` : "") +
-        (bloqs.length ? `<div class="pj-cc-bloq">🔒 ${bloqs.length} travada(s)/bloqueada(s) aqui dentro</div>` : "") +
-        (prox ? `<div class="pj-cc-prox">Próxima ação: <button type="button" data-ir="${esc(prox.id)}">${esc(nomeSemArroba(prox.nome) || "(sem nome)")}</button></div>` : "");
-      const falta = topicosSemConfirmacao(alvo).length;
-      pop.innerHTML = `<div class="pj-pop-titulo">Critério × andamento · ${esc(nomeSemArroba(alvo.nome) || "")}</div>` +
-        (falta ? `<div class="pj-cc-aviso">⚠ Falta detalhar: ${falta} de ${tops.length} tópico(s) sem tarefa que confirme. Detalhe a entrega com as tarefas que provam cada tópico.</div>` : "") +
-        `<div class="pj-cc-cols"><div class="pj-cc-col"><div class="pj-pop-titulo pj-pop-sub">Critério de conclusão</div>${esq}</div>` +
-        `<div class="pj-cc-col"><div class="pj-pop-titulo pj-pop-sub">Situação atual</div>${dir}</div></div>`;
+    pop.className = "pj-pop-critcomp";
+    const desc = [];
+    (function walk(l, d) { (l || []).forEach(x => { desc.push({ x, d }); walk(x.subtasks, d + 1); }); })(e.subtasks, 1);
+    const p = progresso(e);
+    const m = String(e.nome || "").replace(/^[^\p{L}\p{N}]+/u, "").match(/^(\d[\d.]*)\s/);
+    const meta = m ? parseInt(m[1].replace(/\./g, ""), 10) : 0;
+    let html = "";
+    if (meta) {
+      const loc = localizar(e.id), ehEntrega = !loc || loc.nivel === 0;
+      const unidades = desc.filter(({ d }) => d === (ehEntrega ? 2 : 1)).map(({ x }) => x).filter(x => x.status !== "cancelado");
+      const feitas = unidades.filter(x => x.status === "finalizado").length;
+      html += `<div class="pj-cc-meta"><b>${feitas}</b> de <b>${meta}</b> (${Math.min(100, Math.round(feitas / meta * 100))}%)<small>${ehEntrega ? "tarefas" : "linhas"} finalizadas · ${unidades.length} na lista</small></div>`;
     }
-    montar();
+    html += p ? `<div class="pj-cc-itens">${p.feitas} de ${p.total} itens finalizados (${p.pct}%)</div>` : `<div class="pj-cc-itens">Sem tarefas ainda.</div>`;
+    pop.innerHTML = html;
+    document.body.appendChild(pop);
     posicionarPop(pop, botao);
-    const chave = el => { const alvo = achar(popPara); const i = +el.closest("[data-i]").dataset.i; return { alvo, t: alvo && topicosCriterio(alvo.criterio)[i] }; };
-    const garantir = (alvo, t) => (alvo.criterioCheck[t] = alvo.criterioCheck[t] || { marca: "", ligadas: [] });
-    pop.addEventListener("change", ev => {
-      const sel = ev.target.closest(".pj-cc-sel");
-      if (!sel || !sel.value) return;
-      const { alvo, t } = chave(sel);
-      if (!alvo || !t) return;
-      const c = garantir(alvo, t);
-      if (!c.ligadas.includes(sel.value)) c.ligadas.push(sel.value);
-      const x = achar(sel.value);
-      registrar(alvo, `Critério “${t}”: confirmado por ${x ? nomeSemArroba(x.nome) : "?"}`);
-      popMudou = true; salvar(); montar();
-    });
-    pop.addEventListener("click", ev => {
-      const ir = ev.target.closest("[data-ir]");
-      if (ir) { ev.stopPropagation(); popMudou = true; fecharPopERedesenhar(); irParaLinha(ir.dataset.ir); return; }
-      const mb = ev.target.closest("[data-marca]"), tb = ev.target.closest("[data-tirar]");
-      if (!mb && !tb) return;
-      const { alvo, t } = chave(mb || tb);
-      if (!alvo || !t) return;
-      const c = garantir(alvo, t);
-      if (mb) {
-        const antes = c.marca;
-        c.marca = c.marca === mb.dataset.marca ? "" : mb.dataset.marca;
-        const nm = id => (MARCAS_CRIT.find(m => m.id === id) || { nome: "—" }).nome;
-        registrar(alvo, `Critério “${t}”: ${nm(antes)} → ${nm(c.marca)}`);
-      } else {
-        c.ligadas = c.ligadas.filter(id => id !== tb.dataset.tirar);
-        const x = achar(tb.dataset.tirar);
-        registrar(alvo, `Critério “${t}”: desligou ${x ? nomeSemArroba(x.nome) : "?"}`);
-      }
-      popMudou = true; salvar(); montar();
-    });
   }
   // ── Histórico (Karina, 08/10): tudo o que muda numa linha fica registrado
   // aqui (quem, o quê, quando), e dá pra registrar à mão o que foi pedido e
