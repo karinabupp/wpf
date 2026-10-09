@@ -15,6 +15,19 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Carinha — avisar "falta detalhar" no critério das entregas (09/10)**
+  — Karina quer que, quando nenhum tópico do Critério de conclusão tiver
+  tarefa que o confirme, o Carinha peça que a entrega seja preenchida e
+  aponte que falta detalhar. Hoje o robô **não lê a Projetos** (só `tasks2*`
+  e `members2*`, ver `worker/whatsapp-bridge.js` linha ~313).
+  - *Contexto:* a Dash já marca (↗ laranja + aviso no pop-up). Regra escrita
+    em `worker/instrucoes/organizacao-projetos.md`. Depende da decisão
+    "o robô passa a ler `projetos`?" (item "o que fazer com a Tasks antiga").
+    Aviso só pra quem responde pela entrega / Karina (REGRA DO ROBÔ).
+    Lógica: `topicosCriterio` + `criterioCheck[topico].ligadas` existentes.
+  - *Onde:* Worker (`worker/whatsapp-bridge.js`), seção `projetos`.
+  - *Aberto em:* 2026-10-09
+
 - [ ] **Projetos — etapa "Membros" acompanhar o CRM (ideia, 09/10)** — hoje
   as 41 tarefas "@País" da etapa "Membros" (entrega "50 Federações Membros 2")
   são uma foto do CRM em 09/10: país que virar Membro depois não entra, e

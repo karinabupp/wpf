@@ -12,6 +12,39 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (10ª) — Projetos: membros finalizados, bandeiras, ↗ Critério × andamento
+
+Pedidos da Karina em 09/10 (13:59 e 14:04), aprovados às 14:01 e 14:05.
+
+- **Dados (Supabase, `projetos`, entrega 14 `pj-cl-f14`, via SQL):**
+  - As **41 tarefas de países Membro** (CRM) → Finalizado, **com os 8 passos**
+    (328 passos). "Finalizado em" vazio. Histórico "Status: … → Finalizado
+    (país Membro no CRM)". Revisão → 7701.
+  - **Bandeira em emoji** antes do nome das 73 tarefas ("🇦🇷 @Argentina").
+    Basque Country tratado igual aos outros: bandeira por sequência de
+    subdivisão (ES-PV) — a maioria dos aparelhos mostra 🏴 preta, porque não
+    existe emoji oficial do País Basco. Histórico "Nome: … → …". Revisão → 7705.
+- **↗ Critério × andamento (código):** setinha depois do nome em toda linha
+  com critério. Pop-up: à esquerda, cada tópico do critério com marca
+  ✓ atingido / ◐ parcial / ✗ não e "Confirmado por" (liga etapas/tarefas/
+  subtarefas de dentro da linha, com o andamento de cada uma); tópico sem
+  ligação = "⚠ Falta detalhar" e a ↗ fica laranja. À direita, calculado:
+  "X de N" quando o nome começa com número (conta as tarefas finalizadas da
+  entrega), barra de progresso, andamento por etapa, travadas e próxima ação.
+  Tudo vai pro Histórico. Campo novo `criterioCheck` (por texto do tópico).
+- **Regra pros agentes:** seção "Critério × andamento" em
+  `worker/instrucoes/organizacao-projetos.md` (apontar tópicos sem tarefa e
+  pedir pra preencher). **Carinha:** ainda não lê a Projetos → Prox Passos.
+- **Onde:** `index.html` — `normalizar` (`criterioCheck`), `CELULAS.nome`
+  (`setaCriterio`), `aoClicar` (`crit-comp`), funções `topicosCriterio`,
+  `topicosSemConfirmacao`, `descendentes`, `textoProg`, `abrirPopCriterio`;
+  CSS "↗ critério × andamento". Sem permissão nova (faz parte da Projetos).
+- **Testes (navegador sem rede, dados de teste):** seta só em linha com
+  critério; aviso 3/3 → 0 ao ligar; "2 de 50"; progresso 17/24; etapas;
+  marca salva; desligar volta o aviso; Histórico; sem erros.
+
+---
+
 ## 2026-10-09 (9ª) — Projetos: entrega 14 "50 Federações Membros" + modelo de organização das entregas
 
 Pedido da Karina em 09/10 (13:42), aprovado às 13:45 (73 países; status pelo
