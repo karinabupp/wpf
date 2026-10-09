@@ -6980,6 +6980,7 @@
   #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #7b7972; font-weight: 400; }
   .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
   /* 09/10 (14:57, Karina): chip de contagem finalizados/total (substituiu a ↗) */
+  .pj-band-img { display: inline-block; width: 1.25em; height: 0.72em; vertical-align: -0.06em; border-radius: 2px; }
   .pj-contagem { flex: none; font-size: 11px; line-height: 16px; padding: 0 6px; border-radius: 999px; background: #f1f1ef; color: #9b9a97; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .pj-contagem.is-completo { background: #eaf3de; color: #4b7a2b; }
   /* 09/10 (7ª, Karina): 5º e 6º níveis (também Subtarefa) — degrau de 5px e recuo de 12px a mais cada */
@@ -22491,7 +22492,7 @@ applyRolePermissions();
   // Bandeira do País Basco não existe em emoji: a sequência (🏴 + tags es-pv)
   // vira uma imagem pequena (ikurriña) na hora de mostrar o nome (09/10).
   const SEQ_EUSKADI = "\u{1F3F4}\u{E0065}\u{E0073}\u{E0070}\u{E0076}\u{E007F}";
-  const IMG_EUSKADI = `<svg class="pj-band-img" viewBox="0 0 25 14" role="img" aria-label="Basque Country"><rect width="25" height="14" fill="#d52b1e"/><path d="M0 0L25 14M25 0L0 14" stroke="#009b48" stroke-width="2.4"/><path d="M12.5 0V14M0 7H25" stroke="#fff" stroke-width="2.4"/></svg>`;
+  const IMG_EUSKADI = `<svg class="pj-band-img" viewBox="0 0 25 14" width="20" height="11" style="display:inline-block;width:1.25em;height:0.72em;vertical-align:-0.06em;border-radius:2px" role="img" aria-label="Basque Country"><rect width="25" height="14" fill="#d52b1e"/><path d="M0 0L25 14M25 0L0 14" stroke="#009b48" stroke-width="2.4"/><path d="M12.5 0V14M0 7H25" stroke="#fff" stroke-width="2.4"/></svg>`;
   function comBandeiras(html) { return html.indexOf(SEQ_EUSKADI) < 0 ? html : html.split(SEQ_EUSKADI).join(IMG_EUSKADI); }
   function htmlNomeComMencoes(nome) {
     const s = String(nome || "");

@@ -12,6 +12,18 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (16ª) — Correção: bandeira basca enorme
+
+Karina, 09/10 15:01: a bandeira do Basque Country aparecia ENORME.
+- **Causa:** o CSS `.pj-band-img` (tamanho da imagem) estava junto do CSS da ↗
+  e foi apagado sem querer quando a ↗ saiu (11ª/15ª).
+- **Correção:** CSS de volta e tamanho também direto na imagem (1,25em ×
+  0,72em, do tamanho das outras bandeiras), pra não depender do CSS.
+- **Onde:** `index.html` — `IMG_EUSKADI` e `.pj-band-img`.
+- **Teste:** ao lado de 🇦🇷 e 🇹🇼, mesmo tamanho; sem erros.
+
+---
+
 ## 2026-10-09 (15ª) — Projetos: ↗ sai, entra o chip de contagem finalizados/total
 
 Pedido da Karina em 09/10 (14:56), ajustado e aprovado às 14:57 ("em tudo
