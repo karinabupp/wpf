@@ -6892,8 +6892,10 @@
   #pj-tabela .pj-linha.is-etapa .pj-txt.pj-nome { color: #55534d; }
   #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #858379; }
   .pj-status.is-andamento, #pj-tabela .pj-status.is-andamento { background: #fdf1c7; color: #6f4b00; }
-  .pj-status.is-atrasado, .pj-status.is-bloqueado, .pj-status.is-detalhar,
-  #pj-tabela .pj-status.is-atrasado, #pj-tabela .pj-status.is-bloqueado, #pj-tabela .pj-status.is-detalhar { background: #fbe3e3; color: #9b1c1c; }
+  .pj-status.is-atrasado, #pj-tabela .pj-status.is-atrasado { background: #fbe3e3; color: #9b1c1c; }
+  /* 09/10 (Karina): Falta detalhar e Bloqueado voltam pro laranja; só Atrasado fica vermelho */
+  .pj-status.is-bloqueado, .pj-status.is-detalhar,
+  #pj-tabela .pj-status.is-bloqueado, #pj-tabela .pj-status.is-detalhar { background: #fde6d2; color: #8a3b0c; }
   .pj-nome-linha { position: relative; }
   .pj-alca { position: absolute; left: -11px; top: 50%; transform: translateY(-50%); width: 10px; font-size: 11px; line-height: 1; color: #b9b7b0; cursor: grab; opacity: 0; user-select: none; text-align: center; }
   #pj-tabela tr:hover .pj-alca { opacity: 1; }
@@ -6935,11 +6937,40 @@
   #pj-pop.pj-pop-cols label.pj-col-op { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 8px; padding: 4px 2px; margin: 0; font-size: 13px; font-weight: 500; text-align: left; text-transform: none; letter-spacing: 0; color: #37352f; cursor: pointer; white-space: nowrap; }
   #pj-pop.pj-pop-cols label.pj-col-op input { width: auto; margin: 0; }
   #pj-tabela td[data-col=status] .pj-status { max-width: 112px; }
+  /* 09/10 (2ª): barrinha de nível mais grossa e em degrau (entrega 0–5px, etapa 5–10px, tarefa 10–15px) */
+  #pj-tabela tr.pj-linha > td:first-child { box-shadow: none; padding-left: 20px; }
+  #pj-tabela tr.pj-linha > td:first-child::before { content: ""; position: absolute; top: 0; bottom: 0; left: var(--pj-barra-x, 0px); width: 5px; background: var(--pj-cor-nivel); }
+  .pj-linha.is-entrega { --pj-barra-x: 0px; }
+  .pj-linha.is-etapa { --pj-barra-x: 5px; }
+  .pj-linha.is-tarefa { --pj-barra-x: 10px; }
+  /* barra de rolagem em cima */
+  #pj-rolagem-topo { overflow-x: auto; overflow-y: hidden; height: 14px; margin-bottom: 2px; }
+  #pj-rolagem-topo > div { height: 1px; }
+  #pj-rolagem-topo.is-sem { visibility: hidden; }
+  /* larguras ajustáveis */
+  #pj-tabela th { position: sticky; }
+  .pj-th-redim { position: absolute; top: 0; right: 0; width: 6px; height: 100%; cursor: col-resize; z-index: 4; }
+  .pj-th-redim:hover, body.pj-redimensionando .pj-th-redim:hover { background: rgba(74,120,181,0.35); }
+  body.pj-redimensionando, body.pj-redimensionando * { cursor: col-resize !important; user-select: none !important; }
+  /* + do nome (checklist/formulário) e ícones ao lado do nome */
+  .pj-ico-anexo { position: relative; flex-shrink: 0; border: 0; background: none; color: #9b9a97; font-size: 13px; line-height: 1; padding: 3px 4px; border-radius: 4px; cursor: pointer; }
+  .pj-ico-anexo:hover { background: rgba(55,53,47,0.08); color: #37352f; }
+  .pj-ico-anexo.is-completo { color: #3b8a3e; }
+  .pj-ico-anexo .pj-ico-bolinha { position: absolute; top: -3px; right: -4px; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 999px; background: #c94141; color: #fff; font-size: 9.5px; font-weight: 700; line-height: 14px; text-align: center; }
+  .pj-pop-anexo button { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 5px; font: inherit; font-size: 13px; cursor: pointer; color: #37352f; }
+  .pj-pop-anexo button:hover:not(:disabled) { background: rgba(55,53,47,0.07); }
+  .pj-pop-anexo button:disabled { color: #b9b7b0; cursor: default; }
+  /* 09/10 (Karina): citação com @ no nome (substitui a coluna Tags) */
+  #pj-mencao { position: fixed; z-index: 10000; min-width: 220px; max-width: 320px; background: #fff; border: 1px solid rgba(55,53,47,0.16); border-radius: 8px; box-shadow: 0 8px 24px rgba(15,15,15,0.16); padding: 4px; }
+  #pj-mencao button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 5px; font: inherit; font-size: 13px; cursor: pointer; color: #37352f; }
+  #pj-mencao button.is-sel, #pj-mencao button:hover { background: rgba(55,53,47,0.08); }
+  #pj-mencao small { color: #9b9a97; font-size: 11px; white-space: nowrap; }
+  .pj-pop-anexo small { margin-left: auto; font-size: 11px; }
   /* 08/10 (12ª): a tela toda branca na Projetos (não só o painel); balão no Histórico */
-  body:has(#projetos-view:not(.hidden)) { background: #ffffff; }
+  /* 09/10 (2ª): fundo bege de volta na página; só a planilha branca */
   .pj-balao { vertical-align: -2px; }
   /* 08/10 (7ª): fundo branco na aba; logo no topo */
-  #projetos-view { background: #ffffff; min-height: 100vh; }
+  #projetos-view { background: transparent; }
   .pj-legenda { margin-top: 10px; }
   @media (max-width: 760px) { #projetos-wrap { padding: 14px 16px 60px; } }
 
@@ -7435,6 +7466,7 @@
         <div class="pj-frente"><label for="pj-prio-sel">Prioridade</label><select id="pj-prio-sel" aria-label="Filtrar por prioridade"><option value="">Todas</option><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option><option value="__sem__">Sem prioridade</option></select></div>
       </div>
     </div>
+    <div id="pj-rolagem-topo" aria-hidden="true"><div></div></div>
     <div id="pj-rolagem">
       <table id="pj-tabela">
         <colgroup id="pj-colgroup"></colgroup>
@@ -21239,7 +21271,6 @@ applyRolePermissions();
     { id: "bloq",        titulo: "Bloqueios",             largura: 100 },
     { id: "checklist",   titulo: "Checklist",             largura: 100 },
     { id: "historico",   titulo: "Histórico",             largura: 100 },
-    { id: "tags",        titulo: "Tags",                  largura: 120 },
     { id: "frente",      titulo: "Frente",                largura: 120 },
     { id: "obj",         titulo: "Objetivo",              largura: 110 }
   ];
@@ -21273,7 +21304,12 @@ applyRolePermissions();
   const BALAO = `<svg class="pj-balao" viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d="M2.5 3.5h11a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1H7l-3 2.5V11.5H2.5a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
   const tituloCol = id => `<span class="pj-th-ico">${id === "historico" ? BALAO : (ICONE_COL[id] || "≡")}</span>${colunaDe(id).titulo}`;
   const colunasEtapas = () => ordemColunas.filter(id => !SO_ENTREGA.includes(id));
-  const larguraDe = cols => cols.reduce((s, id) => s + colunaDe(id).largura, 0) + LARGURA_LIXO;
+  // Larguras ajustáveis pela Karina (09/10): arrastar a borda do cabeçalho; duplo clique volta ao padrão.
+  const LARGURAS_KEY = "wpf_projetos_larguras";
+  let larguras = {};
+  try { larguras = JSON.parse(localStorage.getItem(LARGURAS_KEY) || "{}") || {}; } catch (e) {}
+  const larguraCol = id => Math.max(60, Number(larguras[id]) || colunaDe(id).largura);
+  const larguraDe = cols => cols.reduce((s, id) => s + larguraCol(id), 0) + LARGURA_LIXO;
 
   function opcoes(lista, atual) {
     return `<option value="">—</option>` + lista.map(x => `<option value="${x.id}" ${x.id === atual ? "selected" : ""}>${x.nome}</option>`).join("");
@@ -21301,12 +21337,14 @@ applyRolePermissions();
       const nivel = NIVEIS[loc.nivel];
       const n = (e.subtasks || []).length;
       const seta = loc.nivel < 2
-        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Sem " + (loc.nivel === 0 ? "etapas" : "tarefas") + " ainda"}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Criar a 1ª " + (loc.nivel === 0 ? "etapa" : "tarefa")}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
         : `<span class="pj-seta-abrir is-vazio"></span>`;
-      const filho = loc.nivel === 0 ? "etapa" : loc.nivel === 1 ? "tarefa" : "";
+      // Ícones ao lado do nome (09/10): checklist (e, depois, formulário), com bolinha de novidades.
+      const t = e.checklist.length, f = e.checklist.filter(c => c.feito).length;
+      const icones = t ? `<button type="button" class="pj-ico-anexo ${f === t ? "is-completo" : ""}" data-acao="checklist" title="Checklist: ${f} de ${t} feitos">☑</button>` : "";
       return `<div class="pj-nome-linha" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
         `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
-        (filho ? `<button type="button" class="pj-add-filho" data-acao="add-filho" title="Adicionar ${filho}">+</button>` : "") + `</div>`;
+        icones + `<button type="button" class="pj-add-filho" data-acao="anexar" title="Adicionar checklist ou formulário">+</button></div>`;
     },
     checklist: e => {
       const t = e.checklist.length, f = e.checklist.filter(c => c.feito).length;
@@ -21370,15 +21408,15 @@ applyRolePermissions();
       `<td data-col="lixo">${lixoHtml(e, loc)}</td></tr>`;
   }
   function colgroupHtml(cols) {
-    return cols.map(id => `<col style="width:${colunaDe(id).largura}px">`).join("") + `<col style="width:${LARGURA_LIXO}px">`;
+    return cols.map(id => `<col data-col="${id}" style="width:${larguraCol(id)}px">`).join("") + `<col style="width:${LARGURA_LIXO}px">`;
   }
   function cabecalho() {
     const cols = visiveis();
     document.getElementById("pj-tabela").style.minWidth = larguraDe(cols) + "px";
     document.getElementById("pj-colgroup").innerHTML = colgroupHtml(cols);
     document.getElementById("pj-cabeca").innerHTML = `<tr>` + cols.map(id => id === "nome"
-      ? `<th data-col="nome">${tituloCol(id)}</th>`
-      : `<th data-col="${id}" draggable="true" title="Arraste pra mudar a coluna de lugar">${tituloCol(id)}</th>`).join("") +
+      ? `<th data-col="nome">${tituloCol(id)}<span class="pj-th-redim" data-redim="nome" title="Arraste pra mudar a largura (duplo clique volta)"></span></th>`
+      : `<th data-col="${id}" draggable="true" title="Arraste pra mudar a coluna de lugar">${tituloCol(id)}<span class="pj-th-redim" data-redim="${id}" title="Arraste pra mudar a largura (duplo clique volta)"></span></th>`).join("") +
       `<th data-col="lixo"><button type="button" class="pj-cols-btn" data-acao-cab="colunas" title="Mostrar ou ocultar colunas${ocultas.size ? " (" + ocultas.size + " oculta" + (ocultas.size === 1 ? "" : "s") + ")" : ""}">⋯</button></th></tr>`;
   }
 
@@ -21455,6 +21493,8 @@ applyRolePermissions();
 
   function render() {
     fecharPop();
+    fecharMencao();
+    if (mencoesParaTagsEmTudo()) salvar();
     sincronizarFrente();
     const lista = filtradas();
     renderObjetivos(porFrente());
@@ -21475,9 +21515,47 @@ applyRolePermissions();
       : `<tr><td colspan="${span}" class="pj-vazio">${entregas.length ? (objFiltro ? "Nenhuma entrega neste objetivo" + (frenteFiltro || prioFiltro ? " com esses filtros." : ".") : prioFiltro ? "Nenhuma entrega com essa prioridade." : "Nenhuma entrega nesta frente.") : "Nenhuma entrega ainda. Clique em “+ Entrega” pra começar."}</td></tr>`;
     ajustarSubs();
     corpo.querySelectorAll("textarea.pj-txt").forEach(ajustarAltura);
+    sincronizarRolagemTopo();
     const c = document.getElementById("pj-contagem");
     if (c) c.textContent = entregas.length ? `${lista.length} de ${entregas.length} entrega${entregas.length === 1 ? "" : "s"}` : "";
   }
+
+  // ── Botão + do nome: Checklist ou Formulário (09/10) ──
+  function abrirMenuAnexo(botao, e) {
+    fecharPopERedesenhar();
+    popPara = e.id;
+    const pop = document.createElement("div");
+    pop.id = "pj-pop";
+    pop.className = "pj-pop-form pj-pop-anexo";
+    pop.innerHTML = `<button type="button" data-anexo="checklist">☑ Checklist</button>
+      <button type="button" data-anexo="form" disabled title="Em breve">📝 Formulário <small>em breve</small></button>`;
+    document.body.appendChild(pop);
+    posicionarPop(pop, botao);
+    pop.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-anexo]");
+      const alvo = achar(popPara);
+      if (!b || b.disabled || !alvo) return;
+      ev.stopPropagation();
+      if (b.dataset.anexo === "checklist") abrirPopChecklist(botao, alvo);
+    });
+  }
+
+  // Barra de rolagem em cima também (Karina, 09/10), andando junto com a de baixo.
+  function sincronizarRolagemTopo() {
+    const topo = document.getElementById("pj-rolagem-topo"), baixo = document.getElementById("pj-rolagem");
+    if (!topo || !baixo) return;
+    topo.firstElementChild.style.width = baixo.scrollWidth + "px";
+    topo.classList.toggle("is-sem", baixo.scrollWidth <= baixo.clientWidth + 1);
+    topo.scrollLeft = baixo.scrollLeft;
+  }
+  (function () {
+    const topo = document.getElementById("pj-rolagem-topo"), baixo = document.getElementById("pj-rolagem");
+    if (!topo || !baixo) return;
+    let mexendo = null;
+    topo.addEventListener("scroll", () => { if (mexendo === "baixo") return; mexendo = "topo"; baixo.scrollLeft = topo.scrollLeft; requestAnimationFrame(() => { mexendo = null; }); });
+    baixo.addEventListener("scroll", () => { if (mexendo === "topo") return; mexendo = "baixo"; topo.scrollLeft = baixo.scrollLeft; requestAnimationFrame(() => { mexendo = null; }); });
+    window.addEventListener("resize", sincronizarRolagemTopo);
+  })();
 
   // ── Mostrar/ocultar colunas (botão ⋯ no fim do cabeçalho) ──
   function abrirPopColunas(botao) {
@@ -21512,7 +21590,47 @@ applyRolePermissions();
     if (popPara === "__colunas__") { fecharPopERedesenhar(); return; }
     abrirPopColunas(b);
   });
+  let redimensionando = false;
+  cabeca.addEventListener("mousedown", ev => {
+    const h = ev.target.closest(".pj-th-redim");
+    if (!h || ev.button !== 0) return;
+    ev.preventDefault(); ev.stopPropagation();
+    redimensionando = true;
+    const id = h.dataset.redim, x0 = ev.clientX, w0 = larguraCol(id);
+    const col = document.querySelector(`#pj-colgroup col[data-col="${id}"]`);
+    const tabela = document.getElementById("pj-tabela");
+    document.body.classList.add("pj-redimensionando");
+    let mexeu = false;
+    function mover(e) {
+      if (Math.abs(e.clientX - x0) < 2 && !mexeu) return;
+      mexeu = true;
+      const w = Math.max(60, Math.round(w0 + e.clientX - x0));
+      larguras[id] = w;
+      if (col) col.style.width = w + "px";
+      tabela.style.minWidth = larguraDe(visiveis()) + "px";
+      sincronizarRolagemTopo();
+    }
+    function soltar() {
+      document.removeEventListener("mousemove", mover);
+      document.removeEventListener("mouseup", soltar);
+      document.body.classList.remove("pj-redimensionando");
+      setTimeout(() => { redimensionando = false; }, 0);
+      if (!mexeu) return;
+      try { localStorage.setItem(LARGURAS_KEY, JSON.stringify(larguras)); } catch (e) {}
+      render();
+    }
+    document.addEventListener("mousemove", mover);
+    document.addEventListener("mouseup", soltar);
+  });
+  cabeca.addEventListener("dblclick", ev => {
+    const h = ev.target.closest(".pj-th-redim");
+    if (!h) return;
+    delete larguras[h.dataset.redim];
+    try { localStorage.setItem(LARGURAS_KEY, JSON.stringify(larguras)); } catch (e) {}
+    render();
+  });
   cabeca.addEventListener("dragstart", ev => {
+    if (redimensionando || (ev.target.closest && ev.target.closest(".pj-th-redim"))) { ev.preventDefault(); return; }
     const th = ev.target.closest("th[draggable]");
     if (!th) return;
     colArrastada = th.dataset.col;
@@ -21571,6 +21689,7 @@ applyRolePermissions();
       e[campo] = el.value;
       ajustarAltura(el);
       if (ev.type === "change" && textoAntes && textoAntes.id === e.id && textoAntes.campo === campo) {
+        if (campo === "nome") sincronizarMencoes(e, textoAntes.valor, el.value);
         registrarCampo(e, campo, textoAntes.valor, el.value);
         textoAntes = { id: e.id, campo, valor: el.value };
       }
@@ -21898,7 +22017,10 @@ applyRolePermissions();
     }
     if (acao === "checklist") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-check")) { fecharPopERedesenhar(); return; } abrirPopChecklist(b, e); return; }
     if (acao === "historico") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-hist")) { fecharPopERedesenhar(); return; } abrirPopHistorico(b, e); return; }
+    if (acao === "anexar") { ev.stopPropagation(); abrirMenuAnexo(b, e); return; }
     if (acao === "abrir") {
+      // Setinha numa linha sem nada embaixo já cria a 1ª etapa/tarefa (Karina, 09/10).
+      if (!(e.subtasks || []).length && loc.nivel < 2) { novoFilho(e.id); return; }
       if (abertas.has(e.id)) abertas.delete(e.id); else abertas.add(e.id);
       guardarAbertas();
       render();
@@ -22091,6 +22213,126 @@ applyRolePermissions();
     busca.focus();
   }
 
+  // ── Citação com @ no nome (Karina, 09/10): substitui a coluna Tags. ──
+  // "Falar com @Taiwan": digitar @ abre a lista (equipe, contatos, orgs,
+  // países); escolher escreve "@Nome " e marca a tag. Apagar a citação do
+  // nome tira a tag. Linha criada pelo Carinha com "@Nome" no nome ganha a
+  // tag sozinha ao abrir a Dash (só acrescenta, nunca tira).
+  var mencao = null; // { ta, itens, sel }
+  function candidatosMencao() {
+    const a = api();
+    if (!a) return [];
+    const cad = a.cadastro() || {}, out = [];
+    const add = (tipo, v, extra) => { const r = a.rotulo(tipo, v); if (r) out.push({ tipo, v, r, extra: extra || "" }); };
+    (typeof usersList !== "undefined" && usersList ? usersList : []).forEach(u => { if (u && u.username) add("pessoa", "eq:" + u.username, "Equipe"); });
+    (cad.pessoas || []).forEach(p => add("pessoa", "p:" + p.id, p.categoria || "Contato"));
+    (cad.associacoes || []).forEach(x => add("associacao", x.id, x.tipo || "Federação"));
+    (cad.empresas || []).forEach(x => add("empresa", x.id, x.tipo || "Empresa"));
+    const rl = a.rotuloLugar() === "Estado" ? "Estado" : "País";
+    a.lugares().forEach(l => add("lugar", l, rl));
+    return out;
+  }
+  // Acha as citações conhecidas no texto (a mais comprida ganha: "@Ladies Weekend" antes de "@Ladies").
+  function mencoesDe(txt, cands) {
+    const s = String(txt || "");
+    if (s.indexOf("@") < 0) return [];
+    const lista = (cands || candidatosMencao()).slice().sort((x, y) => y.r.length - x.r.length);
+    const low = s.toLowerCase(), out = [];
+    for (let i = low.indexOf("@"); i >= 0; i = low.indexOf("@", i + 1)) {
+      const c = lista.find(c => low.startsWith(c.r.toLowerCase(), i + 1) && !/[\p{L}\p{N}]/u.test(s.charAt(i + 1 + c.r.length)));
+      if (c && !out.some(o => o.tipo === c.tipo && o.v === c.v)) out.push(c);
+    }
+    return out;
+  }
+  function garantirTags(e) {
+    if (!e.tags || typeof e.tags !== "object") e.tags = {};
+    Object.values(CAMPO_TAG).forEach(c => { if (!Array.isArray(e.tags[c])) e.tags[c] = []; });
+  }
+  function sincronizarMencoes(e, antes, depois) {
+    const cands = candidatosMencao();
+    const ch = m => m.tipo + "|" + m.v;
+    const novas = mencoesDe(depois, cands), velhas = mencoesDe(antes, cands);
+    if (!novas.length && !velhas.length) return false;
+    garantirTags(e);
+    const kn = new Set(novas.map(ch));
+    let mudou = false;
+    velhas.filter(m => !kn.has(ch(m))).forEach(m => {
+      const c = CAMPO_TAG[m.tipo];
+      if (e.tags[c].includes(m.v)) { e.tags[c] = e.tags[c].filter(v => v !== m.v); mudou = true; registrar(e, `Tirou a citação @${m.r}`); }
+    });
+    novas.forEach(m => {
+      const c = CAMPO_TAG[m.tipo];
+      if (!e.tags[c].includes(m.v)) { e.tags[c] = e.tags[c].concat(m.v); mudou = true; registrar(e, `Citou @${m.r}`); }
+    });
+    return mudou;
+  }
+  function mencoesParaTagsEmTudo() {
+    let cands = null, mudou = false;
+    (function walk(l) {
+      (l || []).forEach(x => {
+        if (x && String(x.nome || "").indexOf("@") >= 0) {
+          if (!cands) cands = candidatosMencao();
+          mencoesDe(x.nome, cands).forEach(m => {
+            garantirTags(x);
+            const c = CAMPO_TAG[m.tipo];
+            if (!x.tags[c].includes(m.v)) { x.tags[c] = x.tags[c].concat(m.v); mudou = true; registrar(x, `Citou @${m.r}`); }
+          });
+        }
+        walk(x && x.subtasks);
+      });
+    })(entregas);
+    return mudou;
+  }
+  function fecharMencao() { const d = document.getElementById("pj-mencao"); if (d) d.remove(); mencao = null; }
+  function checarMencao(ta) {
+    const a = api();
+    const pos = ta.selectionStart, antes = ta.value.slice(0, pos);
+    const i = antes.lastIndexOf("@");
+    const q = i >= 0 ? antes.slice(i + 1) : "";
+    if (!a || i < 0 || (i > 0 && /[\p{L}\p{N}]/u.test(antes.charAt(i - 1))) || q.length > 40 || /\n/.test(q) || /\s$/.test(q)) { fecharMencao(); return; }
+    const k = a.norm(q);
+    const ini = c => (a.norm(c.r).startsWith(k) ? 0 : 1);
+    const itens = candidatosMencao().filter(c => !k || a.norm(c.r).includes(k)).sort((x, y) => ini(x) - ini(y)).slice(0, 8);
+    if (!itens.length) { fecharMencao(); return; }
+    let d = document.getElementById("pj-mencao");
+    if (!d) { d = document.createElement("div"); d.id = "pj-mencao"; document.body.appendChild(d); }
+    mencao = { ta, itens, sel: 0 };
+    montarMencao();
+    const r = ta.getBoundingClientRect();
+    const cabe = r.bottom + 4 + d.offsetHeight < window.innerHeight - 8;
+    d.style.top = Math.max(8, cabe ? r.bottom + 4 : r.top - d.offsetHeight - 4) + "px";
+    d.style.left = Math.max(8, Math.min(r.left, window.innerWidth - d.offsetWidth - 12)) + "px";
+  }
+  function montarMencao() {
+    const d = document.getElementById("pj-mencao");
+    if (!d || !mencao) return;
+    d.innerHTML = mencao.itens.map((c, n) => `<button type="button" data-n="${n}" class="${n === mencao.sel ? "is-sel" : ""}"><span>@${esc(c.r)}</span><small>${esc(c.extra)}</small></button>`).join("");
+  }
+  function escolherMencao(c) {
+    const ta = mencao && mencao.ta;
+    if (!ta || !c) { fecharMencao(); return; }
+    const pos = ta.selectionStart, antes = ta.value.slice(0, pos), i = antes.lastIndexOf("@");
+    const ins = "@" + c.r + " ";
+    ta.value = ta.value.slice(0, i) + ins + ta.value.slice(pos).replace(/^ /, "");
+    const np = i + ins.length;
+    ta.setSelectionRange(np, np);
+    fecharMencao();
+    const tr = ta.closest("tr[data-id]");
+    const e = tr && achar(tr.dataset.id);
+    if (!e) return;
+    e.nome = ta.value;
+    ajustarAltura(ta);
+    garantirTags(e);
+    const campo = CAMPO_TAG[c.tipo];
+    if (!e.tags[campo].includes(c.v)) { e.tags[campo] = e.tags[campo].concat(c.v); registrar(e, `Citou @${c.r}`); }
+    salvar();
+  }
+  document.addEventListener("mousedown", ev => {
+    const b = ev.target.closest && ev.target.closest("#pj-mencao button[data-n]");
+    if (b) { ev.preventDefault(); escolherMencao(mencao && mencao.itens[+b.dataset.n]); return; }
+    if (mencao && !(ev.target.closest && ev.target.closest("#pj-mencao")) && ev.target !== mencao.ta) fecharMencao();
+  });
+
   // Logo da empresa no topo, igual à Tasks (clona o #logo, sem repetir o base64).
   (function () {
     const lugar = document.querySelector("#projetos-view .pj-logo");
@@ -22107,6 +22349,37 @@ applyRolePermissions();
   corpo.addEventListener("change", aoMudar);
   corpo.addEventListener("click", aoClicar);
   corpo.addEventListener("focusin", aoFocar);
+  corpo.addEventListener("input", ev => { const ta = ev.target.closest && ev.target.closest("textarea.pj-nome"); if (ta) checarMencao(ta); });
+  corpo.addEventListener("keydown", ev => {
+    if (!mencao || ev.target !== mencao.ta) return;
+    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+      ev.preventDefault();
+      const n = mencao.itens.length;
+      mencao.sel = (mencao.sel + (ev.key === "ArrowDown" ? 1 : n - 1)) % n;
+      montarMencao();
+    } else if ((ev.key === "Enter" && !ev.shiftKey) || ev.key === "Tab") {
+      ev.preventDefault();
+      escolherMencao(mencao.itens[mencao.sel]);
+    } else if (ev.key === "Escape") { ev.preventDefault(); fecharMencao(); }
+  });
+  corpo.addEventListener("focusout", ev => { if (mencao && ev.target === mencao.ta) fecharMencao(); });
+  // Enter no nome cria a próxima linha logo embaixo, no mesmo nível (Karina, 09/10; Shift+Enter quebra linha).
+  corpo.addEventListener("keydown", ev => {
+    if (ev.key !== "Enter" || ev.shiftKey || ev.isComposing || ev.defaultPrevented || mencao) return;
+    const ta = ev.target.closest && ev.target.closest("textarea.pj-nome");
+    if (!ta) return;
+    const loc = localizar(ta.closest("tr[data-id]").dataset.id);
+    if (!loc) return;
+    ev.preventDefault();
+    const extra = loc.nivel === 0 ? { status: "detalhar", frente: loc.linha.frente || "", objetivo: loc.linha.objetivo || "" } : { status: "naoiniciado" };
+    const novo = normalizar(extra, loc.nivel);
+    registrar(novo, `Criou a ${NOME_NIVEL[NIVEIS[loc.nivel]].toLowerCase()}`);
+    loc.lista.splice(loc.lista.indexOf(loc.linha) + 1, 0, novo);
+    salvar();
+    render();
+    const n = document.querySelector(`tr[data-id="${novo.id}"] .pj-nome`);
+    if (n) n.focus();
+  });
   corpo.addEventListener("focusout", ev => {
     const ta = ev.target.closest && ev.target.closest(".pj-crit-txt");
     if (!ta) return;
@@ -22237,7 +22510,7 @@ applyRolePermissions();
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharMenuLinha(); });
   window.addEventListener("scroll", fecharMenuLinha, true);
   document.addEventListener("click", ev => {
-    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add, .pj-resp1, .pj-cols-btn") && document.contains(ev.target)) fecharPopERedesenhar();
+    if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add, .pj-resp1, .pj-cols-btn, .pj-add-filho, .pj-ico-anexo") && document.contains(ev.target)) fecharPopERedesenhar();
     if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
     if (armado && !ev.target.closest(".pj-lixo")) desarmar();
   });
