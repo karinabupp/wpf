@@ -6941,8 +6941,21 @@
   #pj-tabela tr.pj-linha > td:first-child { box-shadow: none; padding-left: 20px; }
   #pj-tabela tr.pj-linha > td:first-child::before { content: ""; position: absolute; top: 0; bottom: 0; left: var(--pj-barra-x, 0px); width: 5px; background: var(--pj-cor-nivel); }
   /* 09/10 (3ª): sem buraco antes da barra — o degrau de cima vem pintado na cor do nível de cima */
-  #pj-tabela tr.pj-linha.is-etapa > td:first-child::before { left: 0; width: 10px; background: linear-gradient(to right, #1f3b64 0 5px, #4a78b5 5px 10px); }
-  #pj-tabela tr.pj-linha.is-tarefa > td:first-child::before { left: 0; width: 15px; background: linear-gradient(to right, #1f3b64 0 5px, #4a78b5 5px 10px, #a9c3e4 10px 15px); }
+  /* 09/10 (4ª, Karina): o degrau todo na cor do próprio nível (etapa 10px, tarefa 15px, subtarefa 20px) */
+  #pj-tabela tr.pj-linha.is-etapa > td:first-child::before { left: 0; width: 10px; background: #4a78b5; }
+  #pj-tabela tr.pj-linha.is-tarefa > td:first-child::before { left: 0; width: 15px; background: #a9c3e4; }
+  #pj-tabela tr.pj-linha.is-subtarefa > td:first-child::before { left: 0; width: 20px; background: #d4e2f2; }
+  .pj-linha.is-subtarefa { --pj-cor-nivel: #d4e2f2; }
+  #pj-tabela tr.pj-linha.is-subtarefa > td:first-child { padding-left: 44px; }
+  #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #9b9a93; font-weight: 400; }
+  .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
+  /* Próxima ação numa linha (… e clicar expande) */
+  .pj-prox span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; -webkit-line-clamp: unset; }
+  .pj-prox small { display: none; }
+  td.pj-prox-aberta .pj-prox span { white-space: normal; overflow: visible; }
+  td.pj-prox-aberta .pj-prox small, td.pj-prox-aberta .pj-prox-ir { display: block; }
+  .pj-prox-ir { display: none; border: 0; background: none; padding: 2px 6px 4px; font: inherit; font-size: 12px; color: #2f6fd0; cursor: pointer; }
+  .pj-prox-ir:hover { text-decoration: underline; }
   .pj-linha.is-entrega { --pj-barra-x: 0px; }
   .pj-linha.is-etapa { --pj-barra-x: 5px; }
   .pj-linha.is-tarefa { --pj-barra-x: 10px; }
@@ -7490,7 +7503,7 @@
     <div class="pj-topo">
       <div>
         <div class="pj-logo" aria-label="WPF"></div>
-        <div class="pj-legenda"><span class="pj-nivel is-entrega">Entrega</span><span class="pj-nivel is-etapa">Etapa</span><span class="pj-nivel is-tarefa">Tarefa</span></div>
+        <div class="pj-legenda"><span class="pj-nivel is-entrega">Entrega</span><span class="pj-nivel is-etapa">Etapa</span><span class="pj-nivel is-tarefa">Tarefa</span><span class="pj-nivel is-subtarefa">Subtarefa</span></div>
       </div>
       <div class="pj-direita">
         <div id="pj-objetivos" aria-label="Andamento por objetivo"></div>
@@ -21159,8 +21172,11 @@ applyRolePermissions();
 
   // Três níveis (Karina, 08/10): Entrega › Etapa › Tarefa. As etapas ficam em
   // entrega.subtasks e as tarefas em etapa.subtasks.
-  const NIVEIS = ["entrega", "etapa", "tarefa"];
-  const NOME_NIVEL = { entrega: "Entrega", etapa: "Etapa", tarefa: "Tarefa" };
+  // 09/10 (Karina): a checklist virou Subtarefa (4º nível, dentro da tarefa).
+  const NIVEIS = ["entrega", "etapa", "tarefa", "subtarefa"];
+  const NOME_NIVEL = { entrega: "Entrega", etapa: "Etapa", tarefa: "Tarefa", subtarefa: "Subtarefa" };
+  const ULTIMO_NIVEL = NIVEIS.length - 1;
+  var migrouChecklist = false;
   function normalizar(e, nivel) {
     e = e && typeof e === "object" ? e : {};
     nivel = nivel || 0;
@@ -21172,6 +21188,21 @@ applyRolePermissions();
       id: b.id || ("bq-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
       texto: String(b.texto || ""), desde: b.desde || ""
     }));
+    // Checklist → subtarefas (09/10): uma vez por tarefa (marca checklistMigrado).
+    // Ids fixos (id da tarefa + "-ck" + nº) pra dois navegadores não duplicarem.
+    // A lista antiga fica guardada em "checklist" (não aparece mais).
+    let subs = Array.isArray(e.subtasks) ? e.subtasks : [];
+    let ckMig = !!e.checklistMigrado;
+    if (nivel === 2 && !ckMig && e.id && Array.isArray(e.checklist) && e.checklist.length) {
+      const ja = new Set(subs.map(x => x && x.id));
+      const novos = e.checklist.filter(c => c && typeof c === "object").map((c, i) => ({
+        id: e.id + "-ck" + i, nome: String(c.texto || ""), status: c.feito ? "finalizado" : "naoiniciado",
+        assignees: Array.isArray(e.assignees) ? e.assignees.filter(Boolean) : []
+      })).filter(x => !ja.has(x.id));
+      subs = subs.concat(novos);
+      ckMig = true;
+      migrouChecklist = true;
+    }
     return {
       id: e.id || ("pj-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
       nome: String(e.nome || ""), criterio: String(e.criterio || ""),
@@ -21189,8 +21220,9 @@ applyRolePermissions();
       objetivo: e.objetivo || "", frente: e.frente || "",
       tags: { pessoas: Array.isArray(t.pessoas) ? t.pessoas : [], lugares: Array.isArray(t.lugares) ? t.lugares : [],
         empresas: Array.isArray(t.empresas) ? t.empresas : [], associacoes: Array.isArray(t.associacoes) ? t.associacoes : [] },
-      // Tarefa é o último nível: nada embaixo dela.
-      subtasks: nivel >= 2 ? [] : (Array.isArray(e.subtasks) ? e.subtasks.map(x => normalizar(x, nivel + 1)) : [])
+      checklistMigrado: ckMig || undefined,
+      // Subtarefa é o último nível: nada embaixo dela.
+      subtasks: nivel >= ULTIMO_NIVEL ? [] : subs.map(x => normalizar(x, nivel + 1))
     };
   }
   // id → { linha, nivel (0/1/2), pai, lista (onde ela mora), entrega (a do topo) }
@@ -21367,17 +21399,17 @@ applyRolePermissions();
     nome: (e, loc) => {
       const nivel = NIVEIS[loc.nivel];
       const n = (e.subtasks || []).length;
-      const seta = loc.nivel < 2
-        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Criar a 1ª " + (loc.nivel === 0 ? "etapa" : "tarefa")}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+      const seta = loc.nivel < ULTIMO_NIVEL
+        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Criar a 1ª " + (loc.nivel === 0 ? "etapa" : loc.nivel === 2 ? "subtarefa" : "tarefa")}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
         : `<span class="pj-seta-abrir is-vazio"></span>`;
       // Ícones ao lado do nome (09/10): checklist (e, depois, formulário), com bolinha de novidades.
-      const t = e.checklist.length, f = e.checklist.filter(c => c.feito).length;
-      const icones = t ? `<button type="button" class="pj-ico-anexo ${f === t ? "is-completo" : ""}" data-acao="checklist" title="Checklist: ${f} de ${t} feitos">☑</button>` : "";
+      // Checklist virou subtarefa (09/10); o + volta quando o Formulário existir.
+      const icones = "";
       const ver = htmlNomeComMencoes(e.nome);
       return `<div class="pj-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
         `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
         `<div class="pj-txt pj-nome pj-nome-ver">${ver}</div>` +
-        icones + `<button type="button" class="pj-add-filho" data-acao="anexar" title="Adicionar checklist ou formulário">+</button></div>`;
+        icones + `</div>`;
     },
     checklist: e => {
       const t = e.checklist.length, f = e.checklist.filter(c => c.feito).length;
@@ -21423,7 +21455,8 @@ applyRolePermissions();
       const p = proximaTarefa(e);
       if (!p) return `<span class="pj-prox-vazio">${(e.subtasks || []).length ? "Tudo feito" : "—"}</span>`;
       const r = (p.assignees || [])[0];
-      return `<button type="button" class="pj-prox" data-acao="ir" data-alvo="${esc(p.id)}" title="Ir pra linha: ${esc(nomeSemArroba(p.nome))}"><span>${esc(nomeSemArroba(p.nome) || "(sem nome)")}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>`;
+      return `<button type="button" class="pj-prox" data-acao="prox-abrir" title="${esc(nomeSemArroba(p.nome))}${r ? " · " + esc(r) : ""}"><span>${esc(nomeSemArroba(p.nome) || "(sem nome)")}</span>${r ? `<small>${esc(r)}</small>` : ""}</button>` +
+        `<button type="button" class="pj-prox-ir" data-acao="ir" data-alvo="${esc(p.id)}">ir pra tarefa →</button>`;
     },
     bloq: e => {
       const n = e.bloqueios.filter(b => b.texto.trim()).length;
@@ -21550,7 +21583,7 @@ applyRolePermissions();
       l.forEach(x => {
         const ent = nivel === 0 ? x : topo;
         linhas.push(linhaHtml(x, { linha: x, nivel, pai, lista: l, entrega: ent }, visiveis()));
-        if (nivel < 2 && abertas.has(x.id)) walk(x.subtasks || [], nivel + 1, x, ent);
+        if (nivel < ULTIMO_NIVEL && abertas.has(x.id)) walk(x.subtasks || [], nivel + 1, x, ent);
       });
     })(lista, 0, null, null);
     corpo.innerHTML = linhas.length ? linhas.join("")
@@ -22027,7 +22060,7 @@ applyRolePermissions();
 
   function novoFilho(paiId) {
     const loc = localizar(paiId);
-    if (!loc || loc.nivel >= 2) return;
+    if (!loc || loc.nivel >= ULTIMO_NIVEL) return;
     const novo = normalizar({ status: "naoiniciado" }, loc.nivel + 1);
     registrar(novo, `Criou a ${NOME_NIVEL[NIVEIS[loc.nivel + 1]].toLowerCase()}`);
     loc.linha.subtasks.push(novo);
@@ -22061,9 +22094,16 @@ applyRolePermissions();
     if (acao === "historico") { ev.stopPropagation(); if (popPara === e.id && document.querySelector("#pj-pop.pj-pop-hist")) { fecharPopERedesenhar(); return; } abrirPopHistorico(b, e); return; }
     if (acao === "anexar") { ev.stopPropagation(); abrirMenuAnexo(b, e); return; }
     if (acao === "ir") { irParaLinha(b.dataset.alvo); return; }
+    if (acao === "prox-abrir") {
+      ev.stopPropagation();
+      const td = b.closest("td"), aberta = td.classList.contains("pj-prox-aberta");
+      document.querySelectorAll("#pj-corpo td.pj-prox-aberta").forEach(x => x.classList.remove("pj-prox-aberta"));
+      if (!aberta) td.classList.add("pj-prox-aberta");
+      return;
+    }
     if (acao === "abrir") {
       // Setinha numa linha sem nada embaixo já cria a 1ª etapa/tarefa (Karina, 09/10).
-      if (!(e.subtasks || []).length && loc.nivel < 2) { novoFilho(e.id); return; }
+      if (!(e.subtasks || []).length && loc.nivel < ULTIMO_NIVEL) { novoFilho(e.id); return; }
       if (abertas.has(e.id)) abertas.delete(e.id); else abertas.add(e.id);
       guardarAbertas();
       render();
@@ -22315,15 +22355,17 @@ applyRolePermissions();
     return out + s.slice(pos);
   }
   // Próxima ação: 1ª linha sem filhos e não finalizada/cancelada, na ordem, dentro de e.
+  // A tarefa é a unidade (subtarefa não conta); etapa sem tarefas conta ela mesma.
   function proximaTarefa(e) {
+    const loc = localizar(e.id);
     let achou = null;
-    (function walk(l) {
+    (function walk(l, nivel) {
       for (const x of l || []) {
         if (achou) return;
-        if ((x.subtasks || []).length) walk(x.subtasks);
+        if (nivel < 2 && (x.subtasks || []).length) walk(x.subtasks, nivel + 1);
         else if (x.status !== "finalizado" && x.status !== "cancelado") achou = x;
       }
-    })(e.subtasks);
+    })(e.subtasks, (loc ? loc.nivel : 0) + 1);
     return achou;
   }
   function irParaLinha(id) {
@@ -22702,6 +22744,7 @@ applyRolePermissions();
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharMenuLinha(); });
   window.addEventListener("scroll", fecharMenuLinha, true);
   document.addEventListener("click", ev => {
+    if (!(ev.target.closest && ev.target.closest("td.pj-prox-aberta"))) document.querySelectorAll("#pj-corpo td.pj-prox-aberta").forEach(x => x.classList.remove("pj-prox-aberta"));
     if (popPara && !ev.target.closest("#pj-pop") && !ev.target.closest(".pj-resp-add, .pj-resp1, .pj-cols-btn, .pj-add-filho, .pj-ico-anexo, .pj-mencao-link") && document.contains(ev.target)) fecharPopERedesenhar();
     if (tagsId && !ev.target.closest("#projetos-tags-painel") && !ev.target.closest(".pj-tags-cell") && document.contains(ev.target)) fecharTags();
     if (armado && !ev.target.closest(".pj-lixo")) desarmar();
@@ -22752,8 +22795,10 @@ applyRolePermissions();
     apply: (data) => {
       const lista = data && data[SECAO];
       if (!Array.isArray(lista)) return;
+      migrouChecklist = false;
       entregas = lista.map(x => normalizar(x, 0));
       temDados = true;
+      if (migrouChecklist) { migrouChecklist = false; salvar(); }
       try { localStorage.setItem(LS_KEY, JSON.stringify(entregas)); } catch (e) {}
       if (visivel()) render();
     }

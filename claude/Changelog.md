@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (4ª) — Projetos: Checklist vira Subtarefa, barras numa cor só, Próxima ação numa linha
+
+Pedidos da Karina em 09/10 (09:38), aprovados por ela ("manda bala").
+
+- **Subtarefa (4º nível) no lugar da Checklist:** a tarefa ganhou setinha
+  (cria/abre subtarefas); Enter na subtarefa cria a próxima. A subtarefa
+  fica mais à frente (nome recuado), barra de 20px azul bem claro, legenda
+  "Subtarefa". Saíram o menu do + (Checklist/Formulário) e o ícone ☑ do
+  nome — o + volta quando o Formulário existir.
+- **Conversão das checklists:** as 31 tarefas com checklist (194 itens)
+  viram subtarefas ao abrir a Dash: mesmo texto, item marcado = Finalizado,
+  não marcado = Não iniciado, responsável = o da tarefa. Ids fixos
+  (`<id da tarefa>-ck<n>`) e marca `checklistMigrado`, pra não duplicar nem
+  repetir; a lista antiga fica guardada em `checklist` (não aparece). Testei
+  no retrato dos dados: 194 subtarefas, 121 finalizadas, 0 ids repetidos.
+  A conversão vai pra nuvem junto com a próxima edição na Projetos (até lá,
+  cada abertura refaz igual).
+- **Barras:** cada degrau todo na cor do próprio nível (etapa 10px azul
+  médio, tarefa 15px azul claro, subtarefa 20px) — corrigindo a 3ª
+  versão, que pintava as cores dos níveis de cima.
+- **Próxima ação:** numa linha com "…"; clicar expande (nome inteiro,
+  responsável e "ir pra tarefa →"); clicar fora recolhe. Continua
+  apontando pra tarefa (subtarefa não conta).
+- **Onde:** `index.html`, bloco "PROJETOS" (`NIVEIS`/`ULTIMO_NIVEL`,
+  `normalizar`, `projetosBridge.apply`, célula `nome` e `proximaAcao`,
+  `proximaTarefa`, ação `prox-abrir`), CSS "09/10 (4ª)", legenda.
+- **Testes:** 152 da guia + 25 de linhas + 9 de filtros + 8 de fumaça, todos ok.
+
+---
+
 ## 2026-10-09 (3ª) — Projetos: Próxima ação automática, barras sem buraco, sem coluna Checklist, citação azul com cartão, rolagem do topo suave
 
 Pedidos da Karina em 09/10 (09:10), aprovados por ela ("pode").

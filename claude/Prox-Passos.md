@@ -30,9 +30,10 @@ reconstruir o raciocínio.
   - *Aberto em:* 2026-10-08 · itens 2–4 (colunas, responsável, larguras)
     feitos em 09/10 (Changelog).
 
-- [ ] **Projetos — Formulário no botão + (aguarda a Karina)** — o menu
-  do + já tem "Formulário (em breve)" e a bolinha de atualizações está
-  pronta. Falta ela responder: (1) quem preenche — gente de fora por link
+- [ ] **Projetos — Formulário (aguarda a Karina)** — o botão + saiu do
+  nome em 09/10 (a Checklist virou Subtarefa); volta só com o Formulário.
+  O código do menu (`abrirMenuAnexo`) e da bolinha de atualizações segue
+  no arquivo, pronto. Falta ela responder: (1) quem preenche — gente de fora por link
   ou só a equipe?; (2) que campos e como montar; (3) o que a bolinha conta
   (sugestão: respostas não lidas).
   - *Aberto em:* 2026-10-09
@@ -54,6 +55,12 @@ reconstruir o raciocínio.
   hoje a tarefa mostra "—"; ela não respondeu se preferia mostrar a
   própria tarefa. Também: a Próxima ação pula tarefa finalizada/cancelada,
   mas não pula Bloqueado nem respeita dependência — perguntar se deve.
+  - *Aberto em:* 2026-10-09
+
+- [ ] **Projetos — detalhes das subtarefas (09/10)** — subtarefa
+  finalizada mostra a data "Finalizado" vazia (as que vieram da checklist
+  não têm data). Código antigo da checklist (pop-up, célula) segue no
+  arquivo sem uso: dá pra apagar numa limpeza, com OK.
   - *Aberto em:* 2026-10-09
 
 - [ ] **Projetos — Nome numa linha só (ideia, 09/10)** — linhas ainda
