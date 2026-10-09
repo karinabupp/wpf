@@ -12,6 +12,18 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (18ª) — Projetos: setinha só quando tem algo dentro; vazia mostra "+"
+
+Pedido da Karina em 09/10 (15:19), aprovado às 15:20.
+
+- Linha com algo dentro: setinha ▸/▾ (abre/fecha), como antes.
+- Linha vazia: no lugar da setinha, um **+** cinza claro, discreto; clicar
+  cria o 1º item dentro (mesmo comportamento de antes). Último nível: nada.
+- **Onde:** `index.html`, `CELULAS.nome` (seta) e CSS `.pj-seta-abrir.is-mais`.
+- **Testes:** cheia ▸, vazia +, clique no + cria e vira ▾; sem erros.
+
+---
+
 ## 2026-10-09 (17ª) — Projetos: coluna Dificuldade; prioridade e dificuldade na entrega 14; regras de lembrete
 
 Pedido da Karina em 09/10 (15:09), aprovado às 15:11 ("manda bala").

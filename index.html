@@ -6831,6 +6831,8 @@
   .pj-seta-abrir { width: 20px; height: 22px; line-height: 22px; border-radius: 4px; color: #9b9a97; }
   .pj-seta-abrir:hover { background: rgba(55,53,47,0.08); color: #37352f; }
   .pj-seta-abrir.is-sem { opacity: 0.5; }
+  .pj-seta-abrir.is-mais { font-size: 14px; color: #c4c2bb; opacity: 1; }
+  .pj-seta-abrir.is-mais:hover { color: #37352f; }
   .pj-linha.is-entrega .pj-txt.pj-nome { font-weight: 600; }
   .pj-linha.is-etapa .pj-txt.pj-nome, .pj-linha.is-tarefa .pj-txt.pj-nome { font-weight: 400; }
   #pj-tabela .pj-txt { font-size: 14px; padding: 3px 4px; min-height: 26px; color: #37352f; }
@@ -21468,7 +21470,9 @@ applyRolePermissions();
       const nivel = NIVEIS[loc.nivel];
       const n = (e.subtasks || []).length;
       const seta = loc.nivel < ULTIMO_NIVEL
-        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Criar a 1ª " + NOME_NIVEL[NIVEIS[loc.nivel + 1]].toLowerCase()}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+        // 09/10 (Karina): setinha só quando tem algo dentro; vazia = "+" discreto no mesmo lugar.
+        ? (n ? `<button type="button" class="pj-seta-abrir" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : "Abrir (" + n + ")"}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+             : `<button type="button" class="pj-seta-abrir is-sem is-mais" data-acao="abrir" title="Criar a 1ª ${NOME_NIVEL[NIVEIS[loc.nivel + 1]].toLowerCase()}">+</button>`)
         : `<span class="pj-seta-abrir is-vazio"></span>`;
       // Ícones ao lado do nome (09/10): checklist (e, depois, formulário), com bolinha de novidades.
       // Checklist virou subtarefa (09/10); o + volta quando o Formulário existir.
