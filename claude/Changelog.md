@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (8ª) — Projetos: critério em tópicos, sem legenda de níveis, 6 níveis
+
+Pedido da Karina em 09/10 (13:19), aprovado por ela às 13:22.
+
+- **Critério de conclusão em tópicos (só na edição):** ao clicar e escrever,
+  Enter abre um tópico novo ("• ", ou "- " se a linha já usa traço; a 1ª
+  linha ganha o marcador junto). Enter num tópico vazio tira o marcador;
+  Shift+Enter quebra a linha sem tópico. **Fechado, o critério continua
+  EXATAMENTE como antes** (uma linha, "…"); o resto aparece ao clicar.
+- **Legenda Entrega/Etapa/Tarefa** (chips embaixo do logo) saiu.
+- **6 níveis** (antes 4): Entrega › Etapa › Tarefa › Subtarefa › Subtarefa ›
+  Subtarefa — o 5º e o 6º também se chamam "Subtarefa" (decisão dela).
+  Recuo de 12px e degrau da barrinha de 5px a mais a cada nível, em azuis
+  cada vez mais claros; seta/criar até o 6º. Arrastar, Duplicar, Histórico,
+  bloqueios e citações valem nos níveis novos. Nenhum dado mudou.
+- **Onde:** `index.html` — `NIVEIS`/`NOME_NIVEL` (níveis `subtarefa2`,
+  `subtarefa3`; a linha recebe também `is-subtarefa`), título da seta
+  ("Criar a 1ª …"), `linhaHtml`, CSS "09/10 (7ª)" dos níveis 5 e 6, HTML
+  `.pj-legenda` removido, keydown novo do `.pj-crit-txt` (tópicos).
+  Sem permissão nova no `CATALOGO_PERMISSOES` (nenhuma função nova).
+- **Testes (navegador sem rede, dados de teste):** 6 níveis com recuos 20→80px,
+  7º nível não é criado, sem legenda, tópicos com "•" e com "-", tópico vazio
+  sai, Shift+Enter, critério fechado igual, gravação no `projetos`; sem erros.
+
+---
+
 ## 2026-10-09 (7ª) — Projetos: 41 países-membros como tarefas em "Membros" (entrega 13)
 
 Pedido da Karina em 09/10 (13:06), aprovado por ela às 13:08 ("cita, não só

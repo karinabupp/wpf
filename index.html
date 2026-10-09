@@ -6967,6 +6967,13 @@
   #pj-tabela .pj-linha.is-tarefa .pj-txt.pj-nome { color: #62605a; }
   #pj-tabela .pj-linha.is-subtarefa .pj-txt.pj-nome { color: #7b7972; font-weight: 400; }
   .pj-nivel.is-subtarefa { background: #edf3fa; color: #4f6f99; }
+  /* 09/10 (7ª, Karina): 5º e 6º níveis (também Subtarefa) — degrau de 5px e recuo de 12px a mais cada */
+  #pj-tabela tr.pj-linha.is-subtarefa2 > td:first-child::before { left: 0; width: 25px; background: #dfe9f5; }
+  #pj-tabela tr.pj-linha.is-subtarefa3 > td:first-child::before { left: 0; width: 30px; background: #e9f0f8; }
+  .pj-linha.is-subtarefa.is-subtarefa2 { --pj-cor-nivel: #dfe9f5; }
+  .pj-linha.is-subtarefa.is-subtarefa3 { --pj-cor-nivel: #e9f0f8; }
+  #pj-tabela tr.pj-linha.is-subtarefa2 > td:first-child { padding-left: 68px; }
+  #pj-tabela tr.pj-linha.is-subtarefa3 > td:first-child { padding-left: 80px; }
   /* Próxima ação numa linha (… e clicar expande) */
   .pj-prox span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; -webkit-line-clamp: unset; }
   .pj-prox small { display: none; }
@@ -7521,7 +7528,6 @@
     <div class="pj-topo">
       <div>
         <div class="pj-logo" aria-label="WPF"></div>
-        <div class="pj-legenda"><span class="pj-nivel is-entrega">Entrega</span><span class="pj-nivel is-etapa">Etapa</span><span class="pj-nivel is-tarefa">Tarefa</span></div>
       </div>
       <div class="pj-direita">
         <div id="pj-objetivos" aria-label="Andamento por objetivo"></div>
@@ -21191,8 +21197,9 @@ applyRolePermissions();
   // Três níveis (Karina, 08/10): Entrega › Etapa › Tarefa. As etapas ficam em
   // entrega.subtasks e as tarefas em etapa.subtasks.
   // 09/10 (Karina): a checklist virou Subtarefa (4º nível, dentro da tarefa).
-  const NIVEIS = ["entrega", "etapa", "tarefa", "subtarefa"];
-  const NOME_NIVEL = { entrega: "Entrega", etapa: "Etapa", tarefa: "Tarefa", subtarefa: "Subtarefa" };
+  // 09/10 (7ª, Karina): 6 níveis; o 5º e o 6º também se chamam Subtarefa.
+  const NIVEIS = ["entrega", "etapa", "tarefa", "subtarefa", "subtarefa2", "subtarefa3"];
+  const NOME_NIVEL = { entrega: "Entrega", etapa: "Etapa", tarefa: "Tarefa", subtarefa: "Subtarefa", subtarefa2: "Subtarefa", subtarefa3: "Subtarefa" };
   const ULTIMO_NIVEL = NIVEIS.length - 1;
   var migrouChecklist = false;
   function normalizar(e, nivel) {
@@ -21419,7 +21426,7 @@ applyRolePermissions();
       const nivel = NIVEIS[loc.nivel];
       const n = (e.subtasks || []).length;
       const seta = loc.nivel < ULTIMO_NIVEL
-        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Criar a 1ª " + (loc.nivel === 0 ? "etapa" : loc.nivel === 2 ? "subtarefa" : "tarefa")}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+        ? `<button type="button" class="pj-seta-abrir ${n ? "" : "is-sem"}" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : n ? "Abrir (" + n + ")" : "Criar a 1ª " + NOME_NIVEL[NIVEIS[loc.nivel + 1]].toLowerCase()}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
         : `<span class="pj-seta-abrir is-vazio"></span>`;
       // Ícones ao lado do nome (09/10): checklist (e, depois, formulário), com bolinha de novidades.
       // Checklist virou subtarefa (09/10); o + volta quando o Formulário existir.
@@ -21507,7 +21514,7 @@ applyRolePermissions();
   }
   function linhaHtml(e, loc, cols) {
     const nivel = NIVEIS[loc.nivel];
-    return `<tr data-id="${e.id}" class="pj-linha is-${nivel}">` +
+    return `<tr data-id="${e.id}" class="pj-linha is-${nivel}${loc.nivel > 3 ? " is-subtarefa" : ""}">` +
       cols.map(id => `<td data-col="${id}">${CELULAS[id](e, loc)}</td>`).join("") +
       `<td data-col="lixo">${lixoHtml(e, loc)}</td></tr>`;
   }
@@ -22684,6 +22691,29 @@ applyRolePermissions();
     ajustarAltura(ta);
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
+  });
+  // Critério em tópicos (Karina, 09/10 7ª): na edição, Enter abre um tópico novo
+  // ("• ", ou "- " se a linha usa traço); Enter num tópico vazio tira o marcador;
+  // Shift+Enter quebra a linha sem tópico. Fechado, o critério fica como antes.
+  corpo.addEventListener("keydown", ev => {
+    if (ev.key !== "Enter" || ev.shiftKey || ev.isComposing || ev.defaultPrevented) return;
+    const ta = ev.target.closest && ev.target.closest(".pj-crit-txt");
+    if (!ta) return;
+    ev.preventDefault();
+    const v = ta.value, ini = ta.selectionStart, fim = ta.selectionEnd;
+    const iLinha = v.lastIndexOf("\n", ini - 1) + 1;
+    const linha = v.slice(iLinha, ini);
+    const m = linha.match(/^\s*([•\-])\s?/);
+    let novo, cursor;
+    if (m && !v.slice(iLinha, v.indexOf("\n", ini) < 0 ? v.length : v.indexOf("\n", ini)).slice(m[0].length).trim()) {
+      novo = v.slice(0, iLinha) + v.slice(iLinha + m[0].length); cursor = iLinha;
+    } else {
+      const marca = (m ? m[1] : "•") + " ";
+      const antes = m ? v.slice(0, ini) : v.slice(0, iLinha) + (linha.trim() ? marca : "") + v.slice(iLinha, ini);
+      novo = antes + (antes.trim() ? "\n" : "") + marca + v.slice(fim); cursor = novo.length - (v.length - fim);
+    }
+    ta.value = novo; ta.setSelectionRange(cursor, cursor);
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
   });
   // Enter no nome cria a próxima linha logo embaixo, no mesmo nível (Karina, 09/10; Shift+Enter quebra linha).
   corpo.addEventListener("keydown", ev => {
