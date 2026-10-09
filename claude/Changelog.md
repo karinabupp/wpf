@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 — Projetos: colunas novas, Tags numa coluna, Responsável numa linha, Critério numa linha, filtro de Prioridade
+
+Pedido da Karina (combinado em 08/10), publicado com o OK dela.
+
+- **Colunas:** saíram **Progresso** e **Ação atual** (campo `acaoAtual`
+  deixou de existir; antes conferi: 0 de 219 linhas tinham texto ali).
+  **Pessoas, Orgs e Países** viraram uma coluna só, **Tags** ("👤 2 🏢 3
+  📍 1", só o que tem; clicar abre o painel com abas Pessoas / Orgs /
+  Países). **Objetivo, Frente e Prioridade** nascem ocultas.
+- **Botão ⋯** no fim do cabeçalho: lista de colunas pra mostrar/ocultar
+  qualquer uma (menos Nome), salva por navegador (`wpf_projetos_ocultas`).
+- **Filtro de Prioridade** no topo, ao lado de Frente (Todas / Alta / Média
+  / Baixa / Sem prioridade); a entrega aparece se ela ou algo dentro dela
+  tiver a prioridade.
+- **Responsável numa linha:** 1º nome + "+N" (todos no mouse); clicar abre
+  a lista pra pôr e tirar.
+- **Critério de conclusão numa linha** com "…"; clicar abre inteiro pra
+  ler/editar e recolhe ao sair.
+- **Larguras enxutas:** Nome 360, Critério 220, Status 128, Prazo 128,
+  Finalizado 118, Forma 84, Responsável 150, Bloqueios/Checklist/Histórico
+  100, Tags 120.
+- **Onde:** `index.html`, bloco "PROJETOS" (`COLUNAS`, `ocultas`/
+  `visiveis`, `abrirPopColunas`, `tagsCelulaTodas`, abas do painel de tags,
+  `abrirPopResp`, `prioFiltro`/`temPrio`, célula `criterio`), CSS "09/10".
+- **Testes:** 130 da guia + 25 de linhas + 9 de filtros + 8 de fumaça.
+
 ## 2026-10-08 (11ª) — Projetos reorganizada: cada entrega é uma meta (11 entregas); tela branca; balão no Histórico
 
 Pedido da Karina, com o OK dela ("faz isso").

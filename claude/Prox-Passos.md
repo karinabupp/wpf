@@ -15,39 +15,25 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **⭐ COMEÇAR POR AQUI na sessão de 09/10 (pedido da Karina em 08/10, ~1h)**
-  Ordem combinada:
-  1. **Conectar o Google (agenda + Gmail) de cada um da Dash** — Karina,
-     Isabela, Leonardo e Roberto. **Primeiro perguntar:** os e-mails são
-     Google Workspace com domínio da WPF (quem é o admin?) ou Gmail pessoal?
-     Workspace → app "Interno", sem revisão do Google (e o admin pode
-     liberar os 4 de uma vez). Gmail pessoal → escopos do Gmail exigem
-     auditoria paga do Google; em modo teste as autorizações vencem a cada
-     7 dias. Guiar a Karina passo a passo: projeto no Google Cloud, ligar
-     Calendar API e Gmail API, tela de consentimento, credencial OAuth (o
-     segredo vai pros segredos do worker, **nunca** no repo nem no chat).
-     Eu faço: login OAuth e guarda dos refresh tokens no worker/Supabase
-     (protegido), rotas que a Dash chama, e o botão "Conectar meu Google"
-     com o status de cada um.
-     **Pra quê (Karina):** o Carinha avisar cada um sobre e-mails que
-     chegam e marcar na agenda o que precisa ser feito. Combinar escopos
-     mínimos (ler e-mails, criar eventos) e o que do Gmail ele lê (tudo ou
-     só uma etiqueta). Avisos/agenda do Carinha podem ficar pra depois do
-     botão funcionar.
-  2. **Projetos — Responsável sempre numa linha:** mostrar o 1º responsável
-     + "+N" dos demais (nomes no mouse), pra linha ficar sempre fina.
-  3. **Projetos — colunas mais compactas:** tirar a largura sobrando de
-     algumas colunas sem ficar feio (conferir por foto).
-  4. **Projetos — mudar colunas (pedido de 08/10, 18:56):**
-     - tirar a coluna **Progresso**;
-     - juntar **Pessoas, Orgs e Países** numa coluna só, **Tags**;
-     - **Objetivo** e **Frente** viram colunas ocultas;
-     - **Ação atual** sai (apagar a coluna e o campo `acaoAtual`; ver se
-       algum dado gravado tem texto ali antes de apagar e mostrar pra ela);
-     - **Prioridade** vira oculta e vira **filtro** no topo, junto com o de
-       Frente.
-     Lembrar a Karina disso logo no início da sessão.
-  - *Aberto em:* 2026-10-08
+- [ ] **⭐ Conectar o Google (agenda + Gmail) de cada um da Dash** — Karina,
+  Isabela, Leonardo e Roberto. Pra quê (Karina): o Carinha avisar cada um
+  sobre e-mails que chegam e marcar na agenda o que precisa ser feito.
+  **Caminho sugerido em 09/10 (falta o OK dela):** o mesmo do Gmail da
+  Karina desde 21/09 — script do Google (`worker/gmail-script.gs`) que cada
+  pessoa cola na própria conta e executa uma vez (sem Google Cloud, sem
+  revisão do Google), com um token por pessoa pro robô saber de quem é; o
+  script também lê a agenda e cria os eventos que o Carinha mandar.
+  **Precisa do OK dela pra mudar a REGRA DO ROBÔ** (hoje e-mail só pra
+  Karina): cada um passaria a receber avisos dos próprios e-mails.
+  Se ela preferir o botão "Conectar meu Google": Google Cloud + OAuth
+  (Workspace → app interno; Gmail pessoal → revisão paga/7 dias).
+  - *Aberto em:* 2026-10-08 · itens 2–4 (colunas, responsável, larguras)
+    feitos em 09/10 (Changelog).
+
+- [ ] **Projetos — Nome numa linha só (ideia, 09/10)** — linhas ainda
+  crescem com nome longo; dá pra fazer igual ao Critério (… e clicar
+  expande). Só se a Karina quiser.
+  - *Aberto em:* 2026-10-09
 
 
 - [ ] **Projetos — as outras 7 das "11 novas federações"** — a etapa
