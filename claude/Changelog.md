@@ -12,6 +12,35 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (9ª) — Projetos: entrega 14 "50 Federações Membros" + modelo de organização das entregas
+
+Pedido da Karina em 09/10 (13:42), aprovado às 13:45 (73 países; status pelo
+CRM como sugerido; Américas juntas; Federações + Governança).
+
+- **Modelo novo (regra pros agentes):** `worker/instrucoes/organizacao-projetos.md`
+  — Entrega (meta com número) › Etapa (agrupamento) › Tarefa ("@unidade",
+  pelo menos N) › Subtarefas (processo padrão igual em todas). Aviso no
+  `LEIA-PRIMEIRO.md`; nota no topo do `detalhador.md` (na Projetos a unidade
+  pode ser o nome sozinho). O push em `worker/` republica o Worker (código igual).
+- **Dados (Supabase, seção `projetos`, via SQL com trava — só gravava com 13
+  entregas e sem `pj-cl-f14`):** entrega 14 **"50 Federações Membros"**
+  (`pj-cl-f14`), Frente Federações, Objetivo Governança, critério em 3
+  tópicos, status Em andamento. Etapas (continentes) Europa 35, Ásia 15,
+  Américas 14, África 7, Oceania 2 (`pj-cl-f14-c1..c5`); 73 tarefas "@País"
+  (todos os países com status no quadro *Membros - Federações*; Andorra, sem
+  status, ficou fora), ids `pj-cl-f14-p01..p73`; 8 subtarefas por país =
+  584 (`…-s1..s8`): Buscar e contatar candidato · Apresentar a WPF · Abrir a
+  federação · Coletar documentos (estatuto e registro) · Verificar documentos ·
+  Coletar informações pro site (links, fotos, board) · Criar página no site ·
+  Postar página no site. Status pelo CRM: Membro 1–3 finalizados; Abertura
+  1–2 finalizados, 3 andamento; Negociação 1 finalizado, 2 andamento; Lead 1
+  andamento; resto Não iniciado. "Finalizado em" vazio (data real desconhecida).
+  Histórico "Criou a …" (autor "Claude (a pedido da Karina)"). Revisão → 7690.
+- **Conferido:** 14 entregas; 584 subtarefas; Brazil (Membro) e UK
+  (Negociação) com os status certos; entrega 13 intacta (41 em "Membros").
+
+---
+
 ## 2026-10-09 (8ª) — Projetos: critério em tópicos, sem legenda de níveis, 6 níveis
 
 Pedido da Karina em 09/10 (13:19), aprovado por ela às 13:22.

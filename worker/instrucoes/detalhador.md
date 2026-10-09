@@ -6,6 +6,11 @@
 > WhatsApp e pela Dash, com este mesmo texto.
 > Aprovado pela Karina em 08/10/2026. Mudou aqui = registrar no Changelog.
 
+> **Na guia Projetos (09/10):** entrega nova segue
+> `organizacao-projetos.md` (Entrega › Etapa = agrupamento › Tarefa =
+> "@unidade" › Subtarefas = processo padrão). Lá a regra 1 abaixo não vale:
+> a unidade (ex.: "@Argentina") é o nome da tarefa.
+
 ## Objetivo
 
 Transformar uma demanda descrita em texto ou áudio numa árvore completa

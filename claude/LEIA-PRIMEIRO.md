@@ -75,6 +75,12 @@ dois arquivos antes de propor qualquer coisa**:
   a Dash dela salva antes e recarregada depois. Registrar no Changelog o que
   foi criado. A mesma instrução vira a do Carinha na fase 3 do projeto BAIER.
 
+- **REGRA — entrega nova na Projetos (Karina, 09/10):** toda entrega nova
+  segue **`worker/instrucoes/organizacao-projetos.md`**: Entrega (meta com
+  número) › Etapa (agrupamento, ex. continente) › Tarefa (a unidade, "@País",
+  pelo menos N) › Subtarefas (o processo padrão, igual em todas). Exemplo:
+  "50 Federações Membros". Propor antes, gravar só com "sim".
+
 ## O que o Claude NÃO consegue fazer sozinho
 
 Publicar no GitHub, sim. Mas **Cloudflare, Supabase e Meta dependem da
