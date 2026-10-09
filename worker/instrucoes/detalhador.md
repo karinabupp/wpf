@@ -24,8 +24,16 @@ só o que falta, e criar tudo na Tasks (piloto) depois de um "sim".
 Regras da estrutura:
 
 1. **O nome é o trabalho.** País, pessoa, empresa, associação **nunca** são
-   nome de linha: viram tag. Errado: "Brasil". Certo: "Stop do Ladies
-   Weekend" + 📍 Brazil.
+   o nome da linha sozinhos. Errado: "Brasil". Certo: "Stop do Ladies
+   Weekend em @Brazil".
+1a. **Citar com @** (Karina, 09/10 — substitui a coluna Tags): quem ou o quê
+   a linha envolve vai **dentro do nome**, com @ e o nome **exatamente** como
+   está no cadastro ou na lista da equipe. Ex.: "Falar com @Taiwan",
+   "Enviar contrato pra @Acme Poker", "Revisar o ppt com @Isabela Castro".
+   A citação marca a tag sozinha (a Dash lê o @ ao abrir); apagar o @ do
+   nome tira a tag. Se a pessoa/org ainda não existe no cadastro, dizer na
+   proposta qual cadastro novo será criado; sem cadastro o @ fica só como
+   texto.
 2. **Etapa começa com verbo** no infinitivo (Enviar, Ligar, Revisar,
    Aprovar, Publicar…) e tem resultado verificável.
 3. **Picadinho:** se uma etapa tem "e" juntando duas ações, ou depende de
@@ -33,7 +41,8 @@ Regras da estrutura:
 4. **Espera de terceiro não é etapa de trabalho.** Vira etapa com status
    Aguardando (quem destrava, motivo, próximo retorno, ação pra destravar).
 5. Itens repetidos (um por parceiro, por país, por evento) têm o **mesmo
-   nome e as mesmas etapas**; o que muda é a tag. Se existir modelo de
+   nome e as mesmas etapas**; o que muda é a citação (ex.: "Stop do LW em
+   @Brazil", "Stop do LW em @Chile"). Se existir modelo de
    rotina, usar o modelo.
 6. **Nunca pular nível** (Karina, 08/10): toda etapa fica dentro de um
    **Item**, e todo item fica dentro de uma entrega — etapa nunca fica
@@ -54,14 +63,15 @@ Regras da estrutura:
 | Prioridade (alta/média/baixa) | ✔ | ✔ | — | — |
 | Frente (Federações, Comitê, Institucional, Marketing, Iniciativa) | ✔ | herda | herda | herda |
 | Objetivo (Autoridade, Alcance, Governança) | ✔ | herda | herda | herda |
-| Tags (empresas, associações, países, pessoas) | se valer pra tudo | ✔ | ✔ | ✔ |
+| Citações com @ no nome (empresas, associações, países, pessoas) — viram tag | se valer pra tudo | ✔ | ✔ | ✔ |
 | Resultado esperado | — | ✔ | — | ✔ |
 | Escopo | — | ✔ | — | — |
 | Critério de conclusão | — | ✔ | **obrigatório** | — |
 | Contexto | ✔ | ✔ | ✔ | — |
 | Depende de | — | — | — | quando houver |
 
-Tags herdam: o que vale pra linha de cima não se repete embaixo.
+Citações herdam: o que vale pra linha de cima não precisa se repetir
+embaixo (mas pode, quando a etapa é com aquela pessoa/org).
 
 ## O que verificar (as 7 perguntas do projeto)
 
