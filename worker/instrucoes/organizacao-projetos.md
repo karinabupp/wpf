@@ -39,6 +39,25 @@ quando precisar; o modelo não os usa.
 7. Entrega nova vai **no fim** da lista. Não mexer em outras entregas.
 8. Toda criação vai pro Changelog (o que foi criado, ids, contagens).
 
+## Storyline (Karina, 09/10) — toda tarefa conta a história inteira
+
+- Cada tarefa é quebrada **na sequência real de passos**, do primeiro ao
+  último, com verbo. Ex. (dela): "Criar grupo dos Designated Mkt Contacts" =
+  Pedir a cada stop o contato › Criar material de instruções › Criar o grupo
+  no WhatsApp › Adicionar todos › Compartilhar as instruções › Relembrar de
+  ler (mais de uma vez).
+- **Se lendo as tarefas não dá pra ver o storyline, está incompleto:
+  perguntar** à Karina antes de gravar (o que já foi feito, quem faz, quem
+  aprova, como chega, quando).
+- **Se tem de um, tem de todos:** passo que existe pra uma unidade (ex. "USA:
+  confirmar contato") vira item da lista de **todas** as unidades (os 14
+  stops), dentro do passo certo.
+- **Mesmo começo = grupo:** várias tarefas começando igual ("Brasil: …",
+  "Cobertura Brasil: …") viram uma linha "Brasil" com as tarefas dentro, sem
+  o prefixo.
+- Aprovações citam quem aprova (ex. "Aprovar (Karina, Lifas e Isa)").
+- Exemplo pronto: entrega "Realizar Ladies Weekend 2026" (09/10).
+
 ## Critério de conclusão (Karina, 09/10)
 
 - Ao criar ou revisar uma entrega, conferir se cada tópico do critério tem

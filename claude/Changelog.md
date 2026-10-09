@@ -12,6 +12,51 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-09 (19ª) — Ladies Weekend 2026: storyline completo (7 etapas)
+
+Pedido da Karina em 09/10 (15:27–15:37), com as respostas dela.
+
+- **Backup antes:** seção `bkp_projetos_2026-10-09_antes_storyline_lw`
+  (cópia inteira da `projetos`, revisão 7839).
+- **Dados (Supabase, entrega `pj-v4-0057`, via SQL montando a árvore a partir
+  de uma tabela; ids novos `pj-cl-lw-NNN`; ids antigos mantidos com o
+  Histórico, nome/status trocados registrados):**
+  1. **Captação de hosts:** Japan sai de "Fechar os stops" e vai pra "não
+     aconteceram"; Belgium entra nos fechados (lista online de 14 stops,
+     So Much Poker — decisão dela).
+  2. **Stops fechados → Informações dos stops:** Coletar infos (Japan
+     cancelado) + Details submission quebrada: Criar formulário › Enviar ›
+     Garantir recebimento (14 stops) › Cobrar › Conferir (tudo finalizado).
+  3. **Alinhamentos Brasil (nova):** Stop H2 (8 passos) · Vídeo do Bill
+     (Pedir ✓ › Receber › Revisar › Enviar pra Nina › Confirmar postagem) ·
+     Adesivos (Criar artes ✓ › Enviar pra Isa ✓ › Enviar ao fornecedor ✓ ›
+     Receber proposta › Enviar pra aprovação › Aprovar › OK pro fornecedor ›
+     Pagamento › Receber) · Cobertura (Rafael) com os 8 de "Cobertura Brasil"
+     + briefing, acesso no H2, cobertura, material, envio pra Nina.
+  4. **Fluxo de mídia e cobertura → Fluxo de mídia:** Bulgaria agrupada;
+     Preparar material quebrado; **Grupo dos DMC**: Pedir contato a cada stop
+     (14, o "USA: confirmar contato" virou o item dos EUA) › Material de
+     instruções › Criar grupo › Adicionar › Compartilhar (✓) › Relembrar 1ª
+     (13/10) e 2ª (15/10).
+  5. **Calendário de postagens (nova, junta as 5 etapas):** Pré-evento
+     (cada semana: Criar › Aprovar › Postar ✓) · Sorteio Mundial (Garantir
+     que stops compartilhem + Belgium/USA, Japan cancelado › Conferir
+     participações › Realizar › Notificar ganhadoras › Stop escolhido ›
+     Pagar 2 buy-ins do ME › Garantir inscrição › Anunciar) · Reels (+ Pedir
+     vídeos ✓ e Aprovar) · Durante o evento (Post 1/2/3: Pedir material ›
+     Receber › Enviar pra Nina › Aprovar (Karina, Lifas e Isa) › Postar) ·
+     Pós-evento (cada post quebrado).
+  6. Divulgação nas mídias: sem mudança.
+  7. **Fechamento do evento (nova):** Coletar resultados de cada stop (14) ›
+     Consolidar relatório › Agradecer hosts › Números pro Wrap Up.
+  - Removidas as 4 linhas sem nome (autorizado). Revisão → 7840.
+- **Regra:** seção "Storyline" em `worker/instrucoes/organizacao-projetos.md`
+  (sequência real de passos; perguntar quando não dá pra ver; "se tem de um,
+  tem de todos"; mesmo começo = grupo).
+- Pontos que a revisão final achou (foram pra Karina decidir, ver Prox Passos).
+
+---
+
 ## 2026-10-09 (18ª) — Projetos: setinha só quando tem algo dentro; vazia mostra "+"
 
 Pedido da Karina em 09/10 (15:19), aprovado às 15:20.
