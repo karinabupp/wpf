@@ -9,6 +9,7 @@ workers_dev = true
 keep_vars = true
 
 # 9h25 em São Paulo nos dias úteis (hora fixa dos avisos) e de hora em hora
-# (resgate: manda antes de a janela de 24h da pessoa fechar).
+# (resgate: manda antes de a janela de 24h da pessoa fechar). Aos 35 de cada
+# hora: e-mails de quem conectou o Google (12/10).
 [triggers]
-crons = ["25 12 * * 1-5", "5 * * * *"]
+crons = ["25 12 * * 1-5", "5 * * * *", "35 * * * *"]

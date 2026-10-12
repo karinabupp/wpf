@@ -4911,6 +4911,24 @@
 
   /* ── Settings (25/09): pessoas e permissões, só no login da Karina. ── */
   #nav-config { display: none; }
+  /* Meu Google (12/10): conectar Gmail/Agenda/Drive ao Carinha. Aparece só
+     pra quem está liberado (piloto: Karina). */
+  #nav-google { display: none; position: relative; }
+  body.pode-google #nav-google { display: flex; }
+  #nav-google-ponto { position: absolute; right: 7px; bottom: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); border: 2px solid var(--panel); }
+  #nav-google.conectado #nav-google-ponto { background: #1e9e4a; }
+  #google-pop {
+    position: fixed; z-index: 3000; width: 290px; max-width: calc(100vw - 32px);
+    background: var(--panel); color: var(--text); border: 1px solid var(--border-strong); border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.18); padding: 14px 16px; font-size: 13px; line-height: 1.45;
+  }
+  #google-pop h4 { margin: 0 0 6px; font-size: 14px; }
+  #google-pop p { margin: 0 0 10px; color: var(--text-muted); }
+  #google-pop .google-ok { color: #1e9e4a; font-weight: 600; }
+  #google-pop .google-falta { color: #b3541e; }
+  #google-pop .google-botoes { display: flex; gap: 8px; justify-content: flex-end; }
+  #google-pop button { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: transparent; color: var(--text); cursor: pointer; font: inherit; }
+  #google-pop button.primario { background: var(--accent); border-color: var(--accent); color: #fff; }
   body.pode-settings #nav-config { display: flex; }
   #cfg-wrap { max-width: min(96vw, 1400px); }
   #cfg-topo { display: flex; align-items: center; gap: 14px; margin: 4px 0 6px; }
@@ -7157,6 +7175,13 @@
       <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
     </svg>
   </button>
+  <button class="nav-icon-btn" id="nav-google" data-tooltip="Meu Google" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.5 12.2c0-.6-.1-1.2-.2-1.7H12v3.3h4.8a4.2 4.2 0 0 1-1.8 2.7"/>
+      <path d="M15 16.5A6 6 0 1 1 16.2 7.8"/>
+    </svg>
+    <span id="nav-google-ponto"></span>
+  </button>
   <button class="nav-icon-btn" id="nav-logout-btn" data-tooltip="Sair" type="button" style="margin-top:auto;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -9192,6 +9217,7 @@ function concluirLogin(acesso) {
   iniciarPresenca();
   iniciarCarinha();
   iniciarSettings();
+  iniciarGoogle();
 }
 
 // Primeiro acesso (ou senha resetada): a pessoa define a senha dela.
@@ -24035,6 +24061,9 @@ const CATALOGO_PERMISSOES = [
     { chave: "formsDeleteForm", rotulo: "Apagar formulário" },
     { chave: "formsDeleteResponse", rotulo: "Apagar resposta" }
   ] },
+  { grupo: "Conta", itens: [
+    { chave: "google", rotulo: "Conectar o próprio Google (Gmail, Agenda, Drive) ao Carinha" }
+  ] },
   { grupo: "Só da Karina (fixo)", fixo: true, itens: [
     { chave: "settings", rotulo: "Settings (pessoas, permissões, senhas)" },
     { chave: "carinha", rotulo: "Usar o Carinha" },
@@ -24079,6 +24108,69 @@ async function cfgPedir(caminho, corpo) {
 
 function iniciarSettings() {
   document.body.classList.toggle("pode-settings", podeSettings());
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// MEU GOOGLE (12/10) — cada pessoa conecta o próprio Gmail, Agenda e Drive
+// ao Carinha. Quem pode: o Worker decide (/google/status → liberado;
+// piloto só Karina). A chave do Google nunca passa pela Dash: o botão leva
+// pra /google/conectar no Worker, que fala direto com o Google.
+// Página separada pra mandar no WhatsApp: google.html (mesmo fluxo).
+// ══════════════════════════════════════════════════════════════════════
+let googleEstado = null;
+async function googleCarregar() {
+  try {
+    const res = await fetch(CFG_WORKER + "/google/status", { headers: await headersWorker() });
+    googleEstado = res.ok ? await res.json() : null;
+  } catch (e) { googleEstado = null; }
+  const pode = !!(googleEstado && googleEstado.liberado);
+  document.body.classList.toggle("pode-google", pode);
+  const b = document.getElementById("nav-google");
+  if (b) {
+    b.classList.toggle("conectado", !!(googleEstado && googleEstado.conectado));
+    b.dataset.tooltip = googleEstado && googleEstado.conectado ? "Meu Google: conectado" : "Meu Google: conectar";
+  }
+  return googleEstado;
+}
+function googleFecharPop() { const p = document.getElementById("google-pop"); if (p) p.remove(); }
+function googleAbrirPop() {
+  googleFecharPop();
+  const g = googleEstado || {};
+  const pop = document.createElement("div"); pop.id = "google-pop";
+  const falta = Array.isArray(g.faltando) && g.faltando.length ? `<p class="google-falta">Sem acesso a: ${cfgEsc(g.faltando.join(", "))}. Reconecte marcando tudo.</p>` : "";
+  pop.innerHTML = g.conectado
+    ? `<h4>Meu Google</h4><p><span class="google-ok">● Conectado</span> — ${cfgEsc(g.email || "")}</p>${falta}
+       <p>O Carinha avisa no seu WhatsApp sobre os seus e-mails e pode enviar e-mail, marcar na agenda e salvar anexo no Drive — sempre com o seu "sim".</p>
+       <div class="google-botoes"><button type="button" data-g="fechar">Fechar</button>${falta ? `<button type="button" data-g="conectar">Reconectar</button>` : ""}<button type="button" data-g="desconectar">Desconectar</button></div>`
+    : `<h4>Meu Google</h4><p>Conecte o seu Gmail, Agenda e Drive da WPF ao Carinha: ele avisa no seu WhatsApp sobre os e-mails que importam e faz por você (com o seu "sim") envio de e-mail, eventos na agenda e anexos no Drive.</p>
+       <div class="google-botoes"><button type="button" data-g="fechar">Agora não</button><button type="button" class="primario" data-g="conectar">Conectar</button></div>`;
+  document.body.appendChild(pop);
+  const r = document.getElementById("nav-google").getBoundingClientRect();
+  pop.style.left = Math.min(r.right + 10, window.innerWidth - pop.offsetWidth - 16) + "px";
+  pop.style.top = Math.max(16, Math.min(r.top - 20, window.innerHeight - pop.offsetHeight - 16)) + "px";
+  pop.addEventListener("click", async ev => {
+    const acao = ev.target && ev.target.dataset && ev.target.dataset.g;
+    if (!acao) return;
+    if (acao === "fechar") return googleFecharPop();
+    if (acao === "conectar") { window.open(g.link || (CFG_WORKER + "/google/conectar"), "_blank", "noopener"); googleFecharPop(); return; }
+    if (acao === "desconectar") {
+      if (!confirm("Desconectar seu Google do Carinha? Ele para de ler seus e-mails, agenda e Drive.")) return;
+      ev.target.disabled = true;
+      try { await fetch(CFG_WORKER + "/google/desconectar", { method: "POST", headers: await headersWorker() }); } catch (e) {}
+      await googleCarregar(); googleAbrirPop();
+    }
+  });
+}
+function iniciarGoogle() {
+  const b = document.getElementById("nav-google");
+  if (b && !b.dataset.ligado) {
+    b.dataset.ligado = "1";
+    b.addEventListener("click", async ev => { ev.stopPropagation(); if (document.getElementById("google-pop")) return googleFecharPop(); await googleCarregar(); googleAbrirPop(); });
+    document.addEventListener("click", ev => { const p = document.getElementById("google-pop"); if (p && !p.contains(ev.target) && ev.target !== b) googleFecharPop(); });
+    // Voltou da aba do Google: atualiza a bolinha.
+    window.addEventListener("focus", () => { if (document.body.classList.contains("pode-google")) googleCarregar(); });
+  }
+  googleCarregar();
 }
 
 async function cfgCarregar() {
