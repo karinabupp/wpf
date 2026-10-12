@@ -12,6 +12,53 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-12 — Google de cada pessoa (Gmail, Agenda, Drive) no Carinha
+
+- **O que mudou:**
+  - **Google Cloud (Karina, superadmin):** projeto "Carinha" na organização
+    worldpokerfederation.org, Gmail/Calendar/Drive API ativas, tela de
+    consentimento **Interna**, cliente OAuth Web "Carinha Worker" (retorno
+    `…workers.dev/google/retorno`), segredos `GOOGLE_CLIENT_ID` e
+    `GOOGLE_CLIENT_SECRET` no Cloudflare, app marcado como **Confiável** no
+    Admin Console (organização inteira). Delegação em todo o domínio NÃO usada.
+  - **Supabase (`sql/2026-10-12_google_conexoes.sql`):** tabela
+    `wpf_agente_google` (email, refresh_token, escopos, gmail_ultimo, ativo;
+    RLS sem política = só o robô) + coluna `dono` em `wpf_agente_emails`
+    (29 linhas antigas = karina@).
+  - **Worker:** rotas `/google/conectar`, `/google/retorno` (só conta
+    @worldpokerfederation.org cadastrada em `wpf_agente_pessoas`; senão revoga),
+    `/google/status` e `/google/desconectar` (com login da Dash). Cron novo
+    `35 * * * *`: lê e-mails novos de cada conexão (histórico do Gmail, em
+    lote) e faz a mesma triagem; parados sem resposta 1x/dia útil às 9h35.
+    Ferramentas do Carinha pra quem conectou: `buscar_emails`, `propor_email`
+    (sai da conta dela com a assinatura do Gmail), `buscar_agenda`,
+    `propor_evento` (fuso SP, convite, Meet), `buscar_drive`, `ler_arquivo`,
+    `propor_salvar_anexo` (Carinha sugere pastas, a pessoa escolhe). Tudo que
+    mexe espera o "sim" (marcado antes de executar: sim repetido não reenvia);
+    ação só roda na conta de quem pediu. "desconectar google" no WhatsApp.
+    Script antigo do Gmail (`/gmail`) continua até a Karina conectar; depois é
+    ignorado. Conserto: os "parados sem resposta" do script nunca chegavam
+    (mesmo id do e-mail já visto); no caminho novo o id é `sr:<thread>`.
+  - **Dash (`index.html`):** ícone "Meu Google" na barra lateral (bolinha
+    verde = conectado), janelinha conectar/desconectar; aparece só pra quem o
+    Worker diz que está liberado. Permissão nova `google` no
+    `CATALOGO_PERMISSOES` (grupo "Conta").
+  - **`google.html`:** página separada pra mandar no WhatsApp, com o botão
+    "Conectar com Google".
+- **REGRA nova (Karina, 12/10):** cada um recebe avisos SÓ dos próprios
+  e-mails e agenda (substitui "e-mail só pra Karina", 21/09). Piloto: só admin
+  conecta; liberar = `wpf_agente_config` chave `google_liberados`
+  `{"todos": true}` (ou `{"emails": [...]}`).
+- **Verificação:** 25 testes com Google/Supabase/Meta/Claude simulados
+  (conexão, recusa fora do domínio, piloto, regra por dono, parados, envio,
+  evento, anexo, conversa ponta a ponta, desconectar, cron). Deploy do Worker
+  e do Pages com sucesso (commit `7df7643`).
+- **Por quê:** Karina quer que cada pessoa da Dash ligue o próprio Google e
+  receba no WhatsApp o que importa do e-mail/agenda, com o Carinha agindo
+  (e-mail, evento, anexo) só com o sim.
+
+---
+
 ## 2026-10-09 (23ª) — Projetos: bandeirinha automática em nome que é só um país
 
 Pedido da Karina às 16:34, aprovado às 16:35.

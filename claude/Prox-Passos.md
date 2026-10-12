@@ -69,20 +69,33 @@ reconstruir o raciocínio.
     `projetos` e `members2` no Supabase.
   - *Aberto em:* 2026-10-09
 
-- [ ] **⭐ Conectar o Google (agenda + Gmail) de cada um da Dash** — Karina,
-  Isabela, Leonardo e Roberto. Pra quê (Karina): o Carinha avisar cada um
-  sobre e-mails que chegam e marcar na agenda o que precisa ser feito.
-  **Caminho sugerido em 09/10 (falta o OK dela):** o mesmo do Gmail da
-  Karina desde 21/09 — script do Google (`worker/gmail-script.gs`) que cada
-  pessoa cola na própria conta e executa uma vez (sem Google Cloud, sem
-  revisão do Google), com um token por pessoa pro robô saber de quem é; o
-  script também lê a agenda e cria os eventos que o Carinha mandar.
-  **Precisa do OK dela pra mudar a REGRA DO ROBÔ** (hoje e-mail só pra
-  Karina): cada um passaria a receber avisos dos próprios e-mails.
-  Se ela preferir o botão "Conectar meu Google": Google Cloud + OAuth
-  (Workspace → app interno; Gmail pessoal → revisão paga/7 dias).
-  - *Aberto em:* 2026-10-08 · itens 2–4 (colunas, responsável, larguras)
-    feitos em 09/10 (Changelog).
+- [ ] **⭐ Google de cada um — piloto com a Karina (no ar desde 12/10)** —
+  tudo publicado (Changelog 12/10). Falta, nesta ordem, cada passo com OK:
+  1. **Karina conectar e testar:** abrir karinabupp.github.io/wpf/google.html
+     (ou o ícone "Meu Google" na Dash), conectar, mandar "oi" pro Carinha e
+     testar agenda, um e-mail com "sim", um evento e salvar um anexo.
+     Conferir em `wpf_agente_google` que a linha dela ficou `ativo = true`.
+  2. Com o piloto ok, **desligar o script antigo do Gmail** dela
+     (script.google.com → Acionadores → apagar). O Worker já ignora o script
+     quando ela está conectada; apagar é só limpeza. Depois, dá pra tirar a
+     rota `/gmail` e `worker/gmail-script.gs`.
+  3. **Liberar a equipe:** `wpf_agente_config` chave `google_liberados` =
+     `{"todos": true}` e mandar o link google.html pra Isabela, Leonardo e
+     Roberto. Até religar o Carinha deles (item abaixo), os e-mails deles são
+     triados e guardados, mas o aviso só chega quando o Carinha voltar
+     (avisos ficam pendentes em `wpf_agente_avisos`; aviso urgente imediato
+     exige `proativo = true`).
+  4. **Religar o Carinha da equipe** (item "Religar o Carinha pra Isabela,
+     Leonardo e Roberto") — Karina: "só ao fim disso tudo".
+  - *Ideias/limites conhecidos:* ler arquivo só lê Docs/Planilhas/
+    Apresentações/texto (PDF e Word não); anexo grande (>~20 MB) pode falhar
+    no Worker; agenda não avisa sozinha de evento novo/convite (só quando
+    pedem) — se a Karina quiser, dá pra somar "convite sem resposta" e
+    "reunião em 30 min" na rodada das :35; abertura 9h do BAIER (blocos no
+    Calendar) pode usar esta conexão.
+  - *Onde:* `worker/whatsapp-bridge.js` (bloco "Google da pessoa"),
+    `index.html` (MEU GOOGLE), `google.html`, `wpf_agente_google`.
+  - *Aberto em:* 2026-10-08 · publicado em 2026-10-12
 
 - [ ] **Projetos — Formulário (aguarda a Karina)** — o botão + saiu do
   nome em 09/10 (a Checklist virou Subtarefa); volta só com o Formulário.

@@ -43,9 +43,11 @@ dois arquivos antes de propor qualquer coisa**:
   `update wpf_acesso set precisa_trocar_senha = true where email = '<e-mail>';`
   Na próxima entrada a Dash obriga a trocar.
 - **Nunca** colocar senha, token ou chave secreta neste repo: ele é público.
-- **REGRA DO ROBÔ (Karina, 22/09 — não pode quebrar):** o que cada um recebe
-  sem pedir. Leonardo e Roberto: só as tarefas deles. Isabela: as dela +
-  Slack. Karina: as dela + Slack + e-mail (e, como admin, reuniões/sistema).
+- **REGRA DO ROBÔ (Karina, 22/09 — não pode quebrar; e-mail atualizado em
+  12/10):** o que cada um recebe sem pedir. Leonardo e Roberto: só as tarefas
+  deles. Isabela: as dela + Slack. Karina: as dela + Slack (e, como admin,
+  reuniões/sistema). **E-mail/agenda: cada um SÓ os próprios**, quando
+  conectar o Google (12/10); nunca de outra pessoa.
   Tarefas dos outros: NUNCA por conta própria; só na conversa, quando a
   pessoa pedir. Slack por pessoa = `recebe_slack` em `wpf_agente_pessoas`.
   Teste que guarda a regra: `teste_regra.mjs` (sessão de 22/09).
@@ -84,6 +86,12 @@ dois arquivos antes de propor qualquer coisa**:
 - **Lembretes do Carinha (09/10):** quando e o quê lembrar (por Dificuldade,
   período, rotatividade, máx. 5/dia) em **`worker/instrucoes/lembretes.md`**.
   Ainda não ligado (aguarda a Karina liberar).
+
+- **Google de cada pessoa (12/10):** conexão em `google.html` ou no ícone
+  "Meu Google" da Dash; chave em `wpf_agente_google` (só o robô lê). App
+  "Carinha" no Google Cloud da organização WPF (interno + confiável).
+  Piloto: só admin; liberar = config `google_liberados`. Mexer em e-mail,
+  agenda ou Drive: sempre com o "sim" e só na conta de quem pediu.
 
 ## O que o Claude NÃO consegue fazer sozinho
 
