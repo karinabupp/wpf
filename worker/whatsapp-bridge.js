@@ -1425,6 +1425,16 @@ async function checkinVazio(env, pessoa, horaSP) {
   await enviarComOpcoes(env, pessoa.telefone, `${saudacao(horaSP)}, ${primeiro}! Nada em aberto hoje pra você. Do seu lado, tem algo?`, OPCOES_CHECKIN, { proativa: true, tipo_proativa: "checkin" });
 }
 
+// MODO SÓ E-MAIL (Karina, 13/10): o Carinha só puxa assunto sobre e-mail
+// relevante da própria pessoa. Nada de Tasks, check-in, Slack ou reunião sem
+// pedir, pra ninguém (nem a admin). Desliga com wpf_agente_config chave
+// avisos_somente_email = {"ligado": false}. Sem a chave = ligado (seguro).
+const ehAvisoEmail = a => String((a && a.chave) || "").startsWith("email|");
+async function somenteEmail(env) {
+  const c = await cfgGet(env, "avisos_somente_email").catch(() => null);
+  return !(c && c.ligado === false);
+}
+
 async function rodadaProativa(env, cron, agoraMs) {
   agoraMs = agoraMs || Date.now();
   const horaFixa = cron === CRON_HORA_FIXA;
@@ -1439,8 +1449,20 @@ async function rodadaProativa(env, cron, agoraMs) {
   const { empresas } = await carregarDash(env);
   const indice = indexar(empresas), hoje = hojeSP();
   const inicioHoje = new Date(Date.parse(hoje + "T03:00:00Z")).toISOString();
+  const soEmail = await somenteEmail(env);
   for (const pessoa of pessoas) {
     const tel = pessoa.telefone;
+    if (soEmail) {
+      // Só e-mail: não detecta Tasks/Slack, não faz check-in nem resgate.
+      const pend = (await pendentesDe(env, tel)).filter(ehAvisoEmail);
+      if (!pend.length) continue;
+      const rh0 = await sb(env, `${TAB_MSG}?select=tipo_proativa&direction=eq.out&to_number=eq.${tel}&proativa=eq.true&created_at=gte.${encodeURIComponent(inicioHoje)}`);
+      const hoje0 = rh0.ok && Array.isArray(rh0.dados) ? rh0.dados : [];
+      const conta0 = t => hoje0.filter(m => m.tipo_proativa === t).length;
+      if (await janelaAberta(env, tel, agoraMs)) { if (conta0("aviso") < MAX_AVISOS_DIA) await mandarAvisos(env, pessoa, pend, "janela", "aviso", indice); }
+      else if (horaFixa && !conta0("template")) await enviarTemplateAviso(env, pessoa, pend.length);
+      continue;
+    }
     const rs = await sb(env, `${TAB_SNAP}?select=dados&telefone=eq.${tel}`);
     const snap = rs.ok && rs.dados && rs.dados[0] ? rs.dados[0].dados : null;
     const doSlack = await avisosDoSlack(env, pessoa, pessoas).catch(() => []);
@@ -1797,7 +1819,8 @@ async function processarEmails(env, emails, donoEmail, compartilhado) {
   // "Muito importante" vai na hora, se a janela da dona/o estiver aberta.
   const horaSP = (new Date().getUTCHours() + 21) % 24;
   if (urgente && DONO_TEL && dono.proativo && horaSP >= 7 && horaSP <= 22 && dono.recebe_avisos && (await janelaAberta(env, DONO_TEL))) {
-    const pend = await pendentesDe(env, DONO_TEL);
+    let pend = await pendentesDe(env, DONO_TEL);
+    if (await somenteEmail(env)) pend = pend.filter(ehAvisoEmail);
     if (pend.length) await mandarAvisos(env, dono, pend, "email_imediato", "aviso_urgente", indice);
   }
   return { recebidos: novos.length };
@@ -2468,7 +2491,8 @@ async function tratarMensagem(env, msg, textoRecebido) {
 
   // Tocou em "Ver agora" do aviso: manda o que está pendente.
   if (cmd === "ver agora") {
-    const pend = await pendentesDe(env, tel);
+    let pend = await pendentesDe(env, tel);
+    if (await somenteEmail(env)) pend = pend.filter(ehAvisoEmail);
     if (pend.length && await mandarAvisos(env, pessoa, pend, "template", "aviso_detalhe")) return;
   }
 
@@ -2572,8 +2596,10 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const agoraRetrato = retratar(empresas, members);
   const rs = await sb(env, `${TAB_SNAP}?select=dados,tirado_em&telefone=eq.${tel}`);
   const base = rs.ok && rs.dados && rs.dados[0];
-  const mudancas = base ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
-  const avisosPend = pessoa.proativo ? await pendentesDe(env, tel) : [];
+  const modoSoEmail = await somenteEmail(env);
+  // Modo só e-mail: o Carinha não traz novidade de Tasks por conta própria.
+  const mudancas = base && !modoSoEmail ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
+  const avisosPend = pessoa.proativo ? (await pendentesDe(env, tel)).filter(a => !modoSoEmail || ehAvisoEmail(a)) : [];
 
   const rPrim = await sb(env, `${TAB_MSG}?select=id&from_number=eq.${tel}&direction=eq.in&limit=2`);
   const primeiraConversa = rPrim.ok && Array.isArray(rPrim.dados) && rPrim.dados.length <= 1;
@@ -2606,7 +2632,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const uso = { tokens_entrada: 0, tokens_saida: 0, tokens_cache: 0 };
   const somarUso = u => { if (!u) return; uso.tokens_entrada += (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0); uso.tokens_saida += u.output_tokens || 0; uso.tokens_cache += u.cache_read_input_tokens || 0; };
   const consumo = () => ({ modelo, ...uso, analise_geral: analiseFeita });
-  const responder = async (txt, opcoes) => { await enviarComOpcoes(env, tel, txt, opcoes, consumo()); if (avisosPend.length) await marcarAvisados(env, tel, "conversa"); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
+  const responder = async (txt, opcoes) => { await enviarComOpcoes(env, tel, txt, opcoes, consumo()); if (avisosPend.length) await marcarChaves(env, tel, avisosPend.map(a => a.chave), "conversa"); await sb(env, TAB_SNAP, { method: "POST", prefer: "resolution=merge-duplicates,return=minimal", body: [{ telefone: tel, dados: agoraRetrato, tirado_em: new Date().toISOString() }] }); };
 
   try {
     for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
@@ -2999,5 +3025,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
