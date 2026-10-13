@@ -79,9 +79,9 @@ reconstruir o raciocínio.
      (script.google.com → Acionadores → apagar). O Worker já ignora o script
      quando ela está conectada; apagar é só limpeza. Depois, dá pra tirar a
      rota `/gmail` e `worker/gmail-script.gs`.
-  3. **Liberar a equipe:** `wpf_agente_config` chave `google_liberados` =
-     `{"todos": true}` e mandar o link google.html pra Isabela, Leonardo e
-     Roberto. Até religar o Carinha deles (item abaixo), os e-mails deles são
+  3. ~~Liberar a equipe~~ **feito 13/10** (`google_liberados` = todos);
+     Karina manda o link google.html pra Isabela, Leonardo e Roberto.
+     Karina já conectou (13/10). Até religar o Carinha deles (item abaixo), os e-mails deles são
      triados e guardados, mas o aviso só chega quando o Carinha voltar
      (avisos ficam pendentes em `wpf_agente_avisos`; aviso urgente imediato
      exige `proativo = true`).

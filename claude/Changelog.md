@@ -12,6 +12,18 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-13 — Google liberado pra equipe (Carinha deles segue pausado)
+
+- **O que mudou:** `wpf_agente_config` chave `google_liberados` =
+  `{"todos": true}` (SQL pelo conector, aprovado pela Karina às 14h36).
+  Isabela, Leonardo e Roberto já podem conectar pelo google.html.
+  `proativo` deles continua `false` (Carinha pausado, como decidido).
+- **Onde:** Supabase.
+- **Por quê:** Karina vai mandar o link pra equipe já; religar o Carinha só
+  no fim. Karina conectou o Google dela em 13/10 (11h47).
+
+---
+
 ## 2026-10-12 — Google de cada pessoa (Gmail, Agenda, Drive) no Carinha
 
 - **O que mudou:**
