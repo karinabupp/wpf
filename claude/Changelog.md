@@ -12,6 +12,28 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-13 (2ª) — Projetos: "+" antes da setinha nas linhas com algo dentro
+
+Pedido da Karina em 13/10 (12h29); "posta então" às 18h09 (sem escolher entre
+sempre visível / ao passar o mouse → foi a sugestão: ao passar o mouse).
+
+- Linha com algo dentro: `+ ▸`. O "+" (cinza discreto, igual ao da linha
+  vazia) aparece ao passar o mouse na linha; clique cria um item novo no fim,
+  abre a linha e põe o cursor no nome (`novoFilho`). A setinha segue
+  abrindo/fechando.
+- Linha vazia: só o "+" fixo (como antes). Último nível: nada.
+- Duas casinhas fixas em toda linha: o "+" fica sempre na mesma coluna e os
+  nomes seguem alinhados. O hover vale só pra própria linha (não acende os
+  "+" das linhas de dentro).
+- **Onde:** `index.html`, `CELULAS.nome`, ação `novo-filho` em `aoClicar`,
+  CSS `.pj-seta-abrir.is-mais-hover`.
+- **Testes:** navegador sem tela com dados de exemplo: + só na linha com o
+  mouse; clique cria a etapa e foca o nome; sem erros.
+- **Por quê:** antes, linha com sublinhas não tinha como criar mais uma pelo
+  nome (o + sumia com a setinha).
+
+---
+
 ## 2026-10-13 — Google liberado pra equipe (Carinha deles segue pausado)
 
 - **O que mudou:** `wpf_agente_config` chave `google_liberados` =

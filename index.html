@@ -6851,6 +6851,8 @@
   .pj-seta-abrir.is-sem { opacity: 0.5; }
   .pj-seta-abrir.is-mais { font-size: 14px; color: #c4c2bb; opacity: 1; }
   .pj-seta-abrir.is-mais:hover { color: #37352f; }
+  .pj-seta-abrir.is-mais-hover { visibility: hidden; }
+  tr.pj-linha:hover > td > .pj-nome-linha > .pj-seta-abrir.is-mais-hover, .pj-seta-abrir.is-mais-hover:focus { visibility: visible; }
   .pj-linha.is-entrega .pj-txt.pj-nome { font-weight: 600; }
   .pj-linha.is-etapa .pj-txt.pj-nome, .pj-linha.is-tarefa .pj-txt.pj-nome { font-weight: 400; }
   #pj-tabela .pj-txt { font-size: 14px; padding: 3px 4px; min-height: 26px; color: #37352f; }
@@ -21495,11 +21497,16 @@ applyRolePermissions();
     nome: (e, loc) => {
       const nivel = NIVEIS[loc.nivel];
       const n = (e.subtasks || []).length;
+      // 09/10 (Karina): setinha só quando tem algo dentro; vazia = "+" discreto.
+      // 13/10 (Karina): com algo dentro, "+" ANTES da setinha (aparece ao passar o
+      // mouse). Duas casinhas fixas em toda linha: "+" sempre na mesma coluna.
+      const vaga = `<span class="pj-seta-abrir is-vazio"></span>`;
+      const filho = loc.nivel < ULTIMO_NIVEL ? NOME_NIVEL[NIVEIS[loc.nivel + 1]].toLowerCase() : "";
       const seta = loc.nivel < ULTIMO_NIVEL
-        // 09/10 (Karina): setinha só quando tem algo dentro; vazia = "+" discreto no mesmo lugar.
-        ? (n ? `<button type="button" class="pj-seta-abrir" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : "Abrir (" + n + ")"}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
-             : `<button type="button" class="pj-seta-abrir is-sem is-mais" data-acao="abrir" title="Criar a 1ª ${NOME_NIVEL[NIVEIS[loc.nivel + 1]].toLowerCase()}">+</button>`)
-        : `<span class="pj-seta-abrir is-vazio"></span>`;
+        ? (n ? `<button type="button" class="pj-seta-abrir is-mais is-mais-hover" data-acao="novo-filho" title="Nova ${filho}">+</button>` +
+               `<button type="button" class="pj-seta-abrir" data-acao="abrir" title="${abertas.has(e.id) ? "Fechar" : "Abrir (" + n + ")"}">${abertas.has(e.id) ? "▾" : "▸"}</button>`
+             : `<button type="button" class="pj-seta-abrir is-sem is-mais" data-acao="abrir" title="Criar a 1ª ${filho}">+</button>` + vaga)
+        : vaga + vaga;
       // Ícones ao lado do nome (09/10): checklist (e, depois, formulário), com bolinha de novidades.
       // Checklist virou subtarefa (09/10); o + volta quando o Formulário existir.
       const icones = "";
@@ -22291,6 +22298,7 @@ applyRolePermissions();
       if (!aberta) td.classList.add("pj-prox-aberta");
       return;
     }
+    if (acao === "novo-filho") { novoFilho(e.id); return; }
     if (acao === "abrir") {
       // Setinha numa linha sem nada embaixo já cria a 1ª etapa/tarefa (Karina, 09/10).
       if (!(e.subtasks || []).length && loc.nivel < ULTIMO_NIVEL) { novoFilho(e.id); return; }
