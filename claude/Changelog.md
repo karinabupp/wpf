@@ -12,6 +12,55 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-13 (3ª) — Projetos: nomes sem parênteses/"Nome: detalhe", Reels, Posts por país, Holidays
+
+Pedidos da Karina às 18h18 e 18h23; respostas às 18h23 (Lifas = Roberto;
+sem "DMC"; Coletar números só renomear; Holidays = Mulher, Natal, Ano Novo,
+Ano Novo Lunar) e 18h32 (Buscar candidato → não iniciado; "pode gravar").
+
+- **Backup antes:** `bkp_projetos_2026-10-13_antes_parenteses` (rev. 8399).
+  SQL em `sql/2026-10-13_projetos_sem_parenteses.sql` (com a volta).
+  1ª tentativa barrada pela trava (Karina editou às 18h28); aplicado sobre a
+  versão atual às 18h34 (rev. 8400). Rascunho `tmp_projetos_2026-10-13`
+  ficou no banco (apagar exige confirmação; ver Prox Passos).
+- **Parênteses → sublinhas:** Coletar documentos › Estatuto · Registro e
+  Coletar informações pro site › Links · Fotos · Board (71 de cada, 50
+  Federações); Aplicar mudanças estruturais › URLs · Redirecionamentos;
+  Organizar drive › Texto editorial · Material visual; Conferir as
+  participações › Seguiu o perfil da WPF · Marcou uma amiga; Pokernews ›
+  Global · BR; Relembrar de ler as instruções › 1ª vez · 2ª vez.
+- **"Nome: detalhe" → grupo:** Asia Nations Cup › Infos · Promoção; PANAM
+  Nations Cup › Definir o plano de ação; SEO › Estruturação · Produção;
+  Adwords › Budget · Campanha · CPC; Publicar as páginas das federações
+  novas › Armenia (Coletar infos · Colocar no ar) · Sweden · Mongolia.
+- **Pessoas → Responsáveis:** "Aprovar… (Karina, Lifas e Isa)" (7 linhas) →
+  Karina, Roberto, Isabela; Cobertura do stop → Rafael; Receber portfólio de
+  imagens/vídeos → Andressa.
+- **Renomes:** Sorteio Mundial; Consolidar o relatório do LW 2026 (sem
+  "cópia"); Passar o contato de mídia (14); Receber o details submission
+  preenchido (14); Coletar todos os números; Preparar o press release;
+  Liechenstein → Liechtenstein.
+- **Reels colaborativos:** Reels 1 word to define LW e Reels Faltam 2 dias,
+  cada um com Pedir os vídeos aos hosts › Enviar os vídeos pra Nina ›
+  Produzir o Reels › Aprovar o Reels › Postar (status de antes copiado).
+- **Mudou de lugar:** PPT Ladies Weekend saiu de Comunicação Clara com
+  Membros → Realizar Ladies Weekend 2026 › Fechamento.
+- **Novo:** Calendário de Social › Posts Individuais dos Países (depois do
+  Sorteio Mundial): 14 países × Coletar agendas e atrações › Coletar mídia ›
+  Criar copy do post › Aplicar template/criar post › Definir legenda ›
+  Postar. UK, Brazil e Bulgaria finalizados.
+- **Holidays:** Definir as datas dos Holidays › Natal (25/12/2026), Ano Novo
+  (01/01/2027), Ano Novo Lunar (06/02/2027), Dia Internacional da Mulher
+  (08/03/2027), com a data no Fim.
+- **Status:** 20 países da 50 Federações que só tinham "Buscar e contatar
+  candidato" em andamento → país e passo Não iniciado (UK, bloqueado, ficou).
+- **Conferido:** 1246 → 1725 linhas, nenhum id antigo sumiu, nenhum id
+  repetido; único parêntese que sobrou: "Vídeo do Bill (CBTH e H2)".
+- **REGRA nova** em `worker/instrucoes/organizacao-projetos.md` ("nome
+  limpo, sempre") + LEIA-PRIMEIRO.
+
+---
+
 ## 2026-10-13 (2ª) — Projetos: "+" antes da setinha nas linhas com algo dentro
 
 Pedido da Karina em 13/10 (12h29); "posta então" às 18h09 (sem escolher entre

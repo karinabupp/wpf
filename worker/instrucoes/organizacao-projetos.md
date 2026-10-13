@@ -59,7 +59,8 @@ quando precisar; o modelo não os usa.
   (nº de jogadoras, campeã, fotos)" NÃO pode. O que está entre parênteses
   vira itens dentro da linha (em cada unidade: Coletar o nº de jogadoras ›
   Coletar a campeã › Coletar as fotos).
-- Aprovações citam quem aprova (ex. "Aprovar (Karina, Lifas e Isa)").
+- Quem aprova vai nos **Responsáveis** da linha "Aprovar…", nunca no nome
+  (13/10; antes era entre parênteses).
 - **Reescrever e reorganizar quando precisar** (Karina, 09/10): o agente
   pode renomear, reordenar e acertar status fora de ordem pra história
   funcionar (ex.: passo depois de uma aprovação não pode estar "em
@@ -70,6 +71,29 @@ quando precisar; o modelo não os usa.
   (Preparativos, Calendário de Social, Alinhamento de Mídia, Divulgação,
   Fechamento).
 - Exemplo pronto: entrega "Realizar Ladies Weekend 2026" (09/10).
+
+## REGRA — nome limpo, sempre (Karina, 13/10: "tem que ser assim sempre em todas as tarefas")
+
+Vale pra **toda** linha da Projetos (criar, renomear, reorganizar), e pro
+Carinha quando ele propuser linhas.
+
+- **Nada entre parênteses no nome.** O que estaria no parêntese vira:
+  - **itens/etapas** → sublinhas ("Coletar documentos" › Estatuto › Registro);
+  - **pessoas** → Responsáveis da linha ("Cobertura do stop" + Rafael);
+  - **período/semana** → datas de Início/Fim (não no nome);
+  - **sigla ou explicação** → reescrever o nome sem ela.
+- **Nada de "Nome: detalhe".** Linhas irmãs que começam igual viram **uma
+  linha** com esse nome e os detalhes como sublinhas:
+  "Asia Nations Cup: infos" + "Asia Nations Cup: promoção" →
+  **Asia Nations Cup** › Infos › Promoção. Vale também com um só
+  ("PANAM Nations Cup: definir o plano de ação" → PANAM Nations Cup ›
+  Definir o plano de ação) e dentro de uma linha que já diz o prefixo
+  ("Adwords" › "Adwords: budget" → "Budget").
+- Mesma coisa feita mais de uma vez (Reels 1 e Reels 2, 1ª e 2ª vez): uma
+  linha por vez/peça, cada uma com o processo inteiro dentro.
+- **Vocabulário:** não usar "DMC"; dizer **contato de mídia**.
+- Sublinha nova herda o status da linha quando ela já está Finalizada
+  (ou Cancelada); senão nasce Não iniciada.
 
 ## Critério de conclusão (Karina, 09/10)
 
@@ -90,11 +114,12 @@ quando precisar; o modelo não os usa.
   1. Buscar e contatar candidato
   2. Apresentar a WPF
   3. Abrir a federação
-  4. Coletar documentos (estatuto e registro)
+  4. Coletar documentos › Estatuto · Registro
   5. Verificar documentos
-  6. Coletar informações pro site (links, fotos, board)
+  6. Coletar informações pro site › Links · Fotos · Board
   7. Criar página no site
   8. Postar página no site
 - Status inicial pelo CRM: Membro → 1–3 finalizados · Abertura → 1–2
   finalizados, 3 em andamento · Negociação → 1 finalizado, 2 em andamento ·
-  Lead → 1 em andamento.
+  Lead → nada em andamento (13/10, Karina: país que só tinha "Buscar e
+  contatar candidato" em andamento voltou pra Não iniciado).

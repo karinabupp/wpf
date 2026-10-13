@@ -83,6 +83,10 @@ dois arquivos antes de propor qualquer coisa**:
   pelo menos N) › Subtarefas (o processo padrão, igual em todas). Exemplo:
   "50 Federações Membros". Propor antes, gravar só com "sim".
 
+- **REGRA — nome limpo na Projetos (Karina, 13/10):** nada entre parênteses
+  e nada de "Nome: detalhe" em linha nenhuma: vira sublinha (ou Responsável/
+  data). Detalhes em **`worker/instrucoes/organizacao-projetos.md`**.
+
 - **Lembretes do Carinha (09/10):** quando e o quê lembrar (por Dificuldade,
   período, rotatividade, máx. 5/dia) em **`worker/instrucoes/lembretes.md`**.
   Ainda não ligado (aguarda a Karina liberar).

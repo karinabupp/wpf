@@ -97,6 +97,17 @@ reconstruir o raciocínio.
     `index.html` (MEU GOOGLE), `google.html`, `wpf_agente_google`.
   - *Aberto em:* 2026-10-08 · publicado em 2026-10-12
 
+- [ ] **Projetos — "Vídeo do Bill (CBTH e H2)" (aguarda a Karina)** — último
+  parêntese da aba (Ladies Weekend). Perguntado em 13/10: CBTH e H2 viram
+  tags de empresa ou duas sublinhas? Aplicar com o OK.
+  - *Onde:* seção `projetos`, linha `pj-cl-lw-062`.
+  - *Aberto em:* 2026-10-13
+
+- [ ] **Apagar o rascunho `tmp_projetos_2026-10-13`** do `wpf_dashboard_data`
+  (sobrou da reorganização de 13/10; apagar pede confirmação da Karina no
+  Supabase). Backup `bkp_projetos_2026-10-13_antes_parenteses` fica.
+  - *Aberto em:* 2026-10-13
+
 - [ ] **Projetos — Formulário (aguarda a Karina)** — o botão + saiu do
   nome em 09/10 (a Checklist virou Subtarefa); volta só com o Formulário.
   O código do menu (`abrirMenuAnexo`) e da bolinha de atualizações segue
