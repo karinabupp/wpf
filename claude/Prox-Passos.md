@@ -97,6 +97,18 @@ reconstruir o raciocínio.
     `index.html` (MEU GOOGLE), `google.html`, `wpf_agente_google`.
   - *Aberto em:* 2026-10-08 · publicado em 2026-10-12
 
+- [ ] **Carinha — próximo passo depois do modo só e-mail (Karina, 13/10)** —
+  14/10: organizar a parte da **agenda** (montar coisas na agenda etc.). Tasks
+  só quando ela terminar de alinhar; aí desligar `avisos_somente_email`.
+  - *Atenção ao desligar:* há avisos antigos guardados que não são e-mail
+    (Isabela 10, Karina 13, de 13/10). Decidir com ela se descarta antes, pra
+    não chegar tudo de uma vez.
+  - Roberto ainda não conectou o Google (sem e-mail pra avisar).
+  - O texto do template da Meta diz "assuntos da Dash" mesmo quando é e-mail
+    (template aprovado; trocar exige novo template na Meta).
+  - *Onde:* `worker/whatsapp-bridge.js` (`somenteEmail`), `wpf_agente_config`.
+  - *Aberto em:* 2026-10-13
+
 - [ ] **Projetos — "Vídeo do Bill (CBTH e H2)" (aguarda a Karina)** — último
   parêntese da aba (Ladies Weekend). Perguntado em 13/10: CBTH e H2 viram
   tags de empresa ou duas sublinhas? Aplicar com o OK.
@@ -240,7 +252,8 @@ reconstruir o raciocínio.
   Carinha nas fases 2–5 do projeto BAIER.
   - *Aberto em:* 2026-10-07
 
-- [ ] **Religar o Carinha pra Isabela, Leonardo e Roberto** — pausado em
+- [x] **Religar o Carinha pra Isabela, Leonardo e Roberto** — feito 13/10
+  (modo só e-mail). Pausado em
   07/10 (`proativo = false`). Quando a Karina liberar, rodar a "volta" de
   `sql/2026-10-07_pausa_mensagens_equipe.sql`.
   - *Aberto em:* 2026-10-07

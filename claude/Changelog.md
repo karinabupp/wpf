@@ -12,6 +12,31 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-13 (4ª) — Carinha liberado pra todos, só com avisos de e-mail
+
+Pedido e OK da Karina às 19h14 ("pode liberar o carinha").
+
+- **Regras (Karina):** (1) só e-mail relevante — spam/propaganda não; (2)
+  cada um só do próprio e-mail, NADA dos outros; (3) NINGUÉM recebe nada de
+  Tasks até segunda ordem. Agenda e o resto: amanhã.
+- **Worker (commit `f6e7e65`):** modo **só e-mail** (`somenteEmail`,
+  `ehAvisoEmail`), ligado por padrão; chave `avisos_somente_email`
+  `{"ligado": true}` em `wpf_agente_config` (`false` volta o antigo). Na
+  rodada proativa: não detecta Tasks nem Slack, sem check-in 9h25, sem
+  "nada em aberto", sem resgate; só manda aviso `email|…` (máx. 3/dia; janela
+  fechada → template às 9h25, só se houver e-mail). "Ver agora", e-mail
+  urgente e conversa também só trazem e-mail; a conversa não traz
+  "Novidades" da Tasks por conta própria. Vale pra todos, inclusive a Karina
+  (reunião e Slack dela também param de vir sozinhos). Avisos de outro tipo
+  já guardados (Isabela 10, Karina 13) ficam guardados, não são enviados.
+- **Supabase:** `proativo = true` pra Isabela, Leonardo e Roberto (volta da
+  pausa de 07/10).
+- **Google conectado:** Karina, Isabela, Leonardo. Roberto ainda não.
+- **Testes:** 27 (os 25 do Google + 2 do modo só e-mail: Isa recebe só o
+  e-mail dela, nada de Tasks/check-in, Karina não recebe reunião).
+
+---
+
 ## 2026-10-13 (3ª) — Projetos: nomes sem parênteses/"Nome: detalhe", Reels, Posts por país, Holidays
 
 Pedidos da Karina às 18h18 e 18h23; respostas às 18h23 (Lifas = Roberto;

@@ -91,6 +91,12 @@ dois arquivos antes de propor qualquer coisa**:
   período, rotatividade, máx. 5/dia) em **`worker/instrucoes/lembretes.md`**.
   Ainda não ligado (aguarda a Karina liberar).
 
+- **MODO SÓ E-MAIL (Karina, 13/10 — até segunda ordem):** o Carinha está
+  ligado pra todos, mas por conta própria **só avisa de e-mail relevante da
+  própria pessoa** (spam/propaganda não; nada do e-mail dos outros).
+  **Ninguém recebe nada de Tasks**, nem check-in, Slack ou reunião, nem a
+  Karina. Chave `avisos_somente_email` em `wpf_agente_config`; só desligar
+  com ordem dela.
 - **Google de cada pessoa (12/10):** conexão em `google.html` ou no ícone
   "Meu Google" da Dash; chave em `wpf_agente_google` (só o robô lê). App
   "Carinha" no Google Cloud da organização WPF (interno + confiável).
