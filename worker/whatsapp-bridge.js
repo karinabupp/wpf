@@ -3128,8 +3128,10 @@ async function pjTratarPendencia(env, pessoa, tel, pend, texto) {
 
 // ── Agenda (Google Tasks) ──
 // estado.agenda[idLinha] = { g: idGoogle, due, cor, titulo, apagada?, fim }
+// Agenda (Karina, 14/10): SÓ a ação (a ponta, sem nada dentro). Concluir na
+// agenda mexe em no máximo UMA linha da Dash; as de cima vão só na descrição.
 function pjParaAgenda(dados, nome, hoje) {
-  return pjAchatar(dados).filter(({ no, pais }) => no.id && pjAberto(no.status) && pjDono(no, nome) && !pais.some(p => p.status === "cancelado") &&
+  return pjAchatar(dados).filter(({ no, pais }) => no.id && pjAberto(no.status) && pjDono(no, nome) && !pjTemFilhos(no) && !pais.some(p => p.status === "cancelado") &&
     dataValida(no.endDate) && pjDif(no.endDate, hoje) >= -PJ_DIAS_DEADLINE);
 }
 function pjTituloAgenda(it, estado, cor) {
@@ -3137,8 +3139,12 @@ function pjTituloAgenda(it, estado, cor) {
   return `${cor} ${corta(t, 120)}`;
 }
 function pjNotasAgenda(it, estado) {
-  const ctx = (estado.textos[it.no.id] && estado.textos[it.no.id].contexto) || pjTextoPadrao(it).contexto;
-  return [ctx, `Vence: ${pjDataLonga(it.no.endDate)}`, `Abrir na Dash: ${linkPj(it.no.id)}`, "Marque como concluída aqui e ela vira Finalizado na Dash."].filter(Boolean).join("\n");
+  const ctx = (estado.textos[it.no.id] && estado.textos[it.no.id].contexto) || "";
+  const ent = it.pais[0], meio = it.pais.slice(1);
+  const onde = ent ? `Está dentro de: ${meio.length ? meio.map(p => p.nome).reverse().join(", dentro de ") + ", " : ""}na entrega "${ent.nome}".` : "";
+  const com = (it.no.assignees || []).length > 1 ? `Responsáveis: ${it.no.assignees.join(", ")}.` : "";
+  return [ctx, onde, `Na Dash a linha se chama "${it.no.nome}".`, com, `Vence: ${pjDataLonga(it.no.endDate)}`, `Abrir na Dash: ${linkPj(it.no.id)}`,
+    "Marque como concluída aqui e SÓ esta linha vira Finalizado na Dash."].filter(Boolean).join("\n");
 }
 const pjDue = iso => `${iso}T00:00:00.000Z`;
 async function pjAgendaSync(env, conexao, pessoa, hoje) {
@@ -3156,6 +3162,7 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
     if (r.status === 404 || (r.ok && r.dados && r.dados.deleted)) { estado.agenda[id] = { apagada: true, fim: a.fim }; mudou = true; continue; }
     if (r.ok && r.dados && r.dados.status === "completed") {
       const loc = pjLocalizar(pj.dados, id);
+      if (loc && pjTemFilhos(loc.no)) { console.log("agenda: linha com itens dentro não é finalizada pela agenda:", id); delete estado.agenda[id]; mudou = true; continue; }
       if (loc && pjAberto(loc.no.status)) {
         const res = await pjAlterar(env, id, pjMudarStatus("finalizado", `Agenda do Google, ${primeiroNome(pessoa.nome_tasks)}`), tel, pessoa.nome_tasks, "pj_agenda_concluida");
         if (!res.ok) { console.log("agenda → dash:", res.erro); continue; }
@@ -3180,16 +3187,16 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
     if (a && a.apagada) { if (a.fim === fim) continue; a = null; }
     if (!a) {
       const r = await gApi(env, conexao, L, { method: "POST", json: { title: titulo, notes: pjNotasAgenda(it, estado), due: pjDue(hoje) } });
-      if (r.ok && r.dados && r.dados.id) { estado.agenda[id] = { g: r.dados.id, due: hoje, cor, titulo, fim }; mudou = true; }
+      if (r.ok && r.dados && r.dados.id) { estado.agenda[id] = { g: r.dados.id, due: hoje, cor, titulo, fim, v2: true }; mudou = true; }
       continue;
     }
     const patch = {};
     if (due && a.due !== due) patch.due = pjDue(due);
     if (a.titulo !== titulo) patch.title = titulo;
-    if (a.fim !== fim) patch.notes = pjNotasAgenda(it, estado);
+    if (a.fim !== fim || a.titulo !== titulo || !a.v2) patch.notes = pjNotasAgenda(it, estado);
     if (Object.keys(patch).length) {
       const r = await gApi(env, conexao, `${L}/${encodeURIComponent(a.g)}`, { method: "PATCH", json: patch });
-      if (r.ok) { Object.assign(a, { due: due || a.due, cor, titulo, fim }); mudou = true; }
+      if (r.ok) { Object.assign(a, { due: due || a.due, cor, titulo, fim, v2: true }); mudou = true; }
     }
   }
   // 3) Saiu da lista (finalizada/cancelada na Dash, outra pessoa, data longe): conclui ou tira.
