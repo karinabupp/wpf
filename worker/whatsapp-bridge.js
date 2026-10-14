@@ -2735,14 +2735,11 @@ async function pjColetarSlack(env, pessoa) {
   if (itens.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: itens.map(i => ({ telefone: pessoa.telefone, chave: i.chave, descricao: i.descricao })) });
 }
 async function pjMandarEmails(env, pessoa, via, tipo) {
-  let pend = (await pendentesDe(env, pessoa.telefone)).filter(pjEhExterno);
+  // Recado do sistema NÃO vai por aqui (Karina, 14/10): só quando a pessoa
+  // escreve (ver tratarMensagem), com o texto exato.
+  let pend = (await pendentesDe(env, pessoa.telefone)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|"));
   if (!pend.length) return 0;
-  // Recado do sistema: vai com o texto exato (sem a IA reescrever).
-  for (const a of pend.filter(x => x.chave.startsWith("sistema|"))) {
-    await enviarTexto(env, pessoa.telefone, a.descricao, { proativa: true, tipo_proativa: "sistema" });
-    await marcarChaves(env, pessoa.telefone, [a.chave], via);
-  }
-  pend = await pjSoNaoLidos(env, pessoa, pend.filter(x => !x.chave.startsWith("sistema|")));
+  pend = await pjSoNaoLidos(env, pessoa, pend);
   let rodadas = 0;
   // mandarAvisos manda 2 por vez; repete até acabar (conforme chegam).
   while (pend.length && rodadas++ < 10) {
@@ -2927,7 +2924,7 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     const pj = await pjCarregar(env);
     const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
     await pjColetarSlack(env, pessoa);
-    const emails = (await pendentesDe(env, tel)).filter(pjEhExterno).length;
+    const emails = (await pendentesDe(env, tel)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|")).length;
     const qtd = plano.fila.length + plano.reunioes.length + emails;
     if (qtd) { await enviarTemplateAviso(env, pessoa, qtd); estado.manhaPendente = hoje; }
     estado.ultimaManha = hoje;
@@ -2936,14 +2933,7 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
   }
   if (horaSP < 8 || horaSP > 21) return;
   await pjColetarSlack(env, pessoa);
-  if (!aberta) {
-    // Recado do sistema pendente e janela fechada: template uma vez; chega no "Ver agora".
-    const sis = (await pendentesDe(env, tel)).filter(a => a.chave.startsWith("sistema|"));
-    if (sis.length && estado.templateSistema !== sis[0].chave) {
-      if (await enviarTemplateAviso(env, pessoa, sis.length)) await pjSalvarParte(env, tel, e => { e.templateSistema = sis[0].chave; e.manhaPendente = e.ultimaManha === hoje ? hoje : e.manhaPendente; });
-    }
-    return;
-  }
+  if (!aberta) return;
   if (estado.ultimaManha !== hoje && horaSP <= 9) return; // a manhã ainda vai sair
   const pj = await pjCarregar(env);
   const antes = JSON.stringify([estado.conhecidos, estado.textos]);
@@ -3544,6 +3534,16 @@ async function tratarMensagem(env, msg, textoRecebido) {
   if (pjLib && (await pjTratarBotao(env, pessoa, tel, cmd, msg))) return;
   // Atalho tolerante: "ver agora", "tarefas"… abrem a lista de hoje.
   if (pjLib && (await pjComandoAgenda(env, pessoa, tel, cmd))) return;
+  // Recado do sistema pendente (ex.: reconectar o Google, 14/10): a pessoa
+  // escreveu ("oi"), então entrega na hora, com o texto exato. Se foi só um
+  // cumprimento, para aqui; senão segue respondendo o que ela mandou.
+  if (pjLib) {
+    const sis = (await pendentesDe(env, tel)).filter(a => String(a.chave).startsWith("sistema|"));
+    if (sis.length) {
+      for (const a of sis) { await enviarTexto(env, tel, a.descricao, { proativa: true, tipo_proativa: "sistema" }); await marcarChaves(env, tel, [a.chave], "conversa"); }
+      if (/^(oi+|ola|ol[aá]|oie|opa|e ai|eai|bom dia|boa tarde|boa noite|hey|hi|hello|tudo bem|td bem)( carinha)?$/.test(cmd)) return;
+    }
+  }
   if (pjLib && pjEhAtalho(cmd)) { await pjAbrirDia(env, pessoa, tel); return; }
 
   // Tocou em "Ver agora" do aviso: manda o que está pendente.
