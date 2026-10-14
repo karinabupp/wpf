@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-14 (2ª) — Carinha: abertura com Falar aqui / Ver na Dash, fila 1 a 1, revisor de texto, painel do dia
+
+Pedidos da Karina às 12h07 (revisor revisar tudo, texto claro pra quem não
+tem contexto; aprovou os 4 pontos às 12h15) e 12h15 (link mostra a lista do
+dia com Principais/Outras; primeiro a contagem com Falar aqui / Ver na Dash;
+uma por vez com Ver próxima).
+
+- **Conferido antes:** as 7 tarefas do 1º "Ver agora" eram todas dela (3
+  compartilhadas com Isabela/Roberto); contagem 7 = 7.
+- **Worker (commit `8f67ad4`):** abertura "Você tem N tarefas hoje!" +
+  reuniões com [Falar aqui] [Ver na Dash]; tarefas numa fila
+  (`estado.fila`), uma por vez ("1/N · …", botão Ver próxima); **revisor de
+  texto** (Haiku) depois do redator, reescrevendo pra quem não tem contexto
+  e sem inventar; "👥 Com Fulana e Fulano" nas compartilhadas; "Próxima
+  tarefa" → **"Criar tarefa nova"**; depois de resolver, [Ver próxima]
+  [Criar tarefa nova]; link por tarefa saiu da mensagem; revisor de código
+  confere a fila, a abertura (contagem + botões) e o formato de cada
+  mensagem; estado gravado por partes (hora em hora/agenda não desfazem a
+  fila).
+- **Dash (`index.html`, PROJETOS):** `?dia=<ids>&org=wpf` abre o painel
+  "Suas tarefas de hoje" com **Principais** (as que o Carinha trouxe) e
+  **Outras** (demais abertas em nome de quem está logado); clicar leva à
+  linha. Testado em navegador sem tela (desktop e celular), sem erros.
+- **Supabase:** `pj_estado_<tel da Karina>` zerado pra testar de novo
+  (`{"manhaPendente":"2026-10-14"}`).
+- **Docs:** `worker/instrucoes/lembretes.md` (manhã e revisores).
+- **Testes:** 58 simulados, todos ok.
+
+---
+
 ## 2026-10-14 — Carinha lê a Projetos: manhã, revisor, botões e agenda (piloto: Karina)
 
 Pedido da Karina às 11h38; respostas e "pode seguir" às 11h48.

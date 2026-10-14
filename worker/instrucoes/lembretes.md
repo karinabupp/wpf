@@ -37,31 +37,37 @@
 
 ## A manhã (9h25)
 
-1. Abertura: "Bom dia, Fulana! Hoje: N tarefas pra olhar e M reuniões", com
-   a lista das reuniões do dia (agenda do Google da própria pessoa; recusadas
-   e "local de trabalho" ficam fora).
-2. **Uma mensagem por tarefa**: o que precisa ser feito de fato (a IA
-   reescreve a partir da linha e das de cima; sem IA, vai o nome da linha),
-   o gatilho, o contexto da entrega quando ajuda, o link da linha na Dash
-   (`?pj=<id>`) e 3 botões:
-   - normal: Finalizar · Mudar prazo · Próxima tarefa
-   - Início: Começar · Mudar prazo · Finalizar
-   - fim de semana: Sim, proposital · Mudar prazo
-3. E-mails importantes (mesma triagem de sempre) e **ainda não lidos no
+1. **Abertura:** "Bom dia, Fulana! Você tem N tarefas hoje!" + as reuniões
+   do dia (agenda do Google da própria pessoa; recusadas e "local de
+   trabalho" ficam fora), com **[Falar aqui] [Ver na Dash]**.
+2. **Ver na Dash:** link `?dia=<ids>&org=wpf`, que abre o painel "Suas
+   tarefas de hoje": **Principais** = as N que o Carinha trouxe (mesma
+   contagem); **Outras** = o resto das abertas em nome da pessoa.
+3. **Falar aqui:** manda a 1ª tarefa ("1/N · …") e, a cada **Ver próxima**,
+   a seguinte, até acabar. Cada uma diz o que fazer de fato, o gatilho, de
+   qual projeto é, com quem divide ("👥 Com Isabela e Roberto") e tem 3
+   botões: a ação (Finalizar · Começar no dia do Início · Sim, proposital na
+   pergunta de fim de semana) + Mudar prazo + Ver próxima (na última: Criar
+   tarefa nova). Depois de resolver: [Ver próxima] [Criar tarefa nova].
+4. E-mails importantes (mesma triagem de sempre) e **ainda não lidos no
    Gmail**, em mensagens à parte.
-4. Sem nada (dia útil): "Bom dia! Nada desse lado, você precisa de algo?"
+5. Sem nada (dia útil): "Bom dia! Nada desse lado, você precisa de algo?"
    com [Tudo certo] [Tenho algo].
 
 Janela de 24h fechada: vai o template `aviso_dash` (só se houver conteúdo) e
 o resto chega quando a pessoa toca "Ver agora".
 
-## Revisor (obrigatório, em código)
+## Revisores (obrigatórios)
 
-Antes de mandar, recalcula a lista a partir da Projetos e confere: o número
-da abertura bate com as mensagens; cada tarefa cumpre um gatilho; nada
-finalizado ou cancelado; tudo é da pessoa; cada mensagem tem texto, link e
-2–3 botões. Qualquer diferença: **as tarefas não saem** e a Karina recebe
-"⚠️ O revisor barrou…".
+- **De texto (IA):** lê cada tarefa como quem está no celular sem contexto
+  nenhum e reescreve o que estiver confuso, com jargão da planilha ("2ª
+  vez", "Post 1") ou longo. Não inventa: se a linha não diz o essencial,
+  avisa que vale detalhar na Dash.
+- **De código:** recalcula a lista a partir da Projetos e confere: o número
+  da abertura bate com a fila; cada tarefa cumpre um gatilho; nada
+  finalizado ou cancelado; tudo é da pessoa; cada mensagem tem o "o que
+  fazer", o prazo e os botões. Qualquer diferença: **as tarefas não saem** e
+  a Karina recebe "⚠️ O revisor barrou…".
 
 ## Durante o dia
 
@@ -76,7 +82,7 @@ finalizado ou cancelado; tudo é da pessoa; cada mensagem tem texto, link e
 - **Mudar prazo:** oferece Amanhã / Em 3 dias / Próx. segunda ou aceita a
   data escrita (20/10, 20/10/2026, amanhã, em 3 dias, próx. sexta). Se cair em
   fim de semana, avisa.
-- **Próxima tarefa:** a pessoa escreve o nome (e o prazo, se tiver, ex.:
+- **Criar tarefa nova:** a pessoa escreve o nome (e o prazo, se tiver, ex.:
   "Enviar o contrato até 20/10"); cria logo depois da tarefa, em nome dela.
 - Toda gravação vai pro Histórico da linha ("— pelo Carinha (WhatsApp,
   Karina)") e pra `wpf_agente_auditoria`.

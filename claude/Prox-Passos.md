@@ -36,6 +36,10 @@ reconstruir o raciocínio.
     (ex.: entrou no amarelo) só ganha a pergunta "é proposital?" no dia
     seguinte. A mensagem leva o link da linha (`?pj=`), que só abre a
     Projetos pra quem está em `PILOTO_LOGINS` (hoje só a Karina).
+  - *Painel do dia (14/10, 2ª):* Principais = as que o Carinha trouxe;
+    Outras = demais abertas da pessoa (escolha do Claude, a Karina pode
+    mudar). O painel mostra o nome da linha (o texto revisado do Carinha
+    fica só no WhatsApp).
   - *Ideias:* fechamento do dia (19h) perguntando o que foi feito, usando os
     itens mostrados de manhã; a conversa livre passar a ler a Projetos.
   - *Onde:* `worker/whatsapp-bridge.js` (bloco "PROJETOS + AGENDA"),
