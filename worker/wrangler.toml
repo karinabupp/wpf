@@ -8,8 +8,9 @@ compatibility_date = "2026-09-01"
 workers_dev = true
 keep_vars = true
 
-# 9h25 em São Paulo nos dias úteis (hora fixa dos avisos) e de hora em hora
+# 9h25 em São Paulo todo dia (hora fixa; fim de semana só pra quem está na
+# rotina da Projetos, 14/10) e de hora em hora
 # (resgate: manda antes de a janela de 24h da pessoa fechar). Aos 35 de cada
 # hora: e-mails de quem conectou o Google (12/10).
 [triggers]
-crons = ["25 12 * * 1-5", "5 * * * *", "35 * * * *"]
+crons = ["25 12 * * *", "5 * * * *", "35 * * * *"]

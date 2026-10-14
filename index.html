@@ -23113,6 +23113,41 @@ applyRolePermissions();
       if (visivel()) render();
     }
   };
+
+  // Link direto pra uma linha (14/10, Karina): ?pj=<id> abre a Projetos com a
+  // linha aberta e destacada. Usado pelo Carinha no WhatsApp e na Agenda
+  // (Google Tasks). &org=cbth troca de empresa antes. Só pra quem vê a Projetos.
+  (function linkDireto() {
+    const params = new URLSearchParams(location.search);
+    const id = params.get("pj");
+    if (!id) return;
+    const org = params.get("org");
+    if (org && (org === "wpf" || org === "cbth") && org !== ORG_ATUAL) {
+      try { localStorage.setItem("wpf_org_atual", org); } catch (e) {}
+      location.reload();
+      return;
+    }
+    initialCloudLoadPromise.catch(() => {}).then(() => {
+      params.delete("pj"); params.delete("org");
+      const resto = params.toString();
+      try { history.replaceState(null, "", location.pathname + (resto ? "?" + resto : "") + location.hash); } catch (e) {}
+      if (!pilotoLiberado()) return;
+      const nav = document.getElementById("nav-projetos");
+      if (nav) nav.click();
+      setTimeout(() => {
+        if (!achar(id)) return;
+        irParaLinha(id);
+        if (!document.querySelector(`#pj-corpo tr[data-id="${CSS.escape(id)}"]`)) {
+          // Escondida por filtro (frente/objetivo/prioridade): limpa e tenta de novo.
+          frenteFiltro = ""; objFiltro = ""; prioFiltro = "";
+          render();
+          irParaLinha(id);
+        }
+        // Destaque de novo depois de a tela assentar (a 1ª animação some no carregamento).
+        setTimeout(() => irParaLinha(id), 900);
+      }, 300);
+    });
+  })();
 })();
 // ══════════════════════════════════════════════════════════════════════════
 // GESTÃO (07/10, Karina): protótipo do "assistente de organização e
