@@ -69,6 +69,15 @@ o resto chega quando a pessoa toca "Ver agora".
   fazer", o prazo e os botões. Qualquer diferença: **as tarefas não saem** e
   a Karina recebe "⚠️ O revisor barrou…".
 
+## Atalho e conversa
+
+- "ver agora", "agora", "tarefas", "minhas tarefas", "tarefas de hoje"
+  (com erro de digitação também) abrem a lista de hoje a qualquer hora.
+  Duas mensagens seguidas abrem uma vez só.
+- Perguntas livres ("o que tenho atrasado?") usam a mesma Projetos e o
+  mesmo jeito de escrever: o que fazer, de qual projeto e o prazo — nunca
+  nome solto de linha. Só as da pessoa; as dos outros só quando ela pedir.
+
 ## Durante o dia
 
 - Tarefa **nova** em nome da pessoa vencendo hoje ou amanhã, ou já

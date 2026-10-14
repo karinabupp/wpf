@@ -12,6 +12,37 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-14 (3ª) — Carinha é um só: a conversa também lê a Projetos; atalho "ver agora" tolerante
+
+Karina às 12h33 (print: "ver ra" + "agora" caíram no Carinha de conversa,
+que leu a Tasks antiga e jogou países soltos) e 12h46 ("não pode ter carinha
+antigo e novo, tem que ser apenas o novo"; aprovou (a) e (b)).
+
+- **Worker (commit `164a2e5`):**
+  - (a) **atalho:** "ver agora", "agora", "tarefas", "minhas tarefas",
+    "tarefas de hoje"… com erro de digitação (distância ≤ 2) abrem a lista de
+    hoje ([Falar aqui] [Ver na Dash]) a qualquer hora; duas mensagens em
+    sequência abrem uma vez só (90 s);
+  - (b) **conversa pela Projetos** pra quem está em `projetos_liberados`:
+    ferramentas `tarefas_de_hoje`, `buscar_projetos`,
+    `propor_mudanca_projetos`, `propor_criacao_projetos` (+ Google, e pra
+    admin Read AI e CRM); as da Tasks (buscar, resumo_alertas,
+    propor_mudanca/criacao/contexto, analise_geral) desligadas; instrução
+    nova (`instrucoesPj`): sempre "o que fazer + de qual projeto + prazo",
+    nunca nome solto; só as da pessoa (as dos outros só se ela pedir); sem
+    "Novidades" da Tasks. Mudança/criação pela conversa com "sim", Histórico
+    e auditoria; quem não é admin só mexe nas próprias.
+  - Bloco das instruções do Google virou constante (`INSTR_GOOGLE`), usada
+    pelos dois textos.
+- **Supabase:** `pj_estado_<tel da Karina>` zerado de novo pro teste.
+- **Testes:** 66 simulados ok (atalho, debounce, ferramentas certas, busca
+  só das dela com caminho, ferramenta antiga recusada, mudança pela conversa,
+  Isabela não mexe na linha da Karina).
+- Quem NÃO está liberado (equipe) segue com o Carinha antigo no modo só
+  e-mail até a Karina liberar — aí todos passam pro novo.
+
+---
+
 ## 2026-10-14 (2ª) — Carinha: abertura com Falar aqui / Ver na Dash, fila 1 a 1, revisor de texto, painel do dia
 
 Pedidos da Karina às 12h07 (revisor revisar tudo, texto claro pra quem não

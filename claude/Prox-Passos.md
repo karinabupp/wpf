@@ -29,9 +29,9 @@ reconstruir o raciocínio.
      lista de e-mails) + cada um reconectar o Google pra dar "Tarefas".
      A pergunta "é proposital?" de prazo em fim de semana vai pro
      responsável da tarefa (hoje só a Karina recebe as dela).
-  - *Limites conhecidos:* a conversa livre do Carinha (perguntas) ainda lê
-    a Tasks (`tasks2`), não a Projetos; os botões e a manhã já são da
-    Projetos. E-mail no fim de semana também chega (rotina nova roda todo
+  - *Limites conhecidos:* (resolvido em 14/10, 3ª: a conversa também lê a
+    Projetos pra quem está liberado; a equipe segue no Carinha antigo até
+    liberar). E-mail no fim de semana também chega (rotina nova roda todo
     dia, 8h–21h). Tarefa que vence em fim de semana e já aparece no dia
     (ex.: entrou no amarelo) só ganha a pergunta "é proposital?" no dia
     seguinte. A mensagem leva o link da linha (`?pj=`), que só abre a
