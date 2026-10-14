@@ -98,8 +98,10 @@ o resto chega quando a pessoa toca "Ver agora".
 
 ## Agenda (Google Tasks)
 
-- Entra a tarefa aberta da pessoa que está em deadline ou atrasada (Fim − 3
-  em diante), com 🟡 e, no corpo, o link da linha.
+- Entra SÓ a ação (linha sem nada dentro) aberta da pessoa que está em
+  deadline ou atrasada (Fim − 3 em diante), com 🟡. As linhas de cima vão
+  só na descrição ("Está dentro de: …, na entrega …"), com o link. Concluir
+  finaliza no máximo UMA linha da Dash (Karina, 14/10).
 - No último dia, vai pro dia do Fim. Passou e não foi concluída: vira 🔴 e
   vem pra data de hoje, todo dia.
 - **Concluir na agenda = Finalizado na Projetos** (em até 1 hora).

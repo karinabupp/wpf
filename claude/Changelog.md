@@ -12,6 +12,23 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-14 (5ª) — Agenda: só a ação; as linhas de cima só na descrição
+
+Karina às 17h56: "Promover TDA na Ásia…" apareceu na agenda, mas é linha
+mãe (6 itens dentro); concluir na agenda não pode finalizar várias coisas.
+
+- **Worker (commit `46f7758`):** `pjParaAgenda` só pega linha **sem nada
+  dentro**; a descrição explica onde ela está ("Está dentro de: …, na entrega
+  …"), o nome da linha na Dash, responsáveis, prazo e link, e avisa que
+  concluir finaliza só ela; trava extra: concluída de linha com itens dentro
+  não finaliza nada. A "Promover na Ásia" que já estava na agenda da Karina
+  sai sozinha na próxima rodada (:35).
+- **Observação:** a mãe "Promover na Ásia" tem Fim 09/10, mas o único item
+  aberto (Post pós evento, Roberto/Isabela) vence 30/10 — prazo da mãe velho.
+- **Testes:** 69 simulados ok.
+
+---
+
 ## 2026-10-14 (4ª) — "Ver na Dash" vira pop-up só com as tarefas, com troca de status
 
 Karina às 12h57 (no celular abriu a Dash normal) e 13h18 (mudar status
