@@ -34,7 +34,10 @@ cada um só o seu; Isabela e Karina também Slack).
   permissões, link google.html). Janela: Isabela aberta (recebe na rodada das
   19h05); Leonardo (última msg 23/09) e Roberto (nunca escreveu) recebem o
   template e o recado chega no "Ver agora".
-- **Testes:** 81 simulados ok.
+  **Mudado às 18h40 (Karina: "eles vão mandar um oi"):** o recado não sai
+  sozinho (nem rodada, nem template); vai com o texto exato quando a pessoa
+  escreve qualquer coisa — "oi" recebe só o recado (commit seguinte).
+- **Testes:** 80 simulados ok.
 
 ---
 
