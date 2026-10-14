@@ -2787,7 +2787,9 @@ function pjCabecalho(pessoa, n, reunioes, horaSP, fds) {
   if (reunioes.length) t += `\n\n📅 *${reunioes.length} reuni${reunioes.length === 1 ? "ão" : "ões"} hoje*\n${reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n")}`;
   return t;
 }
-const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join(",")}&org=wpf`;
+// Sem vírgula (o WhatsApp pode cortar o link nela) e com v= pra o celular não
+// abrir uma cópia velha da Dash do cache.
+const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join("~")}&org=wpf&v=${Date.now().toString(36)}`;
 
 // Monta a manhã (sem mandar): abertura + fila de tarefas (uma por vez).
 async function pjMontarManha(env, pessoa, hoje, horaSP, estado, pj) {

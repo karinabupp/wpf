@@ -23117,77 +23117,119 @@ applyRolePermissions();
   // Link direto pra uma linha (14/10, Karina): ?pj=<id> abre a Projetos com a
   // linha aberta e destacada. Usado pelo Carinha no WhatsApp e na Agenda
   // (Google Tasks). &org=cbth troca de empresa antes. Só pra quem vê a Projetos.
-  // Tarefas do dia (14/10, Karina): ?dia=<id>,<id>… (link que o Carinha manda
-  // no WhatsApp) abre um painel com as tarefas da pessoa logada: "Principais"
-  // = as que o Carinha trouxe hoje (mesma contagem da mensagem); "Outras" =
-  // o resto das abertas em nome dela. Clicar leva à linha na tabela.
+  // Tarefas do dia (14/10, Karina): ?dia=<id>~<id>… (link que o Carinha manda
+  // no WhatsApp) abre um POP-UP só com as tarefas da pessoa logada:
+  // "Principais" = as que o Carinha trouxe hoje (mesma contagem da mensagem);
+  // "Outras" = o resto das abertas em nome dela. Dá pra mudar o status ali
+  // mesmo (vai pro Histórico da linha, igual à tabela); o nome leva à linha.
+  const DIA_STATUS = [
+    { id: "naoiniciado", nome: "Não iniciado" }, { id: "andamento", nome: "Em andamento" },
+    { id: "bloqueado", nome: "Bloqueado" }, { id: "finalizado", nome: "Finalizado" }
+  ];
   function painelDoDia(idsDia) {
     const eu = (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
-    const todas = [];
-    (function walk(l, pais) {
-      (l || []).forEach(x => { todas.push({ x, pais }); walk(x.subtasks, pais.concat(x)); });
-    })(entregas, []);
-    const porId = new Map(todas.map(t => [t.x.id, t]));
-    const aberta = s => s !== "finalizado" && s !== "cancelado";
-    const principais = idsDia.map(id => porId.get(id)).filter(Boolean);
-    const setP = new Set(principais.map(t => t.x.id));
-    const outras = todas.filter(t => !setP.has(t.x.id) && aberta(t.x.status) && (t.x.assignees || []).includes(eu) &&
-      !(t.x.subtasks || []).length && !t.pais.some(p => p.status === "cancelado"))
-      .sort((a, b) => (a.x.endDate || "9999").localeCompare(b.x.endDate || "9999"));
     let aba = "principais";
-    let el = document.getElementById("pj-dia");
-    if (!el) {
+    if (!document.getElementById("pjd-estilo")) {
       const st = document.createElement("style");
+      st.id = "pjd-estilo";
       st.textContent = `
-  #pj-dia { position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 100vw; background: #fff; box-shadow: -8px 0 24px rgba(15,15,15,.12); z-index: 900; display: flex; flex-direction: column; font-size: 13px; color: #37352f; }
-  #pj-dia header { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px; }
-  #pj-dia h3 { margin: 0; font-size: 16px; font-weight: 600; }
-  #pj-dia .pjd-fechar { border: 0; background: none; font-size: 20px; cursor: pointer; color: #9b9a97; line-height: 1; }
-  #pj-dia .pjd-abas { display: flex; gap: 6px; padding: 0 16px 10px; border-bottom: 1px solid #ededeb; }
-  #pj-dia .pjd-aba { border: 1px solid #e3e2df; background: #fff; border-radius: 999px; padding: 4px 12px; font: inherit; cursor: pointer; color: #37352f; }
+  #pj-dia { position: fixed; inset: 0; z-index: 2147483000; background: rgba(15,15,15,.38); display: flex; align-items: center; justify-content: center; padding: 16px; font-size: 13.5px; color: #37352f; }
+  #pj-dia .pjd-caixa { background: #fff; width: min(580px, 100%); max-height: min(82vh, 760px); border-radius: 14px; box-shadow: 0 18px 50px rgba(15,15,15,.22); display: flex; flex-direction: column; overflow: hidden; }
+  #pj-dia header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 20px 12px; }
+  #pj-dia h3 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -.01em; }
+  #pj-dia .pjd-sub { color: #9b9a97; font-size: 12.5px; margin-top: 3px; }
+  #pj-dia .pjd-fechar { border: 0; background: #f1f1ef; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; line-height: 1; cursor: pointer; color: #6b6a66; flex: none; }
+  #pj-dia .pjd-abas { display: flex; gap: 6px; padding: 0 20px 12px; border-bottom: 1px solid #efeeec; }
+  #pj-dia .pjd-aba { border: 1px solid #e6e5e2; background: #fff; border-radius: 999px; padding: 5px 13px; font: inherit; font-size: 12.5px; cursor: pointer; color: #37352f; }
   #pj-dia .pjd-aba.is-ativa { background: #37352f; color: #fff; border-color: #37352f; }
-  #pj-dia ul { list-style: none; margin: 0; padding: 6px 8px 16px; overflow-y: auto; flex: 1; }
-  #pj-dia li { display: flex; gap: 10px; padding: 9px 8px; border-radius: 6px; cursor: pointer; }
-  #pj-dia li:hover { background: rgba(55,53,47,.06); }
-  #pj-dia .pjd-bola { flex: none; width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; background: #d3d1cb; }
-  #pj-dia .pjd-bola.is-atrasada { background: #e03e3e; } #pj-dia .pjd-bola.is-prazo { background: #e9b100; } #pj-dia .pjd-bola.is-feita { background: #4b7a2b; }
-  #pj-dia .pjd-nome { font-weight: 500; line-height: 1.35; } #pj-dia li.is-feita .pjd-nome { text-decoration: line-through; color: #9b9a97; }
-  #pj-dia small { display: block; color: #9b9a97; font-size: 11.5px; margin-top: 2px; line-height: 1.35; }
-  #pj-dia .pjd-vazio { color: #9b9a97; padding: 16px; cursor: default; }
-  @media (max-width: 760px) { #pj-dia { width: 100vw; } }`;
+  #pj-dia ul { list-style: none; margin: 0; padding: 8px 12px 14px; overflow-y: auto; }
+  #pj-dia li { display: flex; align-items: center; gap: 12px; padding: 11px 8px; border-bottom: 1px solid #f4f3f1; }
+  #pj-dia li:last-child { border-bottom: 0; }
+  #pj-dia .pjd-bola { flex: none; width: 9px; height: 9px; border-radius: 50%; background: #d3d1cb; }
+  #pj-dia .pjd-bola.is-atrasada { background: #e03e3e; } #pj-dia .pjd-bola.is-prazo { background: #e9b100; } #pj-dia .pjd-bola.is-feita { background: #4b9a2b; }
+  #pj-dia .pjd-txt { flex: 1; min-width: 0; }
+  #pj-dia .pjd-nome { border: 0; background: none; padding: 0; font: inherit; font-weight: 550; color: #37352f; text-align: left; cursor: pointer; line-height: 1.35; }
+  #pj-dia .pjd-nome:hover { text-decoration: underline; text-underline-offset: 2px; }
+  #pj-dia li.is-feita .pjd-nome { text-decoration: line-through; color: #a5a4a0; }
+  #pj-dia small { display: block; color: #9b9a97; font-size: 11.5px; margin-top: 3px; line-height: 1.4; }
+  #pj-dia small b { font-weight: 600; color: #6b6a66; } #pj-dia small b.is-atrasada { color: #d03a3a; } #pj-dia small b.is-prazo { color: #b48900; }
+  #pj-dia .pjd-status { flex: none; appearance: none; -webkit-appearance: none; border: 0; border-radius: 999px; padding: 6px 26px 6px 11px; font: inherit; font-size: 12px; font-weight: 550; cursor: pointer;
+    background-repeat: no-repeat; background-position: right 9px center; background-size: 9px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2337352f' stroke-width='1.5' fill='none' opacity='.55'/%3E%3C/svg%3E"); }
+  #pj-dia .pjd-status.is-naoiniciado, #pj-dia .pjd-status.is-detalhar { background-color: #f1f1ef; color: #55534e; }
+  #pj-dia .pjd-status.is-andamento { background-color: #e7f0fb; color: #1f5fa8; }
+  #pj-dia .pjd-status.is-bloqueado { background-color: #fdeee3; color: #b45309; }
+  #pj-dia .pjd-status.is-finalizado { background-color: #e8f4e1; color: #3d7a22; }
+  #pj-dia .pjd-vazio { color: #9b9a97; justify-content: center; padding: 28px 8px; }
+  @media (max-width: 760px) {
+    #pj-dia { align-items: flex-end; padding: 0; }
+    #pj-dia .pjd-caixa { width: 100%; max-height: 92vh; border-radius: 16px 16px 0 0; }
+    #pj-dia li { flex-wrap: wrap; } #pj-dia .pjd-status { margin-left: 21px; }
+  }`;
       document.head.appendChild(st);
-      el = document.createElement("aside");
-      el.id = "pj-dia";
-      el.setAttribute("aria-label", "Suas tarefas de hoje");
-      document.body.appendChild(el);
     }
+    let el = document.getElementById("pj-dia");
+    if (!el) { el = document.createElement("div"); el.id = "pj-dia"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "Suas tarefas de hoje"); document.body.appendChild(el); }
     const fmt = s => (s ? s.slice(8, 10) + "/" + s.slice(5, 7) : "");
+    function listas() {
+      const todas = [];
+      (function walk(l, pais) { (l || []).forEach(x => { todas.push({ x, pais }); walk(x.subtasks, pais.concat(x)); }); })(entregas, []);
+      const porId = new Map(todas.map(t => [t.x.id, t]));
+      const principais = idsDia.map(id => porId.get(id)).filter(Boolean);
+      const setP = new Set(principais.map(t => t.x.id));
+      const outras = todas.filter(t => !setP.has(t.x.id) && t.x.status !== "finalizado" && t.x.status !== "cancelado" && (t.x.assignees || []).includes(eu) &&
+        !(t.x.subtasks || []).length && !t.pais.some(p => p.status === "cancelado"))
+        .sort((a, b) => (a.x.endDate || "9999").localeCompare(b.x.endDate || "9999"));
+      return { principais, outras };
+    }
     function item(t) {
-      const x = t.x, feita = x.status === "finalizado", cancelada = x.status === "cancelado";
+      const x = t.x, feita = x.status === "finalizado";
       const hoje = hojeLocal();
       const classe = feita ? "is-feita" : vencida(x) ? "is-atrasada" : proximaDoPrazo(x) ? "is-prazo" : "";
-      const prazo = feita ? "Finalizada" : cancelada ? "Cancelada" : x.endDate ? (vencida(x) ? "Venceu " + fmt(x.endDate) : x.endDate === hoje ? "Vence hoje" : "Vence " + fmt(x.endDate)) : "Sem prazo";
+      const prazo = feita ? "Finalizada" : x.status === "cancelado" ? "Cancelada" : x.endDate ? (vencida(x) ? "Venceu " + fmt(x.endDate) : x.endDate === hoje ? "Vence hoje" : "Vence " + fmt(x.endDate)) : "Sem prazo";
       const caminho = t.pais.map(p => p.nome).join(" › ");
-      return `<li data-id="${esc(x.id)}" class="${feita ? "is-feita" : ""}"><span class="pjd-bola ${classe}"></span><div><div class="pjd-nome">${esc(x.nome || "(sem nome)")}</div><small>${esc(prazo)}${caminho ? " · " + esc(caminho) : ""}</small></div></li>`;
+      const ops = DIA_STATUS.concat(DIA_STATUS.some(s => s.id === x.status) ? [] : [{ id: x.status, nome: x.status === "detalhar" ? "Falta detalhar" : "Cancelado" }])
+        .map(s => `<option value="${s.id}"${s.id === x.status ? " selected" : ""}>${s.nome}</option>`).join("");
+      return `<li data-id="${esc(x.id)}" class="${feita ? "is-feita" : ""}"><span class="pjd-bola ${classe}"></span>
+        <div class="pjd-txt"><button type="button" class="pjd-nome" title="Abrir na tabela">${esc(x.nome || "(sem nome)")}</button>
+        <small><b class="${classe}">${esc(prazo)}</b>${caminho ? " · " + esc(caminho) : ""}</small></div>
+        <select class="pjd-status is-${esc(x.status)}" aria-label="Status de ${esc(x.nome || "")}">${ops}</select></li>`;
     }
     function montar() {
+      const { principais, outras } = listas();
       const lista = aba === "principais" ? principais : outras;
-      el.innerHTML = `<header><h3>Suas tarefas de hoje</h3><button class="pjd-fechar" type="button" aria-label="Fechar">×</button></header>
+      const feitas = principais.filter(t => t.x.status === "finalizado").length;
+      el.innerHTML = `<div class="pjd-caixa"><header><div><h3>Suas tarefas de hoje</h3><div class="pjd-sub">${principais.length ? `${feitas} de ${principais.length} finalizadas` : "Nada pra hoje"}</div></div><button class="pjd-fechar" type="button" aria-label="Fechar">×</button></header>
         <div class="pjd-abas"><button type="button" class="pjd-aba ${aba === "principais" ? "is-ativa" : ""}" data-aba="principais">Principais (${principais.length})</button><button type="button" class="pjd-aba ${aba === "outras" ? "is-ativa" : ""}" data-aba="outras">Outras (${outras.length})</button></div>
-        <ul>${lista.length ? lista.map(item).join("") : `<li class="pjd-vazio">${aba === "principais" ? "Nada pra hoje 🎉" : "Nenhuma outra tarefa aberta em seu nome."}</li>`}</ul>`;
+        <ul>${lista.length ? lista.map(item).join("") : `<li class="pjd-vazio">${aba === "principais" ? "Nada pra hoje 🎉" : "Nenhuma outra tarefa aberta em seu nome."}</li>`}</ul></div>`;
     }
     el.onclick = ev => {
-      if (ev.target.closest(".pjd-fechar")) { el.remove(); return; }
+      if (ev.target === el || ev.target.closest(".pjd-fechar")) { el.remove(); return; }
       const b = ev.target.closest(".pjd-aba");
       if (b) { aba = b.dataset.aba; montar(); return; }
-      const li = ev.target.closest("li[data-id]");
-      if (li) {
-        if (!achar(li.dataset.id)) return;
-        if (window.matchMedia("(max-width: 760px)").matches) el.remove();
+      const nome = ev.target.closest(".pjd-nome");
+      if (nome) {
+        const id = nome.closest("li").dataset.id;
+        if (!achar(id)) return;
+        el.remove();
         frenteFiltro = ""; objFiltro = ""; prioFiltro = "";
         render();
-        irParaLinha(li.dataset.id);
+        irParaLinha(id);
       }
+    };
+    el.onchange = ev => {
+      const sel = ev.target.closest(".pjd-status");
+      if (!sel) return;
+      const e = achar(sel.closest("li").dataset.id);
+      if (!e || e.status === sel.value) return;
+      const antes = e.status, finAntes = e.finalizadoEm;
+      e.status = sel.value;
+      if (e.status === "finalizado" && antes !== "finalizado" && !e.finalizadoEm) e.finalizadoEm = hojeLocal();
+      if (e.status !== "finalizado") e.finalizadoEm = "";
+      registrarCampo(e, "status", antes, e.status);
+      registrarCampo(e, "finalizadoEm", finAntes, e.finalizadoEm);
+      salvar();
+      render();
+      montar();
     };
     montar();
   }
@@ -23203,13 +23245,13 @@ applyRolePermissions();
     }
     if (dia !== null) {
       initialCloudLoadPromise.catch(() => {}).then(() => {
-        params.delete("dia"); params.delete("org");
+        params.delete("dia"); params.delete("org"); params.delete("v");
         const resto = params.toString();
         try { history.replaceState(null, "", location.pathname + (resto ? "?" + resto : "") + location.hash); } catch (e) {}
         if (!pilotoLiberado()) return;
         const nav = document.getElementById("nav-projetos");
         if (nav) nav.click();
-        setTimeout(() => painelDoDia(dia.split(",").map(s => s.trim()).filter(Boolean)), 300);
+        setTimeout(() => painelDoDia(dia.split(/[~,]/).map(s => s.trim()).filter(Boolean)), 300);
       });
       return;
     }
