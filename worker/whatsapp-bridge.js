@@ -3172,7 +3172,9 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
     }
   }
   // 2) Dash → Google.
-  const alvo = pjParaAgenda(pj.dados, pessoa.nome_tasks, hoje);
+  let alvo = pjParaAgenda(pj.dados, pessoa.nome_tasks, hoje);
+  // Modo teste (14/10): agenda pausada = só a linha de teste entra.
+  if (estado.agendaPausada) alvo = alvo.filter(x => x.no.id === estado.agendaTeste);
   const idsAlvo = new Set(alvo.map(x => x.no.id));
   const semTexto = alvo.filter(x => !estado.textos[x.no.id]);
   if (semTexto.length) { await pjDescrever(env, semTexto, estado); mudou = true; }
@@ -3402,6 +3404,59 @@ async function pjAbrirDia(env, pessoa, tel) {
   await pjManha(env, pessoa, Date.now(), "atalho");
 }
 
+
+// ── Comandos da agenda (admin, pelo WhatsApp; 14/10, teste com a Karina) ──
+// "limpar agenda": tira da agenda do Google todas as tarefas que o Carinha
+// criou e pausa a criação; "agenda teste": põe UMA (a ação dela que vence
+// primeiro); "agenda agora": roda a sincronização na hora (concluídas → Dash);
+// "agenda normal": volta ao funcionamento normal.
+async function pjComandoAgenda(env, pessoa, tel, cmd) {
+  const cmds = ["limpar agenda", "agenda teste", "agenda agora", "agenda normal"];
+  if (!pessoa.admin || !cmds.includes(cmd)) return false;
+  const c = pessoa.email ? await conexaoGoogle(env, pessoa.email, true) : null;
+  if (!c || !temEscopo(c, "tarefas")) { await enviarTexto(env, tel, "Seu Google ainda não tem a permissão de Tarefas. Reconecte em " + GOOGLE_PAGINA); return true; }
+  const L = `${G_TASKS}/lists/@default/tasks`;
+  const hoje = hojeSP();
+  if (cmd === "limpar agenda") {
+    const est = await pjEstado(env, tel);
+    let n = 0;
+    for (const id of Object.keys(est.agenda || {})) {
+      const a = est.agenda[id];
+      if (a && a.g && !a.apagada) { const r = await gApi(env, c, `${L}/${encodeURIComponent(a.g)}`, { method: "DELETE" }); if (r.ok || r.status === 404) n++; }
+    }
+    await pjSalvarParte(env, tel, e => { e.agenda = {}; e.agendaPausada = true; e.agendaTeste = ""; });
+    await enviarTexto(env, tel, `Pronto: tirei ${n} tarefa${n === 1 ? "" : "s"} da sua agenda e pausei a agenda. Mande *agenda teste* pra eu colocar uma só.`);
+    return true;
+  }
+  if (cmd === "agenda teste") {
+    const pj = await pjCarregar(env);
+    const alvo = pjAchatar(pj.dados).filter(({ no, pais }) => no.id && pjAberto(no.status) && pjDono(no, pessoa.nome_tasks) && !pjTemFilhos(no) &&
+      !pais.some(p => p.status === "cancelado") && dataValida(no.endDate) && no.endDate >= hoje).sort((a, b) => a.no.endDate.localeCompare(b.no.endDate))[0];
+    if (!alvo) { await enviarTexto(env, tel, "Não achei nenhuma ação aberta sua com prazo pra testar."); return true; }
+    await pjSalvarParte(env, tel, e => { e.agendaPausada = true; e.agendaTeste = alvo.no.id; });
+    await pjAgendaSync(env, c, pessoa, hoje);
+    const est = await pjEstado(env, tel);
+    const ok = est.agenda && est.agenda[alvo.no.id] && est.agenda[alvo.no.id].g;
+    await enviarTexto(env, tel, ok ? `Coloquei 1 tarefa na sua agenda de hoje: *${est.agenda[alvo.no.id].titulo}*.\nPra testar, marque como concluída no Google e me mande *agenda agora*: ela vira Finalizado na Dash (só essa linha, "${alvo.no.nome}").` : "Não consegui criar a tarefa no Google. Tente de novo em instantes.");
+    return true;
+  }
+  if (cmd === "agenda agora") {
+    const antes = await pjEstado(env, tel);
+    const ids = Object.keys(antes.agenda || {});
+    await pjAgendaSync(env, c, pessoa, hoje);
+    const pj = await pjCarregar(env);
+    const fin = ids.filter(id => { const l = pjLocalizar(pj.dados, id); return l && l.no.status === "finalizado"; }).map(id => pjLocalizar(pj.dados, id).no.nome);
+    await enviarTexto(env, tel, fin.length ? `✅ Finalizado na Dash: ${fin.map(n => `"${n}"`).join(", ")}.` : "Agenda conferida. Nenhuma tarefa marcada como concluída por lá ainda.");
+    return true;
+  }
+  if (cmd === "agenda normal") {
+    await pjSalvarParte(env, tel, e => { e.agendaPausada = false; e.agendaTeste = ""; });
+    await pjAgendaSync(env, c, pessoa, hoje);
+    await enviarTexto(env, tel, "Agenda de volta ao normal: as ações em deadline ou atrasadas entram com 🟡/🔴.");
+    return true;
+  }
+  return false;
+}
 async function tratarMensagem(env, msg, textoRecebido) {
   let texto = textoRecebido;
   const tel = msg.from;
@@ -3461,6 +3516,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   // Botões das tarefas da Projetos (Finalizar, Mudar prazo, Próxima tarefa…).
   if (pjLib && (await pjTratarBotao(env, pessoa, tel, cmd, msg))) return;
   // Atalho tolerante: "ver agora", "tarefas"… abrem a lista de hoje.
+  if (pjLib && (await pjComandoAgenda(env, pessoa, tel, cmd))) return;
   if (pjLib && pjEhAtalho(cmd)) { await pjAbrirDia(env, pessoa, tel); return; }
 
   // Tocou em "Ver agora" do aviso: manda o que está pendente.
