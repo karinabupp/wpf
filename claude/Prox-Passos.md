@@ -15,6 +15,34 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **⭐ Carinha + Projetos — piloto com a Karina (no ar desde 14/10)** —
+  Changelog 14/10. Falta, nesta ordem:
+  1. **Karina testar:** "Ver agora" no WhatsApp (manhã de estreia), tocar
+     cada botão até o "sim"; conferir na Dash o Histórico da linha.
+  2. **Agenda:** Karina ativar a Google Tasks API no projeto Carinha e
+     reconectar o Google (google.html) marcando "Tarefas". Conferir em
+     `wpf_agente_google` que `escopos` tem `.../auth/tasks`; na rodada dos :35
+     as tarefas em deadline aparecem com 🟡/🔴. Testar "concluída" →
+     Finalizado na Dash.
+  3. **Liberar pra equipe** (ela disse: "dps vamos liberar isso e agenda
+     juntos pros outros"): `projetos_liberados` = `{"todos": true}` (ou a
+     lista de e-mails) + cada um reconectar o Google pra dar "Tarefas".
+     A pergunta "é proposital?" de prazo em fim de semana vai pro
+     responsável da tarefa (hoje só a Karina recebe as dela).
+  - *Limites conhecidos:* a conversa livre do Carinha (perguntas) ainda lê
+    a Tasks (`tasks2`), não a Projetos; os botões e a manhã já são da
+    Projetos. E-mail no fim de semana também chega (rotina nova roda todo
+    dia, 8h–21h). Tarefa que vence em fim de semana e já aparece no dia
+    (ex.: entrou no amarelo) só ganha a pergunta "é proposital?" no dia
+    seguinte. A mensagem leva o link da linha (`?pj=`), que só abre a
+    Projetos pra quem está em `PILOTO_LOGINS` (hoje só a Karina).
+  - *Ideias:* fechamento do dia (19h) perguntando o que foi feito, usando os
+    itens mostrados de manhã; a conversa livre passar a ler a Projetos.
+  - *Onde:* `worker/whatsapp-bridge.js` (bloco "PROJETOS + AGENDA"),
+    `worker/instrucoes/lembretes.md`, `wpf_agente_config`
+    (`projetos_liberados`, `pj_estado_<tel>`).
+  - *Aberto em:* 2026-10-14
+
 - [ ] **Storyline nas outras entregas da Projetos (09/10)** — o Ladies
   Weekend 2026 foi reorganizado com storyline completo (Changelog 19ª). Fazer
   o mesmo nas outras entregas, **uma por vez, com proposta e perguntas antes**
@@ -34,8 +62,9 @@ reconstruir o raciocínio.
     informação → mensagem pra Karina dizer de quem é, e o Claude preenche;
     (3) o check-in da manhã **fica** e vira o check-in das tarefas;
     (4) **não religar** Isabela/Leonardo/Roberto por enquanto.
-    Regras de quando lembrar + rotatividade (máx. 5/dia por pessoa):
-    **`worker/instrucoes/lembretes.md`** (aprovadas às 15:11).
+    Regras de quando lembrar: **`worker/instrucoes/lembretes.md`** (as de
+    09/10 foram substituídas pelas de 14/10; a manhã já está no ar pra
+    Karina — ver item do topo; falta o fechamento das 19h).
     Falta: criar templates na Meta ("resumo_dia"/"fechamento_dia") pro fim do
     dia com a janela fechada; guardar "quando cada item foi mostrado"; cron
     das 19h. Só ligar quando ela liberar.
@@ -98,8 +127,9 @@ reconstruir o raciocínio.
   - *Aberto em:* 2026-10-08 · publicado em 2026-10-12
 
 - [ ] **Carinha — próximo passo depois do modo só e-mail (Karina, 13/10)** —
-  14/10: organizar a parte da **agenda** (montar coisas na agenda etc.). Tasks
-  só quando ela terminar de alinhar; aí desligar `avisos_somente_email`.
+  14/10: feita a rotina nova da Projetos + agenda (item do topo), só pra
+  Karina. Pra equipe, liberar por `projetos_liberados` (não precisa desligar
+  `avisos_somente_email`: quem está liberado já sai do modo só e-mail).
   - *Atenção ao desligar:* há avisos antigos guardados que não são e-mail
     (Isabela 10, Karina 13, de 13/10). Decidir com ela se descarta antes, pra
     não chegar tudo de uma vez.

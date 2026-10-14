@@ -87,16 +87,22 @@ dois arquivos antes de propor qualquer coisa**:
   e nada de "Nome: detalhe" em linha nenhuma: vira sublinha (ou Responsável/
   data). Detalhes em **`worker/instrucoes/organizacao-projetos.md`**.
 
-- **Lembretes do Carinha (09/10):** quando e o quê lembrar (por Dificuldade,
-  período, rotatividade, máx. 5/dia) em **`worker/instrucoes/lembretes.md`**.
-  Ainda não ligado (aguarda a Karina liberar).
+- **Carinha lê a Projetos (Karina, 14/10):** manhã das 9h25 (todo dia) com
+  as tarefas que caem nos 5 gatilhos + reuniões do dia, uma mensagem por
+  tarefa com botões, **revisor em código** antes de mandar, e-mail não lido à
+  parte, tarefa nova urgente na hora, agenda pelo Google Tasks (🟡/🔴,
+  concluir = Finalizado). Regras em **`worker/instrucoes/lembretes.md`**
+  (substituem as de 09/10). Só pra quem está em `projetos_liberados`
+  (`wpf_agente_config`; piloto: só a Karina). Liberar o resto: só com ordem
+  dela. Link direto pra linha da Dash: `?pj=<id>&org=wpf`.
 
 - **MODO SÓ E-MAIL (Karina, 13/10 — até segunda ordem):** o Carinha está
   ligado pra todos, mas por conta própria **só avisa de e-mail relevante da
   própria pessoa** (spam/propaganda não; nada do e-mail dos outros).
-  **Ninguém recebe nada de Tasks**, nem check-in, Slack ou reunião, nem a
-  Karina. Chave `avisos_somente_email` em `wpf_agente_config`; só desligar
-  com ordem dela.
+  **Ninguém recebe nada de Tasks**, nem check-in, Slack ou reunião. Chave
+  `avisos_somente_email` em `wpf_agente_config`; só desligar com ordem dela.
+  Exceção (14/10): quem está em `projetos_liberados` (hoje só a Karina) segue
+  a rotina nova da Projetos (item acima).
 - **Google de cada pessoa (12/10):** conexão em `google.html` ou no ícone
   "Meu Google" da Dash; chave em `wpf_agente_google` (só o robô lê). App
   "Carinha" no Google Cloud da organização WPF (interno + confiável).

@@ -12,6 +12,56 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-14 — Carinha lê a Projetos: manhã, revisor, botões e agenda (piloto: Karina)
+
+Pedido da Karina às 11h38; respostas e "pode seguir" às 11h48.
+
+- **Decisões dela:** (1) atraso: 4º dia e depois a cada 3 (7, 10, 13…);
+  (2) fala no dia que vence, inclusive sábado/domingo, e pergunta uma vez se
+  prazo em fim de semana é proposital (fora do Ladies Weekend); (3) estreia
+  traz o que já estava no amarelo/atrasado, primeiro só pra ela; (4) só a
+  ponta, a mãe só em deadline/atrasada, e a mensagem diz o que fazer de fato;
+  (5) tarefas: manhã + urgente na hora; e-mails à parte conforme chegam;
+  (6) janela de 24h: se a pessoa escreve, abre; fechada = template;
+  (7) agenda: 🟡 em deadline; vencida sem "concluída" vira 🔴 e vem pra hoje.
+- **Worker (`worker/whatsapp-bridge.js`, bloco "PROJETOS + AGENDA",
+  commit `fd57678`):**
+  - lê a seção `projetos`; 5 gatilhos; pergunta de fim de semana;
+  - manhã: abertura com contagem + reuniões do dia (Google Agenda da
+    pessoa), uma mensagem por tarefa com 3 botões e link `?pj=`; a IA (Haiku)
+    só reescreve "o que fazer" (texto guardado; sem IA vai o nome da linha);
+  - **revisor** em código antes de enviar (contagem, gatilho, dono, status,
+    texto, botões); se barrar, tarefas não saem e a Karina é avisada;
+  - e-mail: só o que ainda está não lido no Gmail; sem o teto de 3/dia;
+  - durante o dia: tarefa nova vencendo hoje/amanhã ou atrasada vai na hora;
+  - botões Finalizar · Começar · Mudar prazo (Amanhã / Em 3 dias / Próx.
+    segunda ou data escrita) · Próxima tarefa (cria logo depois) · Sim,
+    proposital — tudo com "sim", Histórico da linha e auditoria;
+  - agenda pelo **Google Tasks** (escopo opcional `tasks`, pedido na
+    conexão): cria/atualiza/conclui/remove na rodada dos :35; concluir lá =
+    Finalizado na Projetos;
+  - só pra quem está em `projetos_liberados`; o resto segue no modo só
+    e-mail, sem mudança.
+- **`worker/wrangler.toml`:** cron das 9h25 todo dia (`25 12 * * *`); fim de
+  semana só vale pra quem está na Projetos.
+- **Dash (`index.html`, bloco PROJETOS):** link direto `?pj=<id>&org=wpf`
+  abre a Projetos com a linha aberta e destacada (limpa filtro se esconder).
+  Não ganhou permissão no `CATALOGO_PERMISSOES`: não é função nova, só
+  abre uma linha que a pessoa já vê.
+- **Supabase:** `wpf_agente_config` → `projetos_liberados` =
+  `{"emails":["karina@worldpokerfederation.org"]}` e
+  `pj_estado_<tel da Karina>` = `{"manhaPendente":"2026-10-14"}` (pra testar
+  hoje com "Ver agora").
+- **Docs:** `worker/instrucoes/lembretes.md` reescrito (regras de 14/10 no
+  lugar das de 09/10); LEIA-PRIMEIRO; seção "Atualização 14/10" no doc BAIER.
+- **Testes:** 53 simulados (Supabase/Meta/Google/IA): gatilhos, estreia,
+  fim de semana, revisor barrando "diz 3, mostra 2", contagem errada e
+  tarefa finalizada, janela fechada + Ver agora, cada botão até gravar,
+  urgentes, agenda (criar, mover pro Fim, 🔴, concluir nos dois sentidos,
+  apagada, trocou de dono), IA fora do ar. Deploy do Worker ok.
+
+---
+
 ## 2026-10-13 (4ª) — Carinha liberado pra todos, só com avisos de e-mail
 
 Pedido e OK da Karina às 19h14 ("pode liberar o carinha").

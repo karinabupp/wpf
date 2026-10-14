@@ -1,48 +1,95 @@
 # Lembretes do Carinha — quando e o quê lembrar
 
-> **Quem usa:** o Carinha (Worker `wpf-whatsapp-bridge`) e toda sessão do
-> Claude que mexer na rotina de mensagens. Aprovado pela Karina em
-> 09/10/2026 ("manda bala"). Mudou aqui = registrar no Changelog.
-> **Ainda não está ligado:** o resumo diário só começa quando a Karina
-> liberar (ver Prox Passos "Resumo diário + fechamento do dia").
+> **Quem usa:** o Carinha (Worker `wpf-whatsapp-bridge`, bloco "PROJETOS +
+> AGENDA") e toda sessão do Claude que mexer na rotina de mensagens.
+> **Regras da Karina de 14/10/2026** (substituem as de 09/10: Dificuldade,
+> máximo de 5 por dia e rotatividade saíram). Mudou aqui = registrar no
+> Changelog.
+> **No ar só pra quem está em `projetos_liberados`** (`wpf_agente_config`).
+> Piloto: só a Karina. Quem não está liberado segue no modo só e-mail.
 
 ## De onde vem
 
-- Fonte: guia **Projetos** (seção `projetos`). A Tasks vai deixar de existir.
-- Só **ações**: linhas sem nada dentro, não finalizadas/canceladas (mesma
-  regra da coluna Próxima ação). Unidade sem passos ("🇦🇷 @Argentina") não é
-  ação.
-- Cada um recebe **só o que é seu** (REGRA DO ROBÔ). Ação **sem responsável,
-  sem data ou faltando informação vai pra Karina**, perguntando de quem é /
-  o que falta; com a resposta, o Claude/Carinha preenche (com confirmação).
+- Fonte: guia **Projetos** (seção `projetos`). Não lê as outras abas.
+- Só tarefas **abertas** (nem Finalizado, nem Cancelado) **em nome da
+  pessoa**. Linha dentro de entrega cancelada não entra.
+- **Só a ponta** (linha sem nada dentro). A linha mãe só entra quando está em
+  deadline ou atrasada, ou seja, pelos gatilhos de prazo, nunca pelo Início.
+- Cada um recebe **só o que é seu** (REGRA DO ROBÔ).
 
-## Quando lembrar (por Dificuldade e período)
+## Os 5 gatilhos (dias corridos)
 
-Período longo = mais de 7 dias entre Início e Fim.
+| Gatilho | Quando | Na mensagem |
+|---|---|---|
+| Início | dia do Início (só a ponta) | ▶️ Começa hoje |
+| Entrou em deadline | Fim − 3 (o dia em que fica amarelo na Dash) | 🟡 Entrou no prazo |
+| Vence | dia do Fim | 🟡 Vence hoje |
+| Atraso | 4 dias depois do Fim | 🔴 4 dias de atraso |
+| Atraso de novo | a cada 3 dias depois disso (7, 10, 13…) | 🔴 N dias de atraso |
 
-| Tipo | Quando lembra |
-|---|---|
-| **Dificuldade Alta** ou **período longo** | 2 dias antes do Início e no dia do Início; durante, a cada 3 dias úteis pergunta como está; de novo 3 dias antes do Fim |
-| **Dificuldade Média** | no Início e 3 dias antes do Fim |
-| **Dificuldade Baixa** | uma vez só; depois, só se atrasar |
-| **Atrasada** (passou do Fim) | sempre entra |
+- **Estreia** (a 1ª manhã de cada pessoa): entra também o que já estava no
+  amarelo ou atrasado, uma vez só.
+- **Fim de semana:** o Carinha roda todo dia. Sábado e domingo ele só manda
+  se houver tarefa (sem "nada desse lado").
+- **Prazo em sábado/domingo** (fora do Ladies Weekend): pergunta uma vez
+  "é proposital?" com [Sim, proposital] [Mudar prazo]. Se o Fim mudar e cair
+  de novo em fim de semana, pergunta de novo.
 
-Sem Dificuldade preenchida: tratar como Média. Sem Início/Fim: não dispara
-por data — vai pra Karina como "faltando informação".
+## A manhã (9h25)
 
-## Rotatividade (nada de repetir as mesmas tarefas todo dia)
+1. Abertura: "Bom dia, Fulana! Hoje: N tarefas pra olhar e M reuniões", com
+   a lista das reuniões do dia (agenda do Google da própria pessoa; recusadas
+   e "local de trabalho" ficam fora).
+2. **Uma mensagem por tarefa**: o que precisa ser feito de fato (a IA
+   reescreve a partir da linha e das de cima; sem IA, vai o nome da linha),
+   o gatilho, o contexto da entrega quando ajuda, o link da linha na Dash
+   (`?pj=<id>`) e 3 botões:
+   - normal: Finalizar · Mudar prazo · Próxima tarefa
+   - Início: Começar · Mudar prazo · Finalizar
+   - fim de semana: Sim, proposital · Mudar prazo
+3. E-mails importantes (mesma triagem de sempre) e **ainda não lidos no
+   Gmail**, em mensagens à parte.
+4. Sem nada (dia útil): "Bom dia! Nada desse lado, você precisa de algo?"
+   com [Tudo certo] [Tenho algo].
 
-- Por pessoa e por dia: **no máximo 5 itens**.
-- Escolha por nota: **prioridade** (alta > média > baixa) + **proximidade do
-  prazo** + **tempo desde a última vez que o item apareceu**. O que apareceu
-  ontem perde peso. Atrasada sempre entra (conta dentro dos 5).
-- Guardar quando cada item foi mostrado a cada pessoa (pra calcular o peso).
+Janela de 24h fechada: vai o template `aviso_dash` (só se houver conteúdo) e
+o resto chega quando a pessoa toca "Ver agora".
 
-## Ritual (dias úteis)
+## Revisor (obrigatório, em código)
 
-- **Manhã (check-in, 9h–9h25):** resumo do que precisa ser feito, já
-  filtrado pelas regras acima. Sem nada: não manda resumo (o check-in que
-  mantém a janela do WhatsApp aberta continua, decidido em 09/10).
-- **Fim do dia (19h):** pergunta o que foi feito e o que não foi, dos itens
-  mostrados de manhã. A resposta vira proposta de mudança de status, sempre
-  com confirmação.
+Antes de mandar, recalcula a lista a partir da Projetos e confere: o número
+da abertura bate com as mensagens; cada tarefa cumpre um gatilho; nada
+finalizado ou cancelado; tudo é da pessoa; cada mensagem tem texto, link e
+2–3 botões. Qualquer diferença: **as tarefas não saem** e a Karina recebe
+"⚠️ O revisor barrou…".
+
+## Durante o dia
+
+- Tarefa **nova** em nome da pessoa vencendo hoje ou amanhã, ou já
+  atrasada: vai na hora ("🆕 Tarefa nova em seu nome").
+- E-mail importante e não lido: conforme chega (sem teto por dia). O muito
+  urgente continua indo na hora.
+
+## Botões (tudo pede "sim" antes de gravar)
+
+- **Finalizar / Começar:** muda o status; Finalizado preenche a data.
+- **Mudar prazo:** oferece Amanhã / Em 3 dias / Próx. segunda ou aceita a
+  data escrita (20/10, 20/10/2026, amanhã, em 3 dias, próx. sexta). Se cair em
+  fim de semana, avisa.
+- **Próxima tarefa:** a pessoa escreve o nome (e o prazo, se tiver, ex.:
+  "Enviar o contrato até 20/10"); cria logo depois da tarefa, em nome dela.
+- Toda gravação vai pro Histórico da linha ("— pelo Carinha (WhatsApp,
+  Karina)") e pra `wpf_agente_auditoria`.
+
+## Agenda (Google Tasks)
+
+- Entra a tarefa aberta da pessoa que está em deadline ou atrasada (Fim − 3
+  em diante), com 🟡 e, no corpo, o link da linha.
+- No último dia, vai pro dia do Fim. Passou e não foi concluída: vira 🔴 e
+  vem pra data de hoje, todo dia.
+- **Concluir na agenda = Finalizado na Projetos** (em até 1 hora).
+  Finalizada na Dash = concluída na agenda. Cancelada, passada pra outra
+  pessoa ou com prazo afastado: sai da agenda.
+- Apagada na agenda pela pessoa: não volta, a não ser que o Fim mude.
+- Exige a permissão "Tarefas" na conexão do Google (reconectar em
+  google.html) e a Google Tasks API ligada no projeto Carinha.
