@@ -12,6 +12,29 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-14 (4ª) — "Ver na Dash" vira pop-up só com as tarefas, com troca de status
+
+Karina às 12h57 (no celular abriu a Dash normal) e 13h18 (mudar status
+dentro do pop-up, visual simples e clean).
+
+- **Dash (`index.html`, PROJETOS, `painelDoDia`, commit `53f6341`):** o
+  painel lateral virou **pop-up centralizado** (no celular sobe de baixo,
+  92% da tela), z-index máximo; Principais/Outras; "X de N finalizadas";
+  cada tarefa com bolinha de prazo, prazo colorido, caminho e **status em
+  pílula** (Não iniciado / Em andamento / Bloqueado / Finalizado) que grava
+  igual à tabela (Histórico + nuvem); clicar no nome fecha e leva à linha.
+- **Worker:** link `?dia=` com ids separados por `~` (sem vírgula, que o
+  WhatsApp pode cortar) + `v=` (o celular não abre cópia velha do cache).
+  Aceita os dois formatos.
+- **Investigação:** com login simulado (sessão salva e login digitado),
+  desktop e celular, o painel abriu — não reproduziu o problema do celular
+  da Karina; as duas causas prováveis (link cortado na vírgula, cache)
+  foram tratadas. Conferir no próximo teste dela.
+- **Testes:** navegador sem tela com a Dash real e backend simulado: abre,
+  muda status (1 de 3 finalizadas, riscada), nome leva à linha.
+
+---
+
 ## 2026-10-14 (3ª) — Carinha é um só: a conversa também lê a Projetos; atalho "ver agora" tolerante
 
 Karina às 12h33 (print: "ver ra" + "agora" caíram no Carinha de conversa,
