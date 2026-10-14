@@ -93,8 +93,8 @@ dois arquivos antes de propor qualquer coisa**:
   parte, tarefa nova urgente na hora, agenda pelo Google Tasks (🟡/🔴,
   concluir = Finalizado). Regras em **`worker/instrucoes/lembretes.md`**
   (substituem as de 09/10). Só pra quem está em `projetos_liberados`
-  (`wpf_agente_config`; piloto: só a Karina). Liberar o resto: só com ordem
-  dela. Link direto pra linha da Dash: `?pj=<id>&org=wpf`; lista do dia:
+  (`wpf_agente_config`): **liberado pra todos em 14/10** (`{"todos": true}`).
+  Continua valendo a REGRA DO ROBÔ: cada um só o seu; Slack só Karina e Isabela. Link direto pra linha da Dash: `?pj=<id>&org=wpf`; lista do dia:
   `?dia=<ids>&org=wpf`. **Carinha é um só (Karina, 14/10):** pra quem está
   liberado, a conversa também lê/muda só a Projetos (`instrucoesPj`, ferramentas
   `*_projetos`); a Tasks antiga não aparece mais pra essa pessoa.

@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-14 (6ª) — Carinha novo liberado pra todos + pedido de reconectar o Google
+
+Karina às 18h00 (teste da agenda com comandos), 18h15 ("não gostei, não vamos
+testar"; agenda é automática) e 18h17 ("pode liberar e mandar pra todos";
+cada um só o seu; Isabela e Karina também Slack).
+
+- **Worker (commits `ab85b9a`, `c408ff1`):**
+  - comandos de teste da agenda pelo WhatsApp (admin): `limpar agenda`,
+    `agenda teste`, `agenda agora`, `agenda normal` — a Karina não quis usar;
+    ficaram no código (ver Prox Passos);
+  - rotina nova traz também **Slack** (só `recebe_slack`: Karina e Isabela)
+    e **recado do sistema** (texto exato) junto dos e-mails; janela fechada
+    com recado pendente → template uma vez, recado no "Ver agora";
+  - abertura da equipe só com **[Falar aqui]** (a guia Projetos na Dash
+    ainda é só da Karina; "Ver na Dash" só pra admin).
+- **Supabase:** `projetos_liberados` = `{"todos": true}` (18h20). Avisos
+  `sistema|reconectar_google_1410` pra Isabela, Leonardo e Roberto (texto:
+  a partir de amanhã as tarefas do dia toda manhã + e-mails (+ Slack pra
+  Isabela); função nova da agenda; reconectar o Google marcando todas as
+  permissões, link google.html). Janela: Isabela aberta (recebe na rodada das
+  19h05); Leonardo (última msg 23/09) e Roberto (nunca escreveu) recebem o
+  template e o recado chega no "Ver agora".
+- **Testes:** 81 simulados ok.
+
+---
+
 ## 2026-10-14 (5ª) — Agenda: só a ação; as linhas de cima só na descrição
 
 Karina às 17h56: "Promover TDA na Ásia…" apareceu na agenda, mas é linha

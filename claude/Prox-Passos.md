@@ -24,9 +24,18 @@ reconstruir o raciocínio.
      `wpf_agente_google` que `escopos` tem `.../auth/tasks`; na rodada dos :35
      as tarefas em deadline aparecem com 🟡/🔴. Testar "concluída" →
      Finalizado na Dash.
-  3. **Liberar pra equipe** (ela disse: "dps vamos liberar isso e agenda
-     juntos pros outros"): `projetos_liberados` = `{"todos": true}` (ou a
-     lista de e-mails) + cada um reconectar o Google pra dar "Tarefas".
+  3. ~~Liberar pra equipe~~ **feito 14/10 18h20** (`{"todos": true}`) e
+     pedido de reconexão enviado (Changelog 6ª). Conferir amanhã: Isabela,
+     Leonardo e Roberto reconectaram (`wpf_agente_google.escopos` com
+     `/auth/tasks`)? Leonardo e Roberto só leem o recado se tocarem "Ver
+     agora" no template — se não, a Karina manda o link direto.
+  - **Decidir:** abrir a guia Projetos na Dash pra equipe (`PILOTO_LOGINS`)?
+    Sem isso o "Ver na Dash"/pop-up do dia não funciona pra eles (botão
+    escondido pra quem não é admin) e a linha `?pj=` também não abre.
+  - **Decidir:** tirar os comandos de teste da agenda (`pjComandoAgenda`)?
+    A Karina não gostou do teste por comando (14/10, 18h15).
+  - **Decidir:** mensagens do WhatsApp só com a ação (mãe só como contexto),
+    igual à agenda? E o Fim de "Promover na Ásia" (09/10 < filha 30/10).
      A pergunta "é proposital?" de prazo em fim de semana vai pro
      responsável da tarefa (hoje só a Karina recebe as dela).
   - *Limites conhecidos:* (resolvido em 14/10, 3ª: a conversa também lê a
