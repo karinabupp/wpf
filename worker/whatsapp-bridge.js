@@ -2726,15 +2726,28 @@ async function pjSoNaoLidos(env, pessoa, pend) {
   if (lidos.length) await marcarChaves(env, pessoa.telefone, lidos.map(p => p.chave), "lido_no_gmail");
   return pend.filter(p => !lidos.includes(p));
 }
+// O que vai à parte das tarefas (14/10): e-mail (só não lido), Slack (só
+// quem tem recebe_slack — Karina e Isabela) e recado do sistema (texto exato).
+const pjEhExterno = a => /^(email|slack|sistema)\|/.test(String((a && a.chave) || ""));
+async function pjColetarSlack(env, pessoa) {
+  if (!pessoa.recebe_slack) return;
+  const itens = await avisosDoSlack(env, pessoa, await cadastroPessoas(env)).catch(() => []);
+  if (itens.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: itens.map(i => ({ telefone: pessoa.telefone, chave: i.chave, descricao: i.descricao })) });
+}
 async function pjMandarEmails(env, pessoa, via, tipo) {
-  let pend = (await pendentesDe(env, pessoa.telefone)).filter(ehAvisoEmail);
+  let pend = (await pendentesDe(env, pessoa.telefone)).filter(pjEhExterno);
   if (!pend.length) return 0;
-  pend = await pjSoNaoLidos(env, pessoa, pend);
+  // Recado do sistema: vai com o texto exato (sem a IA reescrever).
+  for (const a of pend.filter(x => x.chave.startsWith("sistema|"))) {
+    await enviarTexto(env, pessoa.telefone, a.descricao, { proativa: true, tipo_proativa: "sistema" });
+    await marcarChaves(env, pessoa.telefone, [a.chave], via);
+  }
+  pend = await pjSoNaoLidos(env, pessoa, pend.filter(x => !x.chave.startsWith("sistema|")));
   let rodadas = 0;
-  // mandarAvisos manda 2 por vez; repete até acabar (e-mails conforme chegam).
+  // mandarAvisos manda 2 por vez; repete até acabar (conforme chegam).
   while (pend.length && rodadas++ < 10) {
     await mandarAvisos(env, pessoa, pend, via, tipo);
-    pend = (await pendentesDe(env, pessoa.telefone)).filter(ehAvisoEmail);
+    pend = (await pendentesDe(env, pessoa.telefone)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|"));
   }
   return rodadas;
 }
@@ -2761,7 +2774,7 @@ function pjRevisar(plano, dados, pessoa, hoje, estreia, fdsVistos) {
       if (n ? !(mT && +mT[1] === n) : !!mT) erros.push(`abertura diz ${mT ? mT[1] : 0} tarefa(s), vão ${n}`);
       if (nR ? !(mR && +mR[1] === nR) : !!mR) erros.push(`abertura diz ${mR ? mR[1] : 0} reunião(ões), vão ${nR}`);
       if ((cab.texto.match(/^• /gm) || []).length !== nR) erros.push("lista de reuniões não bate");
-      if (n && JSON.stringify(cab.opcoes) !== JSON.stringify([PJ_OP.falar, PJ_OP.dash])) erros.push("abertura sem os botões Falar aqui / Ver na Dash");
+      if (n && JSON.stringify(cab.opcoes) !== JSON.stringify(pjOpsAbertura(pessoa))) erros.push("abertura sem os botões Falar aqui / Ver na Dash");
     }
   }
   plano.fila.forEach(m => {
@@ -2789,6 +2802,9 @@ function pjCabecalho(pessoa, n, reunioes, horaSP, fds) {
 }
 // Sem vírgula (o WhatsApp pode cortar o link nela) e com v= pra o celular não
 // abrir uma cópia velha da Dash do cache.
+// A guia Projetos da Dash ainda é só do login da Karina (PILOTO_LOGINS):
+// pra equipe, a abertura vem só com "Falar aqui" (Karina decide liberar a aba).
+const pjOpsAbertura = pessoa => (pessoa.admin ? [PJ_OP.falar, PJ_OP.dash] : [PJ_OP.falar]);
 const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join("~")}&org=wpf&v=${Date.now().toString(36)}`;
 
 // Monta a manhã (sem mandar): abertura + fila de tarefas (uma por vez).
@@ -2805,7 +2821,7 @@ async function pjMontarManha(env, pessoa, hoje, horaSP, estado, pj) {
   const fila = todos.map((it, i) => ({ id: it.no.id, tipo: it.gatilho.tipo === "fds" ? "fds" : "tarefa", fim: it.no.endDate,
     texto: pjMensagemItem(it, textos[i], hoje, pessoa.nome_tasks), opcoes: pjBotoesBase(it) }));
   const cabecalho = todos.length || ag.itens.length
-    ? { texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length), opcoes: todos.length ? [PJ_OP.falar, PJ_OP.dash] : [] }
+    ? { texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length), opcoes: todos.length ? pjOpsAbertura(pessoa) : [] }
     : null;
   return { plano: { cabecalho, fila, reunioes: ag.itens, estreia }, todos };
 }
@@ -2823,6 +2839,7 @@ async function pjManha(env, pessoa, agoraMs, via) {
   const tel = pessoa.telefone;
   const estado = await pjEstado(env, tel);
   const pj = await pjCarregar(env);
+  await pjColetarSlack(env, pessoa);
   const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
   if (plano.cabecalho) {
     const erros = pjRevisar(plano, pj.dados, pessoa, hoje, plano.estreia, estado.fds);
@@ -2909,14 +2926,24 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     // Janela fechada: só o template (se tiver conteúdo); o resto vem no "Ver agora".
     const pj = await pjCarregar(env);
     const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
-    const emails = (await pendentesDe(env, tel)).filter(ehAvisoEmail).length;
+    await pjColetarSlack(env, pessoa);
+    const emails = (await pendentesDe(env, tel)).filter(pjEhExterno).length;
     const qtd = plano.fila.length + plano.reunioes.length + emails;
     if (qtd) { await enviarTemplateAviso(env, pessoa, qtd); estado.manhaPendente = hoje; }
     estado.ultimaManha = hoje;
     await pjSalvarEstado(env, tel, estado);
     return;
   }
-  if (horaSP < 8 || horaSP > 21 || !aberta) return;
+  if (horaSP < 8 || horaSP > 21) return;
+  await pjColetarSlack(env, pessoa);
+  if (!aberta) {
+    // Recado do sistema pendente e janela fechada: template uma vez; chega no "Ver agora".
+    const sis = (await pendentesDe(env, tel)).filter(a => a.chave.startsWith("sistema|"));
+    if (sis.length && estado.templateSistema !== sis[0].chave) {
+      if (await enviarTemplateAviso(env, pessoa, sis.length)) await pjSalvarParte(env, tel, e => { e.templateSistema = sis[0].chave; e.manhaPendente = e.ultimaManha === hoje ? hoje : e.manhaPendente; });
+    }
+    return;
+  }
   if (estado.ultimaManha !== hoje && horaSP <= 9) return; // a manhã ainda vai sair
   const pj = await pjCarregar(env);
   const antes = JSON.stringify([estado.conhecidos, estado.textos]);
@@ -3635,7 +3662,7 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const modoSoEmail = await somenteEmail(env);
   // Modo só e-mail: o Carinha não traz novidade de Tasks por conta própria.
   const mudancas = base && !modoSoEmail && !pjLib ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
-  const avisosPend = pessoa.proativo ? (await pendentesDe(env, tel)).filter(a => !(modoSoEmail || pjLib) || ehAvisoEmail(a)) : [];
+  const avisosPend = pessoa.proativo ? (await pendentesDe(env, tel)).filter(a => pjLib ? pjEhExterno(a) : (!modoSoEmail || ehAvisoEmail(a))) : [];
   // Projetos (14/10): quem está liberado conversa só pela Projetos.
   let pjCache = null, pjEst = null;
   const pjDadosConversa = async () => { if (!pjCache) { pjCache = await pjCarregar(env); pjEst = await pjEstado(env, tel); } return pjCache; };
