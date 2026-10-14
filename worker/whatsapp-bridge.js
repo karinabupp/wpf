@@ -2486,8 +2486,8 @@ const DASH_URL = "https://karinabupp.github.io/wpf/";
 const linkPj = id => `${DASH_URL}?pj=${encodeURIComponent(id)}&org=wpf`;
 const G_TASKS = "https://tasks.googleapis.com/tasks/v1";
 const PJ_DIAS_DEADLINE = 3, PJ_ATRASO_1 = 4, PJ_ATRASO_PASSO = 3;
-const PJ_OP = { fin: "Finalizar", prazo: "Mudar prazo", nova: "Próxima tarefa", comecar: "Começar", proposital: "Sim, proposital" };
-const PJ_CMD = { "finalizar": "fin", "comecar": "comecar", "mudar prazo": "prazo", "proxima tarefa": "nova", "sim proposital": "proposital" };
+const PJ_OP = { fin: "Finalizar", prazo: "Mudar prazo", criar: "Criar tarefa nova", comecar: "Começar", proposital: "Sim, proposital", falar: "Falar aqui", dash: "Ver na Dash", proxima: "Ver próxima" };
+const PJ_CMD = { "finalizar": "fin", "comecar": "comecar", "mudar prazo": "prazo", "criar tarefa nova": "nova", "proxima tarefa": "nova", "sim proposital": "proposital", "falar aqui": "falar", "ver na dash": "dash", "ver proxima": "proxima" };
 const PJ_OP_DATAS = ["Amanhã", "Em 3 dias", "Próx. segunda"];
 const PJ_STATUS_NOME = { detalhar: "Falta detalhar", naoiniciado: "Não iniciado", andamento: "Em andamento", bloqueado: "Bloqueado", finalizado: "Finalizado", cancelado: "Cancelado" };
 const PJ_SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
@@ -2625,22 +2625,76 @@ function pjLinhaQuando(it, hoje) {
   if (g.tipo === "fds") return `📅 Vence ${pjDataLonga(fim)}, num fim de semana. É proposital?`;
   return "";
 }
-function pjBotoes(it) {
+function pjBotoesBase(it) {
   if (it.gatilho.tipo === "fds") return [PJ_OP.proposital, PJ_OP.prazo];
-  if (it.gatilho.tipo === "inicio" && it.no.status !== "andamento") return [PJ_OP.comecar, PJ_OP.prazo, PJ_OP.fin];
-  return [PJ_OP.fin, PJ_OP.prazo, PJ_OP.nova];
+  if (it.gatilho.tipo === "inicio" && it.no.status !== "andamento") return [PJ_OP.comecar, PJ_OP.prazo];
+  return [PJ_OP.fin, PJ_OP.prazo];
 }
-function pjMensagemItem(it, txt, hoje) {
-  const pai = it.pais[it.pais.length - 1];
+// Com quem divide a tarefa (Karina, 14/10): "Com Isabela e Roberto".
+function pjComQuem(no, nome) {
+  const outros = (no.assignees || []).filter(n => n && n !== nome).map(primeiroNome);
+  if (!outros.length) return "";
+  return "👥 Com " + (outros.length === 1 ? outros[0] : outros.slice(0, -1).join(", ") + " e " + outros[outros.length - 1]);
+}
+function pjMensagemItem(it, txt, hoje, nome) {
   const filhosAbertos = (it.no.subtasks || []).filter(s => s && pjAberto(s.status)).length;
   return [
     `*${txt.oque}*`,
     pjLinhaQuando(it, hoje),
     txt.contexto ? txt.contexto : "",
+    nome ? pjComQuem(it.no, nome) : "",
     !it.ponta && filhosAbertos ? `Ainda ${filhosAbertos === 1 ? "falta 1 item" : `faltam ${filhosAbertos} itens`} dentro dela.` : "",
-    it.no.status === "bloqueado" ? "⛔ Está como Bloqueado na Dash." : "",
-    `Na Dash: ${linkPj(it.no.id)}`
+    it.no.status === "bloqueado" ? "⛔ Está como Bloqueado na Dash." : ""
   ].filter(Boolean).join("\n");
+}
+
+// ── REVISOR DE TEXTO (IA, Karina 14/10): lê cada tarefa como quem não tem
+// contexto nenhum e reescreve o que estiver confuso. Não inventa: se a linha
+// não tem a informação, diz que falta detalhar. Guardado em estado.textos.
+async function pjRevisarTextos(env, itens, estado, nome) {
+  const pend = itens.filter(it => estado.textos[it.no.id] && !estado.textos[it.no.id].revisado);
+  if (!pend.length) return;
+  const lista = pend.map((it, i) => {
+    const t = estado.textos[it.no.id];
+    return `#${i + 1}
+Dados da planilha (fonte da verdade):
+- Caminho: ${it.pais.map(p => p.nome).join(" › ") || "(é a própria entrega)"}
+- Linha: ${it.no.nome}
+- Responsáveis: ${(it.no.assignees || []).join(", ") || "—"}
+${it.pais[0] && it.pais[0].criterio ? `- Critério da entrega: ${corta(it.pais[0].criterio, 200)}\n` : ""}${it.no.proximaAcao ? `- Próxima ação anotada: ${corta(it.no.proximaAcao, 150)}\n` : ""}Mensagem atual:
+- oque: ${t.oque}
+- contexto: ${t.contexto || "(vazio)"}`;
+  }).join("\n\n");
+  let saida = [];
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: HAIKU, max_tokens: 1500,
+        system: `Você é o REVISOR das mensagens do Carinha (assistente de gestão da WPF no WhatsApp) antes de irem pra ${primeiroNome(nome)}.
+Quem recebe está no celular, SEM a planilha aberta e sem contexto nenhum daquela linha. Pra cada item, leia "oque" e "contexto" e pergunte: dá pra entender, numa leitura rápida, O QUE fazer e PRA QUÊ?
+- Se está claro e simples, mantenha.
+- Se está confuso, genérico, com jargão da planilha ("2ª vez", "Etapa", "Post 1") ou longo, reescreva em português simples e direto.
+- "oque": frase curta (até 90 caracteres), começando por um verbo, dizendo a ação concreta.
+- "contexto": até 110 caracteres dizendo de qual projeto/entrega é e pra que serve, em palavras (ex.: "Do Ladies Weekend 2026, na parte de comunicação com a imprensa"). Pode ser "" se não acrescentar.
+- NÃO invente: nada de prazo, nome, número ou fato que não está nos dados. Se a linha não diz o essencial (ex.: "ler as instruções" sem dizer quais), deixe claro com honestidade no contexto: "A linha não diz quais instruções; vale detalhar na Dash."
+- Não fale de datas nem de responsáveis (o código põe). Sem emoji, sem parênteses.
+Responda SÓ JSON: {"itens":[{"n":1,"oque":"...","contexto":"..."}]}`,
+        messages: [{ role: "user", content: lista }] })
+    });
+    const corpo = await res.json().catch(() => null);
+    const t = res.ok && corpo ? (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/```(json)?/g, "").trim() : "";
+    saida = JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}") + 1)).itens || [];
+  } catch (e) { saida = []; }
+  pend.forEach((it, i) => {
+    const d = saida.find(x => x && x.n === i + 1);
+    const t = estado.textos[it.no.id];
+    if (d && typeof d.oque === "string" && d.oque.trim().length >= 4) {
+      t.oque = corta(d.oque.trim().replace(/\.$/, ""), 140);
+      t.contexto = corta(String(d.contexto || "").trim(), 160);
+      t.revisado = true;
+    }
+  });
 }
 
 // ── Reuniões do dia (agenda da própria pessoa) ──
@@ -2690,58 +2744,66 @@ function pjRevisar(plano, dados, pessoa, hoje, estreia, fdsVistos) {
   const erros = [];
   const esperado = pjItensDoDia(dados, pessoa.nome_tasks, hoje, estreia).map(i => i.no.id);
   const esperadoFds = pjItensFds(dados, pessoa.nome_tasks, hoje, fdsVistos).map(i => i.no.id).filter(id => !esperado.includes(id));
-  const ids = plano.mensagens.filter(m => m.tipo === "tarefa").map(m => m.id);
-  const idsFds = plano.mensagens.filter(m => m.tipo === "fds").map(m => m.id);
+  const ids = plano.fila.filter(m => m.tipo !== "fds").map(m => m.id);
+  const idsFds = plano.fila.filter(m => m.tipo === "fds").map(m => m.id);
   const igual = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
-  if (new Set(ids).size !== ids.length) erros.push("tarefa repetida");
+  if (new Set(ids.concat(idsFds)).size !== ids.length + idsFds.length) erros.push("tarefa repetida");
   if (!igual(ids, esperado)) erros.push(`tarefas: esperado ${esperado.length}, montado ${ids.length}`);
   if (!igual(idsFds, esperadoFds)) erros.push(`fim de semana: esperado ${esperadoFds.length}, montado ${idsFds.length}`);
-  const cab = plano.mensagens.find(m => m.tipo === "cabecalho");
-  if (!cab) erros.push("sem a mensagem de abertura");
-  else {
-    const nT = ids.length + idsFds.length, nR = plano.reunioes.length;
-    const mT = cab.texto.match(/(\d+) tarefas?/), mR = cab.texto.match(/(\d+) reuni/);
-    if (nT ? !(mT && +mT[1] === nT) : !!mT) erros.push(`abertura diz ${mT ? mT[1] : 0} tarefa(s), vão ${nT}`);
-    if (nR ? !(mR && +mR[1] === nR) : !!mR) erros.push(`abertura diz ${mR ? mR[1] : 0} reunião(ões), vão ${nR}`);
-    if ((cab.texto.match(/^• /gm) || []).length !== nR) erros.push("lista de reuniões não bate");
+  const n = plano.fila.length, nR = plano.reunioes.length;
+  const cab = plano.cabecalho;
+  if (n || nR) {
+    if (!cab) erros.push("sem a mensagem de abertura");
+    else {
+      const mT = cab.texto.match(/(\d+) tarefas? hoje/), mR = cab.texto.match(/(\d+) reuni/);
+      if (n ? !(mT && +mT[1] === n) : !!mT) erros.push(`abertura diz ${mT ? mT[1] : 0} tarefa(s), vão ${n}`);
+      if (nR ? !(mR && +mR[1] === nR) : !!mR) erros.push(`abertura diz ${mR ? mR[1] : 0} reunião(ões), vão ${nR}`);
+      if ((cab.texto.match(/^• /gm) || []).length !== nR) erros.push("lista de reuniões não bate");
+      if (n && JSON.stringify(cab.opcoes) !== JSON.stringify([PJ_OP.falar, PJ_OP.dash])) erros.push("abertura sem os botões Falar aqui / Ver na Dash");
+    }
   }
-  plano.mensagens.filter(m => m.tipo === "tarefa" || m.tipo === "fds").forEach(m => {
+  plano.fila.forEach(m => {
     const loc = pjLocalizar(dados, m.id);
     if (!loc) { erros.push(`linha ${m.id} não existe`); return; }
-    if (!pjAberto(loc.no.status)) erros.push(`"${corta(loc.no.nome, 40)}" já está ${PJ_STATUS_NOME[loc.no.status]}`);
-    if (!pjDono(loc.no, pessoa.nome_tasks)) erros.push(`"${corta(loc.no.nome, 40)}" não é de ${pessoa.nome_tasks}`);
-    if (!m.texto || !m.texto.includes(linkPj(m.id)) || !/^\*.{4,}\*/.test(m.texto)) erros.push(`texto incompleto em "${corta(loc.no.nome, 40)}"`);
+    const nm = corta(loc.no.nome, 40);
+    if (!pjAberto(loc.no.status)) erros.push(`"${nm}" já está ${PJ_STATUS_NOME[loc.no.status]}`);
+    if (!pjDono(loc.no, pessoa.nome_tasks)) erros.push(`"${nm}" não é de ${pessoa.nome_tasks}`);
+    const linhas = String(m.texto || "").split("\n");
+    if (!/^\*.{4,}\*$/.test(linhas[0] || "")) erros.push(`sem o "o que fazer" em "${nm}"`);
+    if (!/^(▶️|🟡|🔴|📅) /.test(linhas[1] || "")) erros.push(`sem o prazo em "${nm}"`);
     const ops = m.opcoes || [];
-    if (ops.length < 2 || ops.length > 3 || ops.some(o => o.length > 20) || new Set(ops).size !== ops.length) erros.push(`botões inválidos em "${corta(loc.no.nome, 40)}"`);
+    if (ops.length !== 2 || ops.some(o => o.length > 20)) erros.push(`botões inválidos em "${nm}"`);
   });
   return erros;
 }
 
-function pjCabecalho(pessoa, nT, reunioes, horaSP, fds) {
+function pjCabecalho(pessoa, n, reunioes, horaSP, fds) {
   const primeiro = primeiroNome(pessoa.nome_tasks);
-  const partes = [];
-  if (nT) partes.push(`${nT} tarefa${nT === 1 ? "" : "s"} pra olhar`);
-  if (reunioes.length) partes.push(`${reunioes.length} reuni${reunioes.length === 1 ? "ão" : "ões"}`);
-  let t = `${saudacao(horaSP)}, ${primeiro}! ☀️\nHoje: ${partes.join(" e ")}.`;
-  if (fds) t += `\n(${fds === 1 ? "1 delas é" : fds + " delas são"} sobre prazo em fim de semana.)`;
-  if (reunioes.length) t += `\n\n📅 *Reuniões*\n${reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n")}`;
+  let t = `${saudacao(horaSP)}, ${primeiro}! ☀️`;
+  t += n ? `\nVocê tem ${n} tarefa${n === 1 ? "" : "s"} hoje!` : "\nNenhuma tarefa sua precisa de atenção hoje.";
+  if (fds) t += `\n(${fds === 1 ? "1 delas é" : fds + " delas são"} só pra confirmar prazo em fim de semana.)`;
+  if (reunioes.length) t += `\n\n📅 *${reunioes.length} reuni${reunioes.length === 1 ? "ão" : "ões"} hoje*\n${reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n")}`;
   return t;
 }
+const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join(",")}&org=wpf`;
 
-// Monta a manhã (sem mandar). Devolve { plano, estado, temConteudo }.
+// Monta a manhã (sem mandar): abertura + fila de tarefas (uma por vez).
 async function pjMontarManha(env, pessoa, hoje, horaSP, estado, pj) {
   const estreia = !estado.estreiaFeita;
   const itens = pjItensDoDia(pj.dados, pessoa.nome_tasks, hoje, estreia);
   const idsDia = new Set(itens.map(i => i.no.id));
   const fds = pjItensFds(pj.dados, pessoa.nome_tasks, hoje, estado.fds).filter(i => !idsDia.has(i.no.id));
   const todos = itens.concat(fds);
-  const textos = await pjDescrever(env, todos, estado);
+  await pjDescrever(env, todos, estado);
+  await pjRevisarTextos(env, todos, estado, pessoa.nome_tasks);
+  const textos = todos.map(it => estado.textos[it.no.id] || pjTextoPadrao(it));
   const ag = await pjReunioesHoje(env, pessoa, hoje).catch(() => ({ ok: false, itens: [] }));
-  const mensagens = [];
-  if (todos.length || ag.itens.length) mensagens.push({ tipo: "cabecalho", texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length) });
-  todos.forEach((it, i) => mensagens.push({ tipo: it.gatilho.tipo === "fds" ? "fds" : "tarefa", id: it.no.id, fim: it.no.endDate,
-    texto: pjMensagemItem(it, textos[i], hoje), opcoes: pjBotoes(it) }));
-  return { plano: { mensagens, reunioes: ag.itens, estreia }, todos };
+  const fila = todos.map((it, i) => ({ id: it.no.id, tipo: it.gatilho.tipo === "fds" ? "fds" : "tarefa", fim: it.no.endDate,
+    texto: pjMensagemItem(it, textos[i], hoje, pessoa.nome_tasks), opcoes: pjBotoesBase(it) }));
+  const cabecalho = todos.length || ag.itens.length
+    ? { texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length), opcoes: todos.length ? [PJ_OP.falar, PJ_OP.dash] : [] }
+    : null;
+  return { plano: { cabecalho, fila, reunioes: ag.itens, estreia }, todos };
 }
 
 async function pjAvisarKarina(env, texto) {
@@ -2749,7 +2811,8 @@ async function pjAvisarKarina(env, texto) {
   for (const a of (r.ok && r.dados) || []) if (a.telefone && (await janelaAberta(env, a.telefone))) await enviarTexto(env, a.telefone, texto, { proativa: true, tipo_proativa: "sistema" }).catch(() => {});
 }
 
-// Manda a manhã (janela aberta). via: "manha" | "ver_agora".
+// Manda a manhã (janela aberta): abertura com [Falar aqui] [Ver na Dash];
+// as tarefas ficam na fila (estado.fila) e saem uma por vez.
 async function pjManha(env, pessoa, agoraMs, via) {
   const hoje = hojeSP(), sp = new Date((agoraMs || Date.now()) - 3 * 3600000), horaSP = sp.getUTCHours();
   const fimDeSemana = sp.getUTCDay() === 0 || sp.getUTCDay() === 6;
@@ -2757,21 +2820,20 @@ async function pjManha(env, pessoa, agoraMs, via) {
   const estado = await pjEstado(env, tel);
   const pj = await pjCarregar(env);
   const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
-  const tarefas = plano.mensagens.filter(m => m.tipo !== "cabecalho");
-  if (plano.mensagens.length) {
+  if (plano.cabecalho) {
     const erros = pjRevisar(plano, pj.dados, pessoa, hoje, plano.estreia, estado.fds);
     if (erros.length) {
       console.log("revisor barrou:", pessoa.nome_tasks, erros.join("; "));
       await pjAvisarKarina(env, `⚠️ O revisor barrou a mensagem da manhã de ${primeiroNome(pessoa.nome_tasks)} (nada de tarefa foi enviado): ${erros.slice(0, 5).join("; ")}.`);
+      await pjSalvarEstado(env, tel, estado);
       await pjMandarEmails(env, pessoa, "manha", "aviso");
       return { barrado: erros };
     }
-    for (const m of plano.mensagens) {
-      if (m.tipo === "cabecalho") await enviarTexto(env, tel, m.texto, { proativa: true, tipo_proativa: "checkin" });
-      else await enviarComOpcoes(env, tel, m.texto, m.opcoes, { proativa: true, tipo_proativa: "aviso", aviso_chave: `pj|${m.id}|${m.tipo}` });
-      if (m.tipo === "fds") estado.fds[m.id] = m.fim; // pergunta uma vez por data
-    }
+    estado.fila = { dia: hoje, pos: 0, itens: plano.fila };
+    await enviarComOpcoes(env, tel, plano.cabecalho.texto, plano.cabecalho.opcoes, { proativa: true, tipo_proativa: "checkin", aviso_chave: plano.fila.length ? "pjdia|" + hoje : null });
+    plano.fila.filter(m => m.tipo === "fds").forEach(m => { estado.fds[m.id] = m.fim; }); // pergunta uma vez por data
   } else if (!fimDeSemana) {
+    estado.fila = null;
     await enviarComOpcoes(env, tel, "Bom dia! Nada desse lado, você precisa de algo?", OPCOES_CHECKIN, { proativa: true, tipo_proativa: "checkin" });
   }
   await pjMandarEmails(env, pessoa, "manha", "aviso");
@@ -2779,8 +2841,30 @@ async function pjManha(env, pessoa, agoraMs, via) {
   estado.conhecidos = pjAbertasDe(pj.dados, pessoa.nome_tasks);
   pjPodarEstado(estado, pj.dados);
   await pjSalvarEstado(env, tel, estado);
-  return { enviadas: tarefas.length };
+  return { fila: plano.fila.length };
 }
+
+// Manda a tarefa da vez da fila (pula as que já foram finalizadas/canceladas).
+async function pjMandarDaFila(env, pessoa, estado) {
+  const tel = pessoa.telefone, f = estado.fila;
+  if (!f || !Array.isArray(f.itens) || f.dia !== hojeSP()) { await enviarTexto(env, tel, "Não tenho mais a lista de hoje. Me pede o que precisar 🙂"); return; }
+  let pj = null;
+  try { pj = await pjCarregar(env); } catch (e) {}
+  while (f.pos < f.itens.length) {
+    const m = f.itens[f.pos];
+    const loc = pj ? pjLocalizar(pj.dados, m.id) : null;
+    if (pj && (!loc || !pjAberto(loc.no.status) || !pjDono(loc.no, pessoa.nome_tasks))) { f.pos++; continue; }
+    const ultima = f.pos === f.itens.length - 1;
+    const ops = m.opcoes.concat(ultima ? (m.tipo === "fds" ? [] : [PJ_OP.criar]) : [PJ_OP.proxima]);
+    await enviarComOpcoes(env, tel, `${f.pos + 1}/${f.itens.length} · ${m.texto}`, ops, { proativa: true, tipo_proativa: "aviso", aviso_chave: `pj|${m.id}|${m.tipo}` });
+    f.pos++;
+    await pjSalvarEstado(env, tel, estado);
+    return;
+  }
+  await pjSalvarEstado(env, tel, estado);
+  await enviarComOpcoes(env, tel, `Pronto, essas eram as ${f.itens.length} de hoje 👍 Precisa de mais alguma coisa?`, OPCOES_CHECKIN);
+}
+
 function pjAbertasDe(dados, nome) {
   return pjAchatar(dados).filter(({ no }) => no.id && pjAberto(no.status) && pjDono(no, nome)).map(({ no }) => no.id);
 }
@@ -2798,10 +2882,10 @@ async function pjUrgentes(env, pessoa, estado, pj, hoje) {
   const novas = pjAchatar(pj.dados).filter(({ no, pais }) => no.id && !conhecidos.has(no.id) && pjAberto(no.status) && pjDono(no, pessoa.nome_tasks) &&
     !pjTemFilhos(no) && !pais.some(p => p.status === "cancelado") && dataValida(no.endDate) && no.endDate <= somaDias(hoje, 1));
   const itens = novas.map(x => ({ ...x, ponta: true, gatilho: pjDif(x.no.endDate, hoje) > 0 ? { tipo: "atrasada", dias: pjDif(x.no.endDate, hoje) } : x.no.endDate === hoje ? { tipo: "vence" } : { tipo: "em_deadline" } }));
-  const textos = await pjDescrever(env, itens, estado);
-  for (let i = 0; i < itens.length; i++) {
-    const it = itens[i];
-    await enviarComOpcoes(env, pessoa.telefone, "🆕 Tarefa nova em seu nome\n" + pjMensagemItem(it, textos[i], hoje), pjBotoes(it),
+  if (itens.length) { await pjDescrever(env, itens, estado); await pjRevisarTextos(env, itens, estado, pessoa.nome_tasks); }
+  for (const it of itens) {
+    const txt = estado.textos[it.no.id] || pjTextoPadrao(it);
+    await enviarComOpcoes(env, pessoa.telefone, "🆕 Tarefa nova em seu nome\n" + pjMensagemItem(it, txt, hoje, pessoa.nome_tasks), pjBotoesBase(it).concat([PJ_OP.criar]),
       { proativa: true, tipo_proativa: "aviso_urgente", aviso_chave: `pj|${it.no.id}|tarefa` });
   }
   estado.conhecidos = abertas;
@@ -2822,7 +2906,7 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     const pj = await pjCarregar(env);
     const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
     const emails = (await pendentesDe(env, tel)).filter(ehAvisoEmail).length;
-    const qtd = plano.mensagens.filter(m => m.tipo !== "cabecalho").length + plano.reunioes.length + emails;
+    const qtd = plano.fila.length + plano.reunioes.length + emails;
     if (qtd) { await enviarTemplateAviso(env, pessoa, qtd); estado.manhaPendente = hoje; }
     estado.ultimaManha = hoje;
     await pjSalvarEstado(env, tel, estado);
@@ -2831,10 +2915,11 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
   if (horaSP < 8 || horaSP > 21 || !aberta) return;
   if (estado.ultimaManha !== hoje && horaSP <= 9) return; // a manhã ainda vai sair
   const pj = await pjCarregar(env);
-  const antes = JSON.stringify(estado.conhecidos);
+  const antes = JSON.stringify([estado.conhecidos, estado.textos]);
   await pjUrgentes(env, pessoa, estado, pj, hoje);
   await pjMandarEmails(env, pessoa, "janela", "aviso");
-  if (JSON.stringify(estado.conhecidos) !== antes) await pjSalvarEstado(env, tel, estado);
+  if (JSON.stringify([estado.conhecidos, estado.textos]) !== antes)
+    await pjSalvarParte(env, tel, e => { e.conhecidos = estado.conhecidos; Object.assign(e.textos, estado.textos); });
 }
 
 // ── Gravar na Projetos (com trava: relê e repete se alguém gravou junto) ──
@@ -2917,10 +3002,33 @@ function pjLerData(txt, hoje) {
 }
 const pjAvisoFds = (iso, no, pais) => (pjFimDeSemana(iso) && !pjEhLW(no, pais) ? `\n⚠️ ${pjDataLonga(iso)} cai num fim de semana.` : "");
 
+// Grava só uma parte do estado (relê antes): a rodada de hora em hora e a
+// agenda não desfazem o que a conversa mudou no meio tempo (ex.: a fila).
+async function pjSalvarParte(env, tel, mudar) {
+  const atual = await pjEstado(env, tel);
+  mudar(atual);
+  await pjSalvarEstado(env, tel, atual);
+}
+const pjRestamNaFila = estado => !!(estado.fila && estado.fila.dia === hojeSP() && Array.isArray(estado.fila.itens) && estado.fila.pos < estado.fila.itens.length);
+const pjOpsDepois = estado => (pjRestamNaFila(estado) ? [PJ_OP.proxima, PJ_OP.criar] : [PJ_OP.criar]);
+
 // Botões das mensagens de tarefa. Devolve true se tratou.
 async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const acao = PJ_CMD[cmd];
   if (!acao) return false;
+  // Botões da abertura e da fila: não dependem de qual mensagem foi tocada.
+  if (acao === "falar" || acao === "proxima") {
+    const estado = await pjEstado(env, tel);
+    if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
+    await pjMandarDaFila(env, pessoa, estado);
+    return true;
+  }
+  if (acao === "dash") {
+    const estado = await pjEstado(env, tel);
+    if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
+    await enviarComOpcoes(env, tel, `Suas tarefas de hoje na Dash (Principais e Outras):\n${linkDia(estado.fila.itens.map(m => m.id))}`, [PJ_OP.falar]);
+    return true;
+  }
   const ctxId = msg.context && msg.context.id;
   const rm = ctxId
     ? await sb(env, `${TAB_MSG}?select=aviso_chave&wa_message_id=eq.${encodeURIComponent(ctxId)}&limit=1`)
@@ -2937,12 +3045,13 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const novaPend = async (acaoPend, resumo) => sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { ...acaoPend, id }, resumo }] });
   if (acao === "proposital") {
     estado.fds[id] = loc.no.endDate; await pjSalvarEstado(env, tel, estado);
-    await enviarTexto(env, tel, "👍 Anotado, o prazo fica no fim de semana.");
+    const ops = pjRestamNaFila(estado) ? [PJ_OP.proxima] : [];
+    await enviarComOpcoes(env, tel, "👍 Anotado, o prazo fica no fim de semana.", ops);
     return true;
   }
   if (acao === "fin" || acao === "comecar") {
     const status = acao === "fin" ? "finalizado" : "andamento";
-    if (loc.no.status === status) { await enviarTexto(env, tel, `${nome} já está como ${PJ_STATUS_NOME[status]}.`); return true; }
+    if (loc.no.status === status) { await enviarComOpcoes(env, tel, `${nome} já está como ${PJ_STATUS_NOME[status]}.`, pjOpsDepois(estado), { aviso_chave: chave }); return true; }
     const resumo = `Marcar ${nome} como *${PJ_STATUS_NOME[status]}* na Projetos?`;
     await novaPend({ tipo: "pj_status", status }, resumo);
     await enviarComOpcoes(env, tel, resumo, ["Sim", "Não"]);
@@ -2955,7 +3064,7 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   }
   if (acao === "nova") {
     await novaPend({ tipo: "pj_nova_espera" }, "esperando a próxima tarefa");
-    await enviarTexto(env, tel, `Qual é a próxima tarefa depois de ${nome}? Me escreva o nome e, se tiver, o prazo (ex.: Enviar o contrato até 20/10).`);
+    await enviarTexto(env, tel, `Qual é a tarefa nova, depois de ${nome}? Me escreva o nome e, se tiver, o prazo (ex.: Enviar o contrato até 20/10).`);
     return true;
   }
   return false;
@@ -3004,8 +3113,10 @@ async function pjTratarPendencia(env, pessoa, tel, pend, texto) {
   else if (a.tipo === "pj_prazo") r = await pjAlterar(env, a.id, pjMudarFim(a.endDate, origem), tel, pessoa.nome_tasks, "pj_prazo");
   else if (a.tipo === "pj_nova") r = await pjAlterar(env, a.id, pjCriarDepois(a.nome, a.endDate, pessoa.nome_tasks, origem), tel, pessoa.nome_tasks, "pj_nova");
   else r = { erro: "pedido desconhecido" };
-  if (!r.ok) await marcarPendencia(env, pend.id, "falhou");
-  await enviarTexto(env, tel, r.ok ? (r.nada ? "Já estava assim na Dash 👍" : "Feito ✅ Já está na Dash.") : `Não consegui gravar: ${r.erro}. Nada foi mudado.`);
+  if (!r.ok) { await marcarPendencia(env, pend.id, "falhou"); await enviarTexto(env, tel, `Não consegui gravar: ${r.erro}. Nada foi mudado.`); return true; }
+  // Depois de resolver: seguir a fila ou criar a tarefa nova (Karina, 14/10).
+  const est = await pjEstado(env, tel);
+  await enviarComOpcoes(env, tel, r.nada ? "Já estava assim na Dash 👍" : "Feito ✅ Já está na Dash.", pjOpsDepois(est), { aviso_chave: `pj|${a.tipo === "pj_nova" && r.linhaId ? r.linhaId : a.id}|tarefa` });
   return true;
 }
 
@@ -3052,6 +3163,8 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
   const idsAlvo = new Set(alvo.map(x => x.no.id));
   const semTexto = alvo.filter(x => !estado.textos[x.no.id]);
   if (semTexto.length) { await pjDescrever(env, semTexto, estado); mudou = true; }
+  const semRevisao = alvo.filter(x => estado.textos[x.no.id] && !estado.textos[x.no.id].revisado);
+  if (semRevisao.length) { await pjRevisarTextos(env, semRevisao, estado, pessoa.nome_tasks); mudou = true; }
   for (const it of alvo) {
     const id = it.no.id, fim = it.no.endDate, atrasada = hoje > fim;
     const cor = atrasada ? "🔴" : "🟡";
@@ -3084,7 +3197,7 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
     }
     delete estado.agenda[id]; mudou = true;
   }
-  if (mudou) await pjSalvarEstado(env, tel, estado);
+  if (mudou) await pjSalvarParte(env, tel, e => { e.agenda = estado.agenda; Object.assign(e.textos, estado.textos); });
   return { naAgenda: Object.values(estado.agenda).filter(a => a.g && !a.apagada).length };
 }
 
