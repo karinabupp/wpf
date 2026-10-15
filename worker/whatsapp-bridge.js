@@ -2488,8 +2488,8 @@ const DASH_URL = "https://karinabupp.github.io/wpf/";
 const linkPj = id => `${DASH_URL}?pj=${encodeURIComponent(id)}&org=wpf`;
 const G_TASKS = "https://tasks.googleapis.com/tasks/v1";
 const PJ_DIAS_DEADLINE = 3, PJ_ATRASO_1 = 4, PJ_ATRASO_PASSO = 3;
-const PJ_OP = { fin: "Finalizar", prazo: "Mudar prazo", criar: "Criar tarefa nova", comecar: "Começar", proposital: "Sim, proposital", falar: "Falar aqui", dash: "Ver na Dash", proxima: "Ver próxima" };
-const PJ_CMD = { "finalizar": "fin", "comecar": "comecar", "mudar prazo": "prazo", "criar tarefa nova": "nova", "proxima tarefa": "nova", "sim proposital": "proposital", "falar aqui": "falar", "ver na dash": "dash", "ver proxima": "proxima" };
+const PJ_OP = { fin: "Finalizar", prazo: "Mudar prazo", criar: "Criar tarefa nova", comecar: "Começar", proposital: "Sim, proposital", falar: "Ver aqui", dash: "Ver na Dash", proxima: "Ver próxima", agenda: "Ver agenda", tarefas: "Ver tarefas" };
+const PJ_CMD = { "finalizar": "fin", "comecar": "comecar", "mudar prazo": "prazo", "criar tarefa nova": "nova", "proxima tarefa": "nova", "sim proposital": "proposital", "falar aqui": "falar", "ver aqui": "falar", "ver na dash": "dash", "ver proxima": "proxima", "ver agenda": "agenda", "ver tarefas": "tarefas" };
 const PJ_OP_DATAS = ["Amanhã", "Em 3 dias", "Próx. segunda"];
 const PJ_STATUS_NOME = { detalhar: "Falta detalhar", naoiniciado: "Não iniciado", andamento: "Em andamento", bloqueado: "Bloqueado", finalizado: "Finalizado", cancelado: "Cancelado" };
 const PJ_SEMANA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
@@ -2767,11 +2767,12 @@ function pjRevisar(plano, dados, pessoa, hoje, estreia, fdsVistos) {
   if (n || nR) {
     if (!cab) erros.push("sem a mensagem de abertura");
     else {
-      const mT = cab.texto.match(/(\d+) tarefas? hoje/), mR = cab.texto.match(/(\d+) reuni/);
+      const mT = cab.texto.match(/\*(\d+) tarefas?\*/), mR = cab.texto.match(/\*(\d+) compromissos?\*/);
       if (n ? !(mT && +mT[1] === n) : !!mT) erros.push(`abertura diz ${mT ? mT[1] : 0} tarefa(s), vão ${n}`);
-      if (nR ? !(mR && +mR[1] === nR) : !!mR) erros.push(`abertura diz ${mR ? mR[1] : 0} reunião(ões), vão ${nR}`);
-      if ((cab.texto.match(/^• /gm) || []).length !== nR) erros.push("lista de reuniões não bate");
-      if (n && JSON.stringify(cab.opcoes) !== JSON.stringify(pjOpsAbertura(pessoa))) erros.push("abertura sem os botões Falar aqui / Ver na Dash");
+      if (nR ? !(mR && +mR[1] === nR) : !!mR) erros.push(`abertura diz ${mR ? mR[1] : 0} compromisso(s), vão ${nR}`);
+      if (nR && (String(plano.agendaTexto || "").match(/^• /gm) || []).length !== nR) erros.push("lista da agenda não bate");
+      if (JSON.stringify(cab.opcoes) !== JSON.stringify(pjOpsAbertura(pessoa, n, nR))) erros.push("botões da abertura errados");
+      if (cab.opcoes.length && !/\?$/.test(cab.texto.trim())) erros.push("abertura sem a pergunta antes dos botões");
     }
   }
   plano.fila.forEach(m => {
@@ -2789,22 +2790,35 @@ function pjRevisar(plano, dados, pessoa, hoje, estreia, fdsVistos) {
   return erros;
 }
 
+// Abertura (Karina, 15/10): primeiro o resumo ("N compromissos na agenda e M
+// tarefas na Dash") e a pergunta por onde começar; depois a parte escolhida;
+// o Carinha garante que a pessoa veja as duas (ver estado.dia).
+const pjPlural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
+function pjTextoAgenda(reunioes) {
+  return `📅 *Seus compromissos de hoje (${reunioes.length})*\n${reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n")}`;
+}
+function pjTextoTarefas(n, fds, pessoa) {
+  return `✅ *${pjPlural(n, "tarefa", "tarefas")}* de hoje na Dash${fds ? ` (${fds === 1 ? "1 é" : fds + " são"} só pra confirmar prazo em fim de semana)` : ""}.\n${pessoa.admin ? "Onde você quer ver?" : "Quer ver agora?"}`;
+}
+const pjOpsTarefas = pessoa => (pessoa.admin ? [PJ_OP.falar, PJ_OP.dash] : [PJ_OP.falar]);
 function pjCabecalho(pessoa, n, reunioes, horaSP, fds) {
-  const primeiro = primeiroNome(pessoa.nome_tasks);
-  let t = `${saudacao(horaSP)}, ${primeiro}! ☀️`;
-  t += n ? `\nVocê tem ${n} tarefa${n === 1 ? "" : "s"} hoje!` : "\nNenhuma tarefa sua precisa de atenção hoje.";
-  if (fds) t += `\n(${fds === 1 ? "1 delas é" : fds + " delas são"} só pra confirmar prazo em fim de semana.)`;
-  if (reunioes.length) t += `\n\n📅 *${reunioes.length} reuni${reunioes.length === 1 ? "ão" : "ões"} hoje*\n${reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n")}`;
-  return t;
+  const oi = `${saudacao(horaSP)}, ${primeiroNome(pessoa.nome_tasks)}! ☀️`;
+  if (n && reunioes.length) return `${oi}\nHoje você tem *${pjPlural(reunioes.length, "compromisso", "compromissos")}* na agenda e *${pjPlural(n, "tarefa", "tarefas")}* na Dash.\nPor onde quer começar?`;
+  if (reunioes.length) return `${oi}\nHoje você tem *${pjPlural(reunioes.length, "compromisso", "compromissos")}* na agenda e nenhuma tarefa da Dash pedindo atenção.`;
+  return `${oi}\nHoje você tem *${pjPlural(n, "tarefa", "tarefas")}* na Dash${fds ? ` (${fds === 1 ? "1 é" : fds + " são"} só pra confirmar prazo em fim de semana)` : ""}.\n${pessoa.admin ? "Onde você quer ver?" : "Quer ver agora?"}`;
+}
+// A guia Projetos da Dash ainda é só do login da Karina (PILOTO_LOGINS): pra
+// equipe, sem "Ver na Dash".
+function pjOpsAbertura(pessoa, n, nR) {
+  if (n && nR) return [PJ_OP.agenda, PJ_OP.tarefas];
+  if (n) return pjOpsTarefas(pessoa);
+  return [];
 }
 // Sem vírgula (o WhatsApp pode cortar o link nela) e com v= pra o celular não
 // abrir uma cópia velha da Dash do cache.
-// A guia Projetos da Dash ainda é só do login da Karina (PILOTO_LOGINS):
-// pra equipe, a abertura vem só com "Falar aqui" (Karina decide liberar a aba).
-const pjOpsAbertura = pessoa => (pessoa.admin ? [PJ_OP.falar, PJ_OP.dash] : [PJ_OP.falar]);
 const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join("~")}&org=wpf&v=${Date.now().toString(36)}`;
 
-// Monta a manhã (sem mandar): abertura + fila de tarefas (uma por vez).
+// Monta a manhã (sem mandar): abertura + texto da agenda + fila de tarefas.
 async function pjMontarManha(env, pessoa, hoje, horaSP, estado, pj) {
   const estreia = !estado.estreiaFeita;
   const itens = pjItensDoDia(pj.dados, pessoa.nome_tasks, hoje, estreia);
@@ -2817,10 +2831,13 @@ async function pjMontarManha(env, pessoa, hoje, horaSP, estado, pj) {
   const ag = await pjReunioesHoje(env, pessoa, hoje).catch(() => ({ ok: false, itens: [] }));
   const fila = todos.map((it, i) => ({ id: it.no.id, tipo: it.gatilho.tipo === "fds" ? "fds" : "tarefa", fim: it.no.endDate,
     texto: pjMensagemItem(it, textos[i], hoje, pessoa.nome_tasks), opcoes: pjBotoesBase(it) }));
-  const cabecalho = todos.length || ag.itens.length
-    ? { texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length), opcoes: todos.length ? pjOpsAbertura(pessoa) : [] }
-    : null;
-  return { plano: { cabecalho, fila, reunioes: ag.itens, estreia }, todos };
+  let cabecalho = null;
+  if (todos.length || ag.itens.length) {
+    cabecalho = { texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length), opcoes: pjOpsAbertura(pessoa, todos.length, ag.itens.length) };
+    // Só agenda: a lista vai junto da abertura.
+    if (!todos.length) cabecalho.texto += "\n\n" + pjTextoAgenda(ag.itens);
+  }
+  return { plano: { cabecalho, fila, reunioes: ag.itens, agendaTexto: ag.itens.length ? pjTextoAgenda(ag.itens) : "", fdsN: fds.length, estreia }, todos };
 }
 
 async function pjAvisarKarina(env, texto) {
@@ -2828,8 +2845,12 @@ async function pjAvisarKarina(env, texto) {
   for (const a of (r.ok && r.dados) || []) if (a.telefone && (await janelaAberta(env, a.telefone))) await enviarTexto(env, a.telefone, texto, { proativa: true, tipo_proativa: "sistema" }).catch(() => {});
 }
 
-// Manda a manhã (janela aberta): abertura com [Falar aqui] [Ver na Dash];
-// as tarefas ficam na fila (estado.fila) e saem uma por vez.
+// estado.dia = { dia, agendaTexto, tarefasTexto, temAgenda, temTarefas, viuAgenda, viuTarefas, lembrete }
+const pjDiaHoje = estado => (estado.dia && estado.dia.dia === hojeSP() ? estado.dia : null);
+const pjFaltaAgenda = estado => { const d = pjDiaHoje(estado); return !!(d && d.temAgenda && !d.viuAgenda); };
+const pjFaltaTarefas = estado => { const d = pjDiaHoje(estado); return !!(d && d.temTarefas && !d.viuTarefas); };
+
+// Manda a manhã (janela aberta).
 async function pjManha(env, pessoa, agoraMs, via) {
   const hoje = hojeSP(), sp = new Date((agoraMs || Date.now()) - 3 * 3600000), horaSP = sp.getUTCHours();
   const fimDeSemana = sp.getUTCDay() === 0 || sp.getUTCDay() === 6;
@@ -2847,11 +2868,14 @@ async function pjManha(env, pessoa, agoraMs, via) {
       await pjMandarEmails(env, pessoa, "manha", "aviso");
       return { barrado: erros };
     }
+    const n = plano.fila.length, nR = plano.reunioes.length;
     estado.fila = { dia: hoje, pos: 0, itens: plano.fila };
-    await enviarComOpcoes(env, tel, plano.cabecalho.texto, plano.cabecalho.opcoes, { proativa: true, tipo_proativa: "checkin", aviso_chave: plano.fila.length ? "pjdia|" + hoje : null });
+    estado.dia = { dia: hoje, agendaTexto: plano.agendaTexto, tarefasTexto: n ? pjTextoTarefas(n, plano.fdsN, pessoa) : "",
+      temAgenda: nR > 0, temTarefas: n > 0, viuAgenda: !n, viuTarefas: false, lembrete: false };
+    await enviarComOpcoes(env, tel, plano.cabecalho.texto, plano.cabecalho.opcoes, { proativa: true, tipo_proativa: "checkin", aviso_chave: n ? "pjdia|" + hoje : null });
     plano.fila.filter(m => m.tipo === "fds").forEach(m => { estado.fds[m.id] = m.fim; }); // pergunta uma vez por data
   } else if (!fimDeSemana) {
-    estado.fila = null;
+    estado.fila = null; estado.dia = null;
     await enviarComOpcoes(env, tel, "Bom dia! Nada desse lado, você precisa de algo?", OPCOES_CHECKIN, { proativa: true, tipo_proativa: "checkin" });
   }
   await pjMandarEmails(env, pessoa, "manha", "aviso");
@@ -2866,6 +2890,7 @@ async function pjManha(env, pessoa, agoraMs, via) {
 async function pjMandarDaFila(env, pessoa, estado) {
   const tel = pessoa.telefone, f = estado.fila;
   if (!f || !Array.isArray(f.itens) || f.dia !== hojeSP()) { await enviarTexto(env, tel, "Não tenho mais a lista de hoje. Me pede o que precisar 🙂"); return; }
+  if (estado.dia && estado.dia.dia === hojeSP()) estado.dia.viuTarefas = true;
   let pj = null;
   try { pj = await pjCarregar(env); } catch (e) {}
   while (f.pos < f.itens.length) {
@@ -2873,14 +2898,16 @@ async function pjMandarDaFila(env, pessoa, estado) {
     const loc = pj ? pjLocalizar(pj.dados, m.id) : null;
     if (pj && (!loc || !pjAberto(loc.no.status) || !pjDono(loc.no, pessoa.nome_tasks))) { f.pos++; continue; }
     const ultima = f.pos === f.itens.length - 1;
-    const ops = m.opcoes.concat(ultima ? (m.tipo === "fds" ? [] : [PJ_OP.criar]) : [PJ_OP.proxima]);
+    const fim = pjFaltaAgenda(estado) ? [PJ_OP.agenda] : (m.tipo === "fds" ? [] : [PJ_OP.criar]);
+    const ops = m.opcoes.concat(ultima ? fim : [PJ_OP.proxima]);
     await enviarComOpcoes(env, tel, `${f.pos + 1}/${f.itens.length} · ${m.texto}`, ops, { proativa: true, tipo_proativa: "aviso", aviso_chave: `pj|${m.id}|${m.tipo}` });
     f.pos++;
     await pjSalvarEstado(env, tel, estado);
     return;
   }
   await pjSalvarEstado(env, tel, estado);
-  await enviarComOpcoes(env, tel, `Pronto, essas eram as ${f.itens.length} de hoje 👍 Precisa de mais alguma coisa?`, OPCOES_CHECKIN);
+  if (pjFaltaAgenda(estado)) await enviarComOpcoes(env, tel, `Pronto, essas eram as ${f.itens.length} tarefas de hoje 👍 Agora quer ver sua agenda?`, [PJ_OP.agenda]);
+  else await enviarComOpcoes(env, tel, `Pronto, essas eram as ${f.itens.length} tarefas de hoje 👍 Precisa de mais alguma coisa?`, OPCOES_CHECKIN);
 }
 
 function pjAbertasDe(dados, nome) {
@@ -2935,6 +2962,14 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
   await pjColetarSlack(env, pessoa);
   if (!aberta) return;
   if (estado.ultimaManha !== hoje && horaSP <= 9) return; // a manhã ainda vai sair
+  // Garantia (Karina, 15/10): a partir do meio-dia, o que a pessoa ainda não
+  // viu (agenda ou tarefas) vai sozinho, uma vez.
+  if (horaSP >= 12 && pjDiaHoje(estado) && !estado.dia.lembrete && (pjFaltaAgenda(estado) || pjFaltaTarefas(estado))) {
+    const d = estado.dia;
+    if (pjFaltaAgenda(estado)) await enviarComOpcoes(env, tel, "Pra você não perder: " + d.agendaTexto, pjFaltaTarefas(estado) ? [PJ_OP.tarefas] : [], { proativa: true, tipo_proativa: "aviso" });
+    else await enviarComOpcoes(env, tel, "Ainda faltam suas tarefas de hoje. " + d.tarefasTexto.replace(/^✅ /, ""), pjOpsTarefas(pessoa), { proativa: true, tipo_proativa: "aviso" });
+    await pjSalvarParte(env, tel, e => { if (e.dia && e.dia.dia === hoje) { e.dia.lembrete = true; if (pjFaltaAgenda(estado)) e.dia.viuAgenda = true; } });
+  }
   const pj = await pjCarregar(env);
   const antes = JSON.stringify([estado.conhecidos, estado.textos]);
   await pjUrgentes(env, pessoa, estado, pj, hoje);
@@ -3031,13 +3066,31 @@ async function pjSalvarParte(env, tel, mudar) {
   await pjSalvarEstado(env, tel, atual);
 }
 const pjRestamNaFila = estado => !!(estado.fila && estado.fila.dia === hojeSP() && Array.isArray(estado.fila.itens) && estado.fila.pos < estado.fila.itens.length);
-const pjOpsDepois = estado => (pjRestamNaFila(estado) ? [PJ_OP.proxima, PJ_OP.criar] : [PJ_OP.criar]);
+const pjOpsDepois = estado => (pjRestamNaFila(estado) ? [PJ_OP.proxima, PJ_OP.criar] : pjFaltaAgenda(estado) ? [PJ_OP.agenda, PJ_OP.criar] : [PJ_OP.criar]);
 
 // Botões das mensagens de tarefa. Devolve true se tratou.
 async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const acao = PJ_CMD[cmd];
   if (!acao) return false;
   // Botões da abertura e da fila: não dependem de qual mensagem foi tocada.
+  if (acao === "agenda") {
+    const estado = await pjEstado(env, tel);
+    const d = pjDiaHoje(estado);
+    if (!d || !d.temAgenda) { await enviarTexto(env, tel, "Nada na sua agenda hoje 🙂"); return true; }
+    d.viuAgenda = true;
+    await pjSalvarEstado(env, tel, estado);
+    await enviarComOpcoes(env, tel, d.agendaTexto, pjFaltaTarefas(estado) ? [PJ_OP.tarefas] : []);
+    return true;
+  }
+  if (acao === "tarefas") {
+    const estado = await pjEstado(env, tel);
+    if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
+    if (!pessoa.admin) { await pjMandarDaFila(env, pessoa, estado); return true; }
+    if (estado.dia && estado.dia.dia === hojeSP()) estado.dia.viuTarefas = true;
+    await pjSalvarEstado(env, tel, estado);
+    await enviarComOpcoes(env, tel, (estado.dia && estado.dia.tarefasTexto) || "Onde você quer ver suas tarefas?", pjOpsTarefas(pessoa));
+    return true;
+  }
   if (acao === "falar" || acao === "proxima") {
     const estado = await pjEstado(env, tel);
     if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
@@ -3047,7 +3100,9 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   if (acao === "dash") {
     const estado = await pjEstado(env, tel);
     if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
-    await enviarComOpcoes(env, tel, `Suas tarefas de hoje na Dash (Principais e Outras):\n${linkDia(estado.fila.itens.map(m => m.id))}`, [PJ_OP.falar]);
+    if (estado.dia && estado.dia.dia === hojeSP()) estado.dia.viuTarefas = true;
+    await pjSalvarEstado(env, tel, estado);
+    await enviarComOpcoes(env, tel, `Suas tarefas de hoje na Dash (Principais e Outras):\n${linkDia(estado.fila.itens.map(m => m.id))}`, [PJ_OP.falar].concat(pjFaltaAgenda(estado) ? [PJ_OP.agenda] : []));
     return true;
   }
   const ctxId = msg.context && msg.context.id;
@@ -3066,7 +3121,7 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const novaPend = async (acaoPend, resumo) => sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { ...acaoPend, id }, resumo }] });
   if (acao === "proposital") {
     estado.fds[id] = loc.no.endDate; await pjSalvarEstado(env, tel, estado);
-    const ops = pjRestamNaFila(estado) ? [PJ_OP.proxima] : [];
+    const ops = pjRestamNaFila(estado) ? [PJ_OP.proxima] : pjFaltaAgenda(estado) ? [PJ_OP.agenda] : [];
     await enviarComOpcoes(env, tel, "👍 Anotado, o prazo fica no fim de semana.", ops);
     return true;
   }
