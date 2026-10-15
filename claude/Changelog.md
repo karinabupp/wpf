@@ -12,6 +12,27 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-15 — Manhã começa pelo resumo e garante que a pessoa veja agenda e tarefas
+
+Karina às 9h42 (print: "3 tarefas", depois "6 reuniões" e os botões — não
+dava pra entender que os botões eram das tarefas) e 9h43–9h44 (perguntar por
+onde começar; garantir que a pessoa veja tudo).
+
+- **Worker:** 1ª mensagem "Hoje você tem N compromissos na agenda e M
+  tarefas na Dash. Por onde quer começar?" [Ver agenda] [Ver tarefas]. Ver
+  tarefas → "M tarefas de hoje… Onde você quer ver?" [Ver aqui] [Ver na
+  Dash] (equipe: já vai a 1ª tarefa). Ver agenda → lista dos compromissos.
+  "Falar aqui" virou **"Ver aqui"**. `estado.dia` guarda o que já foi visto:
+  o que falta é oferecido no fim das tarefas, no Ver na Dash e depois de
+  resolver; a partir do meio-dia, o que ainda faltar vai sozinho, uma vez.
+  Só agenda: resumo + lista juntos; só tarefas: direto pra pergunta.
+  "reuniões" → "compromissos" (agenda tem blocos como "Postar SA").
+- **Revisor:** confere contagem de tarefas e de compromissos no resumo,
+  lista da agenda completa, pergunta antes dos botões e botões certos.
+- **Testes:** 86 simulados ok.
+
+---
+
 ## 2026-10-14 (6ª) — Carinha novo liberado pra todos + pedido de reconectar o Google
 
 Karina às 18h00 (teste da agenda com comandos), 18h15 ("não gostei, não vamos

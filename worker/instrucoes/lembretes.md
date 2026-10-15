@@ -37,25 +37,25 @@
 
 ## A manhã (9h25)
 
-1. **Abertura:** "Bom dia, Fulana! Você tem N tarefas hoje!" + as reuniões
-   do dia (agenda do Google da própria pessoa; recusadas e "local de
-   trabalho" ficam fora), com **[Falar aqui] [Ver na Dash]**.
-2. **Ver na Dash:** link `?dia=<ids>&org=wpf`, que abre o painel "Suas
-   tarefas de hoje": **Principais** = as N que o Carinha trouxe (mesma
-   contagem); **Outras** = o resto das abertas em nome da pessoa.
-3. **Falar aqui:** manda a 1ª tarefa ("1/N · …") e, a cada **Ver próxima**,
-   a seguinte, até acabar. Cada uma diz o que fazer de fato, o gatilho, de
-   qual projeto é, com quem divide ("👥 Com Isabela e Roberto") e tem 3
-   botões: a ação (Finalizar · Começar no dia do Início · Sim, proposital na
-   pergunta de fim de semana) + Mudar prazo + Ver próxima (na última: Criar
-   tarefa nova). Depois de resolver: [Ver próxima] [Criar tarefa nova].
-4. E-mails importantes (mesma triagem de sempre) e **ainda não lidos no
-   Gmail**, em mensagens à parte.
-5. Sem nada (dia útil): "Bom dia! Nada desse lado, você precisa de algo?"
-   com [Tudo certo] [Tenho algo].
+1. **Resumo (Karina, 15/10):** "Bom dia, Fulana! Hoje você tem N
+   compromissos na agenda e M tarefas na Dash. Por onde quer começar?"
+   [Ver agenda] [Ver tarefas]. Só agenda: resumo + lista juntos. Só
+   tarefas: direto pro passo 3.
+2. **Ver agenda:** a lista dos compromissos do dia (agenda do Google da
+   pessoa; recusados e "local de trabalho" fora).
+3. **Ver tarefas:** "M tarefas de hoje na Dash… Onde você quer ver?"
+   [Ver aqui] [Ver na Dash] (equipe, sem a aba Projetos: já vai a 1ª).
+   - **Ver na Dash:** pop-up do dia (`?dia=<ids>`), Principais/Outras, troca
+     de status.
+   - **Ver aqui:** uma tarefa por vez ("1/N · …"): o que fazer, gatilho,
+     projeto, com quem divide, e [ação] [Mudar prazo] [Ver próxima].
+4. **Garantir que veja tudo:** o que falta (agenda ou tarefas) é sempre
+   oferecido; a partir do meio-dia, se ainda faltar, vai sozinho uma vez.
+5. E-mails importantes não lidos (e Slack pra Karina e Isabela), à parte.
+6. Sem nada (dia útil): "Bom dia! Nada desse lado, você precisa de algo?"
 
-Janela de 24h fechada: vai o template `aviso_dash` (só se houver conteúdo) e
-o resto chega quando a pessoa toca "Ver agora".
+Janela de 24h fechada: template `aviso_dash` (só se houver conteúdo); o
+resto chega no "Ver agora".
 
 ## Revisores (obrigatórios)
 
