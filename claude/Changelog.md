@@ -12,6 +12,26 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 — Projetos: 9 países saem da "50 Federações Membros"
+
+Pedido da Karina às 12h59; "pode seguir" às 13h02 (só na Projetos, CRM não
+mexido).
+
+- **O que mudou (só dados, nenhum código):** apagados da entrega
+  **"50 Federações Membros"** (`pj-cl-f14`), com as 8 subtarefas de cada
+  (81 linhas): Europa — @Albania (`p01`), @Greece (`p15`), @Hungary (`p16`),
+  @Latvia (`p20`), @Moldova (`p22`), @Russia (`p28`); Américas — @Guatemala
+  (`p58`); África — @Algeria (`p65`), @Senegal (`p68`). Todos estavam Não
+  iniciado (país e subtarefas); nenhuma outra linha apontava pra eles.
+- **Onde:** Supabase, seção `projetos`, via SQL com trava (só gravava na
+  revisão 9348 e com os 9 ids presentes). Revisão 9348 → 9349.
+- **Conferido:** 62 países (Europa 29, Ásia 13, Américas 13, África 5,
+  Oceania 2), 496 subtarefas, nenhum id dos 9 restante, demais entregas e
+  CRM (*Membros - Federações*) intactos. Meta 50 segue coberta.
+- **Por quê:** atualização da lista de candidatas pedida pela Karina.
+
+---
+
 ## 2026-10-15 — Manhã começa pelo resumo e garante que a pessoa veja agenda e tarefas
 
 Karina às 9h42 (print: "3 tarefas", depois "6 reuniões" e os botões — não
