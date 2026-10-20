@@ -12,6 +12,21 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (22ª) — Projetos: USA e UK bloqueados (50 Federações)
+
+Pedido da Karina às 17h13 ("os EUA todo e o UK todo põe bloqueado").
+
+- **50 Federações › 🇺🇸 @United States of America e 🇬🇧 @United Kingdom:**
+  toda linha aberta → **Bloqueado**; o que já estava Finalizado ficou (USA: 5,
+  ex. "Buscar e contatar candidato"). Mães recalculadas pela regra: os dois
+  países e as linhas de dentro com algo aberto = Bloqueado. UK: 24 linhas
+  bloqueadas; USA: 19 bloqueadas + 5 finalizadas. Histórico em cada linha.
+  Revisão → 9572.
+- O item "USA e UK — falaremos mais tarde" do Prox Passos segue em aberto
+  (datas e o processo deles).
+
+---
+
 ## 2026-10-20 (21ª) — Projetos: dificuldade em todas as linhas
 
 Pedido da Karina às 17h10; "pode" às 17h11.
