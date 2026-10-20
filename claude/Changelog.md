@@ -12,6 +12,39 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (16ª) — Projetos: prioridade em todas as linhas
+
+Pedido da Karina às 16h51; ajustes às 16h53 (Social media automática toda
+Baixa; LW 2026 entre Alta e Média, "tudo lá foi importante"; resto
+"perfeito").
+
+- **Todas as ~2.480 linhas** (abertas e finalizadas) com prioridade, por
+  regra. Os 558 da 50 Federações (postos pelo Claude em 09/10, nenhum à mão
+  pela Karina) foram reaplicados pela regra.
+  - Gerais: "Aprovar…" = Alta; Avisar / Confirmar o recebimento / Agradecer /
+    Acompanhar / Fazer o relatório = Baixa (exceto "Avisar que não dá pra
+    manter a posição…", que é Alta, parte da cobrança final — corrigido na
+    sequência, 62 linhas).
+  - 50 Federações: entrega, continentes, países, buscar e contatar,
+    apresentar, abrir, cobrança final (+ aviso), tirar do site, reiniciar
+    contato = Alta; coletar/verificar documentos, 1ª–3ª cobrança, estatuto,
+    registro = Média; informações, criação e postagem da página = Baixa.
+  - LW 2026: Preparativos e Stops = Alta; o resto = Média.
+  - Chegar a 16 mil seguidores (Social media automática e Diagnóstico) =
+    Baixa.
+  - PANAM: plano de ação, regulamento, times, inscrições, realização = Alta;
+    anúncio, logística, premiação, mídia, divulgação = Média; fechamento =
+    Baixa. Asia Nations Cup = Média (banco de fotos = Baixa).
+  - TDA: Firmar a parceria = Alta; promover nos continentes = Média.
+    10 Grupos Fem: Grupos = Alta, Mapeamento = Média. Campeonato Mundial =
+    Alta. 185 menções: SoMuchPoker = Alta, resto Média. 23.260 acessos =
+    Média. Comunicação com Membros = Média (Streaming = Baixa).
+- **Total:** Alta 1.190 · Média 859 · Baixa 430 (antes da correção do
+  aviso: +62 Alta, −62 Baixa). Histórico em cada linha que mudou.
+- SQL com trava. Revisão → 9544.
+
+---
+
 ## 2026-10-20 (15ª) — Projetos: 50 Federações dividida entre Autoridade e Governança
 
 Karina às 16h48 ("docs, páginas institucionais… é governança; fechar novas

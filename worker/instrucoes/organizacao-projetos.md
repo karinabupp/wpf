@@ -105,6 +105,16 @@ Carinha quando ele propuser linhas.
   federação, reiniciar o contato) = **Autoridade** e documentos/páginas
   institucionais = **Governança**.
 
+## Prioridade (Karina, 20/10)
+
+- Toda linha nova nasce com prioridade. **Alta:** o que move direto o número
+  da meta, compromisso externo (proposta, parceria, fechar federação) e o que
+  trava os outros (aprovações, liberar acessos, cobrança final). **Média:** a
+  produção (matéria, PPT, páginas, documentos). **Baixa:** acompanhamento
+  (avisar, confirmar recebimento, agradecer, acompanhar, relatório).
+- Social media automática = Baixa. Evento realizado (ex. LW 2026) fica entre
+  Alta e Média. Na dúvida, perguntar à Karina.
+
 ## Critério de conclusão (Karina, 09/10)
 
 - Ao criar ou revisar uma entrega, conferir se cada tópico do critério tem
