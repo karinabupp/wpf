@@ -12,6 +12,26 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (21ª) — Projetos: dificuldade em todas as linhas
+
+Pedido da Karina às 17h10; "pode" às 17h11.
+
+- **Tarefas da ponta pelo verbo:** **Alta** = Firmar · Discutir · Apresentar
+  a proposta · Abrir a federação · Pesquisar candidato · Montar o agente / a
+  criação / a postagem · Realizar · Mandar fazer (troféu/medalhas) · Escrever
+  o regulamento · Coletar a lista de jogadores · Negociar. **Baixa** = Enviar ·
+  Mandar (mensagem/doc) · Avisar · Aprovar · Postar · Publicar · Subir ·
+  Marcar · Confirmar · Agradecer · Acompanhar · Receber · Cobrar/cobrança ·
+  Perguntar · Listar · Dar acesso · Imprimir · Pegar · Contatar · Recontatar ·
+  Tirar. **Média** = o resto (criar, escrever, preparar, coletar, verificar,
+  definir, mapear, testar, revisar, aplicar, reiniciar…).
+- **Linha com algo dentro:** a maior dificuldade entre as de dentro.
+- Valores antigos (50 Federações, postos pelo Claude em 09/10) reaplicados
+  pela regra. **Total:** Alta 288 · Média 1.287 · Baixa 904. Histórico em
+  cada linha que mudou. Revisão → 9571.
+
+---
+
 ## 2026-10-20 (20ª) — Projetos: passar o mouse na cor mostra a frente
 
 Pedido da Karina às 17h10.

@@ -115,6 +115,16 @@ Carinha quando ele propuser linhas.
 - Social media automática = Baixa. Evento realizado (ex. LW 2026) fica entre
   Alta e Média. Na dúvida, perguntar à Karina.
 
+## Dificuldade (Karina, 20/10)
+
+- Toda linha nova nasce com dificuldade, pelo verbo: **Alta** = negociação,
+  depende de terceiros, várias semanas, algo novo de montar (firmar,
+  discutir, apresentar proposta, abrir federação, montar, realizar, mandar
+  fazer, escrever regulamento, negociar). **Média** = produção/análise
+  (criar, escrever, coletar, verificar, definir, testar, revisar). **Baixa** =
+  ação rápida (enviar, avisar, aprovar, postar, publicar, marcar, confirmar,
+  receber, cobrar, listar). Linha com algo dentro = a maior das de dentro.
+
 ## Critério de conclusão (Karina, 09/10)
 
 - Ao criar ou revisar uma entrega, conferir se cada tópico do critério tem
