@@ -12,6 +12,43 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (10ª) — Projetos: mãe herda status e datas das filhas (código)
+
+Pedido da Karina às 14h41; regras às 14h47 ("arruma, não troca a regra";
+atraso sobe) e (b) às 16h24 ("a mãe só fica bloqueada quando tudo dentro
+dela tá bloqueado").
+
+- **`index.html`, bloco PROJETOS** (68 linhas inseridas, 3 trocadas):
+  `temFilhas`, `atrasoDentro`, `atrasada`, `statusDasFilhas`,
+  `calcularMaes()` (de baixo pra cima), chamada no `render()` e no
+  `projetosBridge.apply` (salva se mudou).
+  - **Status da linha com algo dentro** (canceladas fora): todas canceladas
+    → Cancelado · todas finalizadas → Finalizado ("Finalizado em" = o da
+    última filha) · tudo o que está aberto bloqueado → Bloqueado · nada
+    começado (Não iniciado, Falta detalhar ou Bloqueado) → Não iniciado
+    (entrega em "Falta detalhar" continua assim) · resto → Em andamento.
+  - **Datas:** Início = 1º Início das filhas, Fim = último Fim; sem data nas
+    filhas, a mãe fica com a dela.
+  - **Travado na mãe:** select de status (`disabled`, classe `is-auto`),
+    prazo (vira texto, sem pop-up), "Finalizado em"; trava também no
+    `aoMudar` e no pop-up do dia. Dica: "Calculado pelas tarefas de dentro".
+  - **Vermelho** de atraso sobe de qualquer nível ("Tem tarefa atrasada aqui
+    dentro").
+  - **Histórico** da mãe: "Calculado pelas tarefas de dentro · …", autor
+    "Dash (automático)".
+  - Sem função nova pro `CATALOGO_PERMISSOES` (é comportamento da tabela).
+- **Efeito nos dados ao abrir a Dash** (simulado): UK e o "Buscar e
+  contatar candidato" dele Bloqueado → Não iniciado (só um passo dentro
+  está bloqueado; regra b); 48 mães com datas herdadas.
+- **Testes:** 19 em navegador sem tela com a Dash real (login e nuvem
+  simulados): os 6 casos de status, travas, datas, Finalizado em, atraso de
+  neta subindo, Histórico, folha mudando a mãe, mudança forçada recusada,
+  gravação na nuvem, sem erro de JS.
+- **Não feito:** o Worker (Carinha) não recalcula as mães — quando ele muda
+  uma folha pelo WhatsApp, a mãe só acerta quando alguém abre a Dash.
+
+---
+
 ## 2026-10-20 (9ª) — Projetos: PANAM Nations Cup detalhada pra 2027
 
 Pedido da Karina às 16h10 e 16h13 (detalhar até a ação, ex. troféu; BSOP e

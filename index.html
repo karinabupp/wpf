@@ -6764,6 +6764,9 @@
   .pj-prog.is-completo span { color: #173404; }
   .pj-prog-vazio, .pj-herdado { display: inline-block; margin-top: 5px; color: var(--text-muted); font-size: 12px; }
   .pj-herdado { font-style: italic; }
+  /* Mãe calculada pelas filhas (20/10): sem cara de desabilitado, só sem seta. */
+  .pj-status.is-auto:disabled { opacity: 1; cursor: default; -webkit-appearance: none; appearance: none; background-image: none; }
+  .pj-prazo.is-auto { cursor: default; }
   #pj-tabela th[draggable] { cursor: grab; user-select: none; }
   .pj-th-alca { color: #c4c2b9; margin-right: 5px; font-size: 11px; letter-spacing: -2px; }
   #pj-tabela th[draggable]:hover .pj-th-alca { color: var(--text-muted); }
@@ -21362,10 +21365,64 @@ applyRolePermissions();
   }
   const proximaDoPrazo = e => (e.status === "andamento" || e.status === "naoiniciado") && !!e.endDate &&
     e.endDate >= hojeLocal() && e.endDate <= somaDias(hojeLocal(), DIAS_PROXIMO);
+  // Mãe herda das filhas (Karina, 20/10): linha com algo dentro não tem
+  // status nem prazo próprios. Atraso de qualquer filha aberta sobe até o topo.
+  const temFilhas = x => !!(x && x.subtasks && x.subtasks.length);
+  function atrasoDentro(x) {
+    return (x.subtasks || []).some(s => s.status !== "cancelado" && (temFilhas(s) ? atrasoDentro(s) : vencida(s)));
+  }
+  const atrasada = e => temFilhas(e) ? (e.status !== "finalizado" && e.status !== "cancelado" && atrasoDentro(e)) : vencida(e);
   function classeStatus(e) {
-    if (vencida(e)) return "is-atrasado";
+    if (atrasada(e)) return "is-atrasado";
     if (proximaDoPrazo(e)) return "is-proximo";
     return "is-" + e.status;
+  }
+  // Ordem (Karina, 20/10): todas canceladas → Cancelado; todas finalizadas →
+  // Finalizado; tudo o que está aberto bloqueado → Bloqueado (opção b: uma
+  // filha bloqueada sozinha não bloqueia a mãe); nada começado (Não iniciado,
+  // Falta detalhar ou Bloqueado) → Não iniciado; o resto → Em andamento.
+  // Canceladas ficam fora da conta. Entrega vazia segue com o status dela.
+  function statusDasFilhas(x, nivel) {
+    const vivas = x.subtasks.filter(s => s.status !== "cancelado");
+    if (!vivas.length) return "cancelado";
+    if (vivas.every(s => s.status === "finalizado")) return "finalizado";
+    const abertas = vivas.filter(s => s.status !== "finalizado");
+    if (abertas.every(s => s.status === "bloqueado")) return "bloqueado";
+    if (vivas.every(s => s.status === "naoiniciado" || s.status === "detalhar" || s.status === "bloqueado"))
+      return nivel === 0 && x.status === "detalhar" ? "detalhar" : "naoiniciado";
+    return "andamento";
+  }
+  // De baixo pra cima: quando a mãe é calculada, as filhas já estão prontas.
+  // Datas: Início = 1º Início das filhas, Fim = último Fim (canceladas fora);
+  // sem nenhuma data nas filhas, a mãe fica com a dela. Mudou = Histórico.
+  function calcularMaes() {
+    let mudou = false;
+    (function walk(l, nivel) {
+      (l || []).forEach(x => {
+        if (!temFilhas(x)) return;
+        walk(x.subtasks, nivel + 1);
+        const vivas = x.subtasks.filter(s => s.status !== "cancelado");
+        const st = statusDasFilhas(x, nivel);
+        const inis = vivas.map(s => s.startDate).filter(Boolean).sort();
+        const fins = vivas.map(s => s.endDate).filter(Boolean).sort();
+        const ini = inis.length ? inis[0] : x.startDate;
+        const fim = fins.length ? fins[fins.length - 1] : x.endDate;
+        let fin = "";
+        if (st === "finalizado") {
+          const fs = vivas.map(s => s.finalizadoEm).filter(Boolean).sort();
+          fin = fs.length ? fs[fs.length - 1] : (x.finalizadoEm || "");
+        }
+        const partes = [];
+        const troca = (campo, para) => {
+          if ((x[campo] || "") === (para || "")) return;
+          partes.push(`${ROTULO_CAMPO[campo] || campo}: ${valorLegivel(campo, x[campo])} → ${valorLegivel(campo, para)}`);
+          x[campo] = para;
+        };
+        troca("status", st); troca("startDate", ini); troca("endDate", fim); troca("finalizadoEm", fin);
+        if (partes.length) { registrar(x, "Calculado pelas tarefas de dentro · " + partes.join(" · "), { autor: "Dash (automático)" }); mudou = true; }
+      });
+    })(entregas, 0);
+    return mudou;
   }
 
   // ── Tags (cadastro do piloto), em 3 colunas (Karina, 08/10) ──
@@ -21530,16 +21587,20 @@ applyRolePermissions();
       `<textarea class="pj-txt pj-crit-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
     status: e => {
       const cls = classeStatus(e);
-      const dica = cls === "is-atrasado" ? "Passou do prazo (Fim " + fmtData(e.endDate) + ")" : cls === "is-proximo" ? "Prazo próximo (Fim " + fmtData(e.endDate) + ")" : "";
-      return `<select class="pj-status ${cls}" data-campo="status" title="${dica}">${STATUS.map(s => `<option value="${s.id}" ${s.id === e.status ? "selected" : ""}>${s.nome}</option>`).join("")}</select>`;
+      const mae = temFilhas(e);
+      const dica = (cls === "is-atrasado" ? (mae ? "Tem tarefa atrasada aqui dentro" : "Passou do prazo (Fim " + fmtData(e.endDate) + ")") : cls === "is-proximo" ? "Prazo próximo (Fim " + fmtData(e.endDate) + ")" : "") +
+        (mae ? (cls === "is-atrasado" || cls === "is-proximo" ? " · " : "") + "Calculado pelas tarefas de dentro" : "");
+      return `<select class="pj-status ${cls} ${mae ? "is-auto" : ""}" data-campo="status" title="${dica}" ${mae ? "disabled" : ""}>${STATUS.map(s => `<option value="${s.id}" ${s.id === e.status ? "selected" : ""}>${s.nome}</option>`).join("")}</select>`;
     },
     prazo: e => {
       const txt = prazoTexto(e);
+      if (temFilhas(e)) return `<span class="pj-prazo is-auto ${txt ? "" : "is-vazio"}" title="Calculado pelas tarefas de dentro${e.startDate || e.endDate ? " · Início " + (fmtData(e.startDate) || "—") + " · Fim " + (fmtData(e.endDate) || "—") : ""}">${txt ? esc(txt) : "—"}</span>`;
       return `<button type="button" class="pj-prazo ${txt ? "" : "is-vazio"}" data-acao="prazo" title="${e.startDate || e.endDate ? "Início " + (fmtData(e.startDate) || "—") + " · Fim " + (fmtData(e.endDate) || "—") : "Escolher início e fim"}">${txt ? esc(txt) : "+ prazo"}</button>`;
     },
     finalizado: e => {
       const fin = e.status === "finalizado";
       if (!fin) return `<span class="pj-prog-vazio" title="Preenche sozinho quando o status vira Finalizado">—</span>`;
+      if (temFilhas(e)) return `<span class="pj-prog-vazio" title="Calculado pelas tarefas de dentro">${esc(fmtData(e.finalizadoEm)) || "—"}</span>`;
       return `<input type="date" class="pj-data" data-campo="finalizadoEm" value="${esc(e.finalizadoEm)}" ${fin ? "" : "disabled"} title="${fin ? "Data em que foi finalizada (dá pra corrigir)" : "Preenche sozinho quando o status vira Finalizado"}">`;
     },
     forma: e => {
@@ -21695,6 +21756,7 @@ applyRolePermissions();
     fecharMencao();
     candsCache = null;
     if (mencoesParaTagsEmTudo()) salvar();
+    if (calcularMaes()) salvar();
     sincronizarFrente();
     const lista = filtradas();
     renderObjetivos(porFrente());
@@ -21897,6 +21959,7 @@ applyRolePermissions();
       return;
     }
     if (ev.type === "input" && el.tagName !== "TEXTAREA") return; // selects e datas: só no change
+    if (temFilhas(e) && ["status", "startDate", "endDate", "finalizadoEm"].includes(campo)) { render(); return; } // mãe é calculada
     if (campo === "status") {
       const antes = e.status, finAntes = e.finalizadoEm;
       e.status = el.value;
@@ -23109,6 +23172,7 @@ applyRolePermissions();
       entregas = lista.map(x => normalizar(x, 0));
       temDados = true;
       if (migrouChecklist) { migrouChecklist = false; salvar(); }
+      if (calcularMaes()) salvar();
       try { localStorage.setItem(LS_KEY, JSON.stringify(entregas)); } catch (e) {}
       if (visivel()) render();
     }
@@ -23221,6 +23285,7 @@ applyRolePermissions();
       if (!sel) return;
       const e = achar(sel.closest("li").dataset.id);
       if (!e || e.status === sel.value) return;
+      if (temFilhas(e)) { montar(); return; } // mãe é calculada pelas de dentro
       const antes = e.status, finAntes = e.finalizadoEm;
       e.status = sel.value;
       if (e.status === "finalizado" && antes !== "finalizado" && !e.finalizadoEm) e.finalizadoEm = hojeLocal();

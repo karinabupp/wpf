@@ -87,6 +87,14 @@ dois arquivos antes de propor qualquer coisa**:
   e nada de "Nome: detalhe" em linha nenhuma: vira sublinha (ou Responsável/
   data). Detalhes em **`worker/instrucoes/organizacao-projetos.md`**.
 
+- **REGRA — mãe herda das filhas na Projetos (Karina, 20/10):** linha com
+  algo dentro tem status, datas e "Finalizado em" calculados (não editáveis):
+  todas canceladas → Cancelado; todas finalizadas → Finalizado; tudo o que
+  está aberto bloqueado → Bloqueado; nada começado → Não iniciado; resto →
+  Em andamento. Atraso de filha deixa a mãe vermelha. Ao gravar dados por
+  SQL, deixar as mães coerentes (a Dash recalcula e grava ao abrir).
+  `calcularMaes()` no bloco PROJETOS do index.html.
+
 - **Carinha lê a Projetos (Karina, 14/10):** manhã das 9h25 (todo dia) com
   as tarefas que caem nos 5 gatilhos + reuniões do dia, uma mensagem por
   tarefa com botões, **revisor em código** antes de mandar, e-mail não lido à
