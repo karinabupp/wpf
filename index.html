@@ -6770,6 +6770,14 @@
   .pj-obj.is-herdado-obj { color: var(--text-muted); font-style: italic; }
   /* 20/10 (Karina): barrinha na cor da frente da entrega. Federações (e sem frente)
      seguem no azul; Eventos em roxos, Comitê em rosas, Marketing em laranja queimado. */
+  /* 20/10 (Karina): área invisível sobre a barrinha, só pra dica da frente. */
+  #pj-tabela tr.pj-linha > td:first-child { position: relative; }
+  .pj-barra-dica { position: absolute; top: 0; bottom: 0; left: 0; width: 5px; z-index: 2; cursor: help; }
+  tr.pj-linha.is-etapa .pj-barra-dica { width: 10px; }
+  tr.pj-linha.is-tarefa .pj-barra-dica { width: 15px; }
+  tr.pj-linha.is-subtarefa .pj-barra-dica { width: 20px; }
+  tr.pj-linha.is-subtarefa2 .pj-barra-dica { width: 25px; }
+  tr.pj-linha.is-subtarefa3 .pj-barra-dica { width: 30px; }
   /* 20/10 (Karina): a entrega usa o mesmo tom da 1ª filha (etapa). */
   #pj-tabela tr.pj-linha.is-entrega { --pj-cor-nivel: #4a78b5; }
   #pj-tabela tr.pj-linha.fr-institucional.is-entrega { --pj-cor-nivel: #7a4ab5; }
@@ -21715,8 +21723,11 @@ applyRolePermissions();
   function linhaHtml(e, loc, cols) {
     const nivel = NIVEIS[loc.nivel];
     const fr = (loc.entrega && loc.entrega.frente) || "sem";
+    // 20/10 (Karina): passar o mouse na cor da barrinha mostra a frente.
+    const nomeFr = (FRENTES_PJ.find(f => f.id === fr) || {}).nome || "Sem frente";
+    const dicaFr = `<span class="pj-barra-dica" title="Frente: ${esc(nomeFr)}"></span>`;
     return `<tr data-id="${e.id}" class="pj-linha is-${nivel}${loc.nivel > 3 ? " is-subtarefa" : ""} fr-${esc(fr)}">` +
-      cols.map(id => `<td data-col="${id}">${CELULAS[id](e, loc)}</td>`).join("") +
+      cols.map((id, i) => `<td data-col="${id}">${i === 0 ? dicaFr : ""}${CELULAS[id](e, loc)}</td>`).join("") +
       `<td data-col="lixo">${lixoHtml(e, loc)}</td></tr>`;
   }
   function colgroupHtml(cols) {

@@ -12,6 +12,17 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (20ª) — Projetos: passar o mouse na cor mostra a frente
+
+Pedido da Karina às 17h10.
+
+- **`index.html`:** `<span class="pj-barra-dica" title="Frente: …">` invisível
+  sobre a barrinha (1ª coluna), na mesma largura do degrau de cada nível (5 a
+  30px). Mostra "Frente: Federações / Eventos / Comitê / Marketing / Sem
+  frente". Testes ok (24, com a dica e a largura conferidas).
+
+---
+
 ## 2026-10-20 (19ª) — Projetos: entrega no mesmo tom da etapa
 
 Pedido da Karina às 17h08 ("usa a cor da 1ª filha também na mãe"); "pode".
