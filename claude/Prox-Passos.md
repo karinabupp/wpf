@@ -15,6 +15,33 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **⭐ Projetos — mãe herda status e datas das filhas (aprovado 20/10,
+  falta 1 resposta)** — pedido da Karina às 14h41. Aprovado:
+  - Status da linha com algo dentro (todos os níveis), canceladas fora:
+    todas canceladas → Cancelado › (Bloqueado — ver pergunta) › todas
+    finalizadas → Finalizado ("Finalizado em" = a da última filha) › todas
+    não iniciadas ("Falta detalhar" conta assim) → Não iniciado › mistura →
+    Em andamento. Entrega vazia segue "Falta detalhar".
+  - Datas: Início = 1º Início das filhas, Fim = último Fim; sem nenhuma data
+    nas filhas, a mãe fica com a dela.
+  - Status/prazo da mãe NÃO editáveis à mão (sem exceção — "arruma, não troca
+    a regra"); vermelho de atraso sobe de qualquer nível; mudança vai pro
+    Histórico.
+  - **Pergunta em aberto:** Bloqueado (a) qualquer filha bloqueada bloqueia a
+    mãe — aí a 50 Federações inteira fica Bloqueada por causa do UK — ou
+    (b) só quando tudo o que está aberto dentro está bloqueado.
+  - Dados já acertados (Changelog 20/10 6ª); com a regra, hoje só Europa e a
+    50 Federações mudariam (andamento → bloqueado, no caso (a)).
+  - *Como fazer:* no bloco JS "PROJETOS" do `index.html`: função
+    `calcularMaes()` de baixo pra cima (modelo: `syncStatusCalculados` /
+    `computeRollupStatus` / `computeRollupDatas` da Tasks 2), chamada no
+    `render()` e no `projetosBridge.apply` (salvar se mudou); `CELULAS.status`
+    e `CELULAS.prazo` travados quando a linha tem filhas; `classeStatus` com
+    atraso de qualquer filha aberta. Testar em navegador sem tela antes de
+    publicar. Depois: levar a regra pro Worker (o Carinha muda status de
+    folhas e a mãe só recalcula quando alguém abre a Dash).
+  - *Aberto em:* 2026-10-20
+
 - [ ] **50 Federações — USA e UK (Karina, 20/10: "falaremos mais tarde")** —
   ficaram fora das mudanças de 20/10 (3ª): sem datas e sem a troca de
   responsáveis/aviso novo. USA está em "Apresentar a WPF" (em andamento),

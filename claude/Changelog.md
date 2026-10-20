@@ -12,6 +12,48 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (7ª) — Projetos: "Sugerir streaming de documentário" detalhada
+
+Pedido da Karina às 16h01; "perfeito, bala" às 16h02 (Selecionar feds sai;
+datas ok).
+
+- **`pj-mv85gy483jk1`** (entrega Comunicação com Membros), agora: Pegar o
+  material de release do documentário (Karina + Roberto, 26/10) › Criar a
+  matéria sobre o documentário (Karina, 27/10) › Revisar a matéria (Roberto,
+  28/10) › Postar a matéria (Roberto, 28/10) › Criar a mensagem (Karina,
+  29/10) › Falar do documentário · Colocar o link da matéria · Sugerir o
+  streaming › Enviar a mensagem nos grupos de WhatsApp (Karina, 30/10).
+  Ids novos `pj-cl-ds-1..5`, `pj-cl-ds-5-1..3`.
+- "Mandar mensagem para selecionadas" (`pj-mv85hpsti34a`) virou "Enviar a
+  mensagem nos grupos de WhatsApp" (Início 26/10 → 30/10). **Saiu**
+  "Selecionar feds que possam ter interesse" (`pj-mv85hdgb1yoh`, sem
+  referências). Linha de cima continua 26→30/10.
+- SQL com trava; Histórico registrado. Revisão 9504 → 9507.
+
+---
+
+## 2026-10-20 (6ª) — Projetos: dados acertados pra regra "mãe herda das filhas"
+
+Karina às 14h47 ("arruma, não troca a regra"; "o que estava finalizado
+continua") e 14h50 ("se o topo estava finalizado… põe tudo como finalizado").
+
+- **127 linhas → Finalizado:** toda linha não finalizada/cancelada embaixo de
+  uma linha Finalizada. Quase todas nos 14 Stops do **Ladies Weekend 2026**
+  (fotos da abertura, vídeos, campeã, nº de jogadoras, Rafael, adesivos,
+  vídeo da host — Karina escolheu marcar tudo); mais a linha sem nome em
+  Ukraine › Postar página no site. "Finalizado em" vazio (data real
+  desconhecida). Histórico: "… → Finalizado (a linha de cima já estava
+  Finalizada)".
+- **UK** (50 Federações): "Pesquisar candidato" Não iniciado → Bloqueado
+  (país e "Buscar e contatar candidato" seguem bloqueados pela regra).
+- **Correção de informação:** eu tinha dito à Karina que os 14 países que
+  mudariam eram da 50 Federações; eram os Stops do LW (corrigido com ela
+  antes de gravar).
+- **A regra em si (código) ainda não foi feita** — ver Prox Passos.
+- SQL com trava. Revisão → 9504.
+
+---
+
 ## 2026-10-20 (5ª) — Projetos: "Comunicação com Membros" reorganizada (Holidays + ações das federações)
 
 Pedido da Karina às 14h06; respostas às 14h10 e OK às 14h12 ("cria todos").
