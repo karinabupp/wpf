@@ -12,6 +12,25 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (8ª) — Projetos: "Firmar a parceria WPF+TDA" detalhada pra janeiro
+
+Pedido da Karina às 16h04; respostas às 16h06 (Leonardo responsável + passo
+de ajuste; 19/01 como estimativa; resto ok).
+
+- **`pj-v4-0081`** (entrega Promover TDA em 4 continentes), 02→06/11 virou
+  **04/01→29/01/2027**: Listar o que queremos (04/01) › Listar o que
+  oferecemos (05/01) › Criar o PPT da proposta (06→08/01) › Levar o PPT pro
+  Leonardo (Karina + Leonardo, 11/01) › Ajustar o PPT com o retorno do
+  Leonardo (12/01) › Marcar a reunião com o Matt Savage (13/01) › Apresentar
+  a proposta (19/01, estimativa — depende da agenda dele) › Firmar a parceria
+  (29/01). Resto com Karina.
+- Os 2 primeiros renomeados ("Definir…" → "Listar…", ids `pj-mig-0496/0498`
+  mantidos); novos `pj-cl-tda-3..8`. "Marcar a reunião" foi pra 13/01 por
+  causa do passo de ajuste (antes 12/01).
+- SQL com trava; Histórico registrado. Revisão → 9508.
+
+---
+
 ## 2026-10-20 (7ª) — Projetos: "Sugerir streaming de documentário" detalhada
 
 Pedido da Karina às 16h01; "perfeito, bala" às 16h02 (Selecionar feds sai;
