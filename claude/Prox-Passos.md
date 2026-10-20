@@ -15,6 +15,15 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **50 Federações — USA e UK (Karina, 20/10: "falaremos mais tarde")** —
+  ficaram fora das mudanças de 20/10 (3ª): sem datas e sem a troca de
+  responsáveis/aviso novo. USA está em "Apresentar a WPF" (em andamento),
+  "é diferente"; UK bloqueado em "Buscar e contatar candidato". Os dois têm
+  os passos de 20/10 (2ª) (s1-r1..r4, s4-c1..c6, com Karina) mas não o
+  `s4-c7` nem "cobrança final". Conversar com ela antes de mexer.
+  - *Onde:* Supabase `projetos`, entrega `pj-cl-f14`.
+  - *Aberto em:* 2026-10-20
+
 - [ ] **50 Federações — passos condicionais marcados Finalizado nos países
   já fechados (20/10)** — ao levar o processo novo pros 62 (Changelog
   20/10 2ª), os países já finalizados herdaram Finalizado em "Recontatar

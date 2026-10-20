@@ -12,6 +12,37 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (3ª) — Projetos: responsáveis, aviso da Karina e datas dos 8 em abertura
+
+Pedido da Karina às 13h24; respostas às 13h29 (USA e UK fora, "falaremos
+mais tarde") e 13h31; "pode" às 13h32.
+
+- **Nos 60 países (todos menos USA e UK) da "50 Federações Membros":**
+  - **Responsável Karina Bupp** em todas as linhas (país e passos, inclusive
+    finalizados). Antes só havia Karina ou ninguém.
+  - **Isabela Castro** em Perguntar dos documentos e do andamento, Fazer a
+    2ª cobrança, Fazer a cobrança final e Avisar que não dá pra manter a
+    posição… (240 linhas).
+  - **Aviso novo da Karina:** "Fazer a 3ª cobrança" (`…-s4-c7`), entre a 2ª
+    e a final; a antiga "Fazer a 3ª cobrança" (`…-s4-c3`) virou **"Fazer a
+    cobrança final"**. Status herdado da coleta.
+- **Datas dos 8 em abertura** (Ireland, Portugal, Macao, Malaysia,
+  Philippines, Singapore, Ecuador, Panama): 1ª pergunta 22/10 · 2ª cobrança
+  29/10 · 3ª cobrança 05/11 · cobrança final + aviso 12/11 (antes 05/11) ·
+  Estatuto, Registro 12/11 · tirar do site + reiniciar 26/11 (antes 19/11) ·
+  Abrir a federação 12/11 · Coletar documentos 22/10→26/11 · Verificar
+  documentos 17/11 · Coletar informações pro site (Links, Fotos, Board)
+  24/11 · Criar página 27/11 · Postar página 30/11 · país 22/10→30/11.
+- **USA e UK:** não mexidos (assunto pra outra conversa).
+- **Histórico:** cada mudança de responsável, nome e data registrada na linha.
+- **Onde:** Supabase, seção `projetos`, SQL com trava. A 1ª tentativa parou
+  na trava (Karina editou um Fim na Dash às 13h24, revisão 9350 → 9362); nada
+  se perdeu, gravado em cima da versão dela. Revisão 9362 → 9363.
+- **Conferido:** 60 avisos novos, 60 "cobrança final", nenhuma data em
+  sábado/domingo; países abertos sem data: só USA e UK.
+
+---
+
 ## 2026-10-20 (2ª) — Projetos: prazos de pesquisa/contato e coleta de documentos em 3 cobranças
 
 Pedido da Karina às 13h11 e 13h16; aprovado às 13h18 (os 8 países da coleta;
