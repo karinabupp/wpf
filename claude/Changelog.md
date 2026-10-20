@@ -12,6 +12,41 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (9ª) — Projetos: PANAM Nations Cup detalhada pra 2027
+
+Pedido da Karina às 16h10 e 16h13 (detalhar até a ação, ex. troféu; BSOP e
+H2 com Leonardo, o resto que estava com ele → Karina); "manda bala" às 16h16.
+
+- **`pj-cl-np-6a1e6ea233`** (Promover Nations Cups › PANAM Nations Cup):
+  **01/02/27 → 06/12/27**, 115 linhas embaixo. Grupos:
+  1. **Definir o plano de ação** (`pj-v4-0086`, 01/02→03/03): Discutir com o
+     BSOP… durante o BSOP Millions 2027 (`pj-mig-0524`) e Discutir com o H2…
+     (`pj-mig-0526`), ambos Karina + Leonardo, cada um › Preparar a proposta ›
+     Marcar a reunião › Apresentar a proposta › Receber a resposta; Definir
+     onde será o evento; Definir a data do evento; Definir o formato do
+     torneio › Estrutura de blinds · Buy-in · Premiação em dinheiro · Número
+     de jogadores por time · Regras dos times.
+  2. **Anúncio** (`pj-cl-panam-2`, 08→19/03): release (Roberto, aprovação
+     Karina) e Informar os membros latino-americanos (Isabela).
+  3. **Preparativos** (`pj-cl-panam-3`, 05/04→19/11): Regulamento · Times
+     (Isabela) · Inscrições · Logística › Mesas e dealers · Credenciamento ·
+     Hospedagem dos times · Premiação › Troféu e Medalhas (designer › orçamento
+     › design › fornecedor › orçamento › enviar design › mandar fazer ›
+     receber) · Mídia › Cobertura · Transmissão · Fotos (Roberto) ·
+     Divulgação (Roberto).
+  4. **Realização** (`pj-cl-panam-4`, 22→26/11 — **estimativa**, data do BSOP
+     Millions 2027 desconhecida).
+  5. **Fechamento** (`pj-cl-panam-5`, 29/11→06/12).
+- Os 3 ids antigos mantidos (nomes, responsáveis e datas trocados, Histórico
+  preservado); antes: 19→23/10/26, com os 4 da equipe.
+- Datas só em dia útil, sem Carnaval, Sexta-feira Santa, 21/04, Corpus
+  Christi, 07/09, 12/10, 02/11, 15/11. Datas das linhas de cima = 1º Início e
+  último Fim das de baixo.
+- SQL com trava (só gravava com a PANAM no formato antigo e sem ids
+  `pj-cl-panam-`). Revisão → 9528.
+
+---
+
 ## 2026-10-20 (8ª) — Projetos: "Firmar a parceria WPF+TDA" detalhada pra janeiro
 
 Pedido da Karina às 16h04; respostas às 16h06 (Leonardo responsável + passo

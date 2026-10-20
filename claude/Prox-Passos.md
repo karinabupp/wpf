@@ -15,6 +15,13 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **PANAM Nations Cup 2027 — acertar as datas do evento** — a Realização
+  (22–26/11/27) e tudo que depende dela (briefing, link da transmissão,
+  crachás, fechamento) foi datado por estimativa: a Karina não sabia a data
+  do BSOP Millions 2027 (20/10). Quando "Definir a data do evento" (23/02/27)
+  sair, reposicionar essas datas. Ids `pj-cl-panam-4-*`, `-5-*`, `-3-6-*`.
+  - *Aberto em:* 2026-10-20
+
 - [ ] **⭐ Projetos — mãe herda status e datas das filhas (aprovado 20/10,
   falta 1 resposta)** — pedido da Karina às 14h41. Aprovado:
   - Status da linha com algo dentro (todos os níveis), canceladas fora:
