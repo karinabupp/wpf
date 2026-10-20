@@ -12,6 +12,41 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (11ª) — Projetos: "Social media automática" (Pokercine → WPF)
+
+Pedido da Karina às 16h24; "vira corrigir erros" / "estão bons" às 16h36.
+
+- **Entrega "Chegar a 16 mil seguidores no Instagram":** "Pokercine social
+  media no ar" (`pj-v4-0114`) virou **"Social media automática"**
+  (21/10→22/12) e "WPF social media no ar" (`pj-v4-0115`) foi pra dentro dela
+  como **"Aplicar na WPF"**. Grupos:
+  1. Mapear os erros (`pj-cl-sma-1`) › Mapear todos os erros do social media
+     (`pj-mig-0616`, antes "Mapear o que precisa pra ir por ar"), 21→23/10.
+  2. Liberar os acessos › Dar à Karina o acesso ao GitHub do Pokercine
+     (**Roberto**, 21/10) › Conferir os acessos ao Instagram e à Meta do
+     Pokercine (22/10).
+  3. Pesquisar a forma mais rápida de montar um agente de postagem
+     automática (26→30/10) › Levantar as opções › API da Meta · Agendadores ·
+     Agente com IA › Comparar custo, esforço e limites › Conferir as regras
+     da Meta › Escolher a abordagem.
+  4. Montar o agente no Pokercine (03→13/11) › tipos de post › de onde vem o
+     conteúdo › criação do post › Texto · Imagem › postagem automática ›
+     aprovação antes de postar › frequência.
+  5. Testar no Pokercine (16/11→04/12) › 1º post de teste › Conferir os posts
+     › **Corrigir os erros** (`pj-mig-0618`, antes "Consertar o que precisa
+     pra dar continuidade", status mantido) › Deixar rodando por 2 semanas ›
+     Avaliar o resultado.
+  6. Aplicar na WPF (`pj-v4-0115`, 07→22/12) › Aplicar a identidade visual da
+     WPF (`pj-mig-0622`, antes "Duplicar projeto pra WPF") › Testar com posts
+     da WPF › Aprovar os posts › Linkar ao Instagram da WPF (`pj-mig-0624`,
+     antes "Conectar as midias sociais da wpf") › Acompanhar a 1ª semana.
+- Tudo com Karina, menos o acesso ao GitHub (Roberto). Sem 02/11 e 20/11.
+  Ids antigos mantidos (Histórico preservado + linha da mudança); novos
+  `pj-cl-sma-*`. Status das mães acerta quando a Dash abrir (regra nova).
+- SQL com trava. Revisão → 9529.
+
+---
+
 ## 2026-10-20 (10ª) — Projetos: mãe herda status e datas das filhas (código)
 
 Pedido da Karina às 14h41; regras às 14h47 ("arruma, não troca a regra";
