@@ -95,6 +95,16 @@ Carinha quando ele propuser linhas.
 - Sublinha nova herda o status da linha quando ela já está Finalizada
   (ou Cancelada); senão nasce Não iniciada.
 
+## Objetivo por linha (Karina, 20/10)
+
+- As barras do topo (Autoridade · Alcance · Governança) contam **tarefas**
+  pelo objetivo efetivo: o da linha ou, vazio, o da linha de cima.
+- Ao criar ou reorganizar, dar objetivo próprio às partes que não são do
+  objetivo da entrega. Ex.: divulgação/mídia/promoção = **Alcance**; na
+  50 Federações, a expansão (buscar e contatar, apresentar a WPF, abrir a
+  federação, reiniciar o contato) = **Autoridade** e documentos/páginas
+  institucionais = **Governança**.
+
 ## Critério de conclusão (Karina, 09/10)
 
 - Ao criar ou revisar uma entrega, conferir se cada tópico do critério tem

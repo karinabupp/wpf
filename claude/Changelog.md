@@ -12,6 +12,22 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (15ª) — Projetos: 50 Federações dividida entre Autoridade e Governança
+
+Karina às 16h48 ("docs, páginas institucionais… é governança; fechar novas
+feds, a expansão em si, é autoridade"); "pode" às 16h50.
+
+- Nos **62 países** da `pj-cl-f14` (USA e UK incluídos — só classificação),
+  objetivo próprio **Autoridade** em: Buscar e contatar candidato (`-s1`),
+  Apresentar a WPF (`-s2`), Abrir a federação (`-s3`) e Coletar documentos ›
+  Reiniciar o processo de contato (`-s4-c6`) = 248 linhas (o que está dentro
+  herda). O resto (documentos, cobranças, verificação, informações e páginas
+  do site) segue Governança, herdado da entrega.
+- **Barras:** Autoridade 554/857 · Governança 518/848 · Alcance 167/254.
+- Histórico registrado. Revisão → 9542.
+
+---
+
 ## 2026-10-20 (14ª) — Projetos: Social media automática começa em 09/11
 
 Karina às 16h43 ("começar na segunda semana de nov") e 16h48 ("Aplicar na
