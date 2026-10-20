@@ -12,6 +12,30 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (12ª) — Projetos: página das federações novas (Mongólia, Armenia, Sweden)
+
+Pedido da Karina às 16h24; OK nos 3 pontos às 16h39.
+
+- **Atualizar o site › Publicar as páginas das federações novas:** processo
+  de 10 passos em cada país: Coletar os dados da federação · Coletar os links
+  de mídia · Coletar a diretoria · Criar ou pedir uma bio curta · Criar o doc
+  com todas as infos · Mandar o doc pro Roberto (Isabela) › Criar a página ·
+  Subir a página no ar · Avisar a Isabela (Roberto) › Enviar a página pra
+  federação (Isabela).
+  - **Mongolia** (`pj-cl-np-749646603d`): Não iniciado, 21/10 → 29/10
+    (21, 21, 21, 22, 23, 23, 26→27, 28, 28, 29). "Colocar no ar"
+    (`pj-mig-0588-ck3`) virou "Subir a página no ar".
+  - **Armenia** e **Sweden**: mesmos passos, já **Finalizado**, sem datas
+    (data real desconhecida). "Coletar infos" (`ck0`) virou "Coletar os dados
+    da federação"; "Colocar no ar" (`ck1`, `ck2`) virou "Subir a página no
+    ar". Ids novos `<país>-st1..st10`.
+- **50 Federações › Mongolia:** "Criar página no site" (`p43-s7`) e "Postar
+  página no site" (`p43-s8`) Finalizado → **Não iniciado** (a página ainda
+  não está no ar), datas 26→27/10 e 28/10.
+- Histórico registrado; SQL com trava. Revisão → 9530.
+
+---
+
 ## 2026-10-20 (11ª) — Projetos: "Social media automática" (Pokercine → WPF)
 
 Pedido da Karina às 16h24; "vira corrigir erros" / "estão bons" às 16h36.
