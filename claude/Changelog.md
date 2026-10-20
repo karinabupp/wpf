@@ -12,6 +12,27 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (4ª) — Projetos: passos da pesquisa de grupos femininos por região
+
+Pedido da Karina às 13h50 (print da linha); "sim" às 13h57 e 13h58.
+
+- **Onde:** entrega **"10 Grupos Fem Membros"** › Mapeamento › **Pesquisar
+  os principais grupos femininos por região** (`pj-mig-0244`).
+- **Novo:** em cada região (`pj-mig-0244-ck0..ck4`), 5 passos com Karina
+  Bupp, Não iniciado (ids `…-ckN-g1..g5`): Pesquisar grupos › Listar os
+  grupos nas tarefas › Detalhar as tarefas de cada grupo › Datar as tarefas
+  › Colocar responsáveis.
+- **Datas** (1 dia útil por passo, região começa 2 dias úteis depois da
+  anterior; sem fds, Finados e 20/11): Europa 03→06/11 · América do Norte
+  05→10/11 · América Latina 09→12/11 · Ásia e Oceania 11→16/11 · África
+  13→18/11 (Datar e Responsáveis no mesmo dia). Início/Fim de cada região =
+  1º e último passo.
+- **Correções:** Início da linha 01/11 (domingo) → 03/11; " Europa" → "Europa"
+  (espaço sobrando). Fim da linha (23/11) não mudou.
+- **Histórico** registrado; SQL com trava. Revisão 9451 → 9452.
+
+---
+
 ## 2026-10-20 (3ª) — Projetos: responsáveis, aviso da Karina e datas dos 8 em abertura
 
 Pedido da Karina às 13h24; respostas às 13h29 (USA e UK fora, "falaremos
