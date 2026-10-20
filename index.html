@@ -6666,7 +6666,7 @@
 
   /* ═══ PROJETOS (08/10, Karina): planilha de Entregas (1º nível) ═══ */
   #nav-projetos { display: none; }
-  body.pode-piloto #nav-projetos { display: flex; }
+  body.pode-piloto #nav-projetos, body.pode-projetos #nav-projetos { display: flex; }
   #projetos-wrap { padding: 20px 24px 60px; }
   .pj-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
   .pj-titulo { margin: 0; font-size: 22px; }
@@ -6768,6 +6768,41 @@
   .pj-status.is-auto:disabled { opacity: 1; cursor: default; -webkit-appearance: none; appearance: none; background-image: none; }
   .pj-prazo.is-auto { cursor: default; }
   .pj-obj.is-herdado-obj { color: var(--text-muted); font-style: italic; }
+  /* 20/10 (Karina): barrinha na cor da frente da entrega. Federações (e sem frente)
+     seguem no azul; Eventos em roxos, Comitê em rosas, Marketing em laranja queimado. */
+  #pj-tabela tr.pj-linha.fr-institucional.is-entrega { --pj-cor-nivel: #3b1f64; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-etapa { --pj-cor-nivel: #7a4ab5; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-etapa > td:first-child::before { background: #7a4ab5; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-tarefa { --pj-cor-nivel: #c3a9e4; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-tarefa > td:first-child::before { background: #c3a9e4; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa:not(.is-subtarefa2):not(.is-subtarefa3) { --pj-cor-nivel: #ddd0f2; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa:not(.is-subtarefa2):not(.is-subtarefa3) > td:first-child::before { background: #ddd0f2; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa2 { --pj-cor-nivel: #e6ddf5; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa2 > td:first-child::before { background: #e6ddf5; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa3 { --pj-cor-nivel: #efe9f8; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa3 > td:first-child::before { background: #efe9f8; }
+  #pj-tabela tr.pj-linha.fr-comite.is-entrega { --pj-cor-nivel: #7a1f4f; }
+  #pj-tabela tr.pj-linha.fr-comite.is-etapa { --pj-cor-nivel: #c24a87; }
+  #pj-tabela tr.pj-linha.fr-comite.is-etapa > td:first-child::before { background: #c24a87; }
+  #pj-tabela tr.pj-linha.fr-comite.is-tarefa { --pj-cor-nivel: #e8a9c8; }
+  #pj-tabela tr.pj-linha.fr-comite.is-tarefa > td:first-child::before { background: #e8a9c8; }
+  #pj-tabela tr.pj-linha.fr-comite.is-subtarefa:not(.is-subtarefa2):not(.is-subtarefa3) { --pj-cor-nivel: #f2d0e1; }
+  #pj-tabela tr.pj-linha.fr-comite.is-subtarefa:not(.is-subtarefa2):not(.is-subtarefa3) > td:first-child::before { background: #f2d0e1; }
+  #pj-tabela tr.pj-linha.fr-comite.is-subtarefa2 { --pj-cor-nivel: #f5dce8; }
+  #pj-tabela tr.pj-linha.fr-comite.is-subtarefa2 > td:first-child::before { background: #f5dce8; }
+  #pj-tabela tr.pj-linha.fr-comite.is-subtarefa3 { --pj-cor-nivel: #f8e8f0; }
+  #pj-tabela tr.pj-linha.fr-comite.is-subtarefa3 > td:first-child::before { background: #f8e8f0; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-entrega { --pj-cor-nivel: #8a3b12; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-etapa { --pj-cor-nivel: #c4622d; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-etapa > td:first-child::before { background: #c4622d; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-tarefa { --pj-cor-nivel: #e8ab86; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-tarefa > td:first-child::before { background: #e8ab86; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-subtarefa:not(.is-subtarefa2):not(.is-subtarefa3) { --pj-cor-nivel: #f2cfba; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-subtarefa:not(.is-subtarefa2):not(.is-subtarefa3) > td:first-child::before { background: #f2cfba; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-subtarefa2 { --pj-cor-nivel: #f5dccd; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-subtarefa2 > td:first-child::before { background: #f5dccd; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-subtarefa3 { --pj-cor-nivel: #f8e8de; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-subtarefa3 > td:first-child::before { background: #f8e8de; }
   #pj-tabela th[draggable] { cursor: grab; user-select: none; }
   .pj-th-alca { color: #c4c2b9; margin-right: 5px; font-size: 11px; letter-spacing: -2px; }
   #pj-tabela th[draggable]:hover .pj-th-alca { color: var(--text-muted); }
@@ -8075,6 +8110,10 @@ let tasksPilotoBridge = null;
 let projetosBridge = null;
 const PILOTO_LOGINS = ["karina"];
 function pilotoLiberado() { return !!currentUser && PILOTO_LOGINS.includes(currentUser.login); }
+// Projetos (20/10, Karina): liberada também pra Isabela. Lista própria pra não
+// abrir junto a Tasks (piloto) e a Gestão, que seguem só em PILOTO_LOGINS.
+const PROJETOS_LOGINS = ["karina", "isabela"];
+function projetosLiberado() { return !!currentUser && PROJETOS_LOGINS.includes(currentUser.login); }
 
 
 // Contador de edicoes deste navegador. NAO decide mais quem ganha (era um
@@ -9219,6 +9258,7 @@ function concluirLogin(acesso) {
   hideLoginGate();
   applyRolePermissions();
   document.body.classList.toggle("pode-piloto", pilotoLiberado());
+  document.body.classList.toggle("pode-projetos", projetosLiberado());
   resolverLoginFeito();
   iniciarPresenca();
   iniciarCarinha();
@@ -21672,7 +21712,8 @@ applyRolePermissions();
   }
   function linhaHtml(e, loc, cols) {
     const nivel = NIVEIS[loc.nivel];
-    return `<tr data-id="${e.id}" class="pj-linha is-${nivel}${loc.nivel > 3 ? " is-subtarefa" : ""}">` +
+    const fr = (loc.entrega && loc.entrega.frente) || "sem";
+    return `<tr data-id="${e.id}" class="pj-linha is-${nivel}${loc.nivel > 3 ? " is-subtarefa" : ""} fr-${esc(fr)}">` +
       cols.map(id => `<td data-col="${id}">${CELULAS[id](e, loc)}</td>`).join("") +
       `<td data-col="lixo">${lixoHtml(e, loc)}</td></tr>`;
   }
@@ -23189,7 +23230,7 @@ applyRolePermissions();
   setInterval(() => { if (visivel() && !usuarioOcupado()) render(); }, 10 * 60 * 1000);
 
   projetosBridge = {
-    get: () => (temDados && pilotoLiberado() ? entregas : undefined),
+    get: () => (temDados && projetosLiberado() ? entregas : undefined),
     apply: (data) => {
       const lista = data && data[SECAO];
       if (!Array.isArray(lista)) return;
@@ -23338,7 +23379,7 @@ applyRolePermissions();
         params.delete("dia"); params.delete("org"); params.delete("v");
         const resto = params.toString();
         try { history.replaceState(null, "", location.pathname + (resto ? "?" + resto : "") + location.hash); } catch (e) {}
-        if (!pilotoLiberado()) return;
+        if (!projetosLiberado()) return;
         const nav = document.getElementById("nav-projetos");
         if (nav) nav.click();
         setTimeout(() => painelDoDia(dia.split(/[~,]/).map(s => s.trim()).filter(Boolean)), 300);
@@ -23357,7 +23398,7 @@ applyRolePermissions();
       params.delete("pj"); params.delete("org");
       const resto = params.toString();
       try { history.replaceState(null, "", location.pathname + (resto ? "?" + resto : "") + location.hash); } catch (e) {}
-      if (!pilotoLiberado()) return;
+      if (!projetosLiberado()) return;
       const nav = document.getElementById("nav-projetos");
       if (nav) nav.click();
       setTimeout(() => {

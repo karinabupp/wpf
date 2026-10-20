@@ -67,7 +67,10 @@ reconstruir o raciocínio.
      Leonardo e Roberto reconectaram (`wpf_agente_google.escopos` com
      `/auth/tasks`)? Leonardo e Roberto só leem o recado se tocarem "Ver
      agora" no template — se não, a Karina manda o link direto.
-  - **Decidir:** abrir a guia Projetos na Dash pra equipe (`PILOTO_LOGINS`)?
+  - **20/10: Projetos liberada pra Isabela** (`PROJETOS_LOGINS`, Changelog
+    18ª). Falta no Worker: mostrar "Ver na Dash" e o link `?pj=`/`?dia=` pra
+    ela (hoje só admin). Leonardo e Roberto ainda não veem a guia.
+  - **Decidir (antigo):** abrir a guia Projetos na Dash pra equipe (`PILOTO_LOGINS`)?
     Sem isso o "Ver na Dash"/pop-up do dia não funciona pra eles (botão
     escondido pra quem não é admin) e a linha `?pj=` também não abre.
   - **Decidir:** tirar os comandos de teste da agenda (`pjComandoAgenda`)?

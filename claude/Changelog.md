@@ -12,6 +12,30 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (18ª) — Projetos: liberada pra Isabela + barrinha na cor da frente
+
+Pedido da Karina às 17h01.
+
+- **Acesso:** lista nova `PROJETOS_LOGINS = ["karina", "isabela"]` e
+  `projetosLiberado()` (classe `body.pode-projetos`). Usada no botão da guia,
+  no `projetosBridge.get` (a Isabela grava na nuvem) e nos links `?pj=` /
+  `?dia=`. **Tasks (piloto) e Gestão continuam só pra Karina**
+  (`PILOTO_LOGINS` não mudou). Login dela: `isabela`
+  (isabela@worldpokerfederation.org, colab). Banco já permitia (RLS
+  `wpf_tem_acesso`).
+- **Cores da barrinha pela frente da entrega** (classe `fr-<frente>` na
+  linha; degraus do mais escuro ao mais claro por nível): Federações e sem
+  frente = azul (igual); **Eventos** = roxos (#3b1f64 → #efe9f8); **Comitê** =
+  rosas (#7a1f4f → #f8e8f0); **Marketing** = laranja queimado (#8a3b12 →
+  #f8e8de).
+- **Testes:** navegador sem tela como Karina (23 ok), Isabela (24 ok: vê a
+  Projetos, não vê Tasks piloto/Gestão, grava) e Roberto (não vê a Projetos);
+  cores conferidas por nível.
+- **Não feito:** no WhatsApp, o "Ver na Dash" do Carinha segue só pra admin
+  (Worker) — ver Prox Passos.
+
+---
+
 ## 2026-10-20 (17ª) — Projetos: Frentes (sai Iniciativa; Institucional vira Eventos)
 
 Pedido da Karina às 16h57.
