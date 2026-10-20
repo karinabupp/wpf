@@ -6770,7 +6770,9 @@
   .pj-obj.is-herdado-obj { color: var(--text-muted); font-style: italic; }
   /* 20/10 (Karina): barrinha na cor da frente da entrega. Federações (e sem frente)
      seguem no azul; Eventos em roxos, Comitê em rosas, Marketing em laranja queimado. */
-  #pj-tabela tr.pj-linha.fr-institucional.is-entrega { --pj-cor-nivel: #3b1f64; }
+  /* 20/10 (Karina): a entrega usa o mesmo tom da 1ª filha (etapa). */
+  #pj-tabela tr.pj-linha.is-entrega { --pj-cor-nivel: #4a78b5; }
+  #pj-tabela tr.pj-linha.fr-institucional.is-entrega { --pj-cor-nivel: #7a4ab5; }
   #pj-tabela tr.pj-linha.fr-institucional.is-etapa { --pj-cor-nivel: #7a4ab5; }
   #pj-tabela tr.pj-linha.fr-institucional.is-etapa > td:first-child::before { background: #7a4ab5; }
   #pj-tabela tr.pj-linha.fr-institucional.is-tarefa { --pj-cor-nivel: #c3a9e4; }
@@ -6781,7 +6783,7 @@
   #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa2 > td:first-child::before { background: #e6ddf5; }
   #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa3 { --pj-cor-nivel: #efe9f8; }
   #pj-tabela tr.pj-linha.fr-institucional.is-subtarefa3 > td:first-child::before { background: #efe9f8; }
-  #pj-tabela tr.pj-linha.fr-comite.is-entrega { --pj-cor-nivel: #7a1f4f; }
+  #pj-tabela tr.pj-linha.fr-comite.is-entrega { --pj-cor-nivel: #c24a87; }
   #pj-tabela tr.pj-linha.fr-comite.is-etapa { --pj-cor-nivel: #c24a87; }
   #pj-tabela tr.pj-linha.fr-comite.is-etapa > td:first-child::before { background: #c24a87; }
   #pj-tabela tr.pj-linha.fr-comite.is-tarefa { --pj-cor-nivel: #e8a9c8; }
@@ -6792,7 +6794,7 @@
   #pj-tabela tr.pj-linha.fr-comite.is-subtarefa2 > td:first-child::before { background: #f5dce8; }
   #pj-tabela tr.pj-linha.fr-comite.is-subtarefa3 { --pj-cor-nivel: #f8e8f0; }
   #pj-tabela tr.pj-linha.fr-comite.is-subtarefa3 > td:first-child::before { background: #f8e8f0; }
-  #pj-tabela tr.pj-linha.fr-marketing.is-entrega { --pj-cor-nivel: #8a3b12; }
+  #pj-tabela tr.pj-linha.fr-marketing.is-entrega { --pj-cor-nivel: #c4622d; }
   #pj-tabela tr.pj-linha.fr-marketing.is-etapa { --pj-cor-nivel: #c4622d; }
   #pj-tabela tr.pj-linha.fr-marketing.is-etapa > td:first-child::before { background: #c4622d; }
   #pj-tabela tr.pj-linha.fr-marketing.is-tarefa { --pj-cor-nivel: #e8ab86; }

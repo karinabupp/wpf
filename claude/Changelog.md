@@ -12,6 +12,17 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (19ª) — Projetos: entrega no mesmo tom da etapa
+
+Pedido da Karina às 17h08 ("usa a cor da 1ª filha também na mãe"); "pode".
+
+- **`index.html` (CSS):** barrinha da **entrega** passa a usar o tom da
+  etapa: Federações/sem frente #1f3b64 → **#4a78b5**; Eventos #3b1f64 →
+  **#7a4ab5**; Comitê #7a1f4f → **#c24a87**; Marketing #8a3b12 → **#c4622d**.
+  Largura do degrau segue marcando o nível. Testes ok (23).
+
+---
+
 ## 2026-10-20 (18ª) — Projetos: liberada pra Isabela + barrinha na cor da frente
 
 Pedido da Karina às 17h01.
