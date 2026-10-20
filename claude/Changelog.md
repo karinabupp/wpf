@@ -12,6 +12,41 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (13ª) — Projetos: barras de objetivo contam tarefas; objetivo por linha
+
+Karina às 16h40 ("dividir as tasks em alcance, autoridade e governança pra
+mostrar o valor certinho no gráfico") e 16h43 ("conta tarefas"; Comunicação
+com Membros → Governança; "Atualizar o site" apagada por ela, não recuperar).
+
+- **`index.html`, bloco PROJETOS** (33 linhas inseridas, 10 trocadas):
+  - **Barras Autoridade/Alcance/Governança** contam **tarefas** (linhas da
+    ponta; fora as canceladas e as que estão dentro de linha cancelada) pelo
+    **objetivo efetivo**; antes contavam entregas inteiras finalizadas. Rótulo
+    "feitas/total"; dica com %. Atraso da cor também só pelas tarefas.
+  - **Objetivo por linha:** etapa/tarefa pode ter objetivo próprio; vazio =
+    herda o de cima (select com "↳ Nome" em cinza itálico, classe
+    `is-herdado-obj`). `mapearObjetivos()` no `render()`; `objetivoDe`,
+    `temObjetivo`, `pontasDoObjetivo`. Filtro pela barra mostra entregas com
+    alguma linha daquele objetivo. Coluna Objetivo continua oculta por padrão
+    (botão ⋯ do cabeçalho mostra).
+  - Sem permissão nova no `CATALOGO_PERMISSOES` (campo já existia).
+- **Dados (Supabase, revisão → 9540):** Comunicação com Membros
+  Autoridade → **Governança**; → **Alcance**: LW 2026 › Calendário de Social,
+  Alinhamento de Mídia, Divulgação nas Mídias; TDA › Promover na Ásia / América
+  do Norte / Europa / América Latina; Asia Nations Cup › Promoção; PANAM ›
+  Anúncio, Preparativos › Mídia e Divulgação. Histórico registrado.
+- **Como fica hoje:** Governança 842/1282 · Autoridade 230/423 · Alcance
+  167/254.
+- **Testes:** os 19 anteriores + 3 novos (barras por tarefa e objetivo
+  efetivo, célula mostrando o herdado, barra atualiza ao finalizar) = 22 ok.
+- **Registro:** às 16h40 a etapa **"Atualizar o site"** (entrega Chegar a
+  23.260 acessos no site) foi apagada pela Karina na Dash, com a Mongólia,
+  Armenia, Sweden, bandeiras e matérias de torneio dentro. Ela decidiu não
+  recuperar ("o que está lá também está nos países em 50 Feds"). Backup mais
+  recente com ela: `bkp_projetos_2026-10-13_antes_parenteses`.
+
+---
+
 ## 2026-10-20 (12ª) — Projetos: página das federações novas (Mongólia, Armenia, Sweden)
 
 Pedido da Karina às 16h24; OK nos 3 pontos às 16h39.

@@ -6767,6 +6767,7 @@
   /* Mãe calculada pelas filhas (20/10): sem cara de desabilitado, só sem seta. */
   .pj-status.is-auto:disabled { opacity: 1; cursor: default; -webkit-appearance: none; appearance: none; background-image: none; }
   .pj-prazo.is-auto { cursor: default; }
+  .pj-obj.is-herdado-obj { color: var(--text-muted); font-style: italic; }
   #pj-tabela th[draggable] { cursor: grab; user-select: none; }
   .pj-th-alca { color: #c4c2b9; margin-right: 5px; font-size: 11px; letter-spacing: -2px; }
   #pj-tabela th[draggable]:hover .pj-th-alca { color: var(--text-muted); }
@@ -21652,9 +21653,15 @@ applyRolePermissions();
     frente: (e, loc) => loc.nivel === 0
       ? `<select class="pj-obj ${e.frente ? "" : "is-vazio"}" data-campo="frente">${opcoes(FRENTES_PJ, e.frente)}</select>`
       : `<span class="pj-herdado" title="Vem da entrega">${esc((FRENTES_PJ.find(f => f.id === loc.entrega.frente) || {}).nome || "—")}</span>`,
-    obj: (e, loc) => loc.nivel === 0
-      ? `<select class="pj-obj ${e.objetivo ? "" : "is-vazio"}" data-campo="objetivo">${opcoes(OBJETIVOS_PJ, e.objetivo)}</select>`
-      : `<span class="pj-herdado" title="Vem da entrega">${esc((OBJETIVOS_PJ.find(o => o.id === loc.entrega.objetivo) || {}).nome || "—")}</span>`,
+    // 20/10 (Karina): etapa/tarefa pode ter objetivo próprio; vazio = herda o
+    // da linha de cima (aparece em cinza, "↳ Nome").
+    obj: (e, loc) => {
+      if (loc.nivel === 0) return `<select class="pj-obj ${e.objetivo ? "" : "is-vazio"}" data-campo="objetivo">${opcoes(OBJETIVOS_PJ, e.objetivo)}</select>`;
+      const her = (OBJETIVOS_PJ.find(o => o.id === objetivoDe(loc.pai)) || {}).nome || "";
+      return `<select class="pj-obj ${e.objetivo ? "" : "is-herdado-obj"}" data-campo="objetivo" title="${e.objetivo ? "Objetivo próprio desta linha" : "Herdado da linha de cima"}">` +
+        `<option value="">${her ? "↳ " + esc(her) : "—"}</option>` +
+        OBJETIVOS_PJ.map(x => `<option value="${x.id}" ${x.id === e.objetivo ? "selected" : ""}>${x.nome}</option>`).join("") + `</select>`;
+    },
     tags: e => tagsCelulaTodas(e)
   };
   function lixoHtml(e, loc) {
@@ -21707,9 +21714,17 @@ applyRolePermissions();
   // alguma etapa/tarefa dela tiver a prioridade escolhida.
   let prioFiltro = "";
   const temPrio = (x, p) => (p === "__sem__" ? !x.prioridade : x.prioridade === p) || (x.subtasks || []).some(s => temPrio(s, p));
+  // Objetivo efetivo (20/10): o da própria linha ou, vazio, o da de cima.
+  let objDe = new Map();
+  function mapearObjetivos() {
+    objDe = new Map();
+    (function walk(l, herdado) { (l || []).forEach(x => { const o = x.objetivo || herdado || ""; objDe.set(x.id, o); walk(x.subtasks, o); }); })(entregas, "");
+  }
+  const objetivoDe = x => (x ? objDe.get(x.id) || "" : "");
+  const temObjetivo = (x, o) => objetivoDe(x) === o || (x.subtasks || []).some(s => temObjetivo(s, o));
   function filtradas() {
     let l = porFrente();
-    if (objFiltro) l = l.filter(e => e.objetivo === objFiltro);
+    if (objFiltro) l = l.filter(e => temObjetivo(e, objFiltro));
     if (prioFiltro) l = l.filter(e => prioFiltro === "__sem__" ? !e.prioridade : temPrio(e, prioFiltro));
     return l;
   }
@@ -21722,11 +21737,18 @@ applyRolePermissions();
   const ATRASO_POUCO_DIAS = 7, ATRASADAS_MUITAS = 3;
   const diasEntre = (a, b) => Math.round((Date.parse(b + "T12:00:00") - Date.parse(a + "T12:00:00")) / 86400000);
   function todasAsLinhas(x) { return [x].concat((x.subtasks || []).reduce((acc, s) => acc.concat(todasAsLinhas(s)), [])); }
+  // 20/10 (Karina): a barra conta TAREFAS (as linhas da ponta, sem canceladas
+  // nem as que estão dentro de uma linha cancelada), pelo objetivo efetivo.
+  function pontasDoObjetivo(lista, objId) {
+    const out = [];
+    (function walk(l) { (l || []).forEach(x => { if (x.status === "cancelado") return; if (temFilhas(x)) walk(x.subtasks); else if (objetivoDe(x) === objId) out.push(x); }); })(lista);
+    return out;
+  }
   function resumoObjetivo(lista, objId) {
-    const doObj = lista.filter(e => e.objetivo === objId && e.status !== "cancelado");
+    const doObj = pontasDoObjetivo(lista, objId);
     const feitas = doObj.filter(e => e.status === "finalizado").length;
     const hoje = hojeLocal();
-    const atrasadas = doObj.reduce((acc, e) => acc.concat(todasAsLinhas(e)), [])
+    const atrasadas = doObj
       .filter(x => x.status !== "finalizado" && x.status !== "cancelado" && x.endDate && hoje > x.endDate);
     const maxDias = atrasadas.reduce((m, e) => Math.max(m, diasEntre(e.endDate, hoje)), 0);
     let cor = "verde";
@@ -21741,10 +21763,10 @@ applyRolePermissions();
     el.innerHTML = OBJETIVOS_PJ.map(o => {
       const r = resumoObjetivo(lista, o.id);
       const pct = r.total ? Math.round((r.feitas / r.total) * 100) : 0;
-      const dica = !r.total ? `${o.nome}: nenhuma entrega` :
-        `${o.nome}: ${r.feitas} de ${r.total} entrega${r.total === 1 ? "" : "s"} finalizada${r.total === 1 ? "" : "s"}` +
+      const dica = !r.total ? `${o.nome}: nenhuma tarefa` :
+        `${o.nome}: ${r.feitas} de ${r.total} tarefa${r.total === 1 ? "" : "s"} finalizada${r.total === 1 ? "" : "s"} (${pct}%)` +
         (r.atrasadas ? ` · ${r.atrasadas} linha${r.atrasadas === 1 ? "" : "s"} atrasada${r.atrasadas === 1 ? "" : "s"} (até ${r.maxDias} dia${r.maxDias === 1 ? "" : "s"})` : " · em dia");
-      return `<div class="pj-obj-barra is-${r.cor}${objFiltro === o.id ? " is-ativo" : objFiltro ? " is-apagado" : ""}" title="${esc(dica)} · ${objFiltro === o.id ? "clique pra ver todas" : "clique pra ver só as entregas dele"}" data-obj="${o.id}" role="button" tabindex="0" aria-pressed="${objFiltro === o.id}">
+      return `<div class="pj-obj-barra is-${r.cor}${objFiltro === o.id ? " is-ativo" : objFiltro ? " is-apagado" : ""}" title="${esc(dica)} · ${objFiltro === o.id ? "clique pra ver todas" : "clique pra ver só as entregas com tarefas dele"}" data-obj="${o.id}" role="button" tabindex="0" aria-pressed="${objFiltro === o.id}">
         <div class="pj-obj-barra-topo"><span>${o.nome}</span><b>${r.total ? r.feitas + "/" + r.total : "—"}</b></div>
         <div class="pj-obj-trilho"><div class="pj-obj-cheio" style="width:${pct}%"></div></div>
       </div>`;
@@ -21757,6 +21779,7 @@ applyRolePermissions();
     candsCache = null;
     if (mencoesParaTagsEmTudo()) salvar();
     if (calcularMaes()) salvar();
+    mapearObjetivos();
     sincronizarFrente();
     const lista = filtradas();
     renderObjetivos(porFrente());
