@@ -15,6 +15,20 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **50 Federações — passos condicionais marcados Finalizado nos países
+  já fechados (20/10)** — ao levar o processo novo pros 62 (Changelog
+  20/10 2ª), os países já finalizados herdaram Finalizado em "Recontatar
+  candidato", nas cobranças, em "Tirar o país do site" e "Reiniciar o
+  processo de contato", mesmo sem isso ter acontecido. Perguntar à Karina se
+  prefere Cancelado nesses passos (fica claro que não precisou).
+  - *Também em aberto:* USA (em "Apresentar a WPF") e UK (bloqueado) ficaram
+    sem datas; os 8 países em abertura têm datas só nas cobranças (país e
+    "Coletar documentos" sem Início/Fim). "Receber a resposta" de Austria e
+    Croatia vence em 02/11 (Finados) — é prazo do candidato, aprovado assim.
+  - *Onde:* Supabase `projetos`, entrega `pj-cl-f14`, ids `…-s1-r4`,
+    `…-s4-c1..c6`.
+  - *Aberto em:* 2026-10-20
+
 - [ ] **⭐ Carinha + Projetos — piloto com a Karina (no ar desde 14/10)** —
   Changelog 14/10. Falta, nesta ordem:
   1. **Karina testar:** "Ver agora" no WhatsApp (manhã de estreia), tocar

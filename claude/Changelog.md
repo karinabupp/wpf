@@ -12,6 +12,41 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (2ª) — Projetos: prazos de pesquisa/contato e coleta de documentos em 3 cobranças
+
+Pedido da Karina às 13h11 e 13h16; aprovado às 13h18 (os 8 países da coleta;
+datas ok, "nada em fds"; levar pros 62; pular Finados).
+
+- **Processo padrão novo (nos 62 países da "50 Federações Membros"):**
+  - `Buscar e contatar candidato` › Pesquisar candidato › Contatar candidato
+    › Receber a resposta (7 dias) › Recontatar candidato (dia útil seguinte).
+    Ids `…-pNN-s1-r1..r4`.
+  - `Coletar documentos` › Perguntar dos documentos e do andamento › Fazer a
+    2ª cobrança › Fazer a 3ª cobrança (› Avisar que não dá pra manter a
+    posição por muito mais tempo) › Estatuto › Registro › Tirar o país do
+    site › Reiniciar o processo de contato. Ids `…-pNN-s4-c1..c6`
+    (c4 = o aviso, dentro da 3ª cobrança).
+  - Status: herdam Finalizado/Cancelado da linha de cima; senão Não iniciado.
+    Responsável: Karina Bupp em todas as linhas novas.
+- **Datas — 12 países sem nada começado (2 por dia útil, sem Finados):**
+  Austria e Croatia 26/10 → resposta 02/11 → recontato 03/11; Denmark e
+  Finland 27/10 → 03/11 → 04/11; Lithuania e Netherlands 28/10 → 04/11 →
+  05/11; Serbia e Slovakia 29/10 → 05/11 → 06/11; Slovenia e Vietnam 30/10
+  → 06/11 → 09/11; Morocco e New Zealand 03/11 → 10/11 → 11/11. Início/Fim
+  do país e de "Buscar e contatar candidato" = contato → recontato
+  (Histórico registrado).
+- **Datas — 8 países em abertura (Ireland, Portugal, Macao, Malaysia,
+  Philippines, Singapore, Ecuador, Panama):** 1ª pergunta 22/10, 2ª cobrança
+  29/10, 3ª cobrança (e o aviso) 05/11, tirar do site e reiniciar o contato
+  19/11. Datas do país e de "Coletar documentos" não mudaram.
+- **Onde:** Supabase, seção `projetos`, um bloco SQL com trava (revisão 9349,
+  estrutura conferida país a país, 12/8/62 países). Revisão 9349 → 9350.
+- **Conferido:** 240 datas na entrega, nenhuma em sábado/domingo; status
+  certos em Austria, Morocco, Ireland, Panama, Brazil, UK, USA. Outras
+  entregas e CRM intactos.
+
+---
+
 ## 2026-10-20 — Projetos: 9 países saem da "50 Federações Membros"
 
 Pedido da Karina às 12h59; "pode seguir" às 13h02 (só na Projetos, CRM não
