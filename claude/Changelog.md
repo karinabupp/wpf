@@ -12,6 +12,40 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (5ª) — Projetos: "Comunicação com Membros" reorganizada (Holidays + ações das federações)
+
+Pedido da Karina às 14h06; respostas às 14h10 e OK às 14h12 ("cria todos").
+
+- **Entrega `pj-v4-0071`:** nome "Comunicação Clara com Membros" →
+  **"Comunicação com Membros"**; critério → "• Parceiros receberam as
+  mensagens de Holidays • Matéria das ações das federações publicada e
+  enviada a cada trimestre" (saiu o ppt do LW).
+- **Mensagens de Holidays** (`pj-v4-0070`, antes "Programar e-mails de
+  Holidays"): Natal, Ano Novo, Ano Novo Lunar e Dia Internacional da Mulher
+  (ids antigos `pj-cl-np-…` mantidos) subiram um nível e ganharam 4 passos
+  (`…-m1..m4`): Escrever a mensagem (Isabela) › Enviar pra aprovação
+  (Isabela) › Aprovar a mensagem (Karina) › Enviar pra todos os parceiros que
+  celebram (Isabela). Datas (escrever/aprovar/enviar): Natal 10/12 · 14/12 ·
+  24/12; Ano Novo 10/12 · 14/12 · 31/12; Ano Novo Lunar 22/01 · 26/01 · 05/02;
+  Dia da Mulher 22/02 · 24/02 · 08/03. Fim de cada data = dia do envio (o
+  Lunar era 06/02, sábado).
+- **Saíram:** "E-mail de fim de ano" (`pj-v4-0066` + `0063..0065`, virou o
+  Ano Novo), "Definir as datas dos Holidays" (`0067`), "Escrever os e-mails"
+  (`0068`), "Programar o envio" (`0069`). Nenhuma outra linha apontava pra elas.
+- **Novo — Promovendo ações das federações** (`pj-cl-cm-pa`), ciclos Março,
+  Junho, Setembro e Dezembro 2027 (`…-pa-1..4`), cada um com (`…-pa-N-1..5`):
+  Coletar os principais acontecimentos das federações (Karina) › Criar a
+  matéria (Karina) › Revisar a matéria (Roberto) › Postar a matéria (Roberto)
+  › Mandar mensagem a todos sobre a postagem (Isabela). Março: 01→12/03 ·
+  15→19/03 · 22→24/03 · 29/03 · 30/03 (desvia da Sexta-feira Santa); os outros
+  no mesmo ritmo (Junho 01→29/06, Setembro 01→28/09 sem o 7/9, Dezembro
+  01→28/12).
+- **Sugerir streaming de documentário:** igual, por último.
+- **Conferido:** 50 linhas na entrega, nenhuma data em sábado/domingo.
+  Histórico registrado; SQL com trava. Revisão 9459 → 9460.
+
+---
+
 ## 2026-10-20 (4ª) — Projetos: passos da pesquisa de grupos femininos por região
 
 Pedido da Karina às 13h50 (print da linha); "sim" às 13h57 e 13h58.
