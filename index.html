@@ -21234,8 +21234,10 @@ applyRolePermissions();
   const PRIORIDADES = [{ id: "alta", nome: "Alta" }, { id: "media", nome: "Média" }, { id: "baixa", nome: "Baixa" }];
   const OBJETIVOS_PJ = [{ id: "autoridade", nome: "Autoridade" }, { id: "alcance", nome: "Alcance" }, { id: "governanca", nome: "Governança" }];
   const FRENTES_PJ = [
-    { id: "federacoes", nome: "Federações" }, { id: "comite", nome: "Comitê" }, { id: "institucional", nome: "Institucional" },
-    { id: "marketing", nome: "Marketing" }, { id: "iniciativas", nome: "Iniciativa" }
+    // 20/10 (Karina): "Iniciativa" saiu; "Institucional" aparece como "Eventos"
+    // (o id interno continua "institucional", pra não migrar dado).
+    { id: "federacoes", nome: "Federações" }, { id: "comite", nome: "Comitê" }, { id: "institucional", nome: "Eventos" },
+    { id: "marketing", nome: "Marketing" }
   ];
   const SEM_FRENTE = "__sem__";
   const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");

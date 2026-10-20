@@ -12,6 +12,24 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (17ª) — Projetos: Frentes (sai Iniciativa; Institucional vira Eventos)
+
+Pedido da Karina às 16h57.
+
+- **`index.html`, `FRENTES_PJ` (só a Projetos):** "Iniciativa" saiu da lista;
+  "Institucional" agora aparece como **"Eventos"** (id interno continua
+  `institucional`, sem migrar dado). Tasks 2 e Tasks (piloto) têm listas
+  próprias e não foram tocadas.
+- **Dados (revisão → 9545):** Comunicação com Membros Eventos → **Federações**;
+  Promover Nations Cups Federações → **Eventos**; Promover TDA em 4
+  continentes Iniciativa → **Eventos**. Ficou: Federações = 50 Federações
+  Membros, Comunicação com Membros · Eventos = Promover Nations Cups,
+  Promover TDA, Organizar o 1º Campeonato Mundial · Comitê e Marketing como
+  estavam. Histórico registrado.
+- Testes: os 22 do navegador sem tela, ok.
+
+---
+
 ## 2026-10-20 (16ª) — Projetos: prioridade em todas as linhas
 
 Pedido da Karina às 16h51; ajustes às 16h53 (Social media automática toda
