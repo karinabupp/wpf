@@ -12,6 +12,20 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-20 (14ª) — Projetos: Social media automática começa em 09/11
+
+Karina às 16h43 ("começar na segunda semana de nov") e 16h48 ("Aplicar na
+WPF só em 08/01").
+
+- **`pj-v4-0114`** e tudo dentro: grupos 1 a 5 empurrados **12 dias úteis**
+  (Mapear os erros 09→11/11 · Liberar os acessos 09→10/11 · Pesquisar 12→18/11
+  · Montar o agente 19/11→02/12 · Testar no Pokercine 03→22/12); **Aplicar na
+  WPF** (`pj-v4-0115`) empurrado 22 dias úteis → **08/01→25/01/2027**.
+  Duração de cada passo mantida; sem fds, 02/11, 20/11, 25/12, 01/01.
+  Histórico em cada linha. Revisão → 9541.
+
+---
+
 ## 2026-10-20 (13ª) — Projetos: barras de objetivo contam tarefas; objetivo por linha
 
 Karina às 16h40 ("dividir as tasks em alcance, autoridade e governança pra
