@@ -15,6 +15,14 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Canário: travar também no banco (ideia, 21/10)** — hoje só a Dash
+  esconde a Canário de quem não é a Karina; a política do Supabase
+  (`wpf_dashboard_data`, `wpf_tem_acesso()`) deixa qualquer pessoa da equipe
+  ler/gravar qualquer seção, inclusive `projetos__canario`. Se a Karina
+  quiser, criar política que limite as seções `*__canario` ao e-mail dela
+  (SQL, com o OK dela).
+  - *Aberto em:* 2026-10-21
+
 - [ ] **Depois da Dash enxuta (etapas 1–3 feitas em 21/10)** — pendências:
   - *Decidir com a Karina:* o **Detalhador** (`worker/instrucoes/detalhador.md`)
     ainda manda gravar na Tasks (piloto), que saiu da Dash — passar a gravar

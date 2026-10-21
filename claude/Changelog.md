@@ -12,6 +12,29 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (9ª) — Canário Growth Lab: 3ª empresa, só da Karina, só Projetos
+
+Pedido da Karina às 15h26 (com o logo); "Canário não tem CRM, só Projetos…
+pode fazer assim, mas sem os erros na imagem" às 15h29.
+
+- **`index.html`, seletor de empresa:** `ORGS.canario` ("Canário Growth
+  Lab"), logo (passarinho + "Canário" / "Growth Lab", sem o fundo creme) e
+  ícone (só o passarinho) feitos da imagem que ela mandou, embutidos em
+  `CANARIO_LOGO_SRC` / `CANARIO_ICON_SRC`. Aparece no menu só pro login
+  `karina` (`ORGS_SO_KARINA`); se outro login abrir a Canário, a Dash volta
+  pra WPF depois do login.
+- **Só Projetos:** CRM escondido (`html.org-canario #nav-members2`) e o
+  pacote do CRM não é gravado na Canário. Seções novas no sync:
+  `projetos__canario`, `tasksPilotoCadastro__canario` (nascem quando ela
+  criar a 1ª entrega). Links `?pj=`/`?dia=` aceitam `org=canario`.
+- **Testes:** Karina na Canário (menu sem CRM, logo/ícone, Projetos vazia,
+  entrega nova grava só em `projetos__canario`, menu com as 3 empresas);
+  Isabela vê só WPF e CBTH; Isabela forçando a Canário volta pra WPF; sem erros.
+- **Limite:** o "só da Karina" é na Dash. No banco, a regra de acesso
+  (`wpf_tem_acesso`) é a mesma pra todas as seções — ver Prox Passos.
+
+---
+
 ## 2026-10-21 (8ª) — Carinha lê a Projetos da WPF e da CBTH (etapa 3 de 3)
 
 Proposta aprovada às 15h23 ("pode fazer assim"); publicado com o OK às 15h26.
