@@ -1826,7 +1826,8 @@ async function processarEmails(env, emails, donoEmail, compartilhado) {
   }
   // "Muito importante" vai na hora, se a janela da dona/o estiver aberta.
   const horaSP = (new Date().getUTCHours() + 21) % 24;
-  if (urgente && DONO_TEL && dono.proativo && horaSP >= 7 && horaSP <= 22 && dono.recebe_avisos && (await janelaAberta(env, DONO_TEL))) {
+  // Quem está na Projetos (20/10): vai pela rodada (pjDespachar), um por vez e com a trava.
+  if (urgente && DONO_TEL && dono.proativo && horaSP >= 7 && horaSP <= 22 && dono.recebe_avisos && !(await pjLiberado(env, dono).catch(() => false)) && (await janelaAberta(env, DONO_TEL))) {
     let pend = await pendentesDe(env, DONO_TEL);
     if (await somenteEmail(env)) pend = pend.filter(ehAvisoEmail);
     if (pend.length) await mandarAvisos(env, dono, pend, "email_imediato", "aviso_urgente", indice);
@@ -2218,6 +2219,12 @@ async function googleRodada(env, agoraMs) {
       if (!pessoa || !pessoa.telefone || !(await pjLiberado(env, pessoa))) continue;
       await pjAgendaSync(env, c, pessoa, hojeSP());
     } catch (e) { console.log("agenda projetos:", c.email, e && e.message); }
+  }
+  // Conversa (20/10): e-mail novo, reunião nova e o resto da fila também aos
+  // :35 (não esperam a rodada dos :05).
+  const rp = await sb(env, `${TAB_PESSOAS}?select=*&proativo=eq.true&recebe_avisos=eq.true`);
+  for (const p of (rp.ok && rp.dados) || []) {
+    try { if (await pjLiberado(env, p)) await pjRodada(env, p, CRON_GOOGLE, agoraMs); } catch (e) { console.log("conversa :35:", p.nome_tasks, e && e.message); }
   }
 }
 
@@ -2699,19 +2706,6 @@ Responda SÓ JSON: {"itens":[{"n":1,"oque":"...","contexto":"..."}]}`,
   });
 }
 
-// ── Reuniões do dia (agenda da própria pessoa) ──
-async function pjReunioesHoje(env, pessoa, hoje) {
-  const c = pessoa.email ? await conexaoGoogle(env, pessoa.email, true) : null;
-  if (!c || !temEscopo(c, "agenda")) return { ok: false, itens: [] };
-  const q = new URLSearchParams({ timeMin: `${hoje}T00:00:00-03:00`, timeMax: `${hoje}T23:59:59-03:00`, singleEvents: "true", orderBy: "startTime", maxResults: "25", timeZone: "America/Sao_Paulo" });
-  const r = await gApi(env, c, `${G_CAL}/events?${q}`);
-  if (!r.ok || !r.dados) return { ok: false, itens: [] };
-  const itens = (r.dados.items || []).filter(e => e.status !== "cancelled" && !["workingLocation", "outOfOffice", "focusTime"].includes(e.eventType))
-    .filter(e => { const eu = (e.attendees || []).find(a => a.self); return !eu || eu.responseStatus !== "declined"; })
-    .map(e => ({ quando: e.start && e.start.date ? "dia todo" : `${horaSPde(e.start.dateTime)}–${horaSPde(e.end.dateTime)}`, titulo: corta(e.summary || "(sem título)", 80) }));
-  return { ok: true, itens };
-}
-
 // ── E-mail: só o que ainda está NÃO LIDO no Gmail (Karina, 14/10) ──
 async function pjSoNaoLidos(env, pessoa, pend) {
   const daCaixa = pend.filter(p => /^email\|(?!sem_resposta\|)/.test(p.chave));
@@ -2734,182 +2728,50 @@ async function pjColetarSlack(env, pessoa) {
   const itens = await avisosDoSlack(env, pessoa, await cadastroPessoas(env)).catch(() => []);
   if (itens.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: itens.map(i => ({ telefone: pessoa.telefone, chave: i.chave, descricao: i.descricao })) });
 }
-async function pjMandarEmails(env, pessoa, via, tipo) {
-  // Recado do sistema NÃO vai por aqui (Karina, 14/10): só quando a pessoa
-  // escreve (ver tratarMensagem), com o texto exato.
-  let pend = (await pendentesDe(env, pessoa.telefone)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|"));
-  if (!pend.length) return 0;
-  pend = await pjSoNaoLidos(env, pessoa, pend);
-  let rodadas = 0;
-  // mandarAvisos manda 2 por vez; repete até acabar (conforme chegam).
-  while (pend.length && rodadas++ < 10) {
-    await mandarAvisos(env, pessoa, pend, via, tipo);
-    pend = (await pendentesDe(env, pessoa.telefone)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|"));
-  }
-  return rodadas;
-}
 
-// ── REVISOR (código, antes de mandar) ──
-// Recalcula a lista a partir dos dados e confere o plano montado. Qualquer
-// diferença barra as tarefas (nunca "você tem 3" e mostra 2).
-function pjRevisar(plano, dados, pessoa, hoje, estreia, fdsVistos) {
-  const erros = [];
-  const esperado = pjItensDoDia(dados, pessoa.nome_tasks, hoje, estreia).map(i => i.no.id);
-  const esperadoFds = pjItensFds(dados, pessoa.nome_tasks, hoje, fdsVistos).map(i => i.no.id).filter(id => !esperado.includes(id));
-  const ids = plano.fila.filter(m => m.tipo !== "fds").map(m => m.id);
-  const idsFds = plano.fila.filter(m => m.tipo === "fds").map(m => m.id);
-  const igual = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
-  if (new Set(ids.concat(idsFds)).size !== ids.length + idsFds.length) erros.push("tarefa repetida");
-  if (!igual(ids, esperado)) erros.push(`tarefas: esperado ${esperado.length}, montado ${ids.length}`);
-  if (!igual(idsFds, esperadoFds)) erros.push(`fim de semana: esperado ${esperadoFds.length}, montado ${idsFds.length}`);
-  const n = plano.fila.length, nR = plano.reunioes.length;
-  const cab = plano.cabecalho;
-  if (n || nR) {
-    if (!cab) erros.push("sem a mensagem de abertura");
-    else {
-      const mT = cab.texto.match(/\*(\d+) tarefas?\*/), mR = cab.texto.match(/\*(\d+) compromissos?\*/);
-      if (n ? !(mT && +mT[1] === n) : !!mT) erros.push(`abertura diz ${mT ? mT[1] : 0} tarefa(s), vão ${n}`);
-      if (nR ? !(mR && +mR[1] === nR) : !!mR) erros.push(`abertura diz ${mR ? mR[1] : 0} compromisso(s), vão ${nR}`);
-      if (nR && (String(plano.agendaTexto || "").match(/^• /gm) || []).length !== nR) erros.push("lista da agenda não bate");
-      if (JSON.stringify(cab.opcoes) !== JSON.stringify(pjOpsAbertura(pessoa, n, nR))) erros.push("botões da abertura errados");
-      if (cab.opcoes.length && !/\?$/.test(cab.texto.trim())) erros.push("abertura sem a pergunta antes dos botões");
-    }
-  }
-  plano.fila.forEach(m => {
-    const loc = pjLocalizar(dados, m.id);
-    if (!loc) { erros.push(`linha ${m.id} não existe`); return; }
-    const nm = corta(loc.no.nome, 40);
-    if (!pjAberto(loc.no.status)) erros.push(`"${nm}" já está ${PJ_STATUS_NOME[loc.no.status]}`);
-    if (!pjDono(loc.no, pessoa.nome_tasks)) erros.push(`"${nm}" não é de ${pessoa.nome_tasks}`);
-    const linhas = String(m.texto || "").split("\n");
-    if (!/^\*.{4,}\*$/.test(linhas[0] || "")) erros.push(`sem o "o que fazer" em "${nm}"`);
-    if (!/^(▶️|🟡|🔴|📅) /.test(linhas[1] || "")) erros.push(`sem o prazo em "${nm}"`);
-    const ops = m.opcoes || [];
-    if (ops.length !== 2 || ops.some(o => o.length > 20)) erros.push(`botões inválidos em "${nm}"`);
-  });
-  return erros;
-}
-
-// Abertura (Karina, 15/10): primeiro o resumo ("N compromissos na agenda e M
-// tarefas na Dash") e a pergunta por onde começar; depois a parte escolhida;
-// o Carinha garante que a pessoa veja as duas (ver estado.dia).
+// ─── CONVERSA PROATIVA (Karina, 20/10) ───────────────────────────────────
+// Substitui a manhã em etapas (abertura "N tarefas, onde quer ver?", fila
+// "1/5", "Ver próxima", "Nada desse lado", lembrete do meio-dia). Regras:
+//  - Só chama quando tem coisa. Cada coisa numa mensagem: uma tarefa, um
+//    e-mail, um Slack; as reuniões do dia vão juntas numa mensagem só.
+//  - TRAVA: no máximo 2 mensagens por conta própria seguidas sem resposta
+//    numa janela de 4h (PJ_TRAVA_*). Furam a trava: reunião nova na agenda
+//    (ou reunião prestes a começar que ainda não foi avisada) e tarefa nova
+//    que vence hoje (ou já atrasada) que entrou durante o dia.
+//  - Ordem: o que vence hoje (de cara; várias juntas numa mensagem) ›
+//    reuniões do dia › e-mail muito importante › tarefas (prioridade, depois
+//    dificuldade) › e-mail › Slack.
+//  - Tarefas: uma por vez. Quando o assunto dela fecha (Finalizar, prazo
+//    novo, Depois…), o Carinha já sugere a próxima. 5+ tarefas no dia:
+//    primeiro um resumão por assunto (entrega) e a pessoa escolhe por qual
+//    começar.
+//  - Fim de semana: só tarefa daquele dia (Início ou Fim no sábado/domingo).
+//    E-mail, Slack e reunião ficam pra segunda.
+//  - Janela de 24h: sem template, a não ser segunda 9h25 (TEMPLATE_SEGUNDA;
+//    enquanto a Meta não aprova, cai no aviso_dash, só se houver assunto).
+//    Dias úteis, 8h–21h: se a janela vai fechar e não houve assunto, manda
+//    "tudo certo por aí? precisa de algo?" pra pessoa responder e renovar.
+// Estado em estado.conv (pj_estado_<tel>), refeito todo dia às 9h25.
+const PJ_TRAVA_MAX = 2, PJ_TRAVA_MS = 4 * 3600000;
+const PJ_RESUMO_MIN = 5;                       // 5+ tarefas no dia → resumão
+const PJ_SILENCIO_MS = 30 * 60000;             // conversa rolando: a rodada não interrompe
+const PJ_REUNIAO_ANTES_MS = 60 * 60000;        // reunião não avisada a 1h de começar: fura a trava
+const TEMPLATE_SEGUNDA = "carinha_segunda";   // Karina cria no WhatsApp Manager (1 variável: o nome)
+const PJ_OP_DEPOIS = "Depois", PJ_OP_PRECISO = "Preciso", PJ_OP_TUDO_CERTO = "Tudo certo";
+const PJ_OPS_REUNIAO = [PJ_OP_PRECISO, PJ_OP_TUDO_CERTO];
+const PJ_RANK = { alta: 0, media: 1, baixa: 2 };
+const PJ_RANK_GATILHO = { vence: 0, atraso: 1, atrasada: 1, deadline: 2, em_deadline: 2, inicio: 3, fds: 4 };
+const PJ_ORDINAL = ["1ª", "2ª", "3ª", "4ª", "5ª", "6ª", "7ª", "8ª", "9ª", "10ª"];
 const pjPlural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
-function pjTextoAgenda(reunioes) {
-  return `📅 *Seus compromissos de hoje (${reunioes.length})*\n${reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n")}`;
-}
-function pjTextoTarefas(n, fds, pessoa) {
-  return `✅ *${pjPlural(n, "tarefa", "tarefas")}* de hoje na Dash${fds ? ` (${fds === 1 ? "1 é" : fds + " são"} só pra confirmar prazo em fim de semana)` : ""}.\n${pessoa.admin ? "Onde você quer ver?" : "Quer ver agora?"}`;
-}
-const pjOpsTarefas = pessoa => (pessoa.admin ? [PJ_OP.falar, PJ_OP.dash] : [PJ_OP.falar]);
-function pjCabecalho(pessoa, n, reunioes, horaSP, fds) {
-  const oi = `${saudacao(horaSP)}, ${primeiroNome(pessoa.nome_tasks)}! ☀️`;
-  if (n && reunioes.length) return `${oi}\nHoje você tem *${pjPlural(reunioes.length, "compromisso", "compromissos")}* na agenda e *${pjPlural(n, "tarefa", "tarefas")}* na Dash.\nPor onde quer começar?`;
-  if (reunioes.length) return `${oi}\nHoje você tem *${pjPlural(reunioes.length, "compromisso", "compromissos")}* na agenda e nenhuma tarefa da Dash pedindo atenção.`;
-  return `${oi}\nHoje você tem *${pjPlural(n, "tarefa", "tarefas")}* na Dash${fds ? ` (${fds === 1 ? "1 é" : fds + " são"} só pra confirmar prazo em fim de semana)` : ""}.\n${pessoa.admin ? "Onde você quer ver?" : "Quer ver agora?"}`;
-}
-// A guia Projetos da Dash ainda é só do login da Karina (PILOTO_LOGINS): pra
-// equipe, sem "Ver na Dash".
-function pjOpsAbertura(pessoa, n, nR) {
-  if (n && nR) return [PJ_OP.agenda, PJ_OP.tarefas];
-  if (n) return pjOpsTarefas(pessoa);
-  return [];
-}
+const pjFrase = t => { t = String(t || "").trim(); return t && !/[.!?]$/.test(t) ? t + "." : t; };
 // Sem vírgula (o WhatsApp pode cortar o link nela) e com v= pra o celular não
 // abrir uma cópia velha da Dash do cache.
 const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join("~")}&org=wpf&v=${Date.now().toString(36)}`;
-
-// Monta a manhã (sem mandar): abertura + texto da agenda + fila de tarefas.
-async function pjMontarManha(env, pessoa, hoje, horaSP, estado, pj) {
-  const estreia = !estado.estreiaFeita;
-  const itens = pjItensDoDia(pj.dados, pessoa.nome_tasks, hoje, estreia);
-  const idsDia = new Set(itens.map(i => i.no.id));
-  const fds = pjItensFds(pj.dados, pessoa.nome_tasks, hoje, estado.fds).filter(i => !idsDia.has(i.no.id));
-  const todos = itens.concat(fds);
-  await pjDescrever(env, todos, estado);
-  await pjRevisarTextos(env, todos, estado, pessoa.nome_tasks);
-  const textos = todos.map(it => estado.textos[it.no.id] || pjTextoPadrao(it));
-  const ag = await pjReunioesHoje(env, pessoa, hoje).catch(() => ({ ok: false, itens: [] }));
-  const fila = todos.map((it, i) => ({ id: it.no.id, tipo: it.gatilho.tipo === "fds" ? "fds" : "tarefa", fim: it.no.endDate,
-    texto: pjMensagemItem(it, textos[i], hoje, pessoa.nome_tasks), opcoes: pjBotoesBase(it) }));
-  let cabecalho = null;
-  if (todos.length || ag.itens.length) {
-    cabecalho = { texto: pjCabecalho(pessoa, todos.length, ag.itens, horaSP, fds.length), opcoes: pjOpsAbertura(pessoa, todos.length, ag.itens.length) };
-    // Só agenda: a lista vai junto da abertura.
-    if (!todos.length) cabecalho.texto += "\n\n" + pjTextoAgenda(ag.itens);
-  }
-  return { plano: { cabecalho, fila, reunioes: ag.itens, agendaTexto: ag.itens.length ? pjTextoAgenda(ag.itens) : "", fdsN: fds.length, estreia }, todos };
-}
 
 async function pjAvisarKarina(env, texto) {
   const r = await sb(env, `${TAB_PESSOAS}?select=telefone&admin=eq.true`);
   for (const a of (r.ok && r.dados) || []) if (a.telefone && (await janelaAberta(env, a.telefone))) await enviarTexto(env, a.telefone, texto, { proativa: true, tipo_proativa: "sistema" }).catch(() => {});
 }
-
-// estado.dia = { dia, agendaTexto, tarefasTexto, temAgenda, temTarefas, viuAgenda, viuTarefas, lembrete }
-const pjDiaHoje = estado => (estado.dia && estado.dia.dia === hojeSP() ? estado.dia : null);
-const pjFaltaAgenda = estado => { const d = pjDiaHoje(estado); return !!(d && d.temAgenda && !d.viuAgenda); };
-const pjFaltaTarefas = estado => { const d = pjDiaHoje(estado); return !!(d && d.temTarefas && !d.viuTarefas); };
-
-// Manda a manhã (janela aberta).
-async function pjManha(env, pessoa, agoraMs, via) {
-  const hoje = hojeSP(), sp = new Date((agoraMs || Date.now()) - 3 * 3600000), horaSP = sp.getUTCHours();
-  const fimDeSemana = sp.getUTCDay() === 0 || sp.getUTCDay() === 6;
-  const tel = pessoa.telefone;
-  const estado = await pjEstado(env, tel);
-  const pj = await pjCarregar(env);
-  await pjColetarSlack(env, pessoa);
-  const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
-  if (plano.cabecalho) {
-    const erros = pjRevisar(plano, pj.dados, pessoa, hoje, plano.estreia, estado.fds);
-    if (erros.length) {
-      console.log("revisor barrou:", pessoa.nome_tasks, erros.join("; "));
-      await pjAvisarKarina(env, `⚠️ O revisor barrou a mensagem da manhã de ${primeiroNome(pessoa.nome_tasks)} (nada de tarefa foi enviado): ${erros.slice(0, 5).join("; ")}.`);
-      await pjSalvarEstado(env, tel, estado);
-      await pjMandarEmails(env, pessoa, "manha", "aviso");
-      return { barrado: erros };
-    }
-    const n = plano.fila.length, nR = plano.reunioes.length;
-    estado.fila = { dia: hoje, pos: 0, itens: plano.fila };
-    estado.dia = { dia: hoje, agendaTexto: plano.agendaTexto, tarefasTexto: n ? pjTextoTarefas(n, plano.fdsN, pessoa) : "",
-      temAgenda: nR > 0, temTarefas: n > 0, viuAgenda: !n, viuTarefas: false, lembrete: false };
-    await enviarComOpcoes(env, tel, plano.cabecalho.texto, plano.cabecalho.opcoes, { proativa: true, tipo_proativa: "checkin", aviso_chave: n ? "pjdia|" + hoje : null });
-    plano.fila.filter(m => m.tipo === "fds").forEach(m => { estado.fds[m.id] = m.fim; }); // pergunta uma vez por data
-  } else if (!fimDeSemana) {
-    estado.fila = null; estado.dia = null;
-    await enviarComOpcoes(env, tel, "Bom dia! Nada desse lado, você precisa de algo?", OPCOES_CHECKIN, { proativa: true, tipo_proativa: "checkin" });
-  }
-  await pjMandarEmails(env, pessoa, "manha", "aviso");
-  estado.ultimaManha = hoje; estado.manhaPendente = ""; estado.estreiaFeita = true;
-  estado.conhecidos = pjAbertasDe(pj.dados, pessoa.nome_tasks);
-  pjPodarEstado(estado, pj.dados);
-  await pjSalvarEstado(env, tel, estado);
-  return { fila: plano.fila.length };
-}
-
-// Manda a tarefa da vez da fila (pula as que já foram finalizadas/canceladas).
-async function pjMandarDaFila(env, pessoa, estado) {
-  const tel = pessoa.telefone, f = estado.fila;
-  if (!f || !Array.isArray(f.itens) || f.dia !== hojeSP()) { await enviarTexto(env, tel, "Não tenho mais a lista de hoje. Me pede o que precisar 🙂"); return; }
-  if (estado.dia && estado.dia.dia === hojeSP()) estado.dia.viuTarefas = true;
-  let pj = null;
-  try { pj = await pjCarregar(env); } catch (e) {}
-  while (f.pos < f.itens.length) {
-    const m = f.itens[f.pos];
-    const loc = pj ? pjLocalizar(pj.dados, m.id) : null;
-    if (pj && (!loc || !pjAberto(loc.no.status) || !pjDono(loc.no, pessoa.nome_tasks))) { f.pos++; continue; }
-    const ultima = f.pos === f.itens.length - 1;
-    const fim = pjFaltaAgenda(estado) ? [PJ_OP.agenda] : (m.tipo === "fds" ? [] : [PJ_OP.criar]);
-    const ops = m.opcoes.concat(ultima ? fim : [PJ_OP.proxima]);
-    await enviarComOpcoes(env, tel, `${f.pos + 1}/${f.itens.length} · ${m.texto}`, ops, { proativa: true, tipo_proativa: "aviso", aviso_chave: `pj|${m.id}|${m.tipo}` });
-    f.pos++;
-    await pjSalvarEstado(env, tel, estado);
-    return;
-  }
-  await pjSalvarEstado(env, tel, estado);
-  if (pjFaltaAgenda(estado)) await enviarComOpcoes(env, tel, `Pronto, essas eram as ${f.itens.length} tarefas de hoje 👍 Agora quer ver sua agenda?`, [PJ_OP.agenda]);
-  else await enviarComOpcoes(env, tel, `Pronto, essas eram as ${f.itens.length} tarefas de hoje 👍 Precisa de mais alguma coisa?`, OPCOES_CHECKIN);
-}
-
 function pjAbertasDe(dados, nome) {
   return pjAchatar(dados).filter(({ no }) => no.id && pjAberto(no.status) && pjDono(no, nome)).map(({ no }) => no.id);
 }
@@ -2918,64 +2780,576 @@ function pjPodarEstado(estado, dados) {
   Object.keys(estado.textos || {}).forEach(id => { if (!vivos.has(id)) delete estado.textos[id]; });
   Object.keys(estado.fds || {}).forEach(id => { if (!vivos.has(id)) delete estado.fds[id]; });
 }
+const pjSpDe = agoraMs => new Date((agoraMs || Date.now()) - 3 * 3600000);
+const pjEhFds = agoraMs => { const d = pjSpDe(agoraMs).getUTCDay(); return d === 0 || d === 6; };
+const pjConvHoje = estado => (estado.conv && estado.conv.dia === hojeSP() ? estado.conv : null);
 
-// Durante o dia: tarefa NOVA em seu nome vencendo hoje/amanhã ou atrasada.
-async function pjUrgentes(env, pessoa, estado, pj, hoje) {
+// ── Trava: quantas mensagens por conta própria seguidas, sem resposta, nas
+// últimas 4h. Resposta pela janelinha da Dash também conta como resposta.
+async function pjTrava(env, tel, agoraMs) {
+  agoraMs = agoraMs || Date.now();
+  const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&order=created_at.desc&limit=1`);
+  const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
+  const desde = new Date(Math.max(ultimaIn, agoraMs - PJ_TRAVA_MS)).toISOString();
+  const ro = await sb(env, `${TAB_MSG}?select=id&direction=eq.out&to_number=eq.${tel}&proativa=eq.true&canal=is.null&created_at=gt.${encodeURIComponent(desde)}`);
+  const ru = await sb(env, `${TAB_MSG}?select=created_at&to_number=eq.${tel}&direction=eq.out&order=created_at.desc&limit=1`);
+  const ultimaOut = ru.ok && ru.dados && ru.dados[0] ? Date.parse(ru.dados[0].created_at) : 0;
+  return { ultimaIn, ultimaAtividade: Math.max(ultimaIn, ultimaOut), seguidas: ro.ok && Array.isArray(ro.dados) ? ro.dados.length : 0 };
+}
+
+// ── Reuniões de hoje que ainda não começaram (agenda da própria pessoa) ──
+async function pjReunioesFuturas(env, pessoa, hoje, agoraMs) {
+  const c = pessoa.email ? await conexaoGoogle(env, pessoa.email, true) : null;
+  if (!c || !temEscopo(c, "agenda")) return { ok: false, itens: [] };
+  const q = new URLSearchParams({ timeMin: `${hoje}T00:00:00-03:00`, timeMax: `${hoje}T23:59:59-03:00`, singleEvents: "true", orderBy: "startTime", maxResults: "25", timeZone: "America/Sao_Paulo" });
+  const r = await gApi(env, c, `${G_CAL}/events?${q}`);
+  if (!r.ok || !r.dados) return { ok: false, itens: [] };
+  const agora = agoraMs || Date.now();
+  const itens = (r.dados.items || []).filter(e => e.status !== "cancelled" && !["workingLocation", "outOfOffice", "focusTime"].includes(e.eventType))
+    .filter(e => { const eu = (e.attendees || []).find(a => a.self); return !eu || eu.responseStatus !== "declined"; })
+    .map(e => {
+      const diaTodo = !!(e.start && e.start.date);
+      return { id: String(e.id || e.iCalUID || e.summary), diaTodo, ini: diaTodo ? 0 : Date.parse(e.start.dateTime),
+        quando: diaTodo ? "dia todo" : `${horaSPde(e.start.dateTime)}–${horaSPde(e.end.dateTime)}`, hora: diaTodo ? "" : horaSPde(e.start.dateTime),
+        titulo: corta(e.summary || "(sem título)", 80) };
+    })
+    .filter(e => e.diaTodo || e.ini > agora); // sempre ANTES do horário (Karina, 20/10)
+  return { ok: true, itens };
+}
+
+// ── Montar o dia (9h25): quais tarefas e em que ordem ──
+// Fila: vence hoje primeiro; depois prioridade (alta › média › baixa › sem),
+// dificuldade (mais difícil primeiro), gatilho (atraso › prazo › início) e Fim.
+function pjOrdenar(itens) {
+  const rk = (v, t) => (t[v] ?? 3);
+  return itens.slice().sort((a, b) =>
+    (a.gatilho.tipo === "vence" ? 0 : 1) - (b.gatilho.tipo === "vence" ? 0 : 1) ||
+    (a.gatilho.tipo === "fds" ? 1 : 0) - (b.gatilho.tipo === "fds" ? 1 : 0) ||
+    rk(a.no.prioridade, PJ_RANK) - rk(b.no.prioridade, PJ_RANK) ||
+    rk(a.no.dificuldade, PJ_RANK) - rk(b.no.dificuldade, PJ_RANK) ||
+    rk(a.gatilho.tipo, PJ_RANK_GATILHO) - rk(b.gatilho.tipo, PJ_RANK_GATILHO) ||
+    String(a.no.endDate || "9999").localeCompare(String(b.no.endDate || "9999")));
+}
+// Itens do dia (com o que é de fim de semana): mesma regra do revisor.
+function pjItensPlano(dados, nome, hoje, estreia, fdsVistos, fimDeSemana) {
+  let itens = pjItensDoDia(dados, nome, hoje, estreia);
+  // Fim de semana (Karina, 20/10): só tarefa daquele dia.
+  if (fimDeSemana) return itens.filter(it => it.no.endDate === hoje || it.no.startDate === hoje);
+  const ids = new Set(itens.map(i => i.no.id));
+  return itens.concat(pjItensFds(dados, nome, hoje, fdsVistos).filter(i => !ids.has(i.no.id)));
+}
+
+// ── REVISOR (código, antes de mandar) ──
+// Recalcula a lista a partir dos dados e confere o que foi montado. Qualquer
+// diferença barra as tarefas do dia (e avisa a Karina).
+function pjRevisar(plano, dados, pessoa, hoje, estreia, fdsVistos, fimDeSemana) {
+  const erros = [];
+  const esperado = pjItensPlano(dados, pessoa.nome_tasks, hoje, estreia, fdsVistos, fimDeSemana).map(i => i.no.id);
+  const ids = plano.itens.map(m => m.id);
+  const igual = (a, b) => JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
+  if (new Set(ids).size !== ids.length) erros.push("tarefa repetida");
+  if (!igual(ids, esperado)) erros.push(`tarefas: esperado ${esperado.length}, montado ${ids.length}`);
+  plano.itens.forEach(m => {
+    const loc = pjLocalizar(dados, m.id);
+    if (!loc) { erros.push(`linha ${m.id} não existe`); return; }
+    const nm = corta(loc.no.nome, 40);
+    if (!pjAberto(loc.no.status)) erros.push(`"${nm}" já está ${PJ_STATUS_NOME[loc.no.status]}`);
+    if (!pjDono(loc.no, pessoa.nome_tasks)) erros.push(`"${nm}" não é de ${pessoa.nome_tasks}`);
+    if (!m.oque || m.oque.length < 4) erros.push(`sem o "o que fazer" em "${nm}"`);
+    const g = pjGatilho(loc.no, hoje, !pjTemFilhos(loc.no), estreia);
+    if (m.gatilho.tipo !== "fds" && (!g || g.tipo !== m.gatilho.tipo)) erros.push(`gatilho errado em "${nm}"`);
+  });
+  return erros;
+}
+// Confere a mensagem de UMA tarefa antes de sair (prazo dito tem que bater).
+function pjConferirMensagem(m, it, hoje) {
+  const erros = [], g = it.gatilho, fim = it.no.endDate;
+  if (!m.texto.includes(`*${m.oque}*`)) erros.push("sem o que fazer");
+  if (g.tipo === "vence" && !/vence hoje/.test(m.texto)) erros.push("não diz que vence hoje");
+  if ((g.tipo === "deadline" || g.tipo === "em_deadline" || g.tipo === "fds") && !m.texto.includes(pjDataLonga(fim))) erros.push("data do prazo não bate");
+  if ((g.tipo === "atraso" || g.tipo === "atrasada") && !m.texto.includes(`${pjDif(fim, hoje)} dias`)) erros.push("dias de atraso não batem");
+  if (!m.opcoes.length || m.opcoes.length > 3 || m.opcoes.some(o => o.length > 20)) erros.push("botões inválidos");
+  return erros;
+}
+
+async function pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs) {
+  const estreia = !estado.estreiaFeita, fimDeSemana = pjEhFds(agoraMs);
+  const todos = pjOrdenar(pjItensPlano(pj.dados, pessoa.nome_tasks, hoje, estreia, estado.fds, fimDeSemana));
+  await pjDescrever(env, todos, estado);
+  await pjRevisarTextos(env, todos, estado, pessoa.nome_tasks);
+  const itens = todos.map((it, i) => ({ id: it.no.id, gatilho: it.gatilho, oque: (estado.textos[it.no.id] || pjTextoPadrao(it)).oque, ordem: i, est: "fila" }));
+  let barrado = null;
+  const erros = pjRevisar({ itens }, pj.dados, pessoa, hoje, estreia, estado.fds, fimDeSemana);
+  if (erros.length) {
+    console.log("revisor barrou:", pessoa.nome_tasks, erros.join("; "));
+    await pjAvisarKarina(env, `⚠️ O revisor barrou as tarefas de hoje de ${primeiroNome(pessoa.nome_tasks)} (nada de tarefa vai ser enviado): ${erros.slice(0, 5).join("; ")}.`);
+    barrado = erros;
+  }
+  const ag = fimDeSemana ? { itens: [] } : await pjReunioesFuturas(env, pessoa, hoje, agoraMs).catch(() => ({ itens: [] }));
+  const antes = pjConvHoje(estado);
+  estado.conv = {
+    dia: hoje, plano: true, itens: barrado ? [] : itens, falando: null, escolha: [], grupos: [],
+    venceEnviado: false, resumoEnviado: false, saudou: !!(antes && antes.saudou),
+    reunioes: ag.itens, reunioesEnviadas: !ag.itens.length, reunioesVistas: Object.fromEntries(ag.itens.map(r => [r.id, true]))
+  };
+  // Transição (21/10): a manhã ANTIGA já saiu hoje? Não repete o que ela
+  // mostrou (tarefas já vistas, agenda, abertura "você tem N tarefas").
+  if (estado.fila && estado.fila.dia === hoje && Array.isArray(estado.fila.itens)) {
+    const vistos = new Set(estado.fila.itens.slice(0, estado.fila.pos || 0).map(x => x.id));
+    estado.conv.itens.forEach(m => { if (vistos.has(m.id)) m.est = "feito"; });
+    estado.conv.resumoEnviado = true; estado.conv.saudou = true;
+    if (estado.dia && estado.dia.dia === hoje && estado.dia.temAgenda) estado.conv.reunioesEnviadas = true;
+  }
+  delete estado.fila; delete estado.dia; delete estado.manhaPendente;
+  estado.ultimaManha = hoje; estado.estreiaFeita = true;
+  estado.conhecidos = pjAbertasDe(pj.dados, pessoa.nome_tasks);
+  pjPodarEstado(estado, pj.dados);
+  return { barrado, n: estado.conv.itens.length, reunioes: ag.itens.length };
+}
+
+// ── Texto das mensagens (conversa, não etapas) ──
+function pjAchar(pj, id) {
+  const loc = pjLocalizar(pj.dados, id);
+  return loc ? { no: loc.no, pais: loc.pais, ponta: !pjTemFilhos(loc.no) } : null;
+}
+function pjMsgTarefa(it, txt, gatilho, hoje, nome, abertura) {
+  it = { ...it, gatilho };
+  const o = `*${txt.oque}*`, fim = it.no.endDate;
+  let frase, pergunta;
+  if (gatilho.tipo === "vence") { frase = `${o} vence hoje.`; pergunta = "Dá pra fechar hoje?"; }
+  else if (gatilho.tipo === "deadline") { frase = `${o} entrou no prazo: vence ${pjDataLonga(fim)}, daqui a 3 dias.`; pergunta = "Como está?"; }
+  else if (gatilho.tipo === "em_deadline") { frase = `${o} vence ${pjDataLonga(fim)}.`; pergunta = "Como está?"; }
+  else if (gatilho.tipo === "atraso" || gatilho.tipo === "atrasada") { const d = pjDif(fim, hoje); frase = `${o} está com ${d} dias de atraso (venceu ${pjDataLonga(fim)}).`; pergunta = "Ainda sai ou mudamos o prazo?"; }
+  else if (gatilho.tipo === "inicio") { frase = `${o} começa hoje${dataValida(fim) ? ` e vai até ${pjDataLonga(fim)}` : ""}.`; pergunta = it.no.status === "andamento" ? "Já está andando?" : "Bora começar?"; }
+  else if (gatilho.tipo === "fds") { frase = `${o} vence ${pjDataLonga(fim)}, num fim de semana.`; pergunta = "É proposital?"; }
+  else { frase = `${o}.`; pergunta = "Como está?"; }
+  const outros = (it.no.assignees || []).filter(n => n && n !== nome).map(primeiroNome);
+  const filhos = (it.no.subtasks || []).filter(s => s && pjAberto(s.status)).length;
+  const extras = [
+    pjFrase(txt.contexto),
+    outros.length ? `Você divide essa com ${outros.length === 1 ? outros[0] : outros.slice(0, -1).join(", ") + " e " + outros[outros.length - 1]}.` : "",
+    !it.ponta && filhos ? `Ainda ${filhos === 1 ? "falta 1 item" : `faltam ${filhos} itens`} dentro dela.` : "",
+    it.no.status === "bloqueado" ? "Na Dash ela está como bloqueada." : ""
+  ].filter(Boolean).join(" ");
+  const texto = `${abertura || ""}${frase}${extras ? "\n" + extras : ""}\n${pergunta}`;
+  const opcoes = gatilho.tipo === "fds" ? [PJ_OP.proposital, PJ_OP.prazo] : pjBotoesBase(it).concat([PJ_OP_DEPOIS]);
+  return { texto, opcoes, oque: txt.oque };
+}
+function pjMsgVenceHoje(lista, abertura) {
+  const n = lista.length;
+  const texto = `${abertura || ""}Hoje ${n === 2 ? "vencem duas" : `vencem ${n}`} tarefas suas:\n${lista.map((x, i) => `${i + 1}. *${x.oque}*`).join("\n")}\nQual você quer ver primeiro?`;
+  const opcoes = n <= 3 ? lista.map((x, i) => `Ver a ${PJ_ORDINAL[i]}`) : lista.slice(0, 10).map((x, i) => encurtarOpcao(`${PJ_ORDINAL[i]}: ${x.oque}`, LIM_LISTA));
+  return { texto, opcoes };
+}
+// Resumão (5+ tarefas): por entrega, contando não iniciadas / em andamento.
+function pjGruposResumo(itens, pj) {
+  const grupos = [];
+  itens.forEach(m => {
+    const a = pjAchar(pj, m.id);
+    if (!a) return;
+    const topo = a.pais[0] || a.no;
+    let g = grupos.find(x => x.chave === topo.id);
+    if (!g) grupos.push(g = { chave: topo.id, nome: topo.nome, ids: [], andamento: 0, bloqueado: 0, outras: 0 });
+    g.ids.push(m.id);
+    if (a.no.status === "andamento") g.andamento++; else if (a.no.status === "bloqueado") g.bloqueado++; else g.outras++;
+  });
+  return grupos; // já na ordem da fila (o grupo da tarefa mais importante primeiro)
+}
+function pjMsgResumo(grupos, total, abertura, link) {
+  const partes = g => [g.outras ? `${g.outras} ${g.outras === 1 ? "não iniciada" : "não iniciadas"}` : "", g.andamento ? `${g.andamento} em andamento` : "", g.bloqueado ? `${g.bloqueado} ${g.bloqueado === 1 ? "bloqueada" : "bloqueadas"}` : ""]
+    .filter(Boolean).join(", ").replace(/, ([^,]*)$/, " e $1");
+  const mostra = grupos.slice(0, 9), resto = grupos.slice(9);
+  const linhas = mostra.map(g => `• *${corta(g.nome, 60)}*: ${partes(g)}`);
+  if (resto.length) linhas.push(`• Mais ${pjPlural(resto.reduce((s, g) => s + g.ids.length, 0), "tarefa", "tarefas")} de outros projetos`);
+  const lim = mostra.length + (resto.length ? 1 : 0) <= 3 ? LIM_BOTAO : LIM_LISTA;
+  const rotulos = [];
+  mostra.forEach((g, i) => { let r = encurtarOpcao(g.nome, lim); if (rotulos.includes(r) || r.length < 2) r = encurtarOpcao(`${PJ_ORDINAL[i]}: ${g.nome}`, lim); rotulos.push(r); });
+  if (resto.length) rotulos.push("Outros projetos");
+  const texto = `${abertura || ""}Hoje você tem ${total} tarefas pedindo atenção:\n${linhas.join("\n")}${link ? `\nNa Dash: ${link}` : ""}\nQuer começar por qual?`;
+  return { texto, opcoes: rotulos, grupos: mostra.map((g, i) => ({ rot: rotulos[i], ids: g.ids })).concat(resto.length ? [{ rot: "Outros projetos", ids: resto.flatMap(g => g.ids) }] : []) };
+}
+function pjMsgReunioes(reunioes, abertura) {
+  const n = reunioes.length;
+  const lista = reunioes.map(r => `• ${r.quando} · ${r.titulo}`).join("\n");
+  return { texto: `${abertura || ""}${n === 1 ? "Hoje você tem uma reunião:" : `Hoje você tem ${n} reuniões:`}\n${lista}\nPrecisa de algo pra ${n === 1 ? "ela" : "elas"}?`, opcoes: PJ_OPS_REUNIAO };
+}
+const pjAbertura = (c, agoraMs, nome) => (c && !c.saudou ? `${saudacao(pjSpDe(agoraMs).getUTCHours())}, ${primeiroNome(nome)}! ` : "");
+
+// Próxima tarefa da fila (aberta, ainda da pessoa, não resolvida hoje).
+function pjProximaTarefa(c, pj, nome) {
+  return c.itens.filter(m => m.est === "fila" || m.est === "citada").sort((a, b) => a.ordem - b.ordem)
+    .find(m => { const a = pjAchar(pj, m.id); return a && pjAberto(a.no.status) && pjDono(a.no, nome); }) || null;
+}
+// Linhas que deixaram de valer (finalizadas, canceladas, passaram pra outra
+// pessoa) saem da fila.
+function pjLimparFila(c, pj, nome) {
+  c.itens.forEach(m => { if (m.est === "feito") return; const a = pjAchar(pj, m.id); if (!a || !pjAberto(a.no.status) || !pjDono(a.no, nome)) m.est = "feito"; });
+  if (c.falando) { c.falando.ids = (c.falando.ids || []).filter(id => { const m = c.itens.find(x => x.id === id); return m && m.est !== "feito"; }); if (!c.falando.ids.length && !c.falando.resumo) c.falando = null; }
+}
+
+// Manda UMA tarefa (como sugestão da vez ou porque a pessoa escolheu).
+async function pjEnviarTarefa(env, pessoa, estado, pj, m, abertura, proativa) {
+  const a = pjAchar(pj, m.id);
+  if (!a) return false;
+  const txt = estado.textos[m.id] || pjTextoPadrao({ ...a, gatilho: m.gatilho });
+  const msg = pjMsgTarefa(a, txt, m.gatilho, hojeSP(), pessoa.nome_tasks, abertura);
+  const erros = pjConferirMensagem(msg, { ...a, gatilho: m.gatilho }, hojeSP());
+  if (erros.length) {
+    console.log("revisor barrou mensagem:", m.id, erros.join("; "));
+    await pjAvisarKarina(env, `⚠️ O revisor barrou a mensagem de "${corta(a.no.nome, 50)}" pra ${primeiroNome(pessoa.nome_tasks)}: ${erros.join("; ")}.`);
+    m.est = "feito";
+    return false;
+  }
+  await enviarComOpcoes(env, pessoa.telefone, msg.texto, msg.opcoes, { ...(proativa ? { proativa: true, tipo_proativa: "aviso" } : {}), aviso_chave: `pj|${m.id}|${m.gatilho.tipo === "fds" ? "fds" : "tarefa"}` });
+  m.est = "enviada";
+  estado.conv.jaSugeriu = true;
+  const f = estado.conv.falando;
+  if (f && !f.resumo) f.ids = (f.ids || []).concat(m.id);
+  else estado.conv.falando = { ids: [m.id], em: Date.now() };
+  return true;
+}
+
+// ── DESPACHAR: manda o que estiver na vez, respeitando a trava ──
+// opts.motivo: "rodada" (cron) · "resposta" (a pessoa escreveu/cumprimentou)
+// · "continuar" (fechou um assunto) · "pedido" (pediu as tarefas).
+// opts.urgentes: [{ tipo: "reuniao_nova" | "tarefa_nova", ... }] — furam a trava.
+async function pjDespachar(env, pessoa, opts) {
+  opts = opts || {};
+  const tel = pessoa.telefone, agoraMs = opts.agoraMs || Date.now(), hoje = hojeSP();
+  if (opts.motivo !== "pedido" && pessoa.recebe_avisos === false) return { enviadas: 0, janela: true };
+  if (!opts.janelaOk && !(await janelaAberta(env, tel, agoraMs))) return { enviadas: 0, janela: false };
+  const fimDeSemana = pjEhFds(agoraMs);
+  // A rodada já leu estado e Dash: reaproveita (menos chamadas por rodada).
+  const estado = opts.estado || await pjEstado(env, tel);
+  let c = pjConvHoje(estado);
+  if (!c) c = estado.conv = { dia: hoje, plano: false, itens: [], falando: null, escolha: [], grupos: [], reunioes: [], reunioesVistas: {}, reunioesEnviadas: true, venceEnviado: true, resumoEnviado: true, saudou: false };
+  const antes = JSON.stringify([c, estado.textos]);
+  const pj = opts.pj || await pjCarregar(env);
+  pjLimparFila(c, pj, pessoa.nome_tasks);
+  let trava = null;
+  const pegaTrava = async () => trava || (trava = await pjTrava(env, tel, agoraMs));
+  // Tarefa enviada e a pessoa seguiu pra outro assunto (respondeu depois e
+  // está quieta há 30 min): a vez passa pra próxima.
+  if (c.falando && opts.motivo === "rodada") await pegaTrava();
+  if (c.falando && opts.motivo === "rodada" && trava.ultimaIn > c.falando.em && agoraMs - trava.ultimaAtividade >= PJ_SILENCIO_MS) {
+    (c.falando.ids || []).forEach(id => { const m = c.itens.find(x => x.id === id); if (m && m.est !== "feito") m.est = "visto"; });
+    c.falando = null;
+  }
+  if (opts.motivo === "pedido") c.falando = null;
+  c.reunioes = (c.reunioes || []).filter(r => r.diaTodo || r.ini > agoraMs);
+  if (!c.reunioes.length) c.reunioesEnviadas = true;
+
+  const cands = [];
+  (opts.urgentes || []).forEach(u => {
+    // A tarefa nova é a da fila de hoje (mesmo objeto), pra marcar como enviada.
+    if (u.tipo === "tarefa_nova") { const m = c.itens.find(x => x.id === u.item.id); if (!m || (m.est !== "fila" && m.est !== "citada")) return; u = { ...u, item: m }; }
+    cands.push({ ...u, pri: -1, urgente: true });
+  });
+  // Fila de tarefas (uma conversa por vez).
+  // Primeiro o que vence hoje (várias: uma mensagem com todas); depois, com
+  // 5+ no resto, o resumão; senão a próxima pela ordem.
+  if (c.plano && !c.falando) {
+    const pend = m => m.est === "fila" || m.est === "citada";
+    const vence = c.itens.filter(m => pend(m) && m.gatilho.tipo === "vence").sort((a, b) => a.ordem - b.ordem);
+    const resto = c.itens.filter(m => pend(m) && m.gatilho.tipo !== "vence");
+    if (vence.length > 1 && !c.venceEnviado) cands.push({ tipo: "vence_varias", lista: vence, pri: 0 });
+    else if (vence.length) cands.push({ tipo: "tarefa", item: vence[0], pri: 0 });
+    else if (!c.resumoEnviado && resto.length >= PJ_RESUMO_MIN) cands.push({ tipo: "resumo", lista: resto, pri: 3 });
+    else { const prox = pjProximaTarefa(c, pj, pessoa.nome_tasks); if (prox) cands.push({ tipo: "tarefa", item: prox, pri: 3 }); }
+  }
+  if (c.plano && !opts.soTarefas && !c.reunioesEnviadas && c.reunioes.length) {
+    const prox = c.reunioes.filter(r => !r.diaTodo).map(r => r.ini).sort()[0];
+    cands.push({ tipo: "reunioes", pri: 1, urgente: !!(prox && prox - agoraMs <= PJ_REUNIAO_ANTES_MS) });
+  }
+  // E-mail e Slack: um por mensagem (fim de semana: ficam pra segunda).
+  if (!fimDeSemana && pessoa.proativo && !opts.soTarefas) {
+    let ext = (await pendentesDe(env, tel)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|"));
+    if (ext.length) ext = await pjSoNaoLidos(env, pessoa, ext);
+    ext.forEach(a => { const t = tipoDaChave(a); cands.push({ tipo: "externo", aviso: a, pri: t === "email_muito" ? 2 : t === "email" ? 4 : 5 }); });
+  }
+  cands.sort((a, b) => a.pri - b.pri);
+  // Fechou um assunto: vem só a próxima tarefa (e o que é muito importante);
+  // e-mail comum e Slack esperam a pessoa ficar quieta (rodada), pra não
+  // atropelar a conversa.
+  const filtrados = opts.motivo === "continuar" ? cands.filter(x => x.urgente || x.pri <= 3) : cands;
+  let livres = 0, conversaAtiva = false;
+  if (filtrados.length) {
+    await pegaTrava();
+    livres = PJ_TRAVA_MAX - trava.seguidas;
+    // Conversa já rolando (rodada do cron): não interrompe, só o que fura a trava.
+    conversaAtiva = opts.motivo === "rodada" && agoraMs - trava.ultimaAtividade < PJ_SILENCIO_MS;
+  }
+
+  let enviadas = 0;
+  const abre = () => { const ab = pjAbertura(c, agoraMs, pessoa.nome_tasks); c.saudou = true; return ab; };
+  for (const cand of filtrados) {
+    if (!cand.urgente && (livres <= 0 || conversaAtiva)) continue;
+    // Fila de tarefas: uma conversa por vez (a urgente pode ter aberto uma).
+    if (["tarefa", "vence_varias", "resumo"].includes(cand.tipo) && c.falando) continue;
+    const proativa = opts.motivo !== "pedido";
+    let foi = false;
+    if (cand.tipo === "reuniao_nova") {
+      const r = cand.reuniao;
+      await enviarComOpcoes(env, tel, `${abre()}Entrou uma reunião nova na sua agenda: *${r.titulo}*, ${r.diaTodo ? "hoje (dia todo)" : `hoje às ${r.hora}`}.\nPrecisa de algo pra ela?`, PJ_OPS_REUNIAO, { proativa: true, tipo_proativa: "aviso_urgente" });
+      foi = true;
+    } else if (cand.tipo === "tarefa_nova") {
+      foi = await pjEnviarTarefa(env, pessoa, estado, pj, cand.item, abre() + "Entrou uma tarefa nova sua: ", true);
+    } else if (cand.tipo === "vence_varias") {
+      const lista = cand.lista.map(m => ({ id: m.id, oque: (estado.textos[m.id] && estado.textos[m.id].oque) || m.oque }));
+      const msg = pjMsgVenceHoje(lista, abre());
+      await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, proativa ? { proativa: true, tipo_proativa: "aviso" } : {});
+      cand.lista.forEach(m => { m.est = "citada"; });
+      c.escolha = cand.lista.map(m => m.id); c.venceEnviado = true;
+      c.falando = { ids: cand.lista.map(m => m.id), em: Date.now() };
+      foi = true;
+    } else if (cand.tipo === "tarefa") {
+      if (cand.item.gatilho.tipo === "vence") c.venceEnviado = true;
+      const ab = abre() || (c.jaSugeriu && opts.motivo !== "pedido" ? "Próxima: " : "");
+      foi = await pjEnviarTarefa(env, pessoa, estado, pj, cand.item, ab, proativa);
+    } else if (cand.tipo === "resumo") {
+      const grupos = pjGruposResumo(cand.lista.slice().sort((a, b) => a.ordem - b.ordem), pj);
+      const msg = pjMsgResumo(grupos, cand.lista.length, abre(), pessoa.admin ? linkDia(cand.lista.map(m => m.id)) : "");
+      await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, proativa ? { proativa: true, tipo_proativa: "aviso" } : {});
+      cand.lista.forEach(m => { m.est = "citada"; });
+      c.grupos = msg.grupos; c.resumoEnviado = true; c.venceEnviado = true;
+      c.falando = { ids: [], resumo: true, em: Date.now() };
+      foi = true;
+    } else if (cand.tipo === "reunioes") {
+      const msg = pjMsgReunioes(c.reunioes, abre());
+      await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, { proativa: true, tipo_proativa: cand.urgente ? "aviso_urgente" : "aviso" });
+      c.reunioesEnviadas = true;
+      foi = true;
+    } else if (cand.tipo === "externo") {
+      const t = c.saudou ? "aviso" : "checkin";
+      foi = await mandarAvisos(env, pessoa, [cand.aviso], opts.motivo === "rodada" ? "janela" : "conversa", t);
+      if (foi) c.saudou = true;
+    }
+    if (foi) { enviadas++; if (!cand.urgente) livres--; }
+  }
+  if (enviadas || JSON.stringify([c, estado.textos]) !== antes)
+    await pjSalvarParte(env, tel, e => { e.conv = c; Object.assign(e.textos, estado.textos); if (estado.conhecidos) e.conhecidos = estado.conhecidos; });
+  return { enviadas, janela: true, livres, trava };
+}
+
+// Fechou o assunto de uma tarefa (Finalizar, prazo novo, Depois…): marca e
+// já sugere a próxima.
+async function pjResolver(env, pessoa, id, opts) {
+  const tel = pessoa.telefone;
+  await pjSalvarParte(env, tel, e => {
+    const c = pjConvHoje(e);
+    if (!c) return;
+    const m = c.itens.find(x => x.id === id);
+    if (m) m.est = "feito";
+    if (c.falando) { c.falando.ids = (c.falando.ids || []).filter(x => x !== id); if (!c.falando.ids.length) c.falando = null; }
+  });
+  if (!opts || opts.continuar !== false) return pjDespachar(env, pessoa, { motivo: "continuar" });
+}
+
+// Botões e respostas da conversa nova. Devolve true se tratou.
+async function pjTratarConversa(env, pessoa, tel, cmd, msg) {
+  const estado = await pjEstado(env, tel);
+  const c = pjConvHoje(estado);
+  // "Ver a 1ª" (várias vencendo hoje) / "1ª: …" (lista).
+  const mOrd = cmd.match(/^(?:ver a )?(\d{1,2})(?:ª|a)(?:\s|$)/);
+  if (c && mOrd && c.escolha && c.escolha.length) {
+    const id = c.escolha[+mOrd[1] - 1];
+    const m = id && c.itens.find(x => x.id === id);
+    if (m) {
+      estado.conv.falando = null;
+      const pj = await pjCarregar(env);
+      if (!(await pjEnviarTarefa(env, pessoa, estado, pj, m, "", false))) await enviarTexto(env, tel, "Essa já não está mais aberta na Dash 👍");
+      await pjSalvarParte(env, tel, e => { e.conv = estado.conv; Object.assign(e.textos, estado.textos); });
+      return true;
+    }
+  }
+  // Resumão: tocou num assunto.
+  if (c && c.grupos && c.grupos.length) {
+    const g = c.grupos.find(x => normalizar(x.rot) === cmd);
+    if (g) {
+      let k = -1000;
+      g.ids.forEach(id => { const m = c.itens.find(x => x.id === id); if (m) m.ordem = k++; });
+      c.falando = null; c.grupos = [];
+      const pj = await pjCarregar(env);
+      const prox = pjProximaTarefa(c, pj, pessoa.nome_tasks);
+      if (prox) await pjEnviarTarefa(env, pessoa, estado, pj, prox, "", false);
+      else await enviarTexto(env, tel, "Essas já foram resolvidas 👍");
+      await pjSalvarParte(env, tel, e => { e.conv = estado.conv; Object.assign(e.textos, estado.textos); });
+      return true;
+    }
+  }
+  if (cmd === normalizar(PJ_OP_DEPOIS)) {
+    const ctxId = msg && msg.context && msg.context.id;
+    const rm = ctxId
+      ? await sb(env, `${TAB_MSG}?select=aviso_chave&wa_message_id=eq.${encodeURIComponent(ctxId)}&limit=1`)
+      : await sb(env, `${TAB_MSG}?select=aviso_chave&direction=eq.out&to_number=eq.${tel}&aviso_chave=like.pj%7C*&order=created_at.desc&limit=1`);
+    const chave = rm.ok && rm.dados && rm.dados[0] && rm.dados[0].aviso_chave;
+    if (!chave || !String(chave).startsWith("pj|")) return false;
+    await enviarTexto(env, tel, "Beleza, fica pra depois 👍");
+    await pjResolver(env, pessoa, String(chave).split("|")[1]);
+    return true;
+  }
+  // Reuniões: "Preciso" / "Tudo certo".
+  const ultimasOps = async () => { const ru = await sb(env, `${TAB_MSG}?select=opcoes&direction=eq.out&to_number=eq.${tel}&order=created_at.desc&limit=3`); return ((ru.ok && ru.dados) || []).flatMap(x => x.opcoes || []); };
+  if (cmd === normalizar(PJ_OP_PRECISO) && (await ultimasOps()).includes(PJ_OP_PRECISO)) {
+    await enviarTexto(env, tel, "Me conta o que você precisa 🙂");
+    return true;
+  }
+  if (cmd === normalizar(PJ_OP_TUDO_CERTO) && (await ultimasOps()).includes(PJ_OP_TUDO_CERTO)) {
+    await enviarTexto(env, tel, "👍 Combinado!");
+    await pjDespachar(env, pessoa, { motivo: "continuar" });
+    return true;
+  }
+  return false;
+}
+// A pessoa pediu as tarefas ("tarefas", "ver agora"…): manda a da vez (ou o
+// resumão), mesmo que outra conversa esteja aberta.
+async function pjAbrirDia(env, pessoa, tel) {
+  const est = await pjEstado(env, tel);
+  if (est.ultimaAbertura && Date.now() - est.ultimaAbertura < 90000) return; // já abriu agora há pouco
+  // Pediu as tarefas: com 5+ ainda em aberto, mostra o resumão de novo.
+  await pjSalvarParte(env, tel, e => {
+    e.ultimaAbertura = Date.now();
+    const c = pjConvHoje(e);
+    if (!c) return;
+    c.venceEnviado = true;
+    c.itens.forEach(m => { if (m.est === "visto" || m.est === "enviada") m.est = "citada"; });
+    c.resumoEnviado = c.itens.filter(m => (m.est === "fila" || m.est === "citada") && m.gatilho.tipo !== "vence").length < PJ_RESUMO_MIN;
+  });
+  const c = pjConvHoje(await pjEstado(env, tel));
+  if (!c || !c.plano) {
+    const pj = await pjCarregar(env), estado = await pjEstado(env, tel);
+    await pjPlanejarDia(env, pessoa, estado, pj, hojeSP(), Date.now());
+    await pjSalvarEstado(env, tel, estado);
+  }
+  const r = await pjDespachar(env, pessoa, { motivo: "pedido", soTarefas: true });
+  if (!r.enviadas) await enviarTexto(env, tel, "Nada pedindo atenção hoje 👍 Precisa de algo?");
+}
+// Tem algo esperando pra ir (a pessoa acabou de abrir a janela)?
+function pjTemNaFila(estado) {
+  const c = pjConvHoje(estado);
+  if (!c) return false;
+  return (!c.falando && c.itens.some(m => m.est === "fila" || m.est === "citada")) || (!c.reunioesEnviadas && (c.reunioes || []).length > 0);
+}
+
+// ── Template de segunda (janela fechada depois do fim de semana) ──
+async function pjTemplateSegunda(env, pessoa, qtd) {
+  const primeiro = primeiroNome(pessoa.nome_tasks) || "oi";
+  const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ messaging_product: "whatsapp", to: pessoa.telefone, type: "template",
+      template: { name: TEMPLATE_SEGUNDA, language: { code: TEMPLATE_IDIOMA }, components: [{ type: "body", parameters: [{ type: "text", text: primeiro }] }] } })
+  });
+  const corpo = await res.json().catch(() => null);
+  if (res.ok) {
+    const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
+    await gravarMensagem(env, { wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: pessoa.telefone,
+      msg_type: "template", body: `[segunda] Bom dia, ${primeiro}! Começando a semana por aqui. Precisa de algo ou quer ver o que tem pra hoje?`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, tipo_proativa: "template", opcoes: ["Ver o que tem", "Tudo certo"] });
+    return true;
+  }
+  console.log("template de segunda recusado:", res.status, JSON.stringify(corpo));
+  // Ainda não aprovado: cai no template antigo, só se houver assunto.
+  return qtd ? enviarTemplateAviso(env, pessoa, qtd) : false;
+}
+
+// ── Manutenção da janela (dias úteis, 8h–21h) ──
+// Janela vai fechar antes da próxima rodada possível e não teve assunto:
+// "tudo certo por aí?" pra pessoa responder e renovar as 24h.
+async function pjManutencao(env, pessoa, estado, agoraMs, travaJa) {
+  const tel = pessoa.telefone, sp = pjSpDe(agoraMs), hora = sp.getUTCHours(), dia = sp.getUTCDay();
+  if (dia === 0 || dia === 6 || hora < 8 || hora > 21) return false;
+  const ri = await sb(env, `${TAB_MSG}?select=created_at&direction=eq.in&from_number=eq.${tel}&canal=is.null&order=created_at.desc&limit=1`);
+  const ultimaIn = ri.ok && ri.dados && ri.dados[0] ? Date.parse(ri.dados[0].created_at) : 0;
+  if (!ultimaIn) return false;
+  const fechaEm = ultimaIn + 24 * 3600000;
+  if (fechaEm - agoraMs <= MARGEM_JANELA_MS) return false;               // já fechou (ou vai agora)
+  const ultimaRodada = hora >= 21;                                       // depois das 21h05 só amanhã 8h05
+  const amanha8 = Date.parse(somaDias(hojeSP(), 1) + "T11:05:00Z");      // 8h05 em SP
+  const fechaLogo = fechaEm - agoraMs <= RESGATE_JANELA_MS || (ultimaRodada && fechaEm < amanha8);
+  if (!fechaLogo || estado.manutencao === fechaEm) return false;
+  const trava = travaJa || await pjTrava(env, tel, agoraMs);
+  if (trava.seguidas >= PJ_TRAVA_MAX) return false;
+  await enviarComOpcoes(env, tel, `Oi, ${primeiroNome(pessoa.nome_tasks)}! Tudo certo por aí? Precisa de algo?`, [PJ_OP_TUDO_CERTO, PJ_OP_PRECISO], { proativa: true, tipo_proativa: "checkin" });
+  await pjSalvarParte(env, tel, e => { e.manutencao = fechaEm; });
+  return true;
+}
+
+// Durante o dia: tarefa NOVA em nome da pessoa. Vence hoje (ou já atrasada)
+// fura a trava; vence amanhã entra na fila.
+function pjNovasTarefas(estado, pj, pessoa, hoje) {
   const abertas = pjAbertasDe(pj.dados, pessoa.nome_tasks);
-  if (!Array.isArray(estado.conhecidos)) { estado.conhecidos = abertas; return 0; }
+  if (!Array.isArray(estado.conhecidos)) { estado.conhecidos = abertas; return []; }
   const conhecidos = new Set(estado.conhecidos);
   const novas = pjAchatar(pj.dados).filter(({ no, pais }) => no.id && !conhecidos.has(no.id) && pjAberto(no.status) && pjDono(no, pessoa.nome_tasks) &&
     !pjTemFilhos(no) && !pais.some(p => p.status === "cancelado") && dataValida(no.endDate) && no.endDate <= somaDias(hoje, 1));
-  const itens = novas.map(x => ({ ...x, ponta: true, gatilho: pjDif(x.no.endDate, hoje) > 0 ? { tipo: "atrasada", dias: pjDif(x.no.endDate, hoje) } : x.no.endDate === hoje ? { tipo: "vence" } : { tipo: "em_deadline" } }));
-  if (itens.length) { await pjDescrever(env, itens, estado); await pjRevisarTextos(env, itens, estado, pessoa.nome_tasks); }
-  for (const it of itens) {
-    const txt = estado.textos[it.no.id] || pjTextoPadrao(it);
-    await enviarComOpcoes(env, pessoa.telefone, "🆕 Tarefa nova em seu nome\n" + pjMensagemItem(it, txt, hoje, pessoa.nome_tasks), pjBotoesBase(it).concat([PJ_OP.criar]),
-      { proativa: true, tipo_proativa: "aviso_urgente", aviso_chave: `pj|${it.no.id}|tarefa` });
-  }
   estado.conhecidos = abertas;
-  return itens.length;
+  return novas.map(x => ({ ...x, ponta: true, gatilho: pjDif(x.no.endDate, hoje) > 0 ? { tipo: "atrasada", dias: pjDif(x.no.endDate, hoje) } : x.no.endDate === hoje ? { tipo: "vence" } : { tipo: "em_deadline" } }));
 }
 
-// Rodada da pessoa liberada (chamada pela rodadaProativa).
+// Rodada da pessoa liberada (chamada pela rodadaProativa e pela do Google).
 async function pjRodada(env, pessoa, cron, agoraMs) {
+  agoraMs = agoraMs || Date.now();
   const horaFixa = cron === CRON_HORA_FIXA;
-  const sp = new Date(agoraMs - 3 * 3600000), horaSP = sp.getUTCHours();
+  const sp = pjSpDe(agoraMs), horaSP = sp.getUTCHours(), minSP = sp.getUTCMinutes();
+  const fimDeSemana = pjEhFds(agoraMs), segunda = sp.getUTCDay() === 1;
   const tel = pessoa.telefone, hoje = hojeSP();
-  const aberta = await janelaAberta(env, tel, agoraMs);
   const estado = await pjEstado(env, tel);
   if (horaFixa) {
-    if (estado.ultimaManha === hoje) return;
-    if (aberta) { await pjManha(env, pessoa, agoraMs, "manha"); return; }
-    // Janela fechada: só o template (se tiver conteúdo); o resto vem no "Ver agora".
+    if (estado.ultimaManha === hoje && pjConvHoje(estado)) return;
     const pj = await pjCarregar(env);
-    const { plano } = await pjMontarManha(env, pessoa, hoje, horaSP, estado, pj);
     await pjColetarSlack(env, pessoa);
-    const emails = (await pendentesDe(env, tel)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|")).length;
-    const qtd = plano.fila.length + plano.reunioes.length + emails;
-    if (qtd) { await enviarTemplateAviso(env, pessoa, qtd); estado.manhaPendente = hoje; }
-    estado.ultimaManha = hoje;
+    await pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs);
     await pjSalvarEstado(env, tel, estado);
+    if (await janelaAberta(env, tel, agoraMs)) { await pjDespachar(env, pessoa, { motivo: "manha", agoraMs, estado, pj, janelaOk: true }); return; }
+    // Janela fechada: só na segunda (Karina, 20/10). Nos outros dias, o que
+    // tem espera a pessoa escrever.
+    if (segunda) {
+      const ext = (await pendentesDe(env, tel)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|")).length;
+      await pjTemplateSegunda(env, pessoa, estado.conv.itens.length + estado.conv.reunioes.length + ext);
+    }
     return;
   }
   if (horaSP < 8 || horaSP > 21) return;
-  await pjColetarSlack(env, pessoa);
-  if (!aberta) return;
-  if (estado.ultimaManha !== hoje && horaSP <= 9) return; // a manhã ainda vai sair
-  // Garantia (Karina, 15/10): a partir do meio-dia, o que a pessoa ainda não
-  // viu (agenda ou tarefas) vai sozinho, uma vez.
-  if (horaSP >= 12 && pjDiaHoje(estado) && !estado.dia.lembrete && (pjFaltaAgenda(estado) || pjFaltaTarefas(estado))) {
-    const d = estado.dia;
-    if (pjFaltaAgenda(estado)) await enviarComOpcoes(env, tel, "Pra você não perder: " + d.agendaTexto, pjFaltaTarefas(estado) ? [PJ_OP.tarefas] : [], { proativa: true, tipo_proativa: "aviso" });
-    else await enviarComOpcoes(env, tel, "Ainda faltam suas tarefas de hoje. " + d.tarefasTexto.replace(/^✅ /, ""), pjOpsTarefas(pessoa), { proativa: true, tipo_proativa: "aviso" });
-    await pjSalvarParte(env, tel, e => { if (e.dia && e.dia.dia === hoje) { e.dia.lembrete = true; if (pjFaltaAgenda(estado)) e.dia.viuAgenda = true; } });
-  }
+  if (!fimDeSemana) await pjColetarSlack(env, pessoa);
+  if (!(await janelaAberta(env, tel, agoraMs))) return;
+  const antesDaManha = horaSP < 9 || (horaSP === 9 && minSP < 25);
   const pj = await pjCarregar(env);
-  const antes = JSON.stringify([estado.conhecidos, estado.textos]);
-  await pjUrgentes(env, pessoa, estado, pj, hoje);
-  await pjMandarEmails(env, pessoa, "janela", "aviso");
-  if (JSON.stringify([estado.conhecidos, estado.textos]) !== antes)
-    await pjSalvarParte(env, tel, e => { e.conhecidos = estado.conhecidos; Object.assign(e.textos, estado.textos); });
+  const antesRodada = JSON.stringify([estado.conv, estado.conhecidos, estado.textos]);
+  // Dia ainda não montado (liberado depois das 9h25, ou a manhã de hoje foi
+  // a antiga)? Monta agora.
+  if (!antesDaManha && !pjConvHoje(estado)) { await pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs); await pjSalvarEstado(env, tel, estado); }
+  const urgentes = [];
+  // Tarefa nova durante o dia.
+  if (!antesDaManha) {
+    const novas = pjNovasTarefas(estado, pj, pessoa, hoje);
+    if (novas.length) {
+      await pjDescrever(env, novas, estado); await pjRevisarTextos(env, novas, estado, pessoa.nome_tasks);
+      const c = pjConvHoje(estado);
+      if (c) novas.forEach(it => {
+        if (c.itens.some(m => m.id === it.no.id)) return;
+        const m = { id: it.no.id, gatilho: it.gatilho, oque: (estado.textos[it.no.id] || pjTextoPadrao(it)).oque, ordem: it.gatilho.tipo === "em_deadline" ? 500 : -2000, est: "fila" };
+        c.itens.push(m);
+        if (it.gatilho.tipo === "vence" || (it.gatilho.tipo === "atrasada" && !fimDeSemana)) urgentes.push({ tipo: "tarefa_nova", item: m });
+      });
+    }
+  }
+  // Reunião nova na agenda (dias úteis).
+  const c = pjConvHoje(estado);
+  if (c && c.plano && !fimDeSemana) {
+    const ag = await pjReunioesFuturas(env, pessoa, hoje, agoraMs).catch(() => ({ ok: false, itens: [] }));
+    if (ag.ok) {
+      c.reunioesVistas = c.reunioesVistas || {};
+      ag.itens.forEach(r => {
+        if (c.reunioesVistas[r.id]) return;
+        c.reunioesVistas[r.id] = true;
+        if (c.reunioesEnviadas) urgentes.push({ tipo: "reuniao_nova", reuniao: r });
+        else c.reunioes.push(r); // a mensagem das reuniões ainda não saiu: vai junto
+      });
+    }
+  }
+  if (JSON.stringify([estado.conv, estado.conhecidos, estado.textos]) !== antesRodada) await pjSalvarEstado(env, tel, estado);
+  const r = await pjDespachar(env, pessoa, { motivo: "rodada", agoraMs, urgentes, estado, pj, janelaOk: true });
+  if (!r.enviadas && !fimDeSemana) await pjManutencao(env, pessoa, estado, agoraMs, r.trava);
 }
 
 // ── Gravar na Projetos (com trava: relê e repete se alguém gravou junto) ──
@@ -3065,44 +3439,27 @@ async function pjSalvarParte(env, tel, mudar) {
   mudar(atual);
   await pjSalvarEstado(env, tel, atual);
 }
-const pjRestamNaFila = estado => !!(estado.fila && estado.fila.dia === hojeSP() && Array.isArray(estado.fila.itens) && estado.fila.pos < estado.fila.itens.length);
-const pjOpsDepois = estado => (pjRestamNaFila(estado) ? [PJ_OP.proxima, PJ_OP.criar] : pjFaltaAgenda(estado) ? [PJ_OP.agenda, PJ_OP.criar] : [PJ_OP.criar]);
+// Depois de resolver uma tarefa (20/10): a próxima vem sozinha (pjResolver);
+// aqui só a opção de criar a tarefa seguinte.
+const pjOpsDepois = () => [PJ_OP.criar];
 
 // Botões das mensagens de tarefa. Devolve true se tratou.
 async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const acao = PJ_CMD[cmd];
   if (!acao) return false;
-  // Botões da abertura e da fila: não dependem de qual mensagem foi tocada.
+  // Botões das mensagens antigas (até 20/10: abertura e fila "1/5").
+  if (acao === "tarefas" || acao === "falar" || acao === "proxima") { await pjAbrirDia(env, pessoa, tel); return true; }
   if (acao === "agenda") {
-    const estado = await pjEstado(env, tel);
-    const d = pjDiaHoje(estado);
-    if (!d || !d.temAgenda) { await enviarTexto(env, tel, "Nada na sua agenda hoje 🙂"); return true; }
-    d.viuAgenda = true;
-    await pjSalvarEstado(env, tel, estado);
-    await enviarComOpcoes(env, tel, d.agendaTexto, pjFaltaTarefas(estado) ? [PJ_OP.tarefas] : []);
-    return true;
-  }
-  if (acao === "tarefas") {
-    const estado = await pjEstado(env, tel);
-    if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
-    if (!pessoa.admin) { await pjMandarDaFila(env, pessoa, estado); return true; }
-    if (estado.dia && estado.dia.dia === hojeSP()) estado.dia.viuTarefas = true;
-    await pjSalvarEstado(env, tel, estado);
-    await enviarComOpcoes(env, tel, (estado.dia && estado.dia.tarefasTexto) || "Onde você quer ver suas tarefas?", pjOpsTarefas(pessoa));
-    return true;
-  }
-  if (acao === "falar" || acao === "proxima") {
-    const estado = await pjEstado(env, tel);
-    if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
-    await pjMandarDaFila(env, pessoa, estado);
+    const ag = await pjReunioesFuturas(env, pessoa, hojeSP(), Date.now()).catch(() => ({ itens: [] }));
+    if (!ag.itens.length) { await enviarTexto(env, tel, "Nenhuma reunião pela frente hoje 🙂"); return true; }
+    const m = pjMsgReunioes(ag.itens, "");
+    await enviarComOpcoes(env, tel, m.texto, m.opcoes);
     return true;
   }
   if (acao === "dash") {
-    const estado = await pjEstado(env, tel);
-    if (!estado.fila || estado.fila.dia !== hojeSP()) return false;
-    if (estado.dia && estado.dia.dia === hojeSP()) estado.dia.viuTarefas = true;
-    await pjSalvarEstado(env, tel, estado);
-    await enviarComOpcoes(env, tel, `Suas tarefas de hoje na Dash (Principais e Outras):\n${linkDia(estado.fila.itens.map(m => m.id))}`, [PJ_OP.falar].concat(pjFaltaAgenda(estado) ? [PJ_OP.agenda] : []));
+    const c = pjConvHoje(await pjEstado(env, tel));
+    const ids = c ? c.itens.filter(m => m.est !== "feito").map(m => m.id) : [];
+    await enviarTexto(env, tel, ids.length ? `Suas tarefas de hoje na Dash:\n${linkDia(ids)}` : "Nada pedindo atenção hoje 👍");
     return true;
   }
   const ctxId = msg.context && msg.context.id;
@@ -3121,13 +3478,17 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const novaPend = async (acaoPend, resumo) => sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { ...acaoPend, id }, resumo }] });
   if (acao === "proposital") {
     estado.fds[id] = loc.no.endDate; await pjSalvarEstado(env, tel, estado);
-    const ops = pjRestamNaFila(estado) ? [PJ_OP.proxima] : pjFaltaAgenda(estado) ? [PJ_OP.agenda] : [];
-    await enviarComOpcoes(env, tel, "👍 Anotado, o prazo fica no fim de semana.", ops);
+    await enviarTexto(env, tel, "👍 Anotado, o prazo fica no fim de semana.");
+    await pjResolver(env, pessoa, id);
     return true;
   }
   if (acao === "fin" || acao === "comecar") {
     const status = acao === "fin" ? "finalizado" : "andamento";
-    if (loc.no.status === status) { await enviarComOpcoes(env, tel, `${nome} já está como ${PJ_STATUS_NOME[status]}.`, pjOpsDepois(estado), { aviso_chave: chave }); return true; }
+    if (loc.no.status === status) {
+      await enviarTexto(env, tel, `${nome} já está como ${PJ_STATUS_NOME[status]} 👍`);
+      if (status === "finalizado") await pjResolver(env, pessoa, id);
+      return true;
+    }
     const resumo = `Marcar ${nome} como *${PJ_STATUS_NOME[status]}* na Projetos?`;
     await novaPend({ tipo: "pj_status", status }, resumo);
     await enviarComOpcoes(env, tel, resumo, ["Sim", "Não"]);
@@ -3192,9 +3553,11 @@ async function pjTratarPendencia(env, pessoa, tel, pend, texto) {
   else if (a.tipo === "pj_criar") r = await pjAlterar(env, a.id, pjCriarDentroOuDepois(a, origem), tel, pessoa.nome_tasks, "pj_criar");
   else r = { erro: "pedido desconhecido" };
   if (!r.ok) { await marcarPendencia(env, pend.id, "falhou"); await enviarTexto(env, tel, `Não consegui gravar: ${r.erro}. Nada foi mudado.`); return true; }
-  // Depois de resolver: seguir a fila ou criar a tarefa nova (Karina, 14/10).
-  const est = await pjEstado(env, tel);
-  await enviarComOpcoes(env, tel, r.nada ? "Já estava assim na Dash 👍" : "Feito ✅ Já está na Dash.", pjOpsDepois(est), { aviso_chave: `pj|${(a.tipo === "pj_nova" || a.tipo === "pj_criar") && r.linhaId ? r.linhaId : a.id}|tarefa` });
+  // Depois de resolver (Karina, 20/10): "Feito" (com a opção de criar a
+  // tarefa seguinte, quando finalizou) e o Carinha já sugere a próxima.
+  const finalizou = a.tipo === "pj_status" && a.status === "finalizado";
+  await enviarComOpcoes(env, tel, r.nada ? "Já estava assim na Dash 👍" : "Feito ✅ Já está na Dash.", finalizou ? pjOpsDepois() : [], { aviso_chave: `pj|${(a.tipo === "pj_nova" || a.tipo === "pj_criar") && r.linhaId ? r.linhaId : a.id}|tarefa` });
+  await pjResolver(env, pessoa, a.id);
   return true;
 }
 
@@ -3349,6 +3712,7 @@ Mudanças:
 - Criar: SEMPRE pergunte onde entra (2–3 lugares encontrados com buscar_projetos como opções) e só depois chame com local_confirmado=true.
 - Não existe apagar (só pela Dash). Datas relativas contam a partir de hoje.
 - E-mail: os avisos de e-mail vêm do sistema; se a pessoa perguntar, use as ferramentas do Google.
+- Fila do dia: o sistema manda uma tarefa por vez (e cada e-mail numa mensagem) e já sugere a próxima quando a pessoa resolve uma. Não liste a fila nem puxe a próxima por conta própria; se a pessoa pedir, use tarefas_de_hoje.
 ${google ? INSTR_GOOGLE : ""}
 ${modelo === HAIKU ? "\n- Se o pedido exigir planejar ou reorganizar várias linhas, chame chamar_sonnet. No resto, resolva você." : "\n- Você é o modelo mais forte, chamado pra um pedido que precisa de mais cuidado."}`;
 }
@@ -3469,12 +3833,6 @@ function pjEhAtalho(cmd) {
     for (let i = 1; i <= x.length; i++) for (let j = 1; j <= y.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1)); return d[x.length][y.length]; };
   return ["ver agora", "tarefas de hoje", "minhas tarefas"].some(a => dist(c, a) <= 2) || /^ver a?gr?a?$|^ver r?a$|^agr$/.test(c);
 }
-async function pjAbrirDia(env, pessoa, tel) {
-  const est = await pjEstado(env, tel);
-  if (est.ultimaAbertura && Date.now() - est.ultimaAbertura < 90000) return; // já abriu agora há pouco
-  await pjSalvarParte(env, tel, e => { e.ultimaAbertura = Date.now(); });
-  await pjManha(env, pessoa, Date.now(), "atalho");
-}
 
 
 // ── Comandos da agenda (admin, pelo WhatsApp; 14/10, teste com a Karina) ──
@@ -3569,8 +3927,10 @@ async function tratarMensagem(env, msg, textoRecebido) {
     return;
   }
 
+  // Projetos (14/10; conversa nova 20/10): quem está liberado.
+  const pjLib = await pjLiberado(env, pessoa).catch(() => false);
   // Respostas de um toque ao check-in: o código responde, sem gastar Claude.
-  if (cmd === "tudo certo" || cmd === "tenho algo") {
+  if (!pjLib && (cmd === "tudo certo" || cmd === "tenho algo")) {
     const ru = await sb(env, `${TAB_MSG}?select=opcoes&direction=eq.out&to_number=eq.${tel}&order=created_at.desc&limit=1`);
     const ops = ru.ok && ru.dados && ru.dados[0] && ru.dados[0].opcoes;
     if (Array.isArray(ops) && ops.includes("Tudo certo")) {
@@ -3579,12 +3939,9 @@ async function tratarMensagem(env, msg, textoRecebido) {
     }
   }
 
-  // Projetos (14/10): a manhã que ficou esperando o "Ver agora" (janela fechada).
-  const pjLib = await pjLiberado(env, pessoa).catch(() => false);
-  if (cmd === "ver agora" && pjLib) {
-    const est = await pjEstado(env, tel);
-    if (est.manhaPendente === hojeSP()) { await pjManha(env, pessoa, Date.now(), "ver_agora"); return; }
-  }
+  // Conversa nova (20/10): Depois, Ver a 1ª, assunto do resumão, Preciso,
+  // Tudo certo.
+  if (pjLib && (await pjTratarConversa(env, pessoa, tel, cmd, msg))) return;
   // Botões das tarefas da Projetos (Finalizar, Mudar prazo, Próxima tarefa…).
   if (pjLib && (await pjTratarBotao(env, pessoa, tel, cmd, msg))) return;
   // Atalho tolerante: "ver agora", "tarefas"… abrem a lista de hoje.
@@ -3592,12 +3949,20 @@ async function tratarMensagem(env, msg, textoRecebido) {
   // Recado do sistema pendente (ex.: reconectar o Google, 14/10): a pessoa
   // escreveu ("oi"), então entrega na hora, com o texto exato. Se foi só um
   // cumprimento, para aqui; senão segue respondendo o que ela mandou.
+  const cumprimento = /^(oi+|ola|ol[aá]|oie|opa|e ai|eai|bom dia|boa tarde|boa noite|hey|hi|hello|tudo bem|td bem)( carinha)?$/.test(cmd);
   if (pjLib) {
     const sis = (await pendentesDe(env, tel)).filter(a => String(a.chave).startsWith("sistema|"));
     if (sis.length) {
-      for (const a of sis) { await enviarTexto(env, tel, a.descricao, { proativa: true, tipo_proativa: "sistema" }); await marcarChaves(env, tel, [a.chave], "conversa"); }
-      if (/^(oi+|ola|ol[aá]|oie|opa|e ai|eai|bom dia|boa tarde|boa noite|hey|hi|hello|tudo bem|td bem)( carinha)?$/.test(cmd)) return;
+      for (const a of sis) { await enviarTexto(env, tel, a.descricao, { tipo_proativa: "sistema" }); await marcarChaves(env, tel, [a.chave], "conversa"); }
+      if (cumprimento) { await pjDespachar(env, pessoa, { motivo: "resposta" }); return; }
     }
+  }
+  // Abriu a janela ("oi", "Ver o que tem" do template de segunda, "ver
+  // agora"): o que estava esperando vai agora, do jeito de sempre (20/10).
+  if (pjLib && (cumprimento || cmd === "ver o que tem" || cmd === "ver agora")) {
+    const r = await pjDespachar(env, pessoa, { motivo: "resposta" });
+    if (r.enviadas) return;
+    if (!cumprimento) { await pjAbrirDia(env, pessoa, tel); return; }
   }
   if (pjLib && pjEhAtalho(cmd)) { await pjAbrirDia(env, pessoa, tel); return; }
 
@@ -3717,7 +4082,9 @@ async function tratarMensagem(env, msg, textoRecebido) {
   const modoSoEmail = await somenteEmail(env);
   // Modo só e-mail: o Carinha não traz novidade de Tasks por conta própria.
   const mudancas = base && !modoSoEmail && !pjLib ? mudancasDesde(base.dados, agoraRetrato, pessoa, indice) : null;
-  const avisosPend = pessoa.proativo ? (await pendentesDe(env, tel)).filter(a => pjLib ? pjEhExterno(a) : (!modoSoEmail || ehAvisoEmail(a))) : [];
+  // Conversa nova (20/10): e-mail/Slack vão cada um na sua mensagem
+  // (pjDespachar), não no meio da resposta.
+  const avisosPend = pessoa.proativo && !pjLib ? (await pendentesDe(env, tel)).filter(a => !modoSoEmail || ehAvisoEmail(a)) : [];
   // Projetos (14/10): quem está liberado conversa só pela Projetos.
   let pjCache = null, pjEst = null;
   const pjDadosConversa = async () => { if (!pjCache) { pjCache = await pjCarregar(env); pjEst = await pjEstado(env, tel); } return pjCache; };
@@ -4153,5 +4520,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

@@ -12,6 +12,54 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 — Carinha: jeito novo de mandar mensagem (conversa, trava, resumão)
+
+Pedido da Karina em 20/10 (18h09–18h41); "pode começar" às 18h41; OK pra
+publicar em 21/10 às 9h26. **Sem piloto: vale pra todos** (Karina, Isabela,
+Leonardo, Roberto), cada um só com o que é seu (REGRA DO ROBÔ segue).
+
+- **O que mudou (regras em `worker/instrucoes/lembretes.md`):**
+  - Só chama quando tem coisa; uma coisa por mensagem (tarefa, e-mail,
+    Slack; reuniões do dia juntas numa só, "precisa de algo pra elas?").
+  - **Trava:** no máximo 2 mensagens por conta própria seguidas sem resposta
+    em 4h. Furam: reunião nova (avisada antes do horário) e tarefa nova que
+    vence hoje/atrasada.
+  - Vence hoje vem de cara (várias = uma mensagem com [Ver a 1ª]…). Depois,
+    tarefas por prioridade e, entre iguais, a mais difícil. Fechou uma
+    (Finalizar, prazo, Depois) → "Próxima: …" sozinha. 5+ tarefas → resumão
+    por projeto ("x não iniciadas e y em andamento… por qual?").
+  - Texto de conversa (sem "1/5", "Ver próxima", "Onde quer ver?", "Nada
+    desse lado", lembrete do meio-dia). Botão novo: **Depois**.
+  - Fim de semana: só tarefa do próprio dia; e-mail/Slack/reunião pra segunda.
+  - **Janela de 24h:** template só segunda 9h25 (`carinha_segunda`; até a
+    Meta aprovar, cai no `aviso_dash` se houver assunto). Outros dias, janela
+    fechada = nada. Manutenção em dias úteis 8h–21h: "Tudo certo por aí?
+    Precisa de algo?" quando a janela vai fechar sem assunto.
+  - E-mail muito importante não vai mais na hora pra quem está na Projetos:
+    entra na fila (com a trava). E-mail/Slack não vão mais "no meio" da
+    resposta do Claude.
+  - A rodada dos :35 (Google) também roda a conversa (e-mail e reunião nova
+    não esperam os :05). Chamadas por pessoa por rodada: ~11 (igual antes).
+  - Transição: hoje (21/10) a manhã antiga já tinha saído às 9h25; o dia é
+    montado na 1ª rodada sem repetir o que ela já mostrou.
+- **Onde:** `worker/whatsapp-bridge.js` — bloco "CONVERSA PROATIVA" (novo:
+  `pjPlanejarDia`, `pjDespachar`, `pjTrava`, `pjResolver`,
+  `pjTratarConversa`, `pjManutencao`, `pjTemplateSegunda`,
+  `pjReunioesFuturas`; saíram `pjManha`, `pjMandarDaFila`, `pjUrgentes`,
+  `pjMandarEmails`, `pjReunioesHoje`), `pjTratarBotao`, `pjTratarPendencia`,
+  `tratarMensagem`, `googleRodada`, `processarEmails`, `instrucoesPj`;
+  `worker/instrucoes/lembretes.md`; `claude/LEIA-PRIMEIRO.md`.
+  Estado novo em `pj_estado_<tel>.conv` (`wpf_agente_config`). Sem SQL.
+- **Testes:** 8 cenários simulados (Supabase/Meta/Claude/Google falsos), 46
+  verificações + transição: trava, vence hoje, reuniões, resumão, Depois,
+  Mudar prazo, e-mail esperando a conversa, reunião/tarefa nova furando a
+  trava, sábado, segunda com template, janela fechada, manutenção, revisor.
+- **Karina precisa:** criar o template `carinha_segunda` na Meta (Utilidade,
+  pt_BR, {{1}} = nome, botões [Ver o que tem] [Tudo certo]); orientar a
+  equipe a mandar "oi" e responder o Carinha.
+
+---
+
 ## 2026-10-20 (22ª) — Projetos: USA e UK bloqueados (50 Federações)
 
 Pedido da Karina às 17h13 ("os EUA todo e o UK todo põe bloqueado").

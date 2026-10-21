@@ -15,6 +15,29 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Carinha — conversa nova no ar (21/10): acompanhar** — Changelog 21/10.
+  1. **Karina:** criar o template `carinha_segunda` na Meta (Utilidade,
+     pt_BR, corpo "Bom dia, {{1}}! Começando a semana por aqui. Precisa de
+     algo ou quer ver o que tem pra hoje?", botões [Ver o que tem] [Tudo
+     certo]) e avisar quando aprovar. Até lá, segunda cai no `aviso_dash`.
+  2. **Karina:** orientar a equipe a mandar "oi" e responder sempre.
+  3. **Conferir os logs do Worker** nos primeiros dias (Cloudflare → Workers
+     → wpf-whatsapp-bridge → Logs): "Too many subrequests", "revisor barrou",
+     template recusado. ~11 chamadas por pessoa por rodada, 4 pessoas.
+  4. **Ajustes possíveis (decidir com ela depois de usar):** 30 min de
+     silêncio antes da rodada mandar o próximo (`PJ_SILENCIO_MS`); reunião a
+     menos de 1h fura a trava (`PJ_REUNIAO_ANTES_MS`); a manutenção das 20h05
+     conta pra trava; o texto das perguntas ("Dá pra fechar hoje?", "Como
+     está?").
+  5. **Limpeza futura:** os comandos de teste da agenda (`pjComandoAgenda`)
+     e o template `aviso_dash` (depois do `carinha_segunda` aprovado).
+  - *Limites conhecidos:* reunião marcada pra dali a menos de ~30 min pode
+    passar sem aviso (a agenda é vista aos :05 e :35); Isabela, Leonardo e
+    Roberto não veem o link do dia (só admin, como antes).
+  - *Onde:* `worker/whatsapp-bridge.js` (bloco "CONVERSA PROATIVA"),
+    `worker/instrucoes/lembretes.md`.
+  - *Aberto em:* 2026-10-21
+
 - [ ] **PANAM Nations Cup 2027 — acertar as datas do evento** — a Realização
   (22–26/11/27) e tudo que depende dela (briefing, link da transmissão,
   crachás, fechamento) foi datado por estimativa: a Karina não sabia a data
@@ -73,6 +96,7 @@ reconstruir o raciocínio.
   - **Decidir (antigo):** abrir a guia Projetos na Dash pra equipe (`PILOTO_LOGINS`)?
     Sem isso o "Ver na Dash"/pop-up do dia não funciona pra eles (botão
     escondido pra quem não é admin) e a linha `?pj=` também não abre.
+  - ~~Abertura/fila "1/N"~~: substituídas pela conversa nova (21/10).
   - **Decidir:** tirar os comandos de teste da agenda (`pjComandoAgenda`)?
     A Karina não gostou do teste por comando (14/10, 18h15).
   - **Decidir:** mensagens do WhatsApp só com a ação (mãe só como contexto),

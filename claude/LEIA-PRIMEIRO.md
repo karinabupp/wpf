@@ -113,6 +113,15 @@ dois arquivos antes de propor qualquer coisa**:
   liberado, a conversa também lê/muda só a Projetos (`instrucoesPj`, ferramentas
   `*_projetos`); a Tasks antiga não aparece mais pra essa pessoa.
 
+- **REGRA — como o Carinha manda (Karina, 20/10; no ar 21/10, pra todos):**
+  só chama quando tem coisa; uma coisa por mensagem; **no máximo 2
+  seguidas sem resposta em 4h** (furam: reunião nova e tarefa nova que vence
+  hoje); vence hoje primeiro, depois prioridade › dificuldade; 5+ tarefas =
+  resumão por projeto; texto de conversa e "Próxima" sozinha. Template só
+  segunda (`carinha_segunda`); nos outros dias janela fechada = nada, com a
+  manutenção "tudo certo por aí?" em dia útil. Fim de semana: só tarefa do
+  dia. Detalhes em **`worker/instrucoes/lembretes.md`**.
+
 - **MODO SÓ E-MAIL (Karina, 13/10 — até segunda ordem):** o Carinha está
   ligado pra todos, mas por conta própria **só avisa de e-mail relevante da
   própria pessoa** (spam/propaganda não; nada do e-mail dos outros).

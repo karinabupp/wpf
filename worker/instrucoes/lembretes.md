@@ -2,11 +2,10 @@
 
 > **Quem usa:** o Carinha (Worker `wpf-whatsapp-bridge`, bloco "PROJETOS +
 > AGENDA") e toda sessão do Claude que mexer na rotina de mensagens.
-> **Regras da Karina de 14/10/2026** (substituem as de 09/10: Dificuldade,
-> máximo de 5 por dia e rotatividade saíram). Mudou aqui = registrar no
-> Changelog.
-> **No ar só pra quem está em `projetos_liberados`** (`wpf_agente_config`).
-> Piloto: só a Karina. Quem não está liberado segue no modo só e-mail.
+> **Regras da Karina de 14/10/2026** (gatilhos, botões, agenda) **+ jeito
+> de mandar de 20/10/2026** (conversa, trava de 2 em 4h, resumão, janela sem
+> template). Mudou aqui = registrar no Changelog.
+> **No ar pra todos** (`projetos_liberados` = `{"todos": true}`), sem piloto.
 
 ## De onde vem
 
@@ -29,33 +28,54 @@
 
 - **Estreia** (a 1ª manhã de cada pessoa): entra também o que já estava no
   amarelo ou atrasado, uma vez só.
-- **Fim de semana:** o Carinha roda todo dia. Sábado e domingo ele só manda
-  se houver tarefa (sem "nada desse lado").
+- **Fim de semana (20/10):** só tarefa que vence (ou começa) naquele dia.
+  E-mail, Slack e reunião ficam pra segunda.
 - **Prazo em sábado/domingo** (fora do Ladies Weekend): pergunta uma vez
   "é proposital?" com [Sim, proposital] [Mudar prazo]. Se o Fim mudar e cair
   de novo em fim de semana, pergunta de novo.
 
-## A manhã (9h25)
+## Como ele manda (Karina, 20/10)
 
-1. **Resumo (Karina, 15/10):** "Bom dia, Fulana! Hoje você tem N
-   compromissos na agenda e M tarefas na Dash. Por onde quer começar?"
-   [Ver agenda] [Ver tarefas]. Só agenda: resumo + lista juntos. Só
-   tarefas: direto pro passo 3.
-2. **Ver agenda:** a lista dos compromissos do dia (agenda do Google da
-   pessoa; recusados e "local de trabalho" fora).
-3. **Ver tarefas:** "M tarefas de hoje na Dash… Onde você quer ver?"
-   [Ver aqui] [Ver na Dash] (equipe, sem a aba Projetos: já vai a 1ª).
-   - **Ver na Dash:** pop-up do dia (`?dia=<ids>`), Principais/Outras, troca
-     de status.
-   - **Ver aqui:** uma tarefa por vez ("1/N · …"): o que fazer, gatilho,
-     projeto, com quem divide, e [ação] [Mudar prazo] [Ver próxima].
-4. **Garantir que veja tudo:** o que falta (agenda ou tarefas) é sempre
-   oferecido; a partir do meio-dia, se ainda faltar, vai sozinho uma vez.
-5. E-mails importantes não lidos (e Slack pra Karina e Isabela), à parte.
-6. Sem nada (dia útil): "Bom dia! Nada desse lado, você precisa de algo?"
+- **Só chama quando tem coisa.** Sem assunto, silêncio (acabou o "Nada desse
+  lado" e o lembrete do meio-dia).
+- **Uma coisa por mensagem:** uma tarefa, um e-mail, um Slack. As reuniões
+  do dia vão juntas numa mensagem só.
+- **TRAVA:** no máximo **2 mensagens por conta própria seguidas sem
+  resposta numa janela de 4h**. Respondeu = zera. Passaram 4h sem resposta =
+  pode mais 2. **Furam a trava:** reunião nova na agenda (ou reunião a menos
+  de 1h que ainda não foi avisada) e tarefa nova que vence hoje (ou já
+  atrasada) que entrou durante o dia.
+- **Ordem:** o que vence hoje (de cara; 2 ou mais = uma mensagem com todas e
+  [Ver a 1ª] [Ver a 2ª]) › reuniões do dia ("precisa de algo pra elas?",
+  sempre antes do horário) › e-mail muito importante › tarefas › e-mail ›
+  Slack.
+- **Tarefas, uma por vez**, por **prioridade** (alta › média › baixa › sem)
+  e, entre iguais, **a mais difícil primeiro**. Texto de conversa: "X vence
+  hoje. Dá pra fechar hoje?", com [Finalizar/Começar] [Mudar prazo]
+  [Depois]. Fechou o assunto (Finalizar, prazo novo, Depois, proposital):
+  "Próxima: …" vem sozinha.
+- **Resumão (5+ tarefas no dia, fora as que vencem hoje):** "Hoje você tem
+  N tarefas pedindo atenção: • Projeto A: x não iniciadas e y em andamento…
+  Quer começar por qual?" com um botão por projeto. Admin recebe também o
+  link do dia na Dash.
+- **Não atropela:** com conversa rolando (menos de 30 min da última
+  mensagem), a rodada espera; e-mail comum e Slack não entram entre uma
+  tarefa e a próxima.
+- **Rodadas:** 9h25 (monta o dia), e de 8h a 21h aos :05 e aos :35.
 
-Janela de 24h fechada: template `aviso_dash` (só se houver conteúdo); o
-resto chega no "Ver agora".
+## Janela de 24h
+
+- **Sem template**, menos **segunda 9h25** pra quem está com a janela
+  fechada: `carinha_segunda` ("Bom dia, {nome}! Começando a semana por
+  aqui. Precisa de algo ou quer ver o que tem pra hoje?" [Ver o que tem]
+  [Tudo certo]). Enquanto a Meta não aprovar, cai no `aviso_dash` (só se
+  tiver assunto).
+- Janela fechada nos outros dias: nada sai; tudo espera a pessoa escrever.
+  Quando ela escreve ("oi", "Ver o que tem"…), o que estava esperando vem.
+- **Manutenção (dias úteis, 8h–21h):** se a janela vai fechar e não houve
+  assunto, "Oi, Fulana! Tudo certo por aí? Precisa de algo?" [Tudo certo]
+  [Preciso], uma vez, pra ela responder e renovar as 24h. A equipe foi
+  orientada a responder sempre.
 
 ## Revisores (obrigatórios)
 
@@ -63,27 +83,29 @@ resto chega no "Ver agora".
   nenhum e reescreve o que estiver confuso, com jargão da planilha ("2ª
   vez", "Post 1") ou longo. Não inventa: se a linha não diz o essencial,
   avisa que vale detalhar na Dash.
-- **De código:** recalcula a lista a partir da Projetos e confere: o número
-  da abertura bate com a fila; cada tarefa cumpre um gatilho; nada
-  finalizado ou cancelado; tudo é da pessoa; cada mensagem tem o "o que
-  fazer", o prazo e os botões. Qualquer diferença: **as tarefas não saem** e
-  a Karina recebe "⚠️ O revisor barrou…".
+- **De código:** de manhã, recalcula a lista a partir da Projetos e confere:
+  a fila bate com os gatilhos; nada finalizado ou cancelado; tudo é da
+  pessoa. Antes de cada tarefa sair, confere a mensagem: o "o que fazer", o
+  prazo dito (vence hoje / data / dias de atraso) e os botões. Qualquer
+  diferença: **não sai** e a Karina recebe "⚠️ O revisor barrou…".
 
 ## Atalho e conversa
 
 - "ver agora", "agora", "tarefas", "minhas tarefas", "tarefas de hoje"
-  (com erro de digitação também) abrem a lista de hoje a qualquer hora.
-  Duas mensagens seguidas abrem uma vez só.
+  (com erro de digitação também) trazem a tarefa da vez (ou o resumão, se
+  ainda forem 5+) a qualquer hora. Duas mensagens seguidas abrem uma vez só.
 - Perguntas livres ("o que tenho atrasado?") usam a mesma Projetos e o
   mesmo jeito de escrever: o que fazer, de qual projeto e o prazo — nunca
   nome solto de linha. Só as da pessoa; as dos outros só quando ela pedir.
 
 ## Durante o dia
 
-- Tarefa **nova** em nome da pessoa vencendo hoje ou amanhã, ou já
-  atrasada: vai na hora ("🆕 Tarefa nova em seu nome").
-- E-mail importante e não lido: conforme chega (sem teto por dia). O muito
-  urgente continua indo na hora.
+- Tarefa **nova** em nome da pessoa vencendo hoje ou já atrasada: vai na
+  hora, furando a trava ("Entrou uma tarefa nova sua: …"). Vencendo amanhã:
+  entra na fila.
+- Reunião nova na agenda: avisa na hora, antes do horário, furando a trava.
+- E-mail importante e não lido: entra na fila, um por mensagem, respeitando
+  a trava (não vai mais na hora).
 
 ## Botões (tudo pede "sim" antes de gravar)
 
