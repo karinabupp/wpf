@@ -4509,6 +4509,8 @@
   #pj-tabela td.pj-marcada { box-shadow: inset 0 0 0 2px #2383e2; }
   #pj-tabela td.pj-fill-alvo { background-color: rgba(35,131,226,0.14) !important; box-shadow: inset 0 0 0 1px rgba(35,131,226,0.55); }
   body.pj-arrastando-fill, body.pj-arrastando-fill * { cursor: ns-resize !important; user-select: none !important; }
+  /* 21/10: Responsável da mãe é calculado (igual status e prazo). */
+  #pj-tabela .pj-resp1.is-auto { cursor: default; color: #8a8985; background: none; border: 0; font: inherit; padding: 0; display: inline-flex; gap: 4px; align-items: center; }
 </style>
 
 </head>
@@ -10700,6 +10702,20 @@ applyRolePermissions();
           x[campo] = para;
         };
         troca("status", st); troca("startDate", ini); troca("endDate", fim); troca("finalizadoEm", fin);
+        // 21/10 (Karina): Responsável também é das filhas — quem tem tarefa
+        // ABERTA de ponta aqui dentro (tudo finalizado: todas as pontas),
+        // quem tem mais tarefas primeiro. Ninguém nas pontas: fica o da mãe.
+        const pts = pontas(x), abertasPts = pts.filter(s => s.status !== "finalizado");
+        const conta = new Map();
+        (abertasPts.length ? abertasPts : pts).forEach(s => (s.assignees || []).forEach(n => { if (n) conta.set(n, (conta.get(n) || 0) + 1); }));
+        if (conta.size) {
+          const resp = [...conta.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n);
+          const antes = x.assignees || [];
+          if (resp.join("|") !== antes.join("|")) {
+            partes.push(`Responsável: ${antes.join(", ") || "—"} → ${resp.join(", ")}`);
+            x.assignees = resp;
+          }
+        }
         if (partes.length) { registrar(x, "Calculado pelas tarefas de dentro · " + partes.join(" · "), { autor: "Dash (automático)" }); mudou = true; }
       });
     })(entregas, 0);
@@ -10892,6 +10908,9 @@ applyRolePermissions();
     // Responsável numa linha (Karina, 09/10): 1º nome + "+N"; clicar abre a lista.
     resp: e => {
       const a = e.assignees;
+      // 21/10 (Karina): na mãe é calculado pelas tarefas de dentro.
+      if (temFilhas(e)) return `<span class="pj-resp1 is-auto" title="Calculado pelas tarefas de dentro${a.length ? ": " + esc(a.join(", ")) : ""}">` +
+        (a.length ? `<span class="pj-resp-nome">${esc(a[0])}</span>${a.length > 1 ? `<span class="pj-resp-mais">+${a.length - 1}</span>` : ""}` : "—") + `</span>`;
       if (!a.length) return `<button type="button" class="pj-resp-add" data-acao="add-resp" title="Adicionar responsável">+</button>`;
       return `<button type="button" class="pj-resp1" data-acao="add-resp" title="${esc(a.join(", "))}"><span class="pj-resp-nome">${esc(a[0])}</span>${a.length > 1 ? `<span class="pj-resp-mais">+${a.length - 1}</span>` : ""}</button>`;
     },
@@ -11286,6 +11305,7 @@ applyRolePermissions();
   let popPara = null;
   function fecharPop() { const p = document.getElementById("pj-pop"); if (p) p.remove(); popPara = null; }
   function abrirPopResp(botao, e) {
+    if (temFilhas(e)) return; // 21/10: na mãe é calculado pelas filhas
     fecharPopERedesenhar();
     popPara = e.id;
     const pop = document.createElement("div");
@@ -12491,7 +12511,7 @@ applyRolePermissions();
   };
   const LINHA_INTEIRA = ["criterio", "status", "prazo", "resp", "prio", "dific", "frente", "obj"];
   function podeReceber(e, col, nivel) {
-    if (["status", "prazo", "finalizado"].includes(col) && temFilhas(e)) return false;
+    if (["status", "prazo", "finalizado", "resp"].includes(col) && temFilhas(e)) return false;
     if (col === "finalizado" && e.status !== "finalizado") return false;
     if (col === "frente" && nivel !== 0) return false;
     return true;
@@ -12727,7 +12747,7 @@ applyRolePermissions();
       }
       ["startDate", "endDate"].forEach(c => { if (patch[c] !== undefined && patch[c] !== (e[c] || "")) { registrarCampo(e, c, e[c], patch[c]); e[c] = patch[c]; } });
     }
-    if (Array.isArray(patch.assignees)) {
+    if (Array.isArray(patch.assignees) && !temFilhas(e)) {
       const antes = e.assignees || [];
       patch.assignees.filter(n => !antes.includes(n)).forEach(n => registrar(e, `Responsável: + ${n}`));
       antes.filter(n => !patch.assignees.includes(n)).forEach(n => registrar(e, `Responsável: tirou ${n}`));
