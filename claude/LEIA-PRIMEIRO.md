@@ -117,9 +117,11 @@ dois arquivos antes de propor qualquer coisa**:
   só chama quando tem coisa; uma coisa por mensagem; **no máximo 2
   seguidas sem resposta em 4h** (furam: reunião nova e tarefa nova que vence
   hoje); vence hoje primeiro, depois prioridade › dificuldade; 5+ tarefas =
-  resumão por projeto; texto de conversa e "Próxima" sozinha. Template só
-  segunda (`carinha_segunda`); nos outros dias janela fechada = nada, com a
-  manutenção "tudo certo por aí?" em dia útil. Fim de semana: só tarefa do
+  resumão por projeto; texto de conversa e "Próxima" sozinha. Janela
+  fechada: template `carinha_bom_dia` às 9h25 do dia seguinte (todo dia útil
+  até responder; fds só com tarefa do dia; **sem fallback** enquanto a Meta
+  não aprovar); fora isso, nada, com a manutenção "tudo certo por aí?" em
+  dia útil. Fim de semana: só tarefa do
   dia. Detalhes em **`worker/instrucoes/lembretes.md`**.
 
 - **MODO SÓ E-MAIL (Karina, 13/10 — até segunda ordem):** o Carinha está

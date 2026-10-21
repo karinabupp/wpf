@@ -16,10 +16,12 @@ reconstruir o raciocínio.
 ## Em aberto
 
 - [ ] **Carinha — conversa nova no ar (21/10): acompanhar** — Changelog 21/10.
-  1. **Karina:** criar o template `carinha_segunda` na Meta (Utilidade,
-     pt_BR, corpo "Bom dia, {{1}}! Começando a semana por aqui. Precisa de
-     algo ou quer ver o que tem pra hoje?", botões [Ver o que tem] [Tudo
-     certo]) e avisar quando aprovar. Até lá, segunda cai no `aviso_dash`.
+  1. **Karina:** criar o template `carinha_bom_dia` na Meta (Utilidade,
+     pt_BR, corpo "Bom dia, {{1}}! Passando pra ver como estão as coisas por
+     aí. Precisa de algo ou quer ver o que tem pra hoje?", botões [Ver o que
+     tem] [Tudo certo]) e avisar quando aprovar. **Até lá, com a janela
+     fechada não sai nada** (sem fallback, Karina 21/10). Se a Meta
+     classificar como Marketing, rever o texto.
   2. **Karina:** orientar a equipe a mandar "oi" e responder sempre.
   3. **Conferir os logs do Worker** nos primeiros dias (Cloudflare → Workers
      → wpf-whatsapp-bridge → Logs): "Too many subrequests", "revisor barrou",
@@ -30,7 +32,7 @@ reconstruir o raciocínio.
      conta pra trava; o texto das perguntas ("Dá pra fechar hoje?", "Como
      está?").
   5. **Limpeza futura:** os comandos de teste da agenda (`pjComandoAgenda`)
-     e o template `aviso_dash` (depois do `carinha_segunda` aprovado).
+     e o template `aviso_dash` na Meta (já não é usado pela rotina).
   - *Limites conhecidos:* reunião marcada pra dali a menos de ~30 min pode
     passar sem aviso (a agenda é vista aos :05 e :35); Isabela, Leonardo e
     Roberto não veem o link do dia (só admin, como antes).

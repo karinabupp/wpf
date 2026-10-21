@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (2ª) — Carinha: template de bom dia todo dia + datas do Pós-evento do LW
+
+Pedido da Karina às 9h37/9h47/9h48; "pode" às 10h58.
+
+- **Carinha — janela fechada:** às 9h25 do dia seguinte vai o template
+  `carinha_bom_dia` ("Bom dia, {nome}! Passando pra ver como estão as coisas
+  por aí. Precisa de algo ou quer ver o que tem pra hoje?" [Ver o que tem]
+  [Tudo certo]) — todo dia útil enquanto a pessoa não responder; sábado e
+  domingo só se houver tarefa do dia. **Sem fallback:** até a Meta aprovar,
+  não sai template nenhum (o `aviso_dash` saiu da rotina). Substitui o
+  `carinha_segunda` da sessão anterior (que nunca chegou a ser criado).
+  Leonardo segue recebendo normal (Karina: "não fica travado").
+  - *Onde:* `worker/whatsapp-bridge.js` (`pjTemplateBomDia`, `pjRodada`),
+    `worker/instrucoes/lembretes.md`, `claude/LEIA-PRIMEIRO.md`.
+  - *Testes:* cenários 4, 5 e 5b refeitos (não aprovado = nada; aprovado =
+    bom dia; repete no dia útil seguinte; domingo só com tarefa do dia) +
+    os outros 7; todos passam.
+- **Projetos — Ladies Weekend 2026 › Calendário de Social › Pós-evento:**
+  Fim nas 13 etapas — Post 1 (Selecionar 21/10, Editar/Aprovar/Postar 22/10),
+  Post 2 (Pedir 21/10, Receber/Editar/Aprovar 23/10, Postar sáb 24/10), Post 3
+  (Escrever 26/10, Arte/Aprovar 27/10, Postar 28/10). Mães por herança: Post 1
+  22/10, Post 2 24/10, Post 3 e Pós-evento 28/10, Calendário de Social 21/10 →
+  28/10, Realizar Ladies Weekend 2026 27/10 → 28/10. Histórico em cada linha.
+  Backup `bkp_projetos_2026-10-21_antes_lw_pos_evento`; revisão 7386 → 7387;
+  `sql/2026-10-21_lw_pos_evento_datas.sql`.
+- Também nesta sessão: conferido que às 9h25 de hoje a rotina antiga mandou
+  o template `aviso_dash` pra Karina, Leonardo e Roberto (janelas fechadas).
+
+---
+
 ## 2026-10-21 — Carinha: jeito novo de mandar mensagem (conversa, trava, resumão)
 
 Pedido da Karina em 20/10 (18h09–18h41); "pode começar" às 18h41; OK pra
@@ -54,9 +84,8 @@ Leonardo, Roberto), cada um só com o que é seu (REGRA DO ROBÔ segue).
   verificações + transição: trava, vence hoje, reuniões, resumão, Depois,
   Mudar prazo, e-mail esperando a conversa, reunião/tarefa nova furando a
   trava, sábado, segunda com template, janela fechada, manutenção, revisor.
-- **Karina precisa:** criar o template `carinha_segunda` na Meta (Utilidade,
-  pt_BR, {{1}} = nome, botões [Ver o que tem] [Tudo certo]); orientar a
-  equipe a mandar "oi" e responder o Carinha.
+- **Karina precisa:** criar o template (virou `carinha_bom_dia`, ver 2ª
+  sessão de 21/10); orientar a equipe a mandar "oi" e responder o Carinha.
 
 ---
 

@@ -65,12 +65,14 @@
 
 ## Janela de 24h
 
-- **Sem template**, menos **segunda 9h25** pra quem está com a janela
-  fechada: `carinha_segunda` ("Bom dia, {nome}! Começando a semana por
-  aqui. Precisa de algo ou quer ver o que tem pra hoje?" [Ver o que tem]
-  [Tudo certo]). Enquanto a Meta não aprovar, cai no `aviso_dash` (só se
-  tiver assunto).
-- Janela fechada nos outros dias: nada sai; tudo espera a pessoa escrever.
+- **Janela fechou → às 9h25 do dia seguinte vai o template `carinha_bom_dia`**
+  (Karina, 21/10): "Bom dia, {nome}! Passando pra ver como estão as coisas
+  por aí. Precisa de algo ou quer ver o que tem pra hoje?" [Ver o que tem]
+  [Tudo certo]. Todo dia útil, enquanto a pessoa não responder; sábado e
+  domingo só se houver tarefa daquele dia.
+- **Sem fallback:** enquanto a Meta não aprovar o `carinha_bom_dia`, não sai
+  template nenhum (o `aviso_dash` não é mais usado).
+- Fora as 9h25, janela fechada = nada sai; tudo espera a pessoa escrever.
   Quando ela escreve ("oi", "Ver o que tem"…), o que estava esperando vem.
 - **Manutenção (dias úteis, 8h–21h):** se a janela vai fechar e não houve
   assunto, "Oi, Fulana! Tudo certo por aí? Precisa de algo?" [Tudo certo]

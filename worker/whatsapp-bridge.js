@@ -2747,8 +2747,10 @@ async function pjColetarSlack(env, pessoa) {
 //    começar.
 //  - Fim de semana: só tarefa daquele dia (Início ou Fim no sábado/domingo).
 //    E-mail, Slack e reunião ficam pra segunda.
-//  - Janela de 24h: sem template, a não ser segunda 9h25 (TEMPLATE_SEGUNDA;
-//    enquanto a Meta não aprova, cai no aviso_dash, só se houver assunto).
+//  - Janela de 24h (Karina, 21/10): fechou → às 9h25 do dia seguinte vai o
+//    template TEMPLATE_BOM_DIA (todo dia útil, até a pessoa responder; fim de
+//    semana só se houver tarefa do dia). Sem fallback: enquanto a Meta não
+//    aprovar, não sai template nenhum.
 //    Dias úteis, 8h–21h: se a janela vai fechar e não houve assunto, manda
 //    "tudo certo por aí? precisa de algo?" pra pessoa responder e renovar.
 // Estado em estado.conv (pj_estado_<tel>), refeito todo dia às 9h25.
@@ -2756,7 +2758,7 @@ const PJ_TRAVA_MAX = 2, PJ_TRAVA_MS = 4 * 3600000;
 const PJ_RESUMO_MIN = 5;                       // 5+ tarefas no dia → resumão
 const PJ_SILENCIO_MS = 30 * 60000;             // conversa rolando: a rodada não interrompe
 const PJ_REUNIAO_ANTES_MS = 60 * 60000;        // reunião não avisada a 1h de começar: fura a trava
-const TEMPLATE_SEGUNDA = "carinha_segunda";   // Karina cria no WhatsApp Manager (1 variável: o nome)
+const TEMPLATE_BOM_DIA = "carinha_bom_dia";   // Karina cria no WhatsApp Manager (1 variável: o nome)
 const PJ_OP_DEPOIS = "Depois", PJ_OP_PRECISO = "Preciso", PJ_OP_TUDO_CERTO = "Tudo certo";
 const PJ_OPS_REUNIAO = [PJ_OP_PRECISO, PJ_OP_TUDO_CERTO];
 const PJ_RANK = { alta: 0, media: 1, baixa: 2 };
@@ -3231,25 +3233,22 @@ function pjTemNaFila(estado) {
   return (!c.falando && c.itens.some(m => m.est === "fila" || m.est === "citada")) || (!c.reunioesEnviadas && (c.reunioes || []).length > 0);
 }
 
-// ── Template de segunda (janela fechada depois do fim de semana) ──
-async function pjTemplateSegunda(env, pessoa, qtd) {
+// ── Template do dia seguinte (janela fechada; Karina, 21/10) ──
+// Sem fallback: se a Meta recusar (ainda não aprovado), não manda nada.
+async function pjTemplateBomDia(env, pessoa) {
   const primeiro = primeiroNome(pessoa.nome_tasks) || "oi";
   const res = await fetch(`https://graph.facebook.com/v21.0/${env.WHATSAPP_PHONE_ID}/messages`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.WHATSAPP_TOKEN}`, "Content-Type": "application/json" },
     body: JSON.stringify({ messaging_product: "whatsapp", to: pessoa.telefone, type: "template",
-      template: { name: TEMPLATE_SEGUNDA, language: { code: TEMPLATE_IDIOMA }, components: [{ type: "body", parameters: [{ type: "text", text: primeiro }] }] } })
+      template: { name: TEMPLATE_BOM_DIA, language: { code: TEMPLATE_IDIOMA }, components: [{ type: "body", parameters: [{ type: "text", text: primeiro }] }] } })
   });
   const corpo = await res.json().catch(() => null);
-  if (res.ok) {
-    const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
-    await gravarMensagem(env, { wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: pessoa.telefone,
-      msg_type: "template", body: `[segunda] Bom dia, ${primeiro}! Começando a semana por aqui. Precisa de algo ou quer ver o que tem pra hoje?`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, tipo_proativa: "template", opcoes: ["Ver o que tem", "Tudo certo"] });
-    return true;
-  }
-  console.log("template de segunda recusado:", res.status, JSON.stringify(corpo));
-  // Ainda não aprovado: cai no template antigo, só se houver assunto.
-  return qtd ? enviarTemplateAviso(env, pessoa, qtd) : false;
+  if (!res.ok) { console.log("template bom dia recusado:", res.status, JSON.stringify(corpo)); return false; }
+  const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
+  await gravarMensagem(env, { wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: pessoa.telefone,
+    msg_type: "template", body: `[bom dia] Bom dia, ${primeiro}! Passando pra ver como estão as coisas por aí. Precisa de algo ou quer ver o que tem pra hoje?`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, tipo_proativa: "template", opcoes: ["Ver o que tem", "Tudo certo"] });
+  return true;
 }
 
 // ── Manutenção da janela (dias úteis, 8h–21h) ──
@@ -3291,7 +3290,7 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
   agoraMs = agoraMs || Date.now();
   const horaFixa = cron === CRON_HORA_FIXA;
   const sp = pjSpDe(agoraMs), horaSP = sp.getUTCHours(), minSP = sp.getUTCMinutes();
-  const fimDeSemana = pjEhFds(agoraMs), segunda = sp.getUTCDay() === 1;
+  const fimDeSemana = pjEhFds(agoraMs);
   const tel = pessoa.telefone, hoje = hojeSP();
   const estado = await pjEstado(env, tel);
   if (horaFixa) {
@@ -3301,12 +3300,9 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     await pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs);
     await pjSalvarEstado(env, tel, estado);
     if (await janelaAberta(env, tel, agoraMs)) { await pjDespachar(env, pessoa, { motivo: "manha", agoraMs, estado, pj, janelaOk: true }); return; }
-    // Janela fechada: só na segunda (Karina, 20/10). Nos outros dias, o que
-    // tem espera a pessoa escrever.
-    if (segunda) {
-      const ext = (await pendentesDe(env, tel)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|")).length;
-      await pjTemplateSegunda(env, pessoa, estado.conv.itens.length + estado.conv.reunioes.length + ext);
-    }
+    // Janela fechada (Karina, 21/10): template de bom dia, todo dia útil até
+    // a pessoa responder; fim de semana só se houver tarefa do dia.
+    if (!fimDeSemana || estado.conv.itens.length) await pjTemplateBomDia(env, pessoa);
     return;
   }
   if (horaSP < 8 || horaSP > 21) return;
