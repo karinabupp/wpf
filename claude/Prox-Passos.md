@@ -17,9 +17,10 @@ reconstruir o raciocínio.
 
 - [ ] **Carinha — conversa nova no ar (21/10): acompanhar** — Changelog 21/10.
   1. **Karina:** criar o template `carinha_bom_dia` na Meta (Utilidade,
-     pt_BR, corpo "Bom dia, {{1}}! Passando pra ver como estão as coisas por
-     aí. Precisa de algo ou quer ver o que tem pra hoje?", botões [Ver o que
-     tem] [Tudo certo]) e avisar quando aprovar. **Até lá, com a janela
+     pt_BR, corpo "Oi, {{1}}! Precisando de algo por aí? Nossa janela de 24h
+     já fechou. Me responde aqui pra gente poder continuar conversando e eu
+     seguir te mandando suas tarefas e avisos. 🙂", um botão Quick reply
+     [Tô aqui!]) e avisar quando aprovar. **Até lá, com a janela
      fechada não sai nada** (sem fallback, Karina 21/10). Se a Meta
      classificar como Marketing, rever o texto.
   2. **Karina:** orientar a equipe a mandar "oi" e responder sempre.

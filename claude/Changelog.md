@@ -12,6 +12,23 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (3ª) — Carinha: texto do template de bom dia e botão "Tô aqui!"
+
+Pedido da Karina às 12h40/12h43; "pode começar a mudança" às 12h44.
+
+- Template `carinha_bom_dia` (a criar na Meta) com texto novo — "Oi, {nome}!
+  Precisando de algo por aí? Nossa janela de 24h já fechou. Me responde aqui
+  pra gente poder continuar conversando e eu seguir te mandando suas tarefas
+  e avisos. 🙂" — e **um botão só, [Tô aqui!]**.
+- O Carinha reconhece "Tô aqui!": reabre a conversa e manda na hora o que
+  estava esperando; sem nada, "Oi! Tudo certo por aqui, nada pendente.
+  Precisa de algo?" [Tudo certo] [Preciso].
+- *Onde:* `worker/whatsapp-bridge.js` (`tratarMensagem`, `pjTemplateBomDia`),
+  `worker/instrucoes/lembretes.md`. *Testes:* cenários 4 e 6 com "Tô aqui!";
+  todos passam.
+
+---
+
 ## 2026-10-21 (2ª) — Carinha: template de bom dia todo dia + datas do Pós-evento do LW
 
 Pedido da Karina às 9h37/9h47/9h48; "pode" às 10h58.

@@ -66,9 +66,11 @@
 ## Janela de 24h
 
 - **Janela fechou → às 9h25 do dia seguinte vai o template `carinha_bom_dia`**
-  (Karina, 21/10): "Bom dia, {nome}! Passando pra ver como estão as coisas
-  por aí. Precisa de algo ou quer ver o que tem pra hoje?" [Ver o que tem]
-  [Tudo certo]. Todo dia útil, enquanto a pessoa não responder; sábado e
+  (Karina, 21/10): "Oi, {nome}! Precisando de algo por aí? Nossa janela de
+  24h já fechou. Me responde aqui pra gente poder continuar conversando e eu
+  seguir te mandando suas tarefas e avisos. 🙂" com um botão só, [Tô aqui!]:
+  reabre a janela e já manda o que estava esperando (sem nada: "Oi! Tudo
+  certo por aqui, nada pendente. Precisa de algo?"). Todo dia útil, enquanto a pessoa não responder; sábado e
   domingo só se houver tarefa daquele dia.
 - **Sem fallback:** enquanto a Meta não aprovar o `carinha_bom_dia`, não sai
   template nenhum (o `aviso_dash` não é mais usado).

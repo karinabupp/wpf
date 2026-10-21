@@ -3247,7 +3247,7 @@ async function pjTemplateBomDia(env, pessoa) {
   if (!res.ok) { console.log("template bom dia recusado:", res.status, JSON.stringify(corpo)); return false; }
   const id = corpo && corpo.messages && corpo.messages[0] && corpo.messages[0].id;
   await gravarMensagem(env, { wa_message_id: id || null, direction: "out", from_number: env.WHATSAPP_PHONE_ID, to_number: pessoa.telefone,
-    msg_type: "template", body: `[bom dia] Bom dia, ${primeiro}! Passando pra ver como estão as coisas por aí. Precisa de algo ou quer ver o que tem pra hoje?`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, tipo_proativa: "template", opcoes: ["Ver o que tem", "Tudo certo"] });
+    msg_type: "template", body: `[bom dia] Oi, ${primeiro}! Precisando de algo por aí? Nossa janela de 24h já fechou. Me responde aqui pra gente poder continuar conversando e eu seguir te mandando suas tarefas e avisos. 🙂`, sent_at: new Date().toISOString(), raw: corpo, proativa: true, tipo_proativa: "template", opcoes: ["Tô aqui!"] });
   return true;
 }
 
@@ -3955,9 +3955,12 @@ async function tratarMensagem(env, msg, textoRecebido) {
   }
   // Abriu a janela ("oi", "Ver o que tem" do template de segunda, "ver
   // agora"): o que estava esperando vai agora, do jeito de sempre (20/10).
-  if (pjLib && (cumprimento || cmd === "ver o que tem" || cmd === "ver agora")) {
+  // "Tô aqui!" é o botão do template de bom dia (21/10): só reabre a janela.
+  const toAqui = cmd === "to aqui";
+  if (pjLib && (cumprimento || toAqui || cmd === "ver o que tem" || cmd === "ver agora")) {
     const r = await pjDespachar(env, pessoa, { motivo: "resposta" });
     if (r.enviadas) return;
+    if (toAqui) { await enviarComOpcoes(env, tel, "Oi! Tudo certo por aqui, nada pendente. Precisa de algo?", [PJ_OP_TUDO_CERTO, PJ_OP_PRECISO]); return; }
     if (!cumprimento) { await pjAbrirDia(env, pessoa, tel); return; }
   }
   if (pjLib && pjEhAtalho(cmd)) { await pjAbrirDia(env, pessoa, tel); return; }
