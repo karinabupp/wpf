@@ -19,7 +19,10 @@ reconstruir o raciocínio.
   (CBTH → Projetos) e 2 (abas saíram, CRM ↔ Projetos) feitas em 21/10
   (Changelog 4ª e 5ª). Falta: Worker ler `projetos` e `projetos__cbth`; cada
   um recebe as suas das duas; mensagem diz "na CBTH" quando for; links
-  `?pj=`/`?dia=` com `&org=cbth`. Publicar com o OK da Karina.
+  `?pj=`/`?dia=` com `&org=cbth`. **Decidido (Karina, 21/10 14h20):** o
+  Carinha avisa só das tarefas de ponta (mãe não gera aviso), porque o
+  responsável da mãe agora herda das filhas (`pjItensDoDia`/`pjGatilho`,
+  mesma mudança no revisor). Publicar com o OK da Karina.
   - *Decidir com a Karina:* o **Detalhador** (`worker/instrucoes/detalhador.md`)
     ainda manda gravar na Tasks (piloto), que saiu da Dash — passar a gravar
     na Projetos (regra `organizacao-projetos.md`)?

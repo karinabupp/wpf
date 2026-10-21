@@ -12,6 +12,32 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (7ª) — Projetos: Responsável da mãe herda das filhas
+
+Pedido da Karina às 14h18; desenho aprovado às 14h20 ("manda bala desse jeito").
+
+- **`index.html`, `calcularMaes()`:** linha com algo dentro tem o
+  **Responsável calculado**, como status e datas: os responsáveis das
+  tarefas de ponta **abertas** lá dentro (canceladas fora; tudo finalizado →
+  todas as pontas), sem repetir, **quem tem mais tarefas primeiro**. Nenhuma
+  ponta com responsável → fica o da mãe. Mudou = Histórico ("Calculado
+  pelas tarefas de dentro · Responsável: A → B", autor Dash automático).
+- Na mãe a célula fica cinza (`.pj-resp1.is-auto`, dica "Calculado pelas
+  tarefas de dentro"), não abre o pop-up de responsável, o arrastar não
+  muda e o CRM (`projetosBridge.editar`) também não.
+- **Efeito no 1º carregamento:** na WPF ~220 das 508 mães mudam de
+  responsável (ex.: "50 Federações Membros: — → Karina Bupp, Isabela
+  Castro"); na CBTH, 4 das 139. Fica tudo no Histórico de cada linha.
+- **Testes** (dados reais WPF e CBTH): nenhuma mãe diferente da regra;
+  pop-up não abre na mãe; trocar o responsável numa ponta aparece nas mães;
+  testes da etapa 2 e do arrastar seguem passando; sem erros.
+- **Decidido pro Carinha (fica pra etapa 3, Worker):** avisar só das
+  tarefas de ponta (a mãe deixa de gerar aviso), pra herança não repetir
+  aviso pra todo mundo de dentro.
+- Publicado no commit `b41baaf` (o registro veio no commit seguinte).
+
+---
+
 ## 2026-10-21 (6ª) — Projetos: arrastar pra cima/baixo (célula, parte da linha, linha inteira)
 
 Pedido da Karina às 13h53; desenho aprovado às 14h00; publicado com o OK

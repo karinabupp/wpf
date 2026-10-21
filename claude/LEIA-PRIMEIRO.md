@@ -104,7 +104,10 @@ dois arquivos antes de propor qualquer coisa**:
   algo dentro tem status, datas e "Finalizado em" calculados (não editáveis):
   todas canceladas → Cancelado; todas finalizadas → Finalizado; tudo o que
   está aberto bloqueado → Bloqueado; nada começado → Não iniciado; resto →
-  Em andamento. Atraso de filha deixa a mãe vermelha. Ao gravar dados por
+  Em andamento. Atraso de filha deixa a mãe vermelha. **Responsável também
+  (21/10):** quem tem tarefa de ponta aberta dentro (tudo finalizado: todas
+  as pontas), mais tarefas primeiro; ninguém nas pontas → fica o da mãe.
+  Ao gravar dados por
   SQL, deixar as mães coerentes (a Dash recalcula e grava ao abrir).
   `calcularMaes()` no bloco PROJETOS do index.html.
 
