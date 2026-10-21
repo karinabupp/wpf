@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (6ª) — Projetos: arrastar pra cima/baixo (célula, parte da linha, linha inteira)
+
+Pedido da Karina às 13h53; desenho aprovado às 14h00; publicado com o OK
+dela às 14h10. Vale na WPF e na CBTH.
+
+- **`index.html`, bloco PROJETOS ("ARRASTAR PRA CIMA/BAIXO"):**
+  1. **Uma célula:** quadradinho azul no canto ao passar o mouse; arrastar
+     pra cima ou pra baixo copia o valor na mesma coluna (pré-visual azul
+     só no que vai mudar). Colunas: Nome, Critério, Status, Prazo,
+     Finalizado, Responsável, Prioridade, Dificuldade, Frente, Objetivo.
+  2. **Parte da linha:** Ctrl/Cmd + clique marca células da mesma linha;
+     arrastar qualquer uma leva todas. Esc/clique normal desmarca.
+  3. **Linha inteira:** quadradinho roxo no canto do nome copia Critério,
+     Status, Prazo, Responsável, Prioridade, Dificuldade, Frente e Objetivo —
+     **menos o nome**.
+  - Regras: sobrescreve (não cria linha); mãe não recebe status/prazo/
+    finalizado (calculados); Frente só na entrega; Responsável substitui;
+    Finalizado só em linha finalizada. Cada mudança vai pro Histórico
+    ("… (arrastado de "X")" no responsável). **Ctrl/Cmd+Z** desfaz o último
+    arraste (fora de campo de texto). Tags, Bloqueios, Próxima ação, Forma e
+    Histórico ficam fora.
+  - CSS `.pj-fill`, `.pj-fill-linha`, `.pj-marcada`, `.pj-fill-alvo`.
+  - `CATALOGO_PERMISSOES`: `projetosArrastar` (regra de 25/09).
+- **Testes** (navegador sem tela, mouse real, dados reais WPF e CBTH):
+  status descendo 2 linhas + Ctrl+Z; responsável subindo; 2 células
+  marcadas juntas; linha inteira mantendo o nome; mãe fora; Histórico; sem
+  erros.
+
+---
+
 ## 2026-10-21 (5ª) — Dash enxuta: saem Tasks, Tasks (piloto) e Gestão; CRM ↔ Projetos (etapa 2 de 3)
 
 Plano aprovado às 13h29; publicado com o OK da Karina às 13h53 ("pode

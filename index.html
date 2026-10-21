@@ -4502,6 +4502,13 @@
   .avisos2-ir:hover { text-decoration: underline; }
   #pj-pop.pj-pop-mencao button.pj-men-crm { margin: 10px 0 0; width: auto; border: 1px solid #d9d7cd; background: #fff; border-radius: 7px; padding: 5px 10px; font: inherit; font-size: 12.5px; font-weight: 600; color: #2f6fd0; cursor: pointer; }
   #pj-pop.pj-pop-mencao button.pj-men-crm:hover { background: #f4f3ee; }
+
+  /* ═══ PROJETOS: arrastar pra cima/baixo (21/10, Karina) ═══ */
+  .pj-fill { position: fixed; z-index: 60; display: none; width: 9px; height: 9px; background: #2383e2; border: 2px solid #fff; border-radius: 2px; cursor: ns-resize; box-shadow: 0 0 0 1px rgba(35,131,226,.35); }
+  .pj-fill-linha { background: #7b4fe0; box-shadow: 0 0 0 1px rgba(123,79,224,.35); }
+  #pj-tabela td.pj-marcada { box-shadow: inset 0 0 0 2px #2383e2; }
+  #pj-tabela td.pj-fill-alvo { background-color: rgba(35,131,226,0.14) !important; box-shadow: inset 0 0 0 1px rgba(35,131,226,0.55); }
+  body.pj-arrastando-fill, body.pj-arrastando-fill * { cursor: ns-resize !important; user-select: none !important; }
 </style>
 
 </head>
@@ -12469,6 +12476,210 @@ applyRolePermissions();
   // Virada do dia (Em andamento → vermelho) sem precisar recarregar.
   setInterval(() => { if (visivel() && !usuarioOcupado()) render(); }, 10 * 60 * 1000);
 
+  // ── ARRASTAR PRA CIMA/BAIXO (21/10, Karina) ─────────────────────────────
+  // Como numa planilha: (1) o quadradinho no canto da célula copia o valor
+  // pras linhas de cima ou de baixo, na mesma coluna; (2) Ctrl/Cmd + clique
+  // marca várias células da MESMA linha e o arraste leva todas juntas;
+  // (3) o quadradinho da linha (no canto do nome) copia a linha inteira —
+  // todos os campos, MENOS o nome. Sempre sobrescreve; não cria linha.
+  // Mãe não recebe status/prazo/finalizado (são calculados pelas filhas);
+  // Frente só na entrega. Tudo vai pro Histórico; Ctrl/Cmd+Z desfaz o último.
+  const ARRASTAVEIS = {
+    nome: ["nome"], criterio: ["criterio"], status: ["status", "finalizadoEm"], prazo: ["startDate", "endDate"],
+    finalizado: ["finalizadoEm"], resp: ["assignees"], prio: ["prioridade"], dific: ["dificuldade"],
+    frente: ["frente"], obj: ["objetivo"]
+  };
+  const LINHA_INTEIRA = ["criterio", "status", "prazo", "resp", "prio", "dific", "frente", "obj"];
+  function podeReceber(e, col, nivel) {
+    if (["status", "prazo", "finalizado"].includes(col) && temFilhas(e)) return false;
+    if (col === "finalizado" && e.status !== "finalizado") return false;
+    if (col === "frente" && nivel !== 0) return false;
+    return true;
+  }
+  const copia = v => (Array.isArray(v) ? v.slice() : v);
+  const mesmo = (a, b) => JSON.stringify(a ?? "") === JSON.stringify(b ?? "");
+  let marcadas = { id: null, cols: new Set() };
+  let desfazerArraste = null; // { alvos: [{ id, antes: {campo: valor} }] }
+  const alcaCel = document.createElement("div");
+  alcaCel.className = "pj-fill";
+  alcaCel.title = "Arraste pra cima ou pra baixo pra copiar";
+  const alcaLinha = document.createElement("div");
+  alcaLinha.className = "pj-fill pj-fill-linha";
+  alcaLinha.title = "Arraste pra copiar a linha inteira (menos o nome) pra cima ou pra baixo";
+  document.body.appendChild(alcaCel);
+  document.body.appendChild(alcaLinha);
+  let alcaPara = null; // { td, tr, col }
+  let arraste = null;  // { origemId, cols, linhas: [tr...], iOrigem, iAlvo }
+  function esconderAlcas() { alcaCel.style.display = "none"; alcaLinha.style.display = "none"; alcaPara = null; }
+  function mostrarAlcas(td) {
+    const tr = td.closest("tr[data-id]");
+    const col = td.dataset.col;
+    if (!tr) return;
+    const r = td.getBoundingClientRect();
+    if (ARRASTAVEIS[col]) {
+      alcaCel.style.display = "block";
+      alcaCel.style.left = (r.right - 5) + "px";
+      alcaCel.style.top = (r.bottom - 5) + "px";
+    } else alcaCel.style.display = "none";
+    const tdNome = tr.querySelector('td[data-col="nome"]');
+    if (tdNome) {
+      const rn = tdNome.getBoundingClientRect();
+      alcaLinha.style.display = "block";
+      alcaLinha.style.left = (rn.left + 3) + "px";
+      alcaLinha.style.top = (rn.bottom - 5) + "px";
+    }
+    alcaPara = { td, tr, col };
+  }
+  function aplicarMarcas() {
+    corpo.querySelectorAll("td.pj-marcada").forEach(td => td.classList.remove("pj-marcada"));
+    if (!marcadas.id) return;
+    const tr = corpo.querySelector(`tr[data-id="${CSS.escape(marcadas.id)}"]`);
+    if (tr) marcadas.cols.forEach(c => { const td = tr.querySelector(`td[data-col="${c}"]`); if (td) td.classList.add("pj-marcada"); });
+  }
+  function limparMarcas() { marcadas = { id: null, cols: new Set() }; aplicarMarcas(); }
+  function limparPrevia() { corpo.querySelectorAll("td.pj-fill-alvo").forEach(td => td.classList.remove("pj-fill-alvo")); }
+  function previa() {
+    limparPrevia();
+    if (!arraste) return;
+    const [a, b] = [Math.min(arraste.iOrigem, arraste.iAlvo), Math.max(arraste.iOrigem, arraste.iAlvo)];
+    for (let i = a; i <= b; i++) {
+      if (i === arraste.iOrigem) continue;
+      const tr = arraste.linhas[i];
+      const loc = localizar(tr.dataset.id);
+      if (!loc) continue;
+      arraste.cols.forEach(c => {
+        if (!podeReceber(loc.linha, c, loc.nivel)) return;
+        const td = tr.querySelector(`td[data-col="${c}"]`);
+        if (td) td.classList.add("pj-fill-alvo");
+      });
+    }
+  }
+  function iniciarArraste(ev, cols) {
+    if (!alcaPara) return;
+    ev.preventDefault(); ev.stopPropagation();
+    const linhas = [...corpo.querySelectorAll("tr[data-id]")];
+    const iOrigem = linhas.indexOf(alcaPara.tr);
+    if (iOrigem < 0) return;
+    arraste = { origemId: alcaPara.tr.dataset.id, cols, linhas, iOrigem, iAlvo: iOrigem };
+    document.body.classList.add("pj-arrastando-fill");
+  }
+  alcaCel.addEventListener("mousedown", ev => {
+    if (!alcaPara) return;
+    const id = alcaPara.tr.dataset.id, col = alcaPara.col;
+    const cols = marcadas.id === id && marcadas.cols.has(col) ? [...marcadas.cols] : [col];
+    iniciarArraste(ev, cols);
+  });
+  alcaLinha.addEventListener("mousedown", ev => iniciarArraste(ev, LINHA_INTEIRA.slice()));
+  document.addEventListener("mousemove", ev => {
+    if (!arraste) return;
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const tr = el && el.closest && el.closest("#pj-corpo tr[data-id]");
+    if (tr) {
+      const i = arraste.linhas.indexOf(tr);
+      if (i >= 0 && i !== arraste.iAlvo) { arraste.iAlvo = i; previa(); }
+    }
+  });
+  document.addEventListener("mouseup", () => {
+    if (!arraste) return;
+    const a = arraste;
+    arraste = null;
+    document.body.classList.remove("pj-arrastando-fill");
+    limparPrevia();
+    if (a.iAlvo === a.iOrigem) return;
+    const origem = achar(a.origemId);
+    if (!origem) return;
+    const [i0, i1] = [Math.min(a.iOrigem, a.iAlvo), Math.max(a.iOrigem, a.iAlvo)];
+    const alvos = [];
+    const nomeOrigem = nomeSemArroba(origem.nome) || "(sem nome)";
+    for (let i = i0; i <= i1; i++) {
+      if (i === a.iOrigem) continue;
+      const loc = localizar(a.linhas[i].dataset.id);
+      if (!loc) continue;
+      const e = loc.linha, antes = {};
+      a.cols.forEach(c => {
+        if (!podeReceber(e, c, loc.nivel)) return;
+        ARRASTAVEIS[c].forEach(campo => {
+          if (c === "status" && campo === "finalizadoEm") return; // tratado junto com o status
+          if (mesmo(e[campo], origem[campo])) return;
+          if (!(campo in antes)) antes[campo] = copia(e[campo]);
+          if (campo === "assignees") {
+            registrar(e, `Responsável: ${(e.assignees || []).join(", ") || "—"} → ${(origem.assignees || []).join(", ") || "—"} (arrastado de "${nomeOrigem}")`);
+            e.assignees = origem.assignees.slice();
+          } else if (campo === "status") {
+            if (!("finalizadoEm" in antes)) antes.finalizadoEm = e.finalizadoEm;
+            const st = e.status, fin = e.finalizadoEm;
+            e.status = origem.status;
+            if (e.status === "finalizado" && !e.finalizadoEm) e.finalizadoEm = origem.finalizadoEm || hojeLocal();
+            if (e.status !== "finalizado") e.finalizadoEm = "";
+            registrarCampo(e, "status", st, e.status);
+            registrarCampo(e, "finalizadoEm", fin, e.finalizadoEm);
+          } else {
+            registrarCampo(e, campo, e[campo], origem[campo]);
+            e[campo] = copia(origem[campo]);
+          }
+        });
+      });
+      if (Object.keys(antes).length) alvos.push({ id: e.id, antes });
+    }
+    if (!alvos.length) return;
+    desfazerArraste = { alvos };
+    calcularMaes();
+    salvar();
+    render();
+  });
+  // Ctrl/Cmd + clique marca células da mesma linha (pra arrastar juntas).
+  corpo.addEventListener("mousedown", ev => {
+    if (!(ev.ctrlKey || ev.metaKey)) return;
+    const td = ev.target.closest && ev.target.closest("td[data-col]");
+    const tr = td && td.closest("tr[data-id]");
+    if (!td || !tr || !ARRASTAVEIS[td.dataset.col]) return;
+    ev.preventDefault(); ev.stopPropagation();
+    if (marcadas.id !== tr.dataset.id) marcadas = { id: tr.dataset.id, cols: new Set() };
+    if (marcadas.cols.has(td.dataset.col)) marcadas.cols.delete(td.dataset.col); else marcadas.cols.add(td.dataset.col);
+    if (!marcadas.cols.size) marcadas.id = null;
+    aplicarMarcas();
+  }, true);
+  // Clique normal (sem Ctrl/Cmd) limpa as marcas.
+  document.addEventListener("mousedown", ev => {
+    if (ev.ctrlKey || ev.metaKey || !marcadas.id) return;
+    if (ev.target === alcaCel || ev.target === alcaLinha) return;
+    limparMarcas();
+  });
+  corpo.addEventListener("mouseover", ev => {
+    if (arraste) return;
+    const td = ev.target.closest && ev.target.closest("td[data-col]");
+    if (td && td.dataset.col !== "lixo") mostrarAlcas(td);
+  });
+  document.getElementById("pj-rolagem").addEventListener("scroll", () => { if (!arraste) esconderAlcas(); }, { passive: true });
+  window.addEventListener("scroll", () => { if (!arraste) esconderAlcas(); }, { passive: true, capture: true });
+  document.addEventListener("mousemove", ev => {
+    if (arraste || !alcaPara) return;
+    if (ev.target === alcaCel || ev.target === alcaLinha) return;
+    if (!ev.target.closest || !ev.target.closest("#pj-corpo")) esconderAlcas();
+  });
+  document.addEventListener("keydown", ev => {
+    if (ev.key === "Escape" && marcadas.id) { limparMarcas(); return; }
+    if (!(ev.ctrlKey || ev.metaKey) || ev.key.toLowerCase() !== "z" || ev.shiftKey) return;
+    if (!visivel() || !desfazerArraste) return;
+    const foco = document.activeElement;
+    if (foco && (foco.tagName === "TEXTAREA" || foco.tagName === "INPUT" || foco.isContentEditable)) return;
+    ev.preventDefault();
+    const d = desfazerArraste;
+    desfazerArraste = null;
+    d.alvos.forEach(({ id, antes }) => {
+      const e = achar(id);
+      if (!e) return;
+      Object.keys(antes).forEach(campo => { e[campo] = copia(antes[campo]); });
+      registrar(e, "Desfez o último arraste");
+    });
+    calcularMaes();
+    salvar();
+    render();
+  });
+  // A tabela redesenha (render): as marcas voltam e as alças somem.
+  const renderSemArraste = render;
+  render = function () { renderSemArraste(); esconderAlcas(); aplicarMarcas(); };
+
   // ── CRM ↔ Projetos (21/10, Karina) ──────────────────────────────────
   // O CRM lê daqui as tarefas de cada país/estado (tag de lugar da linha ou
   // de uma linha de cima), edita (mesmas regras da tabela: mãe é calculada,
@@ -13136,7 +13347,9 @@ const CATALOGO_PERMISSOES = [
   { grupo: "Projetos", itens: [
     { chave: "projetos", rotulo: "Ver a aba Projetos" },
     { chave: "projetosEditar", rotulo: "Criar e editar linhas (nome, status, datas, responsáveis, tags)" },
-    { chave: "projetosMover", rotulo: "Arrastar, duplicar e apagar linhas" }
+    { chave: "projetosMover", rotulo: "Arrastar, duplicar e apagar linhas" },
+    // 21/10: arrastar pra cima/baixo (célula, várias células, linha inteira).
+    { chave: "projetosArrastar", rotulo: "Arrastar valores pra cima/baixo (célula, parte da linha, linha inteira)" }
   ] },
   { grupo: "CRM", itens: [
     { chave: "tabCrm", rotulo: "Ver a aba CRM" },
