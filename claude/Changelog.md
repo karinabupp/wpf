@@ -12,6 +12,55 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (5ª) — Dash enxuta: saem Tasks, Tasks (piloto) e Gestão; CRM ↔ Projetos (etapa 2 de 3)
+
+Plano aprovado às 13h29; publicado com o OK da Karina às 13h53 ("pode
+publicar a parte 2"; o mapa conta as tags herdadas "com ctza").
+
+- **`index.html` — saíram** a Tasks (bloco "TASKS 2"), a Tasks (piloto) e a
+  Gestão: botões do menu, telas, JS e o CSS que só elas usavam (podado por
+  uso: ficou o que a Projetos, o CRM e o seletor de empresa ainda usam —
+  tags `tasksp-tag*`, células `gs-*`, menu de empresa). Arquivo 1,85 MB →
+  1,29 MB. As seções `tasks2*`, `tasksPiloto`, `tasksPilotoAreas`,
+  `tasksPilotoKpis` **continuam no banco, intocadas** (saíram de
+  `CLOUD_SECTIONS`: não são mais lidas nem gravadas).
+- **Tags:** o cadastro único (pessoas, empresas, associações) saiu de dentro
+  da Tasks (piloto) pra um bloco próprio, **"TAGS"**, com a mesma ponte
+  `window.tagsPilotoApi` e a mesma seção (`tasksPilotoCadastro*`). Ponte
+  `tagsBridge` no sync.
+- **Projetos pra todos:** `PROJETOS_LOGINS`/`PILOTO_LOGINS` saíram;
+  `projetosLiberado()` = quem está logado. Projetos é a tela inicial e
+  desenha assim que a nuvem chega. Presença mostra "Projetos" e marca a
+  linha da Projetos que a pessoa está mexendo.
+- **CRM ↔ Projetos** (ponte `projetosBridge`: `tarefas`, `tarefa`, `editar`,
+  `criar`, `linhasDoLugar`, `abrirLinha`, `statusOptions`):
+  1. **Avisos Gerais** conta as pontas da Projetos por país/estado (tag da
+     linha ou de cima): atrasada = Urgência (vermelho), Fim em até 3 dias =
+     Atenção (amarelo); pop-up do número edita nome/status/datas/
+     responsáveis e tem "Abrir na Projetos ↗"; lista "Tarefas sem país" idem.
+  2. **Janela do país:** aba nova **Tarefas (n)** (abertas primeiro;
+     finalizadas recolhidas) + "+ Nova tarefa".
+  3. **Cartão do @País/Estado** na Projetos: botão **"Abrir no CRM ↗"**
+     (`membros2Bridge.abrirPais`).
+  4. **Mudar o status do país e Salvar** abre o aviso: tarefas abertas do
+     país com caixinha → "Finalizar marcadas"; "Criar tarefa nova" (nome,
+     dentro de qual linha com a tag do país, Fim; responsável = quem cria;
+     tag do país). Nada muda sozinho; tudo vai pro Histórico da linha. Só
+     pelo Salvar da janela (mudar status na Planilha não abre o aviso).
+- **Settings — `CATALOGO_PERMISSOES`:** grupo Tasks → **Projetos**
+  (`projetos`, `projetosEditar`, `projetosMover`); CRM ganhou
+  **`crmProjetos`**; saíram do "Só da Karina" Tasks (piloto), Gestão e Projetos.
+- **Testes** (navegador sem tela, dados reais da WPF e da CBTH, nuvem e login
+  simulados): Karina/WPF, Leonardo/WPF, Isabela/CBTH — menu, tela inicial,
+  tags, Avisos Gerais, aba Tarefas (Austria 20; Distrito Federal 17),
+  "Abrir no CRM", aviso de status (finalizar e criar), Settings, seletor de
+  empresa; nada grava nas seções antigas; sem erros no console.
+- **Observação:** o mapa Avisos Gerais fica com muitos países em Atenção
+  por causa dos posts do Ladies Weekend (herdam as tags dos países das
+  paradas). A Karina quer assim (conta as herdadas).
+
+---
+
 ## 2026-10-21 (4ª) — CBTH: Tasks migrada pra Projetos (etapa 1 de 3)
 
 Pedido da Karina às 13h23 (tirar Tasks/Tasks piloto/Gestão, Projetos na

@@ -87,9 +87,16 @@ dois arquivos antes de propor qualquer coisa**:
   e nada de "Nome: detalhe" em linha nenhuma: vira sublinha (ou Responsável/
   data). Detalhes em **`worker/instrucoes/organizacao-projetos.md`**.
 
-- **Quem vê a Projetos (20/10):** `PROJETOS_LOGINS` no index.html (hoje
-  karina e isabela). Tasks (piloto) e Gestão seguem em `PILOTO_LOGINS`
-  (só karina). Barrinha da linha na cor da frente da entrega (Federações azul,
+- **Dash enxuta (21/10):** a Dash é **Projetos · CRM · Settings (só Karina)
+  · Meu Google**, em cada empresa. Tasks, Tasks (piloto) e Gestão saíram do
+  menu e do código; os dados delas (`tasks2*`, `tasksPiloto*`) seguem no
+  banco, intocados. A Projetos é de todo mundo e a tela inicial
+  (`projetosLiberado()` = logado). O cadastro das tags continua em
+  `tasksPilotoCadastro*` (bloco "TAGS" no index.html). **CRM ↔ Projetos:**
+  Avisos Gerais conta as tarefas da Projetos por país/estado (tags próprias
+  e herdadas — Karina, 21/10), aba Tarefas na janela do país, "Abrir no CRM"
+  no cartão do @País, aviso ao mudar o status (Salvar) — pela ponte
+  `projetosBridge` (tarefas/editar/criar/abrirLinha). Barrinha da linha na cor da frente da entrega (Federações azul,
   Eventos roxo, Comitê rosa, Marketing laranja queimado). A frente
   "Institucional" aparece como "Eventos" (id `institucional`).
 

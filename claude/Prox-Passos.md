@@ -15,21 +15,17 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Dash enxuta: Projetos + CRM + Settings + Meu Google (etapas 2 e 3)**
-  — plano aprovado pela Karina em 21/10 13h29; etapa 1 (CBTH → Projetos)
-  feita (Changelog 21/10 4ª). Cada etapa publicada com o OK dela.
-  - **Etapa 2 (index.html):** tirar Tasks, Tasks (piloto) e Gestão do menu e
-    do código (dados ficam no banco); Projetos pra todos (`PROJETOS_LOGINS`)
-    e tela inicial; manter o cadastro das tags (`tagsPilotoApi`, seção
-    `tasksPilotoCadastro*`); CRM ↔ Projetos: (1) Avisos Gerais conta as
-    tarefas da Projetos por país/estado, (2) janela do país lista as tarefas
-    da Projetos com link, (3) tag @País/Estado na Projetos abre o país no CRM,
-    (4) mudar status no CRM mostra as tarefas abertas daquele país e oferece
-    finalizar/criar (nada muda sozinho).
-  - **Etapa 3 (Worker):** Carinha lê `projetos` e `projetos__cbth`; cada um
-    recebe as suas das duas; mensagem diz "na CBTH" quando for.
-  - *Atenção:* Carinha antigo (não liberado) e o KPI das metas leem `tasks2*`;
-    Forms ligados a tarefas da Tasks; conferir antes de tirar.
+- [ ] **Dash enxuta — etapa 3: Carinha lê a Projetos da CBTH** — etapas 1
+  (CBTH → Projetos) e 2 (abas saíram, CRM ↔ Projetos) feitas em 21/10
+  (Changelog 4ª e 5ª). Falta: Worker ler `projetos` e `projetos__cbth`; cada
+  um recebe as suas das duas; mensagem diz "na CBTH" quando for; links
+  `?pj=`/`?dia=` com `&org=cbth`. Publicar com o OK da Karina.
+  - *Decidir com a Karina:* o **Detalhador** (`worker/instrucoes/detalhador.md`)
+    ainda manda gravar na Tasks (piloto), que saiu da Dash — passar a gravar
+    na Projetos (regra `organizacao-projetos.md`)?
+  - *Limpeza futura:* seções antigas no banco (`tasks2*`, `tasksPiloto`,
+    `tasksPilotoAreas`, `tasksPilotoKpis`, `tmp_projetos_*`) — só com ordem
+    dela; o Carinha antigo (não liberado) ainda lê `tasks2*` no Worker.
   - *Aberto em:* 2026-10-21
 
 - [ ] **Carinha — conversa nova no ar (21/10): acompanhar** — Changelog 21/10.
