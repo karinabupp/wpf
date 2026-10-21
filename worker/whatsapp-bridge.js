@@ -2491,8 +2491,11 @@ async function usarFerramentaGoogle(env, conexao, nome, entrada) {
 //    passou e não foi concluída, vira 🔴 e vem pra hoje. Concluir lá marca
 //    Finalizado na Projetos (e fica no Histórico da linha).
 const SECAO_PJ = "projetos";
+// 21/10 (Karina): o Carinha lê a Projetos das DUAS empresas (WPF e CBTH).
+// Cada seção é gravada separada; a linha diz de qual empresa é (org).
+const SECOES_PJ = [{ secao: "projetos", org: "wpf" }, { secao: "projetos__cbth", org: "cbth" }];
 const DASH_URL = "https://karinabupp.github.io/wpf/";
-const linkPj = id => `${DASH_URL}?pj=${encodeURIComponent(id)}&org=wpf`;
+const linkPj = (id, org) => `${DASH_URL}?pj=${encodeURIComponent(id)}&org=${org === "cbth" ? "cbth" : "wpf"}`;
 const G_TASKS = "https://tasks.googleapis.com/tasks/v1";
 const PJ_DIAS_DEADLINE = 3, PJ_ATRASO_1 = 4, PJ_ATRASO_PASSO = 3;
 const PJ_OP = { fin: "Finalizar", prazo: "Mudar prazo", criar: "Criar tarefa nova", comecar: "Começar", proposital: "Sim, proposital", falar: "Ver aqui", dash: "Ver na Dash", proxima: "Ver próxima", agenda: "Ver agenda", tarefas: "Ver tarefas" };
@@ -2524,23 +2527,36 @@ async function pjEstado(env, tel) {
 }
 async function pjSalvarEstado(env, tel, e) { await cfgSet(env, pjChaveEstado(tel), e); }
 
+// pj.dados = as entregas das duas empresas juntas (mesmos objetos das
+// seções: mexer num nó mexe na seção dele). pj.secoes guarda cada uma com o
+// updated_at, pra gravar só a seção da linha mudada (trava por seção).
 async function pjCarregar(env) {
-  const r = await sb(env, `${TAB_DASH}?select=data,updated_at&section=eq.${SECAO_PJ}`);
-  const l = r.ok && r.dados && r.dados[0];
-  if (!l || !Array.isArray(l.data)) throw new Error("não consegui ler a Projetos");
-  return { dados: l.data, updated_at: l.updated_at };
+  const r = await sb(env, `${TAB_DASH}?select=section,data,updated_at&section=in.(${SECOES_PJ.map(s => s.secao).join(",")})`);
+  const linhas = r.ok && Array.isArray(r.dados) ? r.dados : [];
+  const secoes = SECOES_PJ.map(s => { const l = linhas.find(x => x.section === s.secao); return l && Array.isArray(l.data) ? { ...s, data: l.data, updated_at: l.updated_at } : null; }).filter(Boolean);
+  if (!secoes.some(s => s.org === "wpf")) throw new Error("não consegui ler a Projetos");
+  const dados = [].concat(...secoes.map(s => s.data));
+  Object.defineProperty(dados, "__secoes", { value: secoes, enumerable: false });
+  return { dados, secoes, updated_at: secoes[0].updated_at };
 }
+// Achata a árvore. Com as duas empresas, cada nível de cima é a lista DA
+// SEÇÃO (pra "criar depois" de uma entrega cair na empresa certa) e cada
+// item diz a empresa (org).
 function pjAchatar(dados) {
   const out = [];
-  (function walk(lista, pais) {
+  const walk = (lista, pais, org) => {
     (lista || []).forEach((x, i) => {
       if (!x || typeof x !== "object") return;
-      out.push({ no: x, pais, lista, pos: i });
-      walk(x.subtasks, pais.concat(x));
+      out.push({ no: x, pais, lista, pos: i, org });
+      walk(x.subtasks, pais.concat(x), org);
     });
-  })(dados, []);
+  };
+  if (dados && dados.__secoes) dados.__secoes.forEach(s => walk(s.data, [], s.org));
+  else walk(dados, [], "wpf");
   return out;
 }
+const pjOrgDe = (dados, id) => { const l = pjLocalizar(dados, id); return l ? l.org : "wpf"; };
+const pjSoCbth = org => (org === "cbth" ? " (CBTH)" : "");
 const pjLocalizar = (dados, id) => pjAchatar(dados).find(x => x.no.id === id) || null;
 
 // Gatilho de hoje (ou null). Prazo vem antes de Início.
@@ -2558,16 +2574,15 @@ function pjGatilho(no, hoje, ponta, estreia) {
   if (ponta && ini && ini === hoje) return { tipo: "inicio" };
   return null;
 }
-// Itens do dia de uma pessoa. Linha mãe só entra pelos gatilhos de prazo
-// (deadline/atraso); Início só na ponta.
+// Itens do dia de uma pessoa. 21/10 (Karina): SÓ tarefas de ponta (sem
+// nada dentro) — a mãe herda o responsável das filhas e não gera aviso.
 function pjItensDoDia(dados, nome, hoje, estreia) {
   const itens = [];
-  pjAchatar(dados).forEach(({ no, pais }) => {
-    if (!no.id || !pjAberto(no.status) || !pjDono(no, nome)) return;
+  pjAchatar(dados).forEach(({ no, pais, org }) => {
+    if (!no.id || !pjAberto(no.status) || !pjDono(no, nome) || pjTemFilhos(no)) return;
     if (pais.some(p => p.status === "cancelado")) return;
-    const ponta = !pjTemFilhos(no);
-    const g = pjGatilho(no, hoje, ponta, estreia);
-    if (g) itens.push({ no, pais, ponta, gatilho: g });
+    const g = pjGatilho(no, hoje, true, estreia);
+    if (g) itens.push({ no, pais, ponta: true, gatilho: g, org });
   });
   return itens;
 }
@@ -2768,7 +2783,14 @@ const pjPlural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 const pjFrase = t => { t = String(t || "").trim(); return t && !/[.!?]$/.test(t) ? t + "." : t; };
 // Sem vírgula (o WhatsApp pode cortar o link nela) e com v= pra o celular não
 // abrir uma cópia velha da Dash do cache.
-const linkDia = ids => `${DASH_URL}?dia=${ids.map(encodeURIComponent).join("~")}&org=wpf&v=${Date.now().toString(36)}`;
+// 21/10: o painel do dia abre UMA empresa — a que tiver mais tarefas na lista.
+function linkDia(itens) {
+  const lista = itens.map(m => (typeof m === "string" ? { id: m, org: "wpf" } : m));
+  const nC = lista.filter(m => m.org === "cbth").length;
+  const org = nC > lista.length - nC ? "cbth" : "wpf";
+  const ids = lista.filter(m => (m.org || "wpf") === org).map(m => m.id);
+  return `${DASH_URL}?dia=${ids.map(encodeURIComponent).join("~")}&org=${org}&v=${Date.now().toString(36)}`;
+}
 
 async function pjAvisarKarina(env, texto) {
   const r = await sb(env, `${TAB_PESSOAS}?select=telefone&admin=eq.true`);
@@ -2879,7 +2901,7 @@ async function pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs) {
   const todos = pjOrdenar(pjItensPlano(pj.dados, pessoa.nome_tasks, hoje, estreia, estado.fds, fimDeSemana));
   await pjDescrever(env, todos, estado);
   await pjRevisarTextos(env, todos, estado, pessoa.nome_tasks);
-  const itens = todos.map((it, i) => ({ id: it.no.id, gatilho: it.gatilho, oque: (estado.textos[it.no.id] || pjTextoPadrao(it)).oque, ordem: i, est: "fila" }));
+  const itens = todos.map((it, i) => ({ id: it.no.id, gatilho: it.gatilho, oque: (estado.textos[it.no.id] || pjTextoPadrao(it)).oque, ordem: i, est: "fila", org: it.org || "wpf" }));
   let barrado = null;
   const erros = pjRevisar({ itens }, pj.dados, pessoa, hoje, estreia, estado.fds, fimDeSemana);
   if (erros.length) {
@@ -2912,7 +2934,7 @@ async function pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs) {
 // ── Texto das mensagens (conversa, não etapas) ──
 function pjAchar(pj, id) {
   const loc = pjLocalizar(pj.dados, id);
-  return loc ? { no: loc.no, pais: loc.pais, ponta: !pjTemFilhos(loc.no) } : null;
+  return loc ? { no: loc.no, pais: loc.pais, ponta: !pjTemFilhos(loc.no), org: loc.org } : null;
 }
 function pjMsgTarefa(it, txt, gatilho, hoje, nome, abertura) {
   it = { ...it, gatilho };
@@ -2931,7 +2953,8 @@ function pjMsgTarefa(it, txt, gatilho, hoje, nome, abertura) {
     pjFrase(txt.contexto),
     outros.length ? `Você divide essa com ${outros.length === 1 ? outros[0] : outros.slice(0, -1).join(", ") + " e " + outros[outros.length - 1]}.` : "",
     !it.ponta && filhos ? `Ainda ${filhos === 1 ? "falta 1 item" : `faltam ${filhos} itens`} dentro dela.` : "",
-    it.no.status === "bloqueado" ? "Na Dash ela está como bloqueada." : ""
+    it.no.status === "bloqueado" ? "Na Dash ela está como bloqueada." : "",
+    it.org === "cbth" ? "É da CBTH." : ""
   ].filter(Boolean).join(" ");
   const texto = `${abertura || ""}${frase}${extras ? "\n" + extras : ""}\n${pergunta}`;
   const opcoes = gatilho.tipo === "fds" ? [PJ_OP.proposital, PJ_OP.prazo] : pjBotoesBase(it).concat([PJ_OP_DEPOIS]);
@@ -2951,7 +2974,7 @@ function pjGruposResumo(itens, pj) {
     if (!a) return;
     const topo = a.pais[0] || a.no;
     let g = grupos.find(x => x.chave === topo.id);
-    if (!g) grupos.push(g = { chave: topo.id, nome: topo.nome, ids: [], andamento: 0, bloqueado: 0, outras: 0 });
+    if (!g) grupos.push(g = { chave: topo.id, nome: topo.nome + pjSoCbth(a.org), org: a.org, ids: [], andamento: 0, bloqueado: 0, outras: 0 });
     g.ids.push(m.id);
     if (a.no.status === "andamento") g.andamento++; else if (a.no.status === "bloqueado") g.bloqueado++; else g.outras++;
   });
@@ -3110,7 +3133,7 @@ async function pjDespachar(env, pessoa, opts) {
       foi = await pjEnviarTarefa(env, pessoa, estado, pj, cand.item, ab, proativa);
     } else if (cand.tipo === "resumo") {
       const grupos = pjGruposResumo(cand.lista.slice().sort((a, b) => a.ordem - b.ordem), pj);
-      const msg = pjMsgResumo(grupos, cand.lista.length, abre(), pessoa.admin ? linkDia(cand.lista.map(m => m.id)) : "");
+      const msg = pjMsgResumo(grupos, cand.lista.length, abre(), pessoa.admin ? linkDia(cand.lista) : "");
       await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, proativa ? { proativa: true, tipo_proativa: "aviso" } : {});
       cand.lista.forEach(m => { m.est = "citada"; });
       c.grupos = msg.grupos; c.resumoEnviado = true; c.venceEnviado = true;
@@ -3323,7 +3346,7 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
       const c = pjConvHoje(estado);
       if (c) novas.forEach(it => {
         if (c.itens.some(m => m.id === it.no.id)) return;
-        const m = { id: it.no.id, gatilho: it.gatilho, oque: (estado.textos[it.no.id] || pjTextoPadrao(it)).oque, ordem: it.gatilho.tipo === "em_deadline" ? 500 : -2000, est: "fila" };
+        const m = { id: it.no.id, gatilho: it.gatilho, oque: (estado.textos[it.no.id] || pjTextoPadrao(it)).oque, ordem: it.gatilho.tipo === "em_deadline" ? 500 : -2000, est: "fila", org: it.org || "wpf" };
         c.itens.push(m);
         if (it.gatilho.tipo === "vence" || (it.gatilho.tipo === "atrasada" && !fimDeSemana)) urgentes.push({ tipo: "tarefa_nova", item: m });
       });
@@ -3365,9 +3388,10 @@ async function pjAlterar(env, id, mudar, tel, quem, acao) {
     const r = mudar(loc, pj.dados) || {};
     if (r.erro) return r;
     if (r.nada) return { ok: true, nada: true };
-    if (await gravarSecao(env, SECAO_PJ, pj.dados, pj.updated_at)) {
-      await sb(env, TAB_AUDIT, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel || null, pessoa: quem, secao: SECAO_PJ, linha_id: r.linhaId || id, acao, antes, depois: r.depois || { status: loc.no.status, endDate: loc.no.endDate } }] });
-      return { ok: true, ...r };
+    const sec = pj.secoes.find(s => s.org === loc.org) || pj.secoes[0];
+    if (await gravarSecao(env, sec.secao, sec.data, sec.updated_at)) {
+      await sb(env, TAB_AUDIT, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel || null, pessoa: quem, secao: sec.secao, linha_id: r.linhaId || id, acao, antes, depois: r.depois || { status: loc.no.status, endDate: loc.no.endDate } }] });
+      return { ok: true, org: sec.org, ...r };
     }
   }
   return { erro: "a Dash estava sendo editada ao mesmo tempo; tente de novo em instantes" };
@@ -3454,7 +3478,7 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   }
   if (acao === "dash") {
     const c = pjConvHoje(await pjEstado(env, tel));
-    const ids = c ? c.itens.filter(m => m.est !== "feito").map(m => m.id) : [];
+    const ids = c ? c.itens.filter(m => m.est !== "feito") : [];
     await enviarTexto(env, tel, ids.length ? `Suas tarefas de hoje na Dash:\n${linkDia(ids)}` : "Nada pedindo atenção hoje 👍");
     return true;
   }
@@ -3567,14 +3591,14 @@ function pjParaAgenda(dados, nome, hoje) {
 }
 function pjTituloAgenda(it, estado, cor) {
   const t = (estado.textos[it.no.id] && estado.textos[it.no.id].oque) || pjTextoPadrao(it).oque;
-  return `${cor} ${corta(t, 120)}`;
+  return `${cor} ${corta(t, 120)}${it.org === "cbth" ? " · CBTH" : ""}`;
 }
 function pjNotasAgenda(it, estado) {
   const ctx = (estado.textos[it.no.id] && estado.textos[it.no.id].contexto) || "";
   const ent = it.pais[0], meio = it.pais.slice(1);
   const onde = ent ? `Está dentro de: ${meio.length ? meio.map(p => p.nome).reverse().join(", dentro de ") + ", " : ""}na entrega "${ent.nome}".` : "";
   const com = (it.no.assignees || []).length > 1 ? `Responsáveis: ${it.no.assignees.join(", ")}.` : "";
-  return [ctx, onde, `Na Dash a linha se chama "${it.no.nome}".`, com, `Vence: ${pjDataLonga(it.no.endDate)}`, `Abrir na Dash: ${linkPj(it.no.id)}`,
+  return [ctx, onde, `Na Dash a linha se chama "${it.no.nome}".`, com, `Vence: ${pjDataLonga(it.no.endDate)}`, `Abrir na Dash: ${linkPj(it.no.id, it.org)}`,
     "Marque como concluída aqui e SÓ esta linha vira Finalizado na Dash."].filter(Boolean).join("\n");
 }
 const pjDue = iso => `${iso}T00:00:00.000Z`;
@@ -3690,7 +3714,7 @@ function instrucoesPj(modelo, google) {
   return `Você é o *Carinha*, o agente de gestão da Dash da Karina, no WhatsApp. Você é homem: ao falar de si, use o masculino. Se perguntarem seu nome, é Carinha.
 Ao se apresentar: diga que é o Carinha e que acompanha as tarefas e os projetos da pessoa (e, se o contexto disser, os e-mails, a agenda e as reuniões), pra ela ficar tranquila. Curto. Não fale de abas, ferramentas nem de como você funciona.
 
-De onde vêm as tarefas: da planilha de projetos (Entrega › Etapa › Tarefa › Subtarefa). Os nomes das linhas são curtos e só fazem sentido com as de cima ("2ª vez", "Aprovar o post", um país solto).
+De onde vêm as tarefas: da planilha de projetos (Entrega › Etapa › Tarefa › Subtarefa). Os nomes das linhas são curtos e só fazem sentido com as de cima ("2ª vez", "Aprovar o post", um país solto). São duas empresas: WPF e CBTH. As linhas da CBTH vêm marcadas [CBTH] nas buscas; quando falar de uma delas, diga que é da CBTH (as da WPF não precisa dizer).
 
 Como conversar:
 - Português do Brasil, jeito de WhatsApp, curto (até ~8 linhas). Negrito só com *asteriscos*; sem títulos nem tabelas.
@@ -3720,7 +3744,7 @@ function pjLinhaBusca(x, estado, hoje, eu) {
   const filhos = (x.no.subtasks || []).filter(s => s && typeof s === "object");
   const abertosDentro = filhos.filter(s => pjAberto(s.status)).length;
   const resp = (x.no.assignees || []).join(", ") || "sem responsável";
-  return `[ref ${x.no.id}] ${x.no.nome}${t ? ` (em palavras simples: ${t.oque})` : ""} — ${PJ_STATUS_NOME[x.no.status] || x.no.status}, ${prazo}, responsáveis: ${resp}${resp.includes(eu) ? "" : " (NÃO é da pessoa)"}${filhos.length ? `, ${abertosDentro}/${filhos.length} abertas dentro` : ""}
+  return `[ref ${x.no.id}]${x.org === "cbth" ? " [CBTH]" : ""} ${x.no.nome}${t ? ` (em palavras simples: ${t.oque})` : ""} — ${PJ_STATUS_NOME[x.no.status] || x.no.status}, ${prazo}, responsáveis: ${resp}${resp.includes(eu) ? "" : " (NÃO é da pessoa)"}${filhos.length ? `, ${abertosDentro}/${filhos.length} abertas dentro` : ""}
    caminho: ${x.pais.map(p => p.nome).join(" › ") || "(é uma entrega)"}`;
 }
 function pjBuscar(dados, entrada, pessoa, estado, hoje) {
@@ -3728,7 +3752,7 @@ function pjBuscar(dados, entrada, pessoa, estado, hoje) {
   if (entrada.ref) {
     const x = todas.find(y => y.no.id === entrada.ref);
     if (!x) return "Não achei essa ref.";
-    const dentro = (x.no.subtasks || []).filter(s => s && typeof s === "object").map(s => ({ no: s, pais: x.pais.concat(x.no) }));
+    const dentro = (x.no.subtasks || []).filter(s => s && typeof s === "object").map(s => ({ no: s, pais: x.pais.concat(x.no), org: x.org }));
     return [pjLinhaBusca(x, estado, hoje, pessoa.nome_tasks), x.no.criterio ? `critério: ${corta(x.no.criterio, 300)}` : "", dentro.length ? "Dentro:\n" + dentro.slice(0, MAX_RESULTADOS_BUSCA).map(d => pjLinhaBusca(d, estado, hoje, pessoa.nome_tasks)).join("\n") : ""].filter(Boolean).join("\n");
   }
   const termos = normalizar(entrada.texto || "").split(" ").filter(w => w.length >= 3);
@@ -3771,7 +3795,7 @@ function pjValidarMudanca(dados, entrada, pessoa) {
   }
   if (entrada.nome !== undefined) { const n = corta(limpo(entrada.nome), 200); if (n.length < 2) return { erro: "nome vazio" }; if (n !== loc.no.nome) { mud.nome = n; partes.push(`Nome: *${n}*`); } }
   if (!partes.length) return { erro: "nada muda nessa linha" };
-  return { acao: { tipo: "pj_edit", id: loc.no.id, mud }, resumo: `*${loc.no.nome}* (${loc.pais.map(p => p.nome).slice(-2).join(" › ") || "entrega"})\n${partes.join("\n")}` };
+  return { acao: { tipo: "pj_edit", id: loc.no.id, mud }, resumo: `*${loc.no.nome}* (${loc.pais.map(p => p.nome).slice(-2).join(" › ") || "entrega"}${loc.org === "cbth" ? ", na CBTH" : ""})\n${partes.join("\n")}` };
 }
 function pjValidarCriacao(dados, entrada, pessoa, nomesConhecidos) {
   if (!entrada.local_confirmado) return { erro: "pergunte antes onde entra (2–3 opções) e só depois chame com local_confirmado=true" };
@@ -3785,7 +3809,7 @@ function pjValidarCriacao(dados, entrada, pessoa, nomesConhecidos) {
   const invalidos = resp.filter(n => !nomesConhecidos.has(n));
   if (invalidos.length) return { erro: `responsável desconhecido: ${invalidos.join(", ")}` };
   if (!pessoa.admin && !pessoa.cria_para_outros && resp.some(n => n !== pessoa.nome_tasks)) return { erro: "a pessoa só pode criar linhas em nome dela" };
-  const onde = entrada.dentro_de ? `dentro de *${loc.no.nome}*` : `logo depois de *${loc.no.nome}*`;
+  const onde = (entrada.dentro_de ? `dentro de *${loc.no.nome}*` : `logo depois de *${loc.no.nome}*`) + (loc.org === "cbth" ? " (na CBTH)" : "");
   return { acao: { tipo: "pj_criar", id: loc.no.id, dentro: !!entrada.dentro_de, nome, endDate: entrada.fim || "", responsaveis: resp },
     resumo: `Criar *${nome}* ${onde}\nResponsável: ${resp.join(", ")} · ${entrada.fim ? "Fim: " + pjDataLonga(entrada.fim) + pjAvisoFds(entrada.fim, loc.no, loc.pais) : "sem prazo"}` };
 }

@@ -12,6 +12,33 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (8ª) — Carinha lê a Projetos da WPF e da CBTH (etapa 3 de 3)
+
+Proposta aprovada às 15h23 ("pode fazer assim"); publicado com o OK às 15h26.
+
+- **`worker/whatsapp-bridge.js`:**
+  - `pjCarregar` lê `projetos` e `projetos__cbth` numa chamada (`SECOES_PJ`);
+    `pj.dados` = as entregas das duas juntas; `pjAchatar` anda seção por
+    seção e marca cada linha com a empresa (`org`).
+  - `pjAlterar` grava **só a seção da linha** (trava por `updated_at` da
+    seção) e registra a seção certa na auditoria.
+  - **Só tarefas de ponta** no dia (`pjItensDoDia`): mãe não gera aviso
+    (decisão da Karina, 14h20).
+  - Mensagem da CBTH termina com "É da CBTH."; no resumão o projeto vem com
+    "(CBTH)"; na agenda (Google Tasks) o título ganha "· CBTH" e o link abre
+    na CBTH (`linkPj(id, org)`). Link do dia (admin) abre a empresa com mais
+    tarefas na lista (`linkDia`).
+  - Conversa: busca marca `[CBTH]`; resumo de mudança/criação diz "na CBTH";
+    instrução do Carinha fala das duas empresas.
+- **`worker/instrucoes/lembretes.md`:** fonte = as duas empresas; só ponta.
+- **Testes:** os 9 cenários (novo: CBTH vence hoje → "É da CBTH.",
+  Finalizar grava em `projetos__cbth` com Histórico, a WPF intocada, a
+  próxima é a da WPF sem marca, mãe em prazo não avisa) + transição; todos
+  passam. Com os dados reais: 22/10 Isabela 27 itens (18 da CBTH, vão como
+  resumão), Roberto 3, Karina 1; 23/10 Isabela 20, Roberto 6, Karina 5.
+
+---
+
 ## 2026-10-21 (7ª) — Projetos: Responsável da mãe herda das filhas
 
 Pedido da Karina às 14h18; desenho aprovado às 14h20 ("manda bala desse jeito").

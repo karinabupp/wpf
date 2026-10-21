@@ -9,11 +9,14 @@
 
 ## De onde vem
 
-- Fonte: guia **Projetos** (seção `projetos`). Não lê as outras abas.
+- Fonte: guia **Projetos** das **duas empresas** (seções `projetos` e
+  `projetos__cbth`, desde 21/10). Não lê as outras abas. Tarefa da CBTH vem
+  com "É da CBTH." (no resumão, "(CBTH)" no projeto; na agenda, "· CBTH"); o
+  que muda pelo WhatsApp/agenda grava na seção da empresa da linha.
 - Só tarefas **abertas** (nem Finalizado, nem Cancelado) **em nome da
   pessoa**. Linha dentro de entrega cancelada não entra.
-- **Só a ponta** (linha sem nada dentro). A linha mãe só entra quando está em
-  deadline ou atrasada, ou seja, pelos gatilhos de prazo, nunca pelo Início.
+- **Só a ponta** (linha sem nada dentro), sempre (Karina, 21/10): a mãe
+  herda o responsável das filhas e não gera aviso.
 - Cada um recebe **só o que é seu** (REGRA DO ROBÔ).
 
 ## Os 5 gatilhos (dias corridos)
