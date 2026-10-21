@@ -12,6 +12,34 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-21 (4ª) — CBTH: Tasks migrada pra Projetos (etapa 1 de 3)
+
+Pedido da Karina às 13h23 (tirar Tasks/Tasks piloto/Gestão, Projetos na
+CBTH, CRM conversando com a Projetos, Carinha lendo as duas). Plano em 3
+etapas aprovado às 13h29; prévia aprovada às 13h34 ("pode", com as frentes).
+
+- **Dados (Supabase):** seção nova **`projetos__cbth`** com a Tasks da CBTH
+  (`tasks2__cbth`) convertida — **conversão direta**, como a WPF em 08/10:
+  Objetivo → campo objetivo; Meta → Entrega; Projeto → Etapa; Entregável →
+  Tarefa; o resto → Subtarefa (6 níveis). 668 linhas: 12 entregas, 39
+  etapas, 129 tarefas, 488 subtarefas; 111 Finalizado; 514 com tag de estado
+  (`paisLink` → `tags.lugares`). Status das pontas: Done → Finalizado,
+  Cancelled → Cancelado, On Hold → Bloqueado, Not Started → Não iniciado,
+  In Progress/Late/Deadline → Em andamento; mães calculadas pelas filhas
+  (regra da Dash). Ids `pj-cbth-<id antigo>`; Histórico "Migrada da Tasks da
+  CBTH (caminho; status lá)" em cada linha.
+  - Nome limpo: "Acompanhar atualizações (pré CBPE)" (23×) → "… antes da
+    CBPE"; "(+15%)" saiu do nome do Instagram e foi pro Critério.
+  - Frentes: Iniciativa → Eventos (como a WPF em 20/10); sem frente:
+    Comitê → Comitê; site/Instagram/menções → Marketing; as 4 de Governança
+    → Federações.
+  - A Tasks da CBTH **não foi alterada**. Prévia em
+    `tmp_projetos_cbth_2026-10-21`. `sql/2026-10-21_cbth_tasks_para_projetos.sql`.
+- **Ainda não feito (etapas 2 e 3):** tirar as abas, abrir a Projetos pra
+  todos, CRM ↔ Projetos, Carinha lendo a CBTH. Ver Prox Passos.
+
+---
+
 ## 2026-10-21 (3ª) — Carinha: texto do template de bom dia e botão "Tô aqui!"
 
 Pedido da Karina às 12h40/12h43; "pode começar a mudança" às 12h44.
