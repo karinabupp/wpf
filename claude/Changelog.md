@@ -12,6 +12,33 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-23 — Carinha: "Hoje vencem N tarefas" agrupado por contexto
+
+Pedido da Karina às 9h59 (print da mensagem das 9h56): a lista vinha só com o
+nome das tarefas e não dava pra saber de onde cada uma era. Ela aprovou o
+formato às 10h00 ("está perfeito, manda bala").
+
+- **`worker/whatsapp-bridge.js`, mensagem "Hoje vencem N tarefas suas":**
+  as tarefas vêm agrupadas por onde estão na Projetos. Cada grupo tem um
+  título "📌 *entrega › linha de cima*", sem os níveis do meio. Quando a linha
+  de cima tem nome curto (até 15 letras, como "Promoção"), entra também a
+  linha acima dela. Ex.: "Promover Nations Cups › Asia Nations Cup ›
+  Promoção". Da CBTH: "(CBTH)" no título. O grupo da tarefa mais importante
+  vem primeiro, e a numeração e os botões "Ver a Nª" seguem a ordem da
+  mensagem (`c.escolha`). O " · linha de cima" do texto padrão sai do nome,
+  porque o título já diz isso.
+  - Funções novas: `pjGrupoContexto`, `pjOrdenarPorGrupo`, `pjTiraContexto`.
+  - Mudou: `pjMsgVenceHoje` e o trecho `vence_varias` de `pjDespachar`.
+- **Não mudou:** a mensagem de reuniões, a de e-mail, o resumão (5+ tarefas,
+  que já agrupa por entrega) e as mensagens de uma tarefa só.
+- **`worker/instrucoes/lembretes.md`:** regra atualizada.
+- **Testes:** as 6 tarefas do print reproduzidas no novo formato, e os 9
+  cenários do Carinha passaram.
+- **Pendente, a pedido da Karina ("esquece por agora"):** a proposta de 22/10
+  sobre as repetições na agenda do Google. Está no Prox Passos.
+
+---
+
 ## 2026-10-21 (9ª) — Canário Growth Lab: 3ª empresa, só da Karina, só Projetos
 
 Pedido da Karina às 15h26 (com o logo); "Canário não tem CRM, só Projetos…

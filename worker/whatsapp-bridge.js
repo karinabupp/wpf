@@ -2960,9 +2960,33 @@ function pjMsgTarefa(it, txt, gatilho, hoje, nome, abertura) {
   const opcoes = gatilho.tipo === "fds" ? [PJ_OP.proposital, PJ_OP.prazo] : pjBotoesBase(it).concat([PJ_OP_DEPOIS]);
   return { texto, opcoes, oque: txt.oque };
 }
+// O texto padrão termina em " · <linha de cima>"; no agrupado o grupo já diz.
+const pjTiraContexto = (t, a) => { const pai = a && a.pais[a.pais.length - 1]; t = String(t || ""); return pai && t.endsWith(" · " + pai.nome) ? t.slice(0, -(pai.nome.length + 3)) : t; };
+// 23/10 (Karina): a lista vem agrupada por onde a tarefa está — 📌 entrega ›
+// linha logo acima (pula os níveis do meio). Grupo da mais importante
+// primeiro; a numeração segue a ordem da mensagem (cada item traz .grupo).
+function pjGrupoContexto(a) {
+  if (!a || !a.pais.length) return "";
+  const ent = a.pais[0], pai = a.pais[a.pais.length - 1], avo = a.pais[a.pais.length - 2];
+  // Linha de cima com nome curto/genérico ("Promoção", "Aprovar"): leva junto a de cima dela.
+  const meio = pai === ent ? [] : (avo && avo !== ent && String(pai.nome).length <= 15 ? [avo, pai] : [pai]);
+  return [ent].concat(meio).map(p => corta(p.nome, 60)).join(" › ") + pjSoCbth(a.org);
+}
+function pjOrdenarPorGrupo(lista) {
+  const ordem = [];
+  lista.forEach(x => { if (!ordem.includes(x.grupo)) ordem.push(x.grupo); });
+  return ordem.flatMap(g => lista.filter(x => x.grupo === g));
+}
 function pjMsgVenceHoje(lista, abertura) {
   const n = lista.length;
-  const texto = `${abertura || ""}Hoje ${n === 2 ? "vencem duas" : `vencem ${n}`} tarefas suas:\n${lista.map((x, i) => `${i + 1}. *${x.oque}*`).join("\n")}\nQual você quer ver primeiro?`;
+  let corpo = "", ultimo = null;
+  lista.forEach((x, i) => {
+    if (x.grupo && x.grupo !== ultimo) corpo += `${corpo ? "\n" : ""}📌 *${x.grupo}*\n`;
+    else if (!x.grupo && ultimo) corpo += "\n";
+    ultimo = x.grupo || null;
+    corpo += `${i + 1}. ${x.grupo ? x.oque : `*${x.oque}*`}\n`;
+  });
+  const texto = `${abertura || ""}Hoje ${n === 2 ? "vencem duas" : `vencem ${n}`} tarefas suas:\n\n${corpo}\nQual você quer ver primeiro?`;
   const opcoes = n <= 3 ? lista.map((x, i) => `Ver a ${PJ_ORDINAL[i]}`) : lista.slice(0, 10).map((x, i) => encurtarOpcao(`${PJ_ORDINAL[i]}: ${x.oque}`, LIM_LISTA));
   return { texto, opcoes };
 }
@@ -3120,11 +3144,11 @@ async function pjDespachar(env, pessoa, opts) {
     } else if (cand.tipo === "tarefa_nova") {
       foi = await pjEnviarTarefa(env, pessoa, estado, pj, cand.item, abre() + "Entrou uma tarefa nova sua: ", true);
     } else if (cand.tipo === "vence_varias") {
-      const lista = cand.lista.map(m => ({ id: m.id, oque: (estado.textos[m.id] && estado.textos[m.id].oque) || m.oque }));
+      const lista = pjOrdenarPorGrupo(cand.lista.map(m => { const a = pjAchar(pj, m.id); return { id: m.id, oque: pjTiraContexto((estado.textos[m.id] && estado.textos[m.id].oque) || m.oque, a), grupo: pjGrupoContexto(a) }; }));
       const msg = pjMsgVenceHoje(lista, abre());
       await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, proativa ? { proativa: true, tipo_proativa: "aviso" } : {});
       cand.lista.forEach(m => { m.est = "citada"; });
-      c.escolha = cand.lista.map(m => m.id); c.venceEnviado = true;
+      c.escolha = lista.map(m => m.id); c.venceEnviado = true;
       c.falando = { ids: cand.lista.map(m => m.id), em: Date.now() };
       foi = true;
     } else if (cand.tipo === "tarefa") {
@@ -4543,5 +4567,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

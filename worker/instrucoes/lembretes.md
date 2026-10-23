@@ -49,7 +49,8 @@
   de 1h que ainda não foi avisada) e tarefa nova que vence hoje (ou já
   atrasada) que entrou durante o dia.
 - **Ordem:** o que vence hoje (de cara; 2 ou mais = uma mensagem com todas e
-  [Ver a 1ª] [Ver a 2ª]) › reuniões do dia ("precisa de algo pra elas?",
+  [Ver a 1ª] [Ver a 2ª]; desde 23/10 agrupadas por onde estão: "📌 entrega ›
+  linha de cima" e as tarefas numeradas embaixo) › reuniões do dia ("precisa de algo pra elas?",
   sempre antes do horário) › e-mail muito importante › tarefas › e-mail ›
   Slack.
 - **Tarefas, uma por vez**, por **prioridade** (alta › média › baixa › sem)
