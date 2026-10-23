@@ -34,8 +34,8 @@ aprovou a, b, c1 e d2 às 16h25.
 - **`pjRodada`, c1):** com a janela fechada e Slack pendente, o template de
   bom dia vai na hora (dia útil, 8h–19h). O limite é de um bom dia por dia
   (`estado.bomDiaEm`), e o das 9h25 também conta.
-- **d2):** os Slacks antigos que ainda estavam pendentes (3 da Karina e 5 da
-  Isabela) foram marcados como avisados com `via = 'descartado_antigo'`,
+- **d2):** os Slacks antigos que ainda estavam pendentes (3 da Karina e 9 da
+  Isabela, desde 16/10) foram marcados como avisados com `via = 'descartado_antigo'`,
   pra não chegarem atrasados.
 - **Continua igual:** fim de semana e madrugada o Slack espera (segunda,
   ou 8h05).
