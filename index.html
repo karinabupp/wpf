@@ -4321,7 +4321,9 @@
   .pj-linha-arrastando { opacity: 0.45; }
   #pj-tabela tr.pj-drop-antes > td { box-shadow: inset 0 2px 0 #4a78b5; }
   #pj-tabela tr.pj-drop-depois > td { box-shadow: inset 0 -2px 0 #4a78b5; }
-  #pj-tabela tr.pj-drop-dentro > td { background: #eef3fa; }
+  #pj-tabela tr.pj-drop-dentro > td { background: #dde8f6; box-shadow: inset 0 0 0 1px #4a78b5; }
+  #pj-tabela tr.pj-drop-nao > td { background: #fbe9e7; cursor: not-allowed; }
+  .pj-aviso-rapido { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%); background: #2b2a27; color: #fff; padding: 9px 16px; border-radius: 8px; font-size: 13px; z-index: 10000; box-shadow: 0 4px 14px rgba(0,0,0,.2); }
   #pj-menu { position: fixed; z-index: 1000; background: #fff; border: 1px solid #e3e2de; border-radius: 8px; box-shadow: 0 8px 24px rgba(15,15,15,0.14); padding: 4px; min-width: 150px; }
   #pj-menu button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 7px 10px; border-radius: 5px; font: inherit; font-size: 13px; color: #37352f; cursor: pointer; }
   #pj-menu button:hover { background: rgba(55,53,47,0.07); }
@@ -10877,7 +10879,7 @@ applyRolePermissions();
       // Checklist virou subtarefa (09/10); o + volta quando o Formulário existir.
       const icones = "";
       const ver = htmlNomeComMencoes(e.nome);
-      return `<div class="pj-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar">⠿</span>${seta}` +
+      return `<div class="pj-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><span class="pj-alca" draggable="true" title="Arraste pra mudar de lugar: no meio de uma linha entra DENTRO dela; na borda fica antes/depois">⠿</span>${seta}` +
         `<textarea class="pj-txt pj-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
         `<div class="pj-txt pj-nome pj-nome-ver">${ver}</div>` +
         chipContagem(e) + icones + `</div>`;
@@ -12338,49 +12340,108 @@ applyRolePermissions();
     d.textContent = ta.value || "O que é pronto?"; d.title = ta.value || "Clique pra escrever"; d.classList.toggle("is-vazio", !ta.value);
   });
 
-  // ── Arrastar linhas (Karina, 08/10): pela alça ⠿. Cada linha só vai pra
-  // junto de outras do mesmo nível (antes/depois), ou pra dentro de uma linha
-  // do nível de cima (tarefa → outra etapa, de qualquer entrega; etapa →
-  // outra entrega). Mudança de lugar fica no Histórico. ──
+  // ── Arrastar linhas (Karina, 08/10): pela alça ⠿. Mudança de lugar fica
+  // no Histórico. 23/10 (Karina): também muda de NÍVEL — soltar no meio de
+  // uma linha põe DENTRO dela (vira filha, nível de baixo); na borda de
+  // cima/baixo fica antes/depois, no nível dela (assim se tira de dentro).
+  // O que está dentro vai junto; máximo de 6 níveis; Ctrl/Cmd+Z desfaz. ──
   let linhaArrastada = null;
+  let desfazerMover = null; // { snap: JSON das entregas antes, id }
   const nomeOu = x => (x && x.nome) || "sem nome";
   function limparMarcasLinha() {
-    corpo.querySelectorAll(".pj-drop-antes, .pj-drop-depois, .pj-drop-dentro").forEach(tr => tr.classList.remove("pj-drop-antes", "pj-drop-depois", "pj-drop-dentro"));
+    corpo.querySelectorAll(".pj-drop-antes, .pj-drop-depois, .pj-drop-dentro, .pj-drop-nao").forEach(tr => tr.classList.remove("pj-drop-antes", "pj-drop-depois", "pj-drop-dentro", "pj-drop-nao"));
+  }
+  // Quantos níveis existem abaixo da linha (0 = não tem nada dentro).
+  const fundura = x => ((x.subtasks || []).length ? 1 + Math.max(...x.subtasks.map(fundura)) : 0);
+  const contem = (x, id) => (x.subtasks || []).some(s => s.id === id || contem(s, id));
+  function destinoValido(de, a) {
+    if (!de || !a || !a.para) return false;
+    if (a.para.linha === de.linha || contem(de.linha, a.para.linha.id)) return false;
+    const nivelNovo = a.tipo === "dentro" ? a.para.nivel + 1 : a.para.nivel;
+    return nivelNovo + fundura(de.linha) <= ULTIMO_NIVEL;
   }
   function alvoDrop(tr, ev) {
     if (!linhaArrastada || !tr) return null;
     const de = localizar(linhaArrastada), para = localizar(tr.dataset.id);
-    if (!de || !para || para.linha === de.linha) return null;
-    if (para.nivel === de.nivel) {
-      const r = tr.getBoundingClientRect();
-      return { tipo: ev.clientY < r.top + r.height / 2 ? "antes" : "depois", para };
-    }
-    if (para.nivel === de.nivel - 1) return { tipo: "dentro", para };
-    return null;
+    if (!de || !para || para.linha === de.linha || contem(de.linha, para.linha.id)) return null;
+    const r = tr.getBoundingClientRect(), y = ev.clientY - r.top;
+    const tipo = y < r.height * 0.25 ? "antes" : y > r.height * 0.75 ? "depois" : "dentro";
+    const a = { tipo, para };
+    if (!destinoValido(de, a)) return { tipo: "nao", para };
+    return a;
+  }
+  const tipoNivel = n => NOME_NIVEL[NIVEIS[n]].toLowerCase();
+  const ondeEsta = (nivel, pai) => (pai ? `${tipoNivel(nivel)} de “${nomeOu(pai)}”` : "entrega");
+  function avisoPj(texto) {
+    const d = document.createElement("div");
+    d.className = "pj-aviso-rapido";
+    d.textContent = texto;
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 3500);
   }
   function moverLinha(id, a) {
     const de = localizar(id);
     if (!de) return;
-    const e = de.linha, paiAntes = de.pai;
+    if (!destinoValido(de, a)) { avisoPj("Não dá: passaria de 6 níveis (ou ela iria pra dentro dela mesma)."); return; }
+    const snap = JSON.stringify(entregas);
+    const e = de.linha, paiAntes = de.pai, nivelAntes = de.nivel;
     de.lista.splice(de.lista.indexOf(e), 1);
-    let paiDepois;
+    let paiDepois, nivelDepois;
     if (a.tipo === "dentro") {
+      a.para.linha.subtasks = a.para.linha.subtasks || [];
       a.para.linha.subtasks.push(e);
-      paiDepois = a.para.linha;
+      paiDepois = a.para.linha; nivelDepois = a.para.nivel + 1;
       abertas.add(paiDepois.id); guardarAbertas();
     } else {
       const lista = a.para.lista;
       lista.splice(lista.indexOf(a.para.linha) + (a.tipo === "depois" ? 1 : 0), 0, e);
-      paiDepois = a.para.pai;
+      paiDepois = a.para.pai; nivelDepois = a.para.nivel;
+    }
+    const recebeuPrimeira = paiDepois && paiDepois.subtasks.length === 1;
+    if (nivelAntes !== nivelDepois) {
+      registrar(e, `Virou ${ondeEsta(nivelDepois, paiDepois)} (era ${ondeEsta(nivelAntes, paiAntes)})`);
+      // Frente só existe na entrega.
+      if (nivelAntes === 0 && e.frente) { registrarCampo(e, "frente", e.frente, ""); e.frente = ""; }
+      if (nivelDepois === 0) avisoPj("Virou entrega: escolha a Frente dela.");
+    } else if (paiAntes !== paiDepois) {
+      registrar(e, `Mudou de “${nomeOu(paiAntes)}” para “${nomeOu(paiDepois)}”`);
     }
     if (paiAntes !== paiDepois) {
-      const tipo = NOME_NIVEL[NIVEIS[de.nivel]].toLowerCase();
-      registrar(e, `Mudou de “${nomeOu(paiAntes)}” para “${nomeOu(paiDepois)}”`);
-      if (paiAntes) registrar(paiAntes, `Saiu a ${tipo} “${nomeOu(e)}” (foi para “${nomeOu(paiDepois)}”)`);
-      if (paiDepois) registrar(paiDepois, `Entrou a ${tipo} “${nomeOu(e)}” (veio de “${nomeOu(paiAntes)}”)`);
+      if (paiAntes) registrar(paiAntes, `Saiu a ${tipoNivel(nivelAntes)} “${nomeOu(e)}” (foi para ${paiDepois ? `“${nomeOu(paiDepois)}”` : "as entregas"})`);
+      if (paiDepois) registrar(paiDepois, `Entrou a ${tipoNivel(nivelDepois)} “${nomeOu(e)}” (veio de ${paiAntes ? `“${nomeOu(paiAntes)}”` : "as entregas"})` +
+        (recebeuPrimeira ? ". Agora status, prazos e responsável vêm das linhas de dentro" : ""));
     }
+    desfazerMover = { snap, id };
+    desfazerArraste = null;
+    calcularMaes();
     salvar();
     render();
+  }
+  function desfazerUltimoMovimento() {
+    if (!desfazerMover) return false;
+    const d = desfazerMover;
+    desfazerMover = null;
+    try { entregas = JSON.parse(d.snap).map(x => normalizar(x, 0)); } catch (e) { return false; }
+    registrar(achar(d.id), "Desfez a mudança de lugar");
+    calcularMaes();
+    salvar();
+    render();
+    return true;
+  }
+  // Botão direito (23/10): colocar dentro da linha de cima / tirar de dentro.
+  function colocarDentroDaDeCima(id) {
+    const de = localizar(id);
+    if (!de) return;
+    const i = de.lista.indexOf(de.linha);
+    if (i <= 0) { avisoPj("Não tem linha do mesmo nível logo acima pra ela entrar."); return; }
+    const irma = de.lista[i - 1];
+    moverLinha(id, { tipo: "dentro", para: { linha: irma, nivel: de.nivel, pai: de.pai, lista: de.lista } });
+  }
+  function tirarDeDentro(id) {
+    const de = localizar(id);
+    if (!de || !de.pai) return;
+    const pai = localizar(de.pai.id);
+    moverLinha(id, { tipo: "depois", para: pai });
   }
   corpo.addEventListener("dragstart", ev => {
     const h = ev.target.closest && ev.target.closest(".pj-alca");
@@ -12396,8 +12457,9 @@ applyRolePermissions();
     const a = alvoDrop(tr, ev);
     limparMarcasLinha();
     if (!a) return;
-    ev.preventDefault();
     tr.classList.add("pj-drop-" + a.tipo);
+    if (a.tipo === "nao") return;
+    ev.preventDefault();
   });
   corpo.addEventListener("drop", ev => {
     if (!linhaArrastada) return;
@@ -12406,6 +12468,7 @@ applyRolePermissions();
     limparMarcasLinha();
     if (!a) return;
     ev.preventDefault();
+    if (a.tipo === "nao") { avisoPj("Não dá: passaria de 6 níveis."); return; }
     const id = linhaArrastada;
     linhaArrastada = null;
     moverLinha(id, a);
@@ -12448,13 +12511,24 @@ applyRolePermissions();
     fecharMenuLinha();
     const m = document.createElement("div");
     m.id = "pj-menu";
-    m.innerHTML = `<button type="button" data-menu="duplicar">⧉ Duplicar</button>`;
+    const locM = localizar(tr.dataset.id);
+    const iM = locM ? locM.lista.indexOf(locM.linha) : -1;
+    m.innerHTML = `<button type="button" data-menu="duplicar">⧉ Duplicar</button>` +
+      (iM > 0 ? `<button type="button" data-menu="dentro">→ Colocar dentro da de cima</button>` : "") +
+      (locM && locM.pai ? `<button type="button" data-menu="fora">← Tirar de dentro</button>` : "");
     document.body.appendChild(m);
     const w = m.offsetWidth, h = m.offsetHeight;
     m.style.left = Math.min(ev.clientX, window.innerWidth - w - 8) + "px";
     m.style.top = Math.min(ev.clientY, window.innerHeight - h - 8) + "px";
     const id = tr.dataset.id;
-    m.addEventListener("click", e2 => { if (e2.target.closest("[data-menu=duplicar]")) { fecharMenuLinha(); duplicarLinha(id); } });
+    m.addEventListener("click", e2 => {
+      const b = e2.target.closest("[data-menu]");
+      if (!b) return;
+      fecharMenuLinha();
+      if (b.dataset.menu === "duplicar") duplicarLinha(id);
+      else if (b.dataset.menu === "dentro") colocarDentroDaDeCima(id);
+      else if (b.dataset.menu === "fora") tirarDeDentro(id);
+    });
   });
   document.addEventListener("mousedown", ev => { if (!ev.target.closest("#pj-menu")) fecharMenuLinha(); });
   document.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharMenuLinha(); });
@@ -12655,6 +12729,7 @@ applyRolePermissions();
     }
     if (!alvos.length) return;
     desfazerArraste = { alvos };
+    desfazerMover = null;
     calcularMaes();
     salvar();
     render();
@@ -12692,10 +12767,11 @@ applyRolePermissions();
   document.addEventListener("keydown", ev => {
     if (ev.key === "Escape" && marcadas.id) { limparMarcas(); return; }
     if (!(ev.ctrlKey || ev.metaKey) || ev.key.toLowerCase() !== "z" || ev.shiftKey) return;
-    if (!visivel() || !desfazerArraste) return;
+    if (!visivel() || (!desfazerArraste && !desfazerMover)) return;
     const foco = document.activeElement;
     if (foco && (foco.tagName === "TEXTAREA" || foco.tagName === "INPUT" || foco.isContentEditable)) return;
     ev.preventDefault();
+    if (!desfazerArraste) { desfazerUltimoMovimento(); return; }
     const d = desfazerArraste;
     desfazerArraste = null;
     d.alvos.forEach(({ id, antes }) => {

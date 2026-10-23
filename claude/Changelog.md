@@ -12,6 +12,51 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-23 (2ª) — Projetos: pôr uma linha dentro da outra (muda o nível)
+
+Pedido da Karina às 10h36 ("colocar uma tarefa/etapa dentro da outra, o que
+muda o nível"). Ela aprovou a proposta às 10h38 ("pode").
+
+- **`index.html`, Projetos, alça ⠿:** ao soltar uma linha, o lugar decide o
+  que acontece.
+  - **No meio de outra linha:** entra **dentro** dela, como a última, e o
+    nível muda sozinho. Ex.: tarefa solta numa tarefa vira subtarefa; entrega
+    solta numa entrega vira etapa.
+  - **Na borda de cima ou de baixo:** fica antes ou depois, **no nível
+    daquela linha**. É assim que se tira uma linha de dentro.
+  - **Antes de soltar:** fundo azul indica "dentro", linha azul indica antes
+    ou depois, e fundo vermelho indica que não pode.
+  - **Antes:** só dava pra mudar de lugar no mesmo nível, ou ir pra outra
+    mãe do nível de cima.
+- **Botão direito**, junto de "Duplicar": "→ Colocar dentro da de cima" (vira
+  filha da linha do mesmo nível logo acima) e "← Tirar de dentro" (sobe um
+  nível e fica logo depois da mãe).
+- **Regras:**
+  - O que está dentro vai junto.
+  - Máximo de 6 níveis, com aviso "Não dá: passaria de 6 níveis". Também não
+    deixa pôr uma linha dentro dela mesma.
+  - A linha que recebe filhas passa a calcular status, prazos e responsável
+    (`calcularMaes`), e o valor antigo fica no Histórico.
+  - Entrega que desce perde a Frente (registrado no Histórico). Linha que
+    vira entrega mostra o aviso "escolha a Frente dela".
+  - Histórico nas três linhas envolvidas. Ex.: "Virou subtarefa de X (era
+    tarefa de Y)".
+  - **Ctrl/Cmd+Z** desfaz o último movimento. Ele divide o atalho com o
+    arrastar valores, e vale o que foi feito por último.
+- **Código:** `alvoDrop`, `moverLinha`, `destinoValido`, `fundura`, `contem`,
+  `desfazerUltimoMovimento`, `colocarDentroDaDeCima`, `tirarDeDentro`,
+  `avisoPj`; CSS `.pj-drop-nao` e `.pj-aviso-rapido`. Vale pra WPF, CBTH e
+  Canário.
+- **Testes:** `teste_nivel.cjs` passou na WPF e na CBTH. Cobre dentro, Ctrl+Z,
+  os dois itens do botão direito, borda de cima, entrega pra dentro de
+  entrega (perde a Frente), limite de 6 níveis, dentro dela mesma e gravação
+  na nuvem.
+- **Regressão:** etapa 2, Canário e responsável herdado passaram. O teste
+  antigo do arrastar valores tem 2 falhas que também acontecem na versão
+  anterior (dependem dos dados de teste).
+
+---
+
 ## 2026-10-23 — Carinha: "Hoje vencem N tarefas" agrupado por contexto
 
 Pedido da Karina às 9h59 (print da mensagem das 9h56): a lista vinha só com o
