@@ -3062,6 +3062,18 @@ async function pjEnviarTarefa(env, pessoa, estado, pj, m, abertura, proativa) {
 // opts.motivo: "rodada" (cron) · "resposta" (a pessoa escreveu/cumprimentou)
 // · "continuar" (fechou um assunto) · "pedido" (pediu as tarefas).
 // opts.urgentes: [{ tipo: "reuniao_nova" | "tarefa_nova", ... }] — furam a trava.
+// Vários avisos de Slack pendentes viram UM (23/10): por canal, na ordem em
+// que chegaram. A chave é a do mais novo (o "Ver mensagens" abre esse canal);
+// quem chama marca todas as chaves de verdade como avisadas.
+const pjTsSlack = a => String(a.chave).split("|")[2] || "";
+function pjJuntarSlack(avisos) {
+  const ord = avisos.slice().sort((a, b) => (pjTsSlack(a) < pjTsSlack(b) ? -1 : 1));
+  if (ord.length === 1) return ord[0];
+  const porCanal = {};
+  ord.forEach(a => { const canal = String(a.chave).split("|")[1]; (porCanal[canal] = porCanal[canal] || []).push(a.descricao); });
+  const partes = Object.values(porCanal).map(ds => ds.join(" || "));
+  return { chave: ord[ord.length - 1].chave, descricao: `Slack, tudo junto numa mensagem só (separe por canal, do mais antigo pro mais novo): ${partes.join(" ### ")}` };
+}
 async function pjDespachar(env, pessoa, opts) {
   opts = opts || {};
   const tel = pessoa.telefone, agoraMs = opts.agoraMs || Date.now(), hoje = hojeSP();
@@ -3114,7 +3126,11 @@ async function pjDespachar(env, pessoa, opts) {
   if (!fimDeSemana && pessoa.proativo && !opts.soTarefas) {
     let ext = (await pendentesDe(env, tel)).filter(a => pjEhExterno(a) && !a.chave.startsWith("sistema|"));
     if (ext.length) ext = await pjSoNaoLidos(env, pessoa, ext);
-    ext.forEach(a => { const t = tipoDaChave(a); cands.push({ tipo: "externo", aviso: a, pri: t === "email_muito" ? 2 : t === "email" ? 4 : 5 }); });
+    // Slack (23/10, Karina): não espera fila nem trava — sai na rodada
+    // seguinte, tudo numa mensagem só (por canal, do mais antigo pro mais novo).
+    const slacks = ext.filter(a => a.chave.startsWith("slack|"));
+    if (slacks.length) cands.push({ tipo: "slack", avisos: slacks, pri: -1, urgente: true });
+    ext.filter(a => !a.chave.startsWith("slack|")).forEach(a => { const t = tipoDaChave(a); cands.push({ tipo: "externo", aviso: a, pri: t === "email_muito" ? 2 : t === "email" ? 4 : 5 }); });
   }
   cands.sort((a, b) => a.pri - b.pri);
   // Fechou um assunto: vem só a próxima tarefa (e o que é muito importante);
@@ -3168,6 +3184,11 @@ async function pjDespachar(env, pessoa, opts) {
       await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, { proativa: true, tipo_proativa: cand.urgente ? "aviso_urgente" : "aviso" });
       c.reunioesEnviadas = true;
       foi = true;
+    } else if (cand.tipo === "slack") {
+      const t = c.saudou ? "aviso" : "checkin";
+      const junto = pjJuntarSlack(cand.avisos);
+      foi = await mandarAvisos(env, pessoa, [junto], opts.motivo === "rodada" ? "janela" : "conversa", t);
+      if (foi) { c.saudou = true; await marcarChaves(env, tel, cand.avisos.map(a => a.chave), opts.motivo === "rodada" ? "janela" : "conversa"); }
     } else if (cand.tipo === "externo") {
       const t = c.saudou ? "aviso" : "checkin";
       foi = await mandarAvisos(env, pessoa, [cand.aviso], opts.motivo === "rodada" ? "janela" : "conversa", t);
@@ -3349,12 +3370,21 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     if (await janelaAberta(env, tel, agoraMs)) { await pjDespachar(env, pessoa, { motivo: "manha", agoraMs, estado, pj, janelaOk: true }); return; }
     // Janela fechada (Karina, 21/10): template de bom dia, todo dia útil até
     // a pessoa responder; fim de semana só se houver tarefa do dia.
-    if (!fimDeSemana || estado.conv.itens.length) await pjTemplateBomDia(env, pessoa);
+    if ((!fimDeSemana || estado.conv.itens.length) && (await pjTemplateBomDia(env, pessoa))) await pjSalvarParte(env, tel, e => { e.bomDiaEm = hoje; });
     return;
   }
   if (horaSP < 8 || horaSP > 21) return;
   if (!fimDeSemana) await pjColetarSlack(env, pessoa);
-  if (!(await janelaAberta(env, tel, agoraMs))) return;
+  if (!(await janelaAberta(env, tel, agoraMs))) {
+    // 23/10 (Karina): janela fechada e chegou Slack → o template de bom dia
+    // na hora (dia útil, 8h–19h, no máximo um por dia), pra pessoa responder
+    // e o Slack vir em seguida.
+    if (!fimDeSemana && pessoa.recebe_slack && horaSP < 19 && estado.bomDiaEm !== hoje) {
+      const pend = (await pendentesDe(env, tel)).filter(a => a.chave.startsWith("slack|"));
+      if (pend.length && (await pjTemplateBomDia(env, pessoa))) await pjSalvarParte(env, tel, e => { e.bomDiaEm = hoje; });
+    }
+    return;
+  }
   const antesDaManha = horaSP < 9 || (horaSP === 9 && minSP < 25);
   const pj = await pjCarregar(env);
   const antesRodada = JSON.stringify([estado.conv, estado.conhecidos, estado.textos]);
@@ -4567,5 +4597,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { pjJuntarSlack, pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

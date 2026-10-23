@@ -41,18 +41,20 @@
 
 - **Só chama quando tem coisa.** Sem assunto, silêncio (acabou o "Nada desse
   lado" e o lembrete do meio-dia).
-- **Uma coisa por mensagem:** uma tarefa, um e-mail, um Slack. As reuniões
-  do dia vão juntas numa mensagem só.
+- **Uma coisa por mensagem:** uma tarefa, um e-mail. As reuniões do dia vão
+  juntas numa mensagem só. **Slack (23/10):** tudo o que estiver pendente vai
+  junto numa mensagem só, separado por canal e do mais antigo pro mais novo.
 - **TRAVA:** no máximo **2 mensagens por conta própria seguidas sem
   resposta numa janela de 4h**. Respondeu = zera. Passaram 4h sem resposta =
   pode mais 2. **Furam a trava:** reunião nova na agenda (ou reunião a menos
-  de 1h que ainda não foi avisada) e tarefa nova que vence hoje (ou já
-  atrasada) que entrou durante o dia.
+  de 1h que ainda não foi avisada), tarefa nova que vence hoje (ou já
+  atrasada) que entrou durante o dia e **Slack (23/10)**, que sai na rodada
+  seguinte a ter chegado (até 30 min, de 8h a 21h, em dia útil).
 - **Ordem:** o que vence hoje (de cara; 2 ou mais = uma mensagem com todas e
   [Ver a 1ª] [Ver a 2ª]; desde 23/10 agrupadas por onde estão: "📌 entrega ›
   linha de cima" e as tarefas numeradas embaixo) › reuniões do dia ("precisa de algo pra elas?",
-  sempre antes do horário) › e-mail muito importante › tarefas › e-mail ›
-  Slack.
+  sempre antes do horário) › e-mail muito importante › tarefas › e-mail.
+  O Slack não entra na fila: fura (veja TRAVA).
 - **Tarefas, uma por vez**, por **prioridade** (alta › média › baixa › sem)
   e, entre iguais, **a mais difícil primeiro**. Texto de conversa: "X vence
   hoje. Dá pra fechar hoje?", com [Finalizar/Começar] [Mudar prazo]
@@ -63,11 +65,16 @@
   Quer começar por qual?" com um botão por projeto. Admin recebe também o
   link do dia na Dash.
 - **Não atropela:** com conversa rolando (menos de 30 min da última
-  mensagem), a rodada espera; e-mail comum e Slack não entram entre uma
-  tarefa e a próxima.
+  mensagem), a rodada espera; e-mail comum não entra entre uma tarefa e a
+  próxima (o Slack entra).
 - **Rodadas:** 9h25 (monta o dia), e de 8h a 21h aos :05 e aos :35.
 
 ## Janela de 24h
+
+- **Slack com a janela fechada (23/10):** o template de bom dia vai na hora
+  em que o Slack chega (dia útil, 8h–19h), no máximo **um bom dia por dia**.
+  O das 9h25 conta: se ele já saiu e a pessoa não respondeu, não vai outro.
+  Quando ela responde "Tô aqui!", o Slack vem em seguida.
 
 - **Janela fechou → às 9h25 do dia seguinte vai o template `carinha_bom_dia`**
   (Karina, 21/10): "Oi, {nome}! Precisando de algo por aí? Nossa janela de

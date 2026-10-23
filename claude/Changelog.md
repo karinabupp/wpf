@@ -12,6 +12,44 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-23 (3ª) — Carinha: Slack sem atraso
+
+Pedido da Karina às 16h23: "as mensagens do Slack estão chegando no Carinha
+com MUITO ATRASO… não pode". O diagnóstico está nos avisos
+(`wpf_agente_avisos`). O Carinha percebia o Slack na hora, mas o envio
+esperava por dois motivos:
+- **Janela de 24h fechada** de 21/10 até as 9h56 de 23/10.
+- **Slack era o último da fila** (depois das tarefas) e contava na trava de
+  2 mensagens a cada 4h.
+
+Resultado: os Slacks de 21/10 e 22/10 só saíram às 16h06 de 23/10. A Karina
+aprovou a, b, c1 e d2 às 16h25.
+
+- **`worker/whatsapp-bridge.js`, `pjDespachar`:**
+  - **a)** O Slack sai na rodada seguinte a ter chegado (até 30 min), furando
+    a fila e a trava (`tipo: "slack"`, urgente).
+  - **b)** Tudo o que estiver pendente vai **numa mensagem só**, por canal e
+    do mais antigo pro mais novo (`pjJuntarSlack`). Todas as chaves são
+    marcadas como avisadas.
+- **`pjRodada`, c1):** com a janela fechada e Slack pendente, o template de
+  bom dia vai na hora (dia útil, 8h–19h). O limite é de um bom dia por dia
+  (`estado.bomDiaEm`), e o das 9h25 também conta.
+- **d2):** os Slacks antigos que ainda estavam pendentes (3 da Karina e 5 da
+  Isabela) foram marcados como avisados com `via = 'descartado_antigo'`,
+  pra não chegarem atrasados.
+- **Continua igual:** fim de semana e madrugada o Slack espera (segunda,
+  ou 8h05).
+- **`worker/instrucoes/lembretes.md`:** regras atualizadas.
+- **Testes:** cenário 10 novo (fura a trava, junta 3 em 1, marca todas, não
+  repete, bom dia na hora com janela fechada, um por dia, "Tô aqui!" traz o
+  Slack, depois das 19h espera). Os cenários 1–9 também passaram.
+  - **Atenção:** o `worker.mjs` do ambiente de teste era uma cópia de 21/10,
+    então o "cenários passaram" do agrupado de hoje de manhã rodou na versão
+    antiga. Hoje rodei de novo com a versão atual e tudo passou, inclusive o
+    agrupado.
+
+---
+
 ## 2026-10-23 (2ª) — Projetos: pôr uma linha dentro da outra (muda o nível)
 
 Pedido da Karina às 10h36 ("colocar uma tarefa/etapa dentro da outra, o que
