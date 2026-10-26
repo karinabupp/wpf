@@ -133,9 +133,9 @@ dois arquivos antes de propor qualquer coisa**:
   seguidas sem resposta em 4h** (furam: reunião nova e tarefa nova que vence
   hoje); vence hoje primeiro, depois prioridade › dificuldade; 5+ tarefas =
   resumão por projeto; texto de conversa e "Próxima" sozinha. Janela
-  fechada: template `carinha_bom_dia` às 9h25 do dia seguinte (todo dia útil
-  até responder; fds só com tarefa do dia; **sem fallback** enquanto a Meta
-  não aprovar); fora isso, nada, com a manutenção "tudo certo por aí?" em
+  fechada: template `carinha_bom_dia` só quando há assunto (Slack, tarefa
+  do dia ou e-mail; dia útil, 8h–19h, 1 por dia; nada às 9h25 nem no fds —
+  Karina, 26/10; **sem fallback** enquanto a Meta não aprovar); fora isso, nada, com a manutenção "tudo certo por aí?" em
   dia útil. Fim de semana: só tarefa do
   dia. Detalhes em **`worker/instrucoes/lembretes.md`**.
 

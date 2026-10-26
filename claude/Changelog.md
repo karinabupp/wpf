@@ -12,6 +12,36 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-26 — Carinha: sem bom dia das 9h25 (só quando há assunto)
+
+Pedido da Karina às 9h27, com print: dois bons dias iguais hoje (8h05 e
+9h25). A das 8h05 foi a regra de 23/10 (Slack pendente). A das 9h25 foi a
+rotina da manhã, que mandava o template sempre que a janela estava fechada e
+não conferia se o bom dia do dia já tinha saído. A Karina escolheu a opção B
+às 9h28: tirar o das 9h25.
+
+- **`worker/whatsapp-bridge.js`, `pjRodada`:**
+  - **9h25:** com a janela fechada, não sai template. O dia continua sendo
+    montado.
+  - **Rodadas dos :05/:35:** com a janela fechada, o bom dia sai quando há
+    algo pra entregar. Vale Slack (de quem recebe Slack), tarefa do dia na
+    fila (`pjTemNaFila`) ou e-mail pendente (`email|`). É só em dia útil, das
+    8h às 19h, no máximo um por dia (`estado.bomDiaEm`). Antes, isso valia
+    só pro Slack.
+  - **Fim de semana:** nada (antes o das 9h25 saía no sábado/domingo se
+    houvesse tarefa do dia).
+- **`worker/instrucoes/lembretes.md`:** regra da janela reescrita.
+- **Testes:** 10 cenários com Supabase/Meta simulados, todos passaram.
+  - 9h25 com tarefa: nada.
+  - Sem assunto: nada.
+  - Tarefa, e-mail ou Slack: 1 bom dia.
+  - Bom dia já saiu hoje: nada.
+  - Slack pra quem não recebe Slack: nada.
+  - Depois das 19h: nada.
+  - Sábado (9h25 e 10h05): nada.
+
+---
+
 ## 2026-10-23 (3ª) — Carinha: Slack sem atraso
 
 Pedido da Karina às 16h23: "as mensagens do Slack estão chegando no Carinha

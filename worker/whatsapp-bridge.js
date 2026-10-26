@@ -2762,10 +2762,9 @@ async function pjColetarSlack(env, pessoa) {
 //    começar.
 //  - Fim de semana: só tarefa daquele dia (Início ou Fim no sábado/domingo).
 //    E-mail, Slack e reunião ficam pra segunda.
-//  - Janela de 24h (Karina, 21/10): fechou → às 9h25 do dia seguinte vai o
-//    template TEMPLATE_BOM_DIA (todo dia útil, até a pessoa responder; fim de
-//    semana só se houver tarefa do dia). Sem fallback: enquanto a Meta não
-//    aprovar, não sai template nenhum.
+//  - Janela de 24h (Karina, 26/10): fechada → o template TEMPLATE_BOM_DIA só
+//    sai quando há algo pra entregar (Slack, tarefa do dia, e-mail), dia útil,
+//    8h–19h, no máximo um por dia. Às 9h25 não sai template. Sem fallback.
 //    Dias úteis, 8h–21h: se a janela vai fechar e não houve assunto, manda
 //    "tudo certo por aí? precisa de algo?" pra pessoa responder e renovar.
 // Estado em estado.conv (pj_estado_<tel>), refeito todo dia às 9h25.
@@ -3368,20 +3367,23 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     await pjPlanejarDia(env, pessoa, estado, pj, hoje, agoraMs);
     await pjSalvarEstado(env, tel, estado);
     if (await janelaAberta(env, tel, agoraMs)) { await pjDespachar(env, pessoa, { motivo: "manha", agoraMs, estado, pj, janelaOk: true }); return; }
-    // Janela fechada (Karina, 21/10): template de bom dia, todo dia útil até
-    // a pessoa responder; fim de semana só se houver tarefa do dia.
-    if ((!fimDeSemana || estado.conv.itens.length) && (await pjTemplateBomDia(env, pessoa))) await pjSalvarParte(env, tel, e => { e.bomDiaEm = hoje; });
+    // Janela fechada: às 9h25 não sai template (Karina, 26/10). O dia fica
+    // montado e o bom dia vai pelas rodadas dos :05/:35 se houver assunto.
     return;
   }
   if (horaSP < 8 || horaSP > 21) return;
   if (!fimDeSemana) await pjColetarSlack(env, pessoa);
   if (!(await janelaAberta(env, tel, agoraMs))) {
-    // 23/10 (Karina): janela fechada e chegou Slack → o template de bom dia
-    // na hora (dia útil, 8h–19h, no máximo um por dia), pra pessoa responder
-    // e o Slack vir em seguida.
-    if (!fimDeSemana && pessoa.recebe_slack && horaSP < 19 && estado.bomDiaEm !== hoje) {
-      const pend = (await pendentesDe(env, tel)).filter(a => a.chave.startsWith("slack|"));
-      if (pend.length && (await pjTemplateBomDia(env, pessoa))) await pjSalvarParte(env, tel, e => { e.bomDiaEm = hoje; });
+    // 26/10 (Karina): janela fechada → o template de bom dia só quando há
+    // algo pra entregar (Slack, tarefa do dia ou e-mail), dia útil, 8h–19h,
+    // no máximo um por dia. Sem assunto, não sai nada.
+    if (!fimDeSemana && horaSP < 19 && estado.bomDiaEm !== hoje) {
+      let temAssunto = pjTemNaFila(estado);
+      if (!temAssunto) {
+        const pend = await pendentesDe(env, tel);
+        temAssunto = pend.some(a => a.chave.startsWith("email|") || (pessoa.recebe_slack && a.chave.startsWith("slack|")));
+      }
+      if (temAssunto && (await pjTemplateBomDia(env, pessoa))) await pjSalvarParte(env, tel, e => { e.bomDiaEm = hoje; });
     }
     return;
   }

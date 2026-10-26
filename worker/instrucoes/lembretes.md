@@ -71,21 +71,18 @@
 
 ## Janela de 24h
 
-- **Slack com a janela fechada (23/10):** o template de bom dia vai na hora
-  em que o Slack chega (dia útil, 8h–19h), no máximo **um bom dia por dia**.
-  O das 9h25 conta: se ele já saiu e a pessoa não respondeu, não vai outro.
-  Quando ela responde "Tô aqui!", o Slack vem em seguida.
-
-- **Janela fechou → às 9h25 do dia seguinte vai o template `carinha_bom_dia`**
-  (Karina, 21/10): "Oi, {nome}! Precisando de algo por aí? Nossa janela de
-  24h já fechou. Me responde aqui pra gente poder continuar conversando e eu
-  seguir te mandando suas tarefas e avisos. 🙂" com um botão só, [Tô aqui!]:
-  reabre a janela e já manda o que estava esperando (sem nada: "Oi! Tudo
-  certo por aqui, nada pendente. Precisa de algo?"). Todo dia útil, enquanto a pessoa não responder; sábado e
-  domingo só se houver tarefa daquele dia.
+- **Janela fechada → template `carinha_bom_dia` só quando há assunto
+  (Karina, 26/10):** vai numa rodada dos :05/:35 em que haja algo pra
+  entregar (Slack, tarefa do dia na fila ou e-mail relevante), dia útil,
+  8h–19h, **no máximo um bom dia por dia**. Sem assunto, não sai nada. Às
+  9h25 não sai template (a rotina só monta o dia). Fim de semana, nada.
+  Texto: "Oi, {nome}! Precisando de algo por aí? Nossa janela de 24h já
+  fechou. Me responde aqui pra gente poder continuar conversando e eu seguir
+  te mandando suas tarefas e avisos. 🙂" com um botão só, [Tô aqui!]: reabre
+  a janela e já manda o que estava esperando.
 - **Sem fallback:** enquanto a Meta não aprovar o `carinha_bom_dia`, não sai
   template nenhum (o `aviso_dash` não é mais usado).
-- Fora as 9h25, janela fechada = nada sai; tudo espera a pessoa escrever.
+- Fora o bom dia, janela fechada = nada sai; tudo espera a pessoa escrever.
   Quando ela escreve ("oi", "Ver o que tem"…), o que estava esperando vem.
 - **Manutenção (dias úteis, 8h–21h):** se a janela vai fechar e não houve
   assunto, "Oi, Fulana! Tudo certo por aí? Precisa de algo?" [Tudo certo]
