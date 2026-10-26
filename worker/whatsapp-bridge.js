@@ -2586,13 +2586,28 @@ function pjItensDoDia(dados, nome, hoje, estreia) {
   });
   return itens;
 }
-// Tarefas que vencem em fim de semana (fora do LW) e ainda não perguntadas.
+// Fim de semana (Karina, 26/10): a tarefa que COMEÇA ou TERMINA no sábado/
+// domingo ganha a pergunta "é proposital?". A confirmação fica em
+// estado.fds[id] = chave das datas (só Fim no fds = o Fim, como antes).
+const pjIniFds = no => dataValida(no.startDate) && pjFimDeSemana(no.startDate);
+const pjFimFds = no => dataValida(no.endDate) && pjFimDeSemana(no.endDate);
+const pjChaveFds = no => pjIniFds(no) ? `${no.startDate}|${no.endDate || ""}` : no.endDate;
+const pjFdsConfirmado = (no, fdsVistos) => (fdsVistos || {})[no.id] === pjChaveFds(no);
+// Tarefas que começam/vencem em fim de semana (fora do LW) e ainda não confirmadas.
 function pjItensFds(dados, nome, hoje, fdsVistos) {
   return pjAchatar(dados).filter(({ no, pais }) =>
     no.id && pjAberto(no.status) && pjDono(no, nome) && !pjTemFilhos(no) && !pais.some(p => p.status === "cancelado") &&
-    dataValida(no.endDate) && no.endDate >= hoje && pjFimDeSemana(no.endDate) && !pjEhLW(no, pais) &&
-    (fdsVistos || {})[no.id] !== no.endDate
+    ((pjFimFds(no) && no.endDate >= hoje) || (pjIniFds(no) && no.startDate >= hoje)) && !pjEhLW(no, pais) &&
+    !pjFdsConfirmado(no, fdsVistos)
   ).map(x => ({ ...x, ponta: true, gatilho: { tipo: "fds" } }));
+}
+// Frase da pergunta: o que cai no fim de semana.
+function pjFraseFds(no) {
+  const ini = pjIniFds(no), fim = pjFimFds(no);
+  if (ini && fim && no.startDate === no.endDate) return `é ${pjDataLonga(no.endDate)}, num fim de semana`;
+  if (ini && fim) return `começa ${pjDataLonga(no.startDate)} e vence ${pjDataLonga(no.endDate)}, os dois num fim de semana`;
+  if (ini) return `começa ${pjDataLonga(no.startDate)}, num fim de semana`;
+  return `vence ${pjDataLonga(no.endDate)}, num fim de semana`;
 }
 
 // ── Texto: a IA diz o que precisa ser feito (o código monta o resto) ──
@@ -2646,7 +2661,7 @@ function pjLinhaQuando(it, hoje) {
   if (g.tipo === "em_deadline") return `🟡 Vence ${pjDataLonga(fim)}`;
   if (g.tipo === "vence") return `🟡 Vence hoje`;
   if (g.tipo === "atraso" || g.tipo === "atrasada") return `🔴 ${g.dias} dias de atraso (venceu ${pjDataLonga(fim)})`;
-  if (g.tipo === "fds") return `📅 Vence ${pjDataLonga(fim)}, num fim de semana. É proposital?`;
+  if (g.tipo === "fds") { const f = pjFraseFds(it.no); return `📅 ${f[0].toUpperCase()}${f.slice(1)}. É proposital?`; }
   return "";
 }
 function pjBotoesBase(it) {
@@ -2944,7 +2959,7 @@ function pjMsgTarefa(it, txt, gatilho, hoje, nome, abertura) {
   else if (gatilho.tipo === "em_deadline") { frase = `${o} vence ${pjDataLonga(fim)}.`; pergunta = "Como está?"; }
   else if (gatilho.tipo === "atraso" || gatilho.tipo === "atrasada") { const d = pjDif(fim, hoje); frase = `${o} está com ${d} dias de atraso (venceu ${pjDataLonga(fim)}).`; pergunta = "Ainda sai ou mudamos o prazo?"; }
   else if (gatilho.tipo === "inicio") { frase = `${o} começa hoje${dataValida(fim) ? ` e vai até ${pjDataLonga(fim)}` : ""}.`; pergunta = it.no.status === "andamento" ? "Já está andando?" : "Bora começar?"; }
-  else if (gatilho.tipo === "fds") { frase = `${o} vence ${pjDataLonga(fim)}, num fim de semana.`; pergunta = "É proposital?"; }
+  else if (gatilho.tipo === "fds") { frase = `${o} ${pjFraseFds(it.no)}.`; pergunta = "É proposital?"; }
   else { frase = `${o}.`; pergunta = "Como está?"; }
   const outros = (it.no.assignees || []).filter(n => n && n !== nome).map(primeiroNome);
   const filhos = (it.no.subtasks || []).filter(s => s && pjAberto(s.status)).length;
@@ -3553,8 +3568,8 @@ async function pjTratarBotao(env, pessoa, tel, cmd, msg) {
   const nome = `*${(estado.textos[id] && estado.textos[id].oque) || loc.no.nome}*`;
   const novaPend = async (acaoPend, resumo) => sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { ...acaoPend, id }, resumo }] });
   if (acao === "proposital") {
-    estado.fds[id] = loc.no.endDate; await pjSalvarEstado(env, tel, estado);
-    await enviarTexto(env, tel, "👍 Anotado, o prazo fica no fim de semana.");
+    estado.fds[id] = pjChaveFds(loc.no); await pjSalvarEstado(env, tel, estado);
+    await enviarTexto(env, tel, "👍 Anotado, fica no fim de semana.");
     await pjResolver(env, pessoa, id);
     return true;
   }
@@ -3691,14 +3706,26 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
   if (semTexto.length) { await pjDescrever(env, semTexto, estado); mudou = true; }
   const semRevisao = alvo.filter(x => estado.textos[x.no.id] && !estado.textos[x.no.id].revisado);
   if (semRevisao.length) { await pjRevisarTextos(env, semRevisao, estado, pessoa.nome_tasks); mudou = true; }
+  // Fim de semana (Karina, 24/10 e 26/10): nada vai pra sábado/domingo, só a
+  // tarefa que começa ou vence naquele dia E foi confirmada no WhatsApp
+  // ("Sim, proposital") — ou é do Ladies Weekend. Fora isso, no fds a agenda
+  // não cria nem move; a segunda resolve.
+  const hojeFds = pjFimDeSemana(hoje);
+  const fdsOk = it => pjFdsConfirmado(it.no, estado.fds) || pjEhLW(it.no, it.pais);
+  const diaFdsValido = (it, dia) => fdsOk(it) && (dia === it.no.startDate || dia === it.no.endDate);
   for (const it of alvo) {
     const id = it.no.id, fim = it.no.endDate, atrasada = hoje > fim;
     const cor = atrasada ? "🔴" : "🟡";
-    const due = atrasada ? hoje : (hoje === fim ? fim : null);
+    let due = atrasada ? hoje : (hoje === fim ? fim : null);
+    const podeHoje = !hojeFds || diaFdsValido(it, hoje);
+    if (due && !podeHoje) due = null;
     const titulo = pjTituloAgenda(it, estado, cor);
     let a = estado.agenda[id];
     if (a && a.apagada) { if (a.fim === fim) continue; a = null; }
+    // Limpeza: ficou num sábado/domingo sem ser tarefa de fds confirmada → vem pra hoje (dia útil).
+    if (a && !due && !hojeFds && a.due && pjFimDeSemana(a.due) && !diaFdsValido(it, a.due)) due = hoje;
     if (!a) {
+      if (!podeHoje) continue;
       const r = await gApi(env, conexao, L, { method: "POST", json: { title: titulo, notes: pjNotasAgenda(it, estado), due: pjDue(hoje) } });
       if (r.ok && r.dados && r.dados.id) { estado.agenda[id] = { g: r.dados.id, due: hoje, cor, titulo, fim, v2: true }; mudou = true; }
       continue;

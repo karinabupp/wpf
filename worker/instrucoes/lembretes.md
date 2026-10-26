@@ -33,9 +33,10 @@
   amarelo ou atrasado, uma vez só.
 - **Fim de semana (20/10):** só tarefa que vence (ou começa) naquele dia.
   E-mail, Slack e reunião ficam pra segunda.
-- **Prazo em sábado/domingo** (fora do Ladies Weekend): pergunta uma vez
-  "é proposital?" com [Sim, proposital] [Mudar prazo]. Se o Fim mudar e cair
-  de novo em fim de semana, pergunta de novo.
+- **Início ou Fim em sábado/domingo** (fora do Ladies Weekend; Início
+  desde 26/10): pergunta "é proposital?" com [Sim, proposital] [Mudar prazo],
+  pra garantir que não foi erro de quem colocou. Se as datas mudarem e
+  caírem de novo em fim de semana, pergunta de novo.
 
 ## Como ele manda (Karina, 20/10)
 
@@ -138,6 +139,12 @@
   finaliza no máximo UMA linha da Dash (Karina, 14/10).
 - No último dia, vai pro dia do Fim. Passou e não foi concluída: vira 🔴 e
   vem pra data de hoje, todo dia.
+- **Fim de semana (Karina, 24/10 e 26/10):** nada vai pra sábado/domingo,
+  só a tarefa que começa ou vence naquele dia **e já foi confirmada no
+  WhatsApp** ("Sim, proposital"), ou é do Ladies Weekend. No fim de semana a
+  agenda não cria nem move o resto (a 🔴 não vem pra "hoje"); segunda
+  resolve. O que estiver num sábado/domingo sem essa confirmação vem pra
+  hoje no primeiro dia útil.
 - **Concluir na agenda = Finalizado na Projetos** (em até 1 hora).
   Finalizada na Dash = concluída na agenda. Cancelada, passada pra outra
   pessoa ou com prazo afastado: sai da agenda.

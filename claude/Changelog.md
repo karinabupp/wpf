@@ -12,6 +12,50 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-26 (2ª) — Agenda sem fim de semana + "é proposital?" também pro Início
+
+Pedido da Karina às 9h48, com print: 7 tarefas na agenda dela no domingo
+25/10. Ela já tinha reclamado no sábado (24/10), mas a correção não tinha
+sido feita. As regras saíram às 9h49 e 9h51 ("pode fazer e não bombardeia
+ninguém de mensagem agora").
+
+- **Causa:** a sincronização da agenda (`pjAgendaSync`) roda todo dia. Ela
+  cria a 🟡 no dia em que roda e puxa a 🔴 pra "hoje", inclusive no sábado e
+  no domingo. A 🟡 ficava onde foi criada.
+- **`worker/whatsapp-bridge.js`, `pjAgendaSync`:**
+  - **Fim de semana:** só vai pro sábado/domingo a tarefa que começa ou vence
+    naquele dia **e já foi confirmada no WhatsApp** ("Sim, proposital"), ou é
+    do Ladies Weekend.
+  - **No fim de semana:** a agenda não cria nem move o resto. A 🟡 entra na
+    segunda e a 🔴 espera a segunda. Concluir na agenda continua finalizando
+    na Dash.
+  - **Limpeza:** o que estiver num sábado/domingo sem essa confirmação vem
+    pra hoje no primeiro dia útil (as 7 do dia 25/10 vão pra hoje, na
+    próxima rodada da agenda).
+- **Pergunta "é proposital?":**
+  - Agora vale também pra tarefa que **começa** no sábado/domingo. Antes,
+    era só pra que vence (`pjItensFds`, `pjFraseFds`).
+  - A confirmação fica guardada pelas datas (`pjChaveFds`). As confirmações
+    antigas (só Fim) continuam valendo.
+  - Texto: "Começa sábado 31/10, num fim de semana. É proposital?".
+  - **Fim de semana no WhatsApp:** continua igual. Manda a tarefa que começa
+    ou vence naquele dia.
+- **Sem mensagens agora:** a pergunta só entra no plano da manhã (9h25). Com
+  os dados reais de hoje, nenhuma tarefa aberta tem Início ou Fim futuro em
+  fim de semana, então ninguém recebe pergunta nova. A limpeza da agenda não
+  manda WhatsApp.
+- **`worker/instrucoes/lembretes.md`:** regras atualizadas.
+- **Testes:** 9 cenários com Google simulado, todos passaram.
+  - **Domingo:** só a fds confirmada é criada; a atrasada não vai pro
+    domingo; a amarela e a fds sem confirmar esperam.
+  - **Segunda:** a do domingo vem pra hoje e a amarela entra.
+  - **Sábado:** a confirmada fica no sábado e a amarela comum não entra.
+  - **Pergunta:** vale pra quem começa ou vence no fds; as confirmadas não
+    voltam.
+  - Os 10 do bom dia também passaram.
+
+---
+
 ## 2026-10-26 — Carinha: sem bom dia das 9h25 (só quando há assunto)
 
 Pedido da Karina às 9h27, com print: dois bons dias iguais hoje (8h05 e
