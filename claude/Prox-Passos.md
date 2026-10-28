@@ -15,15 +15,22 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Carinha pergunta responsável e prazo no WhatsApp (Karina, 28/10)**
-  - **Regra da Karina:** responsável e prazo de tarefa nova: "sempre
-    pergunta pra mim no wpp".
-  - **Hoje:** as 10 tarefas de "Fontes dos membros" (Social Calendar)
-    estão sem responsável e sem Fim.
-  - **A fazer:** propor como o Carinha pergunta (uma mensagem com a lista,
-    botões de pessoa e de data) e gravar a resposta na Projetos. Seguir as
-    regras de envio do `lembretes.md` (máx. 2 seguidas, janela de 24h).
-  - *Onde:* `worker/whatsapp-bridge.js`.
+- [ ] **Conferir a 1ª rodada do Agente de Eventos (29/10, 7h42)**
+  - Ver o resumo da tarefa agendada e o diário
+    (`wpf_agente_config.agente_eventos_log`).
+  - Conferir na Dash:
+    - eventos "Novo" sem duplicata;
+    - tag Cita WPF;
+    - tarefas novas em Social Calendar (Fontes dos membros / Membros sem
+      eventos).
+  - Conferir o recado no WhatsApp.
+  - Se o agente não conseguir anexar o repo ou usar o Supabase na nuvem,
+    ajustar o prompt da tarefa agendada.
+  - **Também conferir:** a pergunta de responsável/prazo do Carinha sobre
+    as 11 tarefas de Fontes dos membros (sai numa rodada de dia útil com a
+    janela aberta).
+  - *Onde:* tarefa agendada `trig_012pH6ydvuVAmX4mYAKAn3wJ`;
+    `worker/instrucoes/agente-eventos.md`.
   - *Aberto em:* 2026-10-28
 
 - [ ] **Social Calendar — Membros: pendências (28/10)**
@@ -32,8 +39,8 @@ reconstruir o raciocínio.
   - **Incompletos, sem tarefa por enquanto (Karina):** México, Mongólia e
     Zâmbia (só Facebook), Nigéria e África do Sul (só site), Japão (sem
     Instagram) etc.
-  - **Filipinas** (Metro Card Club, membro observador no site da WPF):
-    perguntei se entra e não houve resposta.
+  - **Filipinas e Malásia:** entraram (28/10). Malásia ganhou tarefa
+    (sem site/redes).
   - **Site da WPF:** a página da França mostra o Facebook da Estônia;
     corrigir para facebook.com/FFPAsso. A página da Tailândia não lista o
     site e o Facebook da TPA (thaipokerassociation.com,

@@ -12,6 +12,71 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (7ª) — Agente de Eventos + Carinha pergunta dono/prazo + tag "Cita WPF" + Filipinas e Malásia
+
+Pedidos da Karina às 14h20 e 14h28. Aprovações: Carinha perguntar no
+WhatsApp ("1 pode"); agente como tarefa agendada ("1 aprovo"); eventos
+gravados direto como Novo ("2 direto"); Filipinas e Malásia entram.
+
+- **Supabase (dados):**
+  - `socialCalendar.membros` passou de 43 para **45**.
+    - **Philippines:** Metro Card Club, membro observador; site,
+      Instagram @themetrocardclub, Facebook, RVS Cup.
+    - **Malaysia:** Malaysia Poker Federation, Rep Simon Lim; sem site e
+      sem redes achados.
+  - **Projetos:** nova tarefa **@Malaysia** (`pj-sc-f-malaysia`) em Fontes
+    dos membros. Agora são **11 tarefas**.
+- **`worker/whatsapp-bridge.js` (Carinha), "sempre pergunta pra mim no
+  wpp":**
+  - `pjSemDono` acha tarefa criada por agente/Claude (1º Histórico com autor
+    Claude/Agente e "Criou a tarefa…"), aberta e sem ninguém nela nem
+    dentro, agrupada pela linha de cima.
+  - Novo candidato `sem_dono` no `pjDespachar`: só admin, dia útil, um
+    grupo por vez, respeita trava e janela.
+  - **Fluxo:**
+    1. "Entraram N tarefas novas sem responsável e sem prazo em …: A, B e
+       C. Quem fica com elas?" Botões: as pessoas do agente e
+       "Pergunte depois" (`PJ_OP_PERGUNTE_DEPOIS`, porque "Depois" já é
+       das tarefas).
+    2. "Até quando?" (Em 1 semana / Em 2 semanas / Fim do mês / data
+       digitada; fim de semana volta pra sexta, `pjDataPrazoDono`).
+    3. Resumo + Sim/Não.
+  - `pjDefinirDono` grava a pessoa na tarefa e em tudo dentro, o Fim na
+    última ponta e o Histórico.
+  - Sem resposta: pergunta de novo em 2 dias (`estado.semDono`).
+  - Pendências novas: `pj_dono_espera` → `pj_dono_prazo` → `pj_dono`.
+  - Regra em `worker/instrucoes/lembretes.md`.
+  - **Testes:** 15 cenários com WhatsApp/banco simulados.
+    - Acha só a de agente, aberta e sem dono.
+    - Datas (Fim do mês num sábado → sexta).
+    - Grava pessoa, Fim e Histórico sem mexer em quem já tinha dono.
+    - Fluxo pessoa → prazo → Sim → Feito; "Pergunte depois"; outro
+      assunto segue a conversa.
+- **`index.html`, Social Calendar:**
+  - **Tag "Cita WPF"** (`citaWpf`): etiqueta roxa "Cita WPF" nos cards da
+    semana e "WPF" antes do nome no mês e na lista do dia.
+  - Coluna na Planilha (checkbox) e caixa na janela do evento.
+  - Campos novos `origem` e `fonte` (de onde veio; coluna Fonte na
+    Planilha).
+  - **Testes:** 57 verificações, sem erro de JavaScript (4 novas da tag).
+- **Agente de Eventos:**
+  - **Instrução:** `worker/instrucoes/agente-eventos.md`.
+    - Missão e fontes; janela de 120 dias.
+    - Regras por membro (BSOP, TPA, Battle of Malta).
+    - Quem cita a WPF entra mesmo sem ser membro.
+    - Não duplica.
+    - Tarefas "Fontes dos membros" e "Membros sem eventos" (sem evento em
+      60 dias) só quando não existe aberta.
+    - Autor "Agente", pra o Carinha perguntar dono/prazo.
+    - Resumo no WhatsApp como recado.
+    - Diário em `wpf_agente_config.agente_eventos_log`.
+    - SQL atômico; máx. ~60 buscas.
+  - **Tarefa agendada "Agente de Eventos"** (`trig_012pH6ydvuVAmX4mYAKAn3wJ`):
+    segunda e quinta às 7h42 (São Paulo), na nuvem, modo automático, com
+    push. Primeira rodada: 29/10.
+
+---
+
 ## 2026-10-28 (6ª) — Social Calendar: visão Membros + 43 membros + 10 tarefas na Projetos
 
 Pedido da Karina às 13h26: preencher, país por país, quem é a

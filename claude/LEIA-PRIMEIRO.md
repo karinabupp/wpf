@@ -116,6 +116,13 @@ dois arquivos antes de propor qualquer coisa**:
   do membro em worldpokerfederation.org/member-nations (Karina, 28/10). A Dash agora é Projetos · CRM · Social Calendar (WPF)
   · Settings (Karina) · Meu Google.
 
+- **Agente de Eventos (28/10):** tarefa agendada (seg e qui, 7h42) que segue
+  **`worker/instrucoes/agente-eventos.md`**. Procura os eventos dos membros e
+  quem cita a WPF, grava como "Novo" no Social Calendar (tag Cita WPF), cria
+  as tarefas que faltam (autor "Agente") e manda o resumo pro WhatsApp da
+  Karina. **Tarefa de agente/Claude sem dono:** o Carinha pergunta à Karina
+  quem fica e até quando (regra em `lembretes.md`).
+
 - **REGRA — mãe herda das filhas na Projetos (Karina, 20/10):** linha com
   algo dentro tem status, datas e "Finalizado em" calculados (não editáveis):
   todas canceladas → Cancelado; todas finalizadas → Finalizado; tudo o que
