@@ -3088,6 +3088,64 @@ function pjJuntarSlack(avisos) {
   const partes = Object.values(porCanal).map(ds => ds.join(" || "));
   return { chave: ord[ord.length - 1].chave, descricao: `Slack, tudo junto numa mensagem só (separe por canal, do mais antigo pro mais novo): ${partes.join(" ### ")}` };
 }
+// ── Sem responsável (Karina, 28/10: "sempre pergunta pra mim no wpp") ──
+// Tarefa criada por agente/Claude (1ª linha do Histórico com autor "Claude" ou
+// "Agente", texto "Criou a tarefa…"), aberta e sem ninguém nela nem dentro:
+// o Carinha pergunta à admin QUEM fica e ATÉ QUANDO — uma mensagem por grupo
+// (a linha de cima). Sem resposta: pergunta de novo 2 dias depois.
+const PJ_AUTORES_AGENTE = ["Claude", "Agente"];
+const PJ_OP_PRAZO_DONO = ["Em 1 semana", "Em 2 semanas", "Fim do mês"];
+const PJ_SEM_DONO_REPETE_DIAS = 2;
+const PJ_OP_PERGUNTE_DEPOIS = "Pergunte depois"; // "Depois" já é o botão das tarefas
+function pjTemDono(n) { return (n.assignees || []).length > 0 || (n.subtasks || []).some(x => x && typeof x === "object" && pjTemDono(x)); }
+function pjSemDono(dados) {
+  const grupos = {};
+  pjAchatar(dados).forEach(x => {
+    const h = (x.no.historico || [])[0];
+    if (!h || !PJ_AUTORES_AGENTE.includes(h.autor) || !/^Criou a tarefa/.test(h.texto || "")) return;
+    if (!pjAberto(x.no.status) || x.pais.some(p => p.status === "cancelado") || pjTemDono(x.no)) return;
+    const pai = x.pais[x.pais.length - 1];
+    if (!pai || !pai.id) return;
+    const g = grupos[pai.id] || (grupos[pai.id] = { id: pai.id, nome: pai.nome, contexto: x.pais.map(p => p.nome).join(" › "), org: x.org, itens: [] });
+    g.itens.push({ id: x.no.id, nome: x.no.nome });
+  });
+  return Object.values(grupos);
+}
+async function pjNomesEquipe(env) {
+  const r = await sb(env, `${TAB_PESSOAS}?select=nome_tasks`);
+  return [...new Set(((r.ok && r.dados) || []).map(p => p.nome_tasks).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR")).slice(0, 9);
+}
+// Botões de prazo → data (dia útil: sábado/domingo voltam pra sexta).
+function pjDataPrazoDono(txt, hoje) {
+  const t = normalizar(txt);
+  let d = null;
+  if (t === "em 1 semana") d = somaDias(hoje, 7);
+  else if (t === "em 2 semanas") d = somaDias(hoje, 14);
+  else if (t === "fim do mes") { const [y, m] = hoje.split("-").map(Number); d = new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10); }
+  if (!d) return pjLerData(txt, hoje);
+  while (pjFimDeSemana(d)) d = somaDias(d, -1);
+  return d;
+}
+const pjListaNomes = itens => { const n = itens.map(i => String(i.nome || "").replace(/^@/, "")); return n.length <= 1 ? n.join("") : n.slice(0, -1).join(", ") + " e " + n[n.length - 1]; };
+// Grava: a pessoa em cada tarefa do grupo e em tudo dentro dela; o Fim na
+// última ponta de cada tarefa (a mãe calcula o dela pelas filhas).
+function pjDefinirDono(ids, quem, fim, origem) {
+  return ({ no }) => {
+    let mexeu = 0;
+    (no.subtasks || []).forEach(t => {
+      if (!t || !ids.includes(t.id) || pjTemDono(t)) return;
+      (function poe(n) { n.assignees = [quem]; (n.subtasks || []).forEach(x => x && typeof x === "object" && poe(x)); })(t);
+      const pontas = []; (function acha(n) { const f = (n.subtasks || []).filter(x => x && typeof x === "object"); if (!f.length) pontas.push(n); else f.forEach(acha); })(t);
+      const ultima = pontas[pontas.length - 1];
+      if (fim && ultima) ultima.endDate = fim;
+      pjHistorico(t, `Responsável: ${quem}${fim ? ` · Fim: ${pjDataCompleta(fim)}` : ""} — pelo Carinha (${origem})`);
+      mexeu++;
+    });
+    if (!mexeu) return { nada: true };
+    return { depois: { responsavel: quem, endDate: fim, tarefas: mexeu } };
+  };
+}
+
 async function pjDespachar(env, pessoa, opts) {
   opts = opts || {};
   const tel = pessoa.telefone, agoraMs = opts.agoraMs || Date.now(), hoje = hojeSP();
@@ -3146,6 +3204,13 @@ async function pjDespachar(env, pessoa, opts) {
     if (slacks.length) cands.push({ tipo: "slack", avisos: slacks, pri: -1, urgente: true });
     ext.filter(a => !a.chave.startsWith("slack|")).forEach(a => { const t = tipoDaChave(a); cands.push({ tipo: "externo", aviso: a, pri: t === "email_muito" ? 2 : t === "email" ? 4 : 5 }); });
   }
+  // Tarefa de agente sem responsável: só pra admin, dia útil, um grupo por vez.
+  let semDonoMudou = false;
+  if (pessoa.admin && !fimDeSemana && !opts.soTarefas) {
+    estado.semDono = estado.semDono || {};
+    const g = pjSemDono(pj.dados).find(x => !estado.semDono[x.id] || pjDif(estado.semDono[x.id], hoje) >= PJ_SEM_DONO_REPETE_DIAS);
+    if (g) cands.push({ tipo: "sem_dono", grupo: g, pri: 2 });
+  }
   cands.sort((a, b) => a.pri - b.pri);
   // Fechou um assunto: vem só a próxima tarefa (e o que é muito importante);
   // e-mail comum e Slack esperam a pessoa ficar quieta (rodada), pra não
@@ -3198,6 +3263,14 @@ async function pjDespachar(env, pessoa, opts) {
       await enviarComOpcoes(env, tel, msg.texto, msg.opcoes, { proativa: true, tipo_proativa: cand.urgente ? "aviso_urgente" : "aviso" });
       c.reunioesEnviadas = true;
       foi = true;
+    } else if (cand.tipo === "sem_dono") {
+      const g = cand.grupo, n = g.itens.length;
+      const pessoas = await pjNomesEquipe(env);
+      const texto = `${abre()}Entr${n === 1 ? "ou 1 tarefa nova" : `aram ${n} tarefas novas`} sem responsável e sem prazo em *${g.contexto}*${g.org === "cbth" ? " (CBTH)" : ""}: ${pjListaNomes(g.itens)}.\nQuem fica com ${n === 1 ? "ela" : "elas"}?`;
+      await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { tipo: "pj_dono_espera", id: g.id, ids: g.itens.map(i => i.id), n }, resumo: corta(texto, 500) }] });
+      await enviarComOpcoes(env, tel, texto, pessoas.concat(PJ_OP_PERGUNTE_DEPOIS), proativa ? { proativa: true, tipo_proativa: "aviso" } : {});
+      estado.semDono[g.id] = hoje; semDonoMudou = true;
+      foi = true;
     } else if (cand.tipo === "slack") {
       const t = c.saudou ? "aviso" : "checkin";
       const junto = pjJuntarSlack(cand.avisos);
@@ -3210,8 +3283,8 @@ async function pjDespachar(env, pessoa, opts) {
     }
     if (foi) { enviadas++; if (!cand.urgente) livres--; }
   }
-  if (enviadas || JSON.stringify([c, estado.textos]) !== antes)
-    await pjSalvarParte(env, tel, e => { e.conv = c; Object.assign(e.textos, estado.textos); if (estado.conhecidos) e.conhecidos = estado.conhecidos; });
+  if (enviadas || semDonoMudou || JSON.stringify([c, estado.textos]) !== antes)
+    await pjSalvarParte(env, tel, e => { e.conv = c; Object.assign(e.textos, estado.textos); if (estado.conhecidos) e.conhecidos = estado.conhecidos; if (semDonoMudou) e.semDono = Object.assign(e.semDono || {}, estado.semDono); });
   return { enviadas, janela: true, livres, trava };
 }
 
@@ -3633,6 +3706,32 @@ async function pjTratarPendencia(env, pessoa, tel, pend, texto) {
     await enviarComOpcoes(env, tel, resumo, ["Sim", "Não"]);
     return true;
   }
+  // Sem responsável (28/10): quem → até quando → confirma.
+  if (a.tipo === "pj_dono_espera") {
+    const t = normalizar(texto);
+    if (t === normalizar(PJ_OP_PERGUNTE_DEPOIS)) { await marcarPendencia(env, pend.id, "cancelada"); await enviarTexto(env, tel, `Ok, pergunto de novo em ${PJ_SEM_DONO_REPETE_DIAS} dias.`); return true; }
+    const pessoas = await pjNomesEquipe(env);
+    const quem = pessoas.find(n => normalizar(n) === t || normalizar(primeiroNome(n)) === t);
+    if (!quem) { await marcarPendencia(env, pend.id, "cancelada"); return false; } // falou de outra coisa
+    await marcarPendencia(env, pend.id, "confirmada");
+    const pergunta = `${primeiroNome(quem)} fica com ${a.n === 1 ? "ela" : `as ${a.n}`}. Até quando?`;
+    await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { tipo: "pj_dono_prazo", id: a.id, ids: a.ids, n: a.n, quem }, resumo: pergunta }] });
+    await enviarComOpcoes(env, tel, pergunta, PJ_OP_PRAZO_DONO);
+    return true;
+  }
+  if (a.tipo === "pj_dono_prazo") {
+    const data = pjDataPrazoDono(texto, hoje);
+    if (!data) {
+      if (/\d/.test(texto)) { await enviarComOpcoes(env, tel, "Não entendi a data. Me mande assim: 20/11.", PJ_OP_PRAZO_DONO); return true; }
+      await marcarPendencia(env, pend.id, "cancelada");
+      return false;
+    }
+    await marcarPendencia(env, pend.id, "confirmada");
+    const resumo = `*${a.quem}* fica com ${a.n === 1 ? "a tarefa" : `as ${a.n} tarefas`} de *${loc.no.nome}*, com prazo *${pjDataLonga(data)}*.${pjAvisoFds(data, loc.no, loc.pais)}\nGravo?`;
+    await sb(env, TAB_PEND, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, acao: { tipo: "pj_dono", id: a.id, ids: a.ids, n: a.n, quem: a.quem, endDate: data }, resumo }] });
+    await enviarComOpcoes(env, tel, resumo, ["Sim", "Não"]);
+    return true;
+  }
   if (!ehSim(texto)) { await marcarPendencia(env, pend.id, "cancelada"); return false; }
   await marcarPendencia(env, pend.id, "confirmada");
   const origem = `WhatsApp, ${primeiroNome(pessoa.nome_tasks)}`;
@@ -3642,6 +3741,7 @@ async function pjTratarPendencia(env, pessoa, tel, pend, texto) {
   else if (a.tipo === "pj_nova") r = await pjAlterar(env, a.id, pjCriarDepois(a.nome, a.endDate, pessoa.nome_tasks, origem), tel, pessoa.nome_tasks, "pj_nova");
   else if (a.tipo === "pj_edit") r = await pjAlterar(env, a.id, pjAplicarEdicao(a.mud || {}, origem), tel, pessoa.nome_tasks, "pj_edit");
   else if (a.tipo === "pj_criar") r = await pjAlterar(env, a.id, pjCriarDentroOuDepois(a, origem), tel, pessoa.nome_tasks, "pj_criar");
+  else if (a.tipo === "pj_dono") r = await pjAlterar(env, a.id, pjDefinirDono(a.ids || [], a.quem, a.endDate, origem), tel, pessoa.nome_tasks, "pj_dono");
   else r = { erro: "pedido desconhecido" };
   if (!r.ok) { await marcarPendencia(env, pend.id, "falhou"); await enviarTexto(env, tel, `Não consegui gravar: ${r.erro}. Nada foi mudado.`); return true; }
   // Depois de resolver (Karina, 20/10): "Feito" (com a opção de criar a

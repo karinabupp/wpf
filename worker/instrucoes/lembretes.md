@@ -154,3 +154,25 @@
 - Apagada na agenda pela pessoa: não volta, a não ser que o Fim mude.
 - Exige a permissão "Tarefas" na conexão do Google (reconectar em
   google.html) e a Google Tasks API ligada no projeto Carinha.
+
+## Tarefa sem responsável (Karina, 28/10: "sempre pergunta pra mim no wpp")
+
+- Vale pra tarefa **criada por agente/Claude**: a 1ª linha do Histórico tem
+  autor "Claude" ou "Agente" e o texto "Criou a tarefa…". A tarefa está
+  aberta e sem ninguém nela nem dentro.
+- **Só pra admin (Karina), dia útil, um grupo por mensagem.** O grupo é a
+  linha de cima, ex.: "Fontes dos membros".
+- A mensagem diz "Entraram N tarefas novas sem responsável e sem prazo em
+  *contexto*: A, B e C. Quem fica com elas?" Os botões são as pessoas do
+  agente e "Pergunte depois".
+- Depois vem "Até quando?", com Em 1 semana · Em 2 semanas · Fim do mês, ou
+  uma data digitada. Sábado e domingo voltam pra sexta.
+- Por fim, o resumo e "Gravo?" Sim/Não.
+- **Grava:**
+  - a pessoa na tarefa e em tudo dentro;
+  - o Fim na última ponta de cada tarefa (a mãe calcula);
+  - o Histórico "Responsável: X · Fim: dd/mm — pelo Carinha".
+- Sem resposta ou "Pergunte depois": pergunta de novo 2 dias depois.
+- Respeita a trava (máx. 2 seguidas em 4h) e a janela de 24h, como as
+  tarefas.
+
