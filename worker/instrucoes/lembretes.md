@@ -133,21 +133,19 @@
 
 ## Agenda (Google Tasks)
 
-- Entra SÓ a ação (linha sem nada dentro) aberta da pessoa que está em
-  deadline ou atrasada (Fim − 3 em diante), com 🟡. As linhas de cima vão
-  só na descrição ("Está dentro de: …, na entrega …"), com o link. Concluir
-  finaliza no máximo UMA linha da Dash (Karina, 14/10).
-- No último dia, vai pro dia do Fim. Passou e não foi concluída: vira 🔴 e
-  vem pra data de hoje, todo dia.
-- **Fim de semana (Karina, 24/10 e 26/10):** nada vai pra sábado/domingo,
-  só a tarefa que começa ou vence naquele dia **e já foi confirmada no
-  WhatsApp** ("Sim, proposital"), ou é do Ladies Weekend. No fim de semana a
-  agenda não cria nem move o resto (a 🔴 não vem pra "hoje"); segunda
-  resolve. O que estiver num sábado/domingo sem essa confirmação vem pra
-  hoje no primeiro dia útil.
+- Entra SÓ a ação (linha sem nada dentro) aberta da pessoa. As linhas de
+  cima vão só na descrição ("Está dentro de: …, na entrega …"), com o link.
+  Concluir finaliza no máximo UMA linha da Dash (Karina, 14/10).
+- **Só no dia do Fim (Karina, 28/10):** a tarefa entra na agenda no dia do
+  Fim e fica nesse dia. Nada entra antes (acabou a 🟡 de Fim − 3) e a
+  atrasada não vem pra "hoje" (acabou a 🔴). Título sem bolinha.
+- **Fim no sábado/domingo (Karina, 28/10):** vai pra segunda depois, a não
+  ser que já tenha sido confirmado no WhatsApp ("Sim, proposital") ou seja
+  do Ladies Weekend — aí fica no sábado/domingo.
+- Mudou o Fim na Dash: a tarefa muda de dia na agenda junto.
 - **Concluir na agenda = Finalizado na Projetos** (em até 1 hora).
-  Finalizada na Dash = concluída na agenda. Cancelada, passada pra outra
-  pessoa ou com prazo afastado: sai da agenda.
+  Finalizada na Dash = concluída na agenda. Cancelada ou passada pra outra
+  pessoa: sai da agenda.
 - Apagada na agenda pela pessoa: não volta, a não ser que o Fim mude.
 - Exige a permissão "Tarefas" na conexão do Google (reconectar em
   google.html) e a Google Tasks API ligada no projeto Carinha.

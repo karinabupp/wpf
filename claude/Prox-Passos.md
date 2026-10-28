@@ -15,28 +15,22 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Agenda do Google repetindo tarefas (proposta de 22/10; Karina: "esquece por agora")**
-  Diagnóstico de 22/10:
-  - **Atrasada volta todo dia:** a 🔴 vai pra hoje todo dia (regra de 14/10).
-  - **A 🟡 aparece em dois dias:** no dia em que entra (Fim − 3) e de novo no
-    dia do Fim.
-  - **Nomes iguais sem contexto:** ex.: "Solicitar fotos e vídeos do evento",
-    uma do TDA Ásia e outra da Asia Nations Cup.
-  - **Falha que cria cópias:** `pjAbrirDia`, `pjRodada` e `pjTratarBotao`
-    gravam o estado inteiro (`pjSalvarEstado`). Se a agenda sincronizou nesse
-    meio tempo, o registro dela é perdido e, na rodada seguinte, a tarefa é
-    criada de novo no Google.
-  - **Agenda da Isabela parada:** o registro dela não muda desde 14/10 (31
-    itens, como 13 "Enviar as fotos da abertura"). A sincronização dela está
-    falhando.
-
-  Proposta (a–e, esperando o OK da Karina):
-  - a) Entrar só no dia do Fim.
-  - b) Atrasada: parada no dia do Fim ou de volta a cada 3 dias (escolha da
-    Karina).
-  - c) Título com contexto, no formato do agrupado de 23/10 (`pjGrupoContexto`).
-  - d) Gravar só uma parte do estado também na conversa.
-  - e) Limpar as cópias e investigar a sincronização da Isabela.
+- [ ] **Agenda do Google repetindo tarefas (proposta de 22/10)**
+  **28/10 — feito (a + b):** a tarefa entra só no dia do Fim e fica lá;
+  sem 🟡/🔴; fds sem confirmação → segunda depois (ver Changelog 28/10).
+  Ainda em aberto, do diagnóstico de 22/10:
+  - **c) Nomes iguais sem contexto:** ex.: "Solicitar fotos e vídeos do
+    evento", uma do TDA Ásia e outra da Asia Nations Cup. Proposta: título
+    no formato do agrupado de 23/10 (`pjGrupoContexto`).
+  - **d) Falha que cria cópias:** `pjAbrirDia`, `pjRodada` e
+    `pjTratarBotao` gravam o estado inteiro (`pjSalvarEstado`). Se a agenda
+    sincronizou nesse meio tempo, o registro dela é perdido e a tarefa é
+    criada de novo no Google. Proposta: gravar só uma parte do estado.
+  - **e) Agenda da Isabela parada:** o registro dela não muda desde 14/10
+    (31 itens, como 13 "Enviar as fotos da abertura"). Limpar as cópias e
+    investigar a sincronização dela.
+  - **Conferir:** depois da próxima rodada, olhar a agenda da Karina —
+    o dia 28/10 deve ter só o que vence hoje.
   - *Aberto em:* 2026-10-22
 
 - [ ] **Canário: travar também no banco (ideia, 21/10)** — hoje só a Dash

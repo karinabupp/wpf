@@ -12,6 +12,45 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 — Agenda: tarefa só no dia do Fim, sem 🟡/🔴
+
+Pedido da Karina às 9h52, com print do dia 28/10 lotado de 🔴 e 🟡: "quero
+APENAS crie task na agenda no último dia de entrega da task. SÓ." Ela
+aprovou às 11h35: tirar as bolinhas e, se o Fim cair em sábado/domingo sem
+confirmação, ir pra segunda depois.
+
+- **Causa:** a 🟡 entrava 3 dias antes do Fim, no dia em que era criada, e
+  a 🔴 atrasada era puxada pra hoje todo dia.
+- **`worker/whatsapp-bridge.js`, `pjAgendaSync` / `pjParaAgenda` /
+  `pjTituloAgenda` / nova `pjDiaAgenda`:**
+  - A tarefa entra na agenda **só no dia do Fim** e fica nesse dia
+    (atrasada não muda de dia).
+  - Título sem 🟡/🔴 (só o texto, com "· CBTH" quando for da CBTH).
+  - Fim no sábado/domingo sem "Sim, proposital" (e fora do Ladies Weekend)
+    → segunda depois. Confirmado ou LW → fica no fds.
+  - **Limpeza automática na próxima rodada (:05/:35):** o que já estava na
+    agenda vai pro dia certo. As 🔴 voltam pro dia do Fim; as 🟡 adiantadas
+    vão pro Fim, e as bolinhas saem do título. Nada é apagado.
+  - Prazo afastado na Dash: a tarefa já na agenda muda de dia junto (antes
+    saía da agenda).
+  - Continua igual: concluir na agenda = Finalizado na Dash; finalizada na
+    Dash = concluída; cancelada/outra pessoa = sai; apagada pela pessoa não
+    volta, a não ser que o Fim mude.
+  - Texto do comando `agenda normal` atualizado.
+- **Não mexido:** "Comitê Feminino" e "Federações" na agenda da Karina não
+  foram criados pelo Carinha. Nada muda no WhatsApp.
+- **`worker/instrucoes/lembretes.md`:** seção Agenda reescrita.
+- **Testes:** 4 cenários com Google simulado, todos passaram.
+  - **Qua 28/10:** a que vence hoje entra, a futura não entra, a 🔴 volta
+    pro Fim, a 🟡 adiantada vai pro Fim, a de domingo sem confirmação vai
+    pra segunda, a finalizada é concluída e a apagada não volta.
+  - **Sáb 31/10:** LW entra no sábado; fds sem confirmação espera.
+  - **Seg 02/11:** fds sem confirmação entra na segunda; a confirmada fica
+    no domingo.
+  - **Qui 29/10:** nada vence, a agenda não mexe.
+
+---
+
 ## 2026-10-26 (2ª) — Agenda sem fim de semana + "é proposital?" também pro Início
 
 Pedido da Karina às 9h48, com print: 7 tarefas na agenda dela no domingo
