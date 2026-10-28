@@ -12,6 +12,71 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (6ª) — Social Calendar: visão Membros + 43 membros + 10 tarefas na Projetos
+
+Pedido da Karina às 13h26: preencher, país por país, quem é a
+associação/instituição de cada membro federado, com site e redes. Isso é a
+base pro robô (agente) buscar os últimos eventos nesses links e nas
+principais mídias de poker. Ela conectou o **Pipedrive** às 13h32. A
+pesquisa foi feita com ela confirmando lote por lote (13h36–14h02).
+
+- **Fontes usadas:**
+  - Pipedrive: organizações, deals do pipeline WPF e pessoas;
+  - CRM da Dash: quadro Federações, status "Membro";
+  - **páginas de membro no site da WPF** (worldpokerfederation.org/member-nations, regra da Karina: "sempre olha no site da WPF");
+  - sites das próprias federações e web.
+- **Decisões da Karina:**
+  - Argentina: o CAP é o circuito da federação (Luis Losada).
+  - Brasil: CBTH não tem Facebook; os eventos são os do **BSOP**.
+  - Itália: o mesmo pessoal do **Battle of Malta**.
+  - Tailândia: principalmente os eventos da TPA; torneio de outro
+    organizador só se a TPA reconhecer como oficial.
+  - Bulgária: **Smart Poker Tour**, Rep Simeon.
+  - **Israel e Armênia entram** (no CRM não estão como Membro).
+  - Dos 11 sem página no site da WPF, só a Bulgária agora. Os outros 10
+    viram tarefa.
+- **`index.html`, bloco "SOCIAL CALENDAR":**
+  - 4ª visão **Membros** (Mês | Semana | Planilha | Membros). Uma linha por
+    membro: os guardados + quem é "Membro" no quadro Federações do CRM
+    (`membros2Bridge.paisesMembro`, novo).
+  - Colunas: Associação · Circuito/evento oficial · Website · Instagram ·
+    Facebook · Rep · Observações · Situação. Situação: ✅ Completo
+    (associação + algum link + Rep) ou ⚠️ Falta info, com "Tarefa ↗" pra
+    linha da Projetos.
+  - Edição na célula; busca.
+  - **Preenchimento automático:** ao escolher o membro num evento
+    (planilha ou janela), associação, site, redes e Rep vêm da lista de
+    Membros (só nos campos vazios).
+  - Seção `socialCalendar` agora é `{ eventos, membros }`.
+- **Supabase (dados):**
+  - **`socialCalendar`** criada com **43 membros**: 33 com dados (31
+    federados + Israel + Armênia) e 10 vazios, cada um com `tarefaInfoId`.
+  - **`projetos`** (backup antes: `bkp_projetos_2026-10-28_antes_social_calendar`):
+    nova entrega no fim **Social Calendar** (`pj-sc`, frente Marketing) ›
+    etapa **Fontes dos membros** (`pj-sc-fontes`) › 10 tarefas @Canada,
+    @Cyprus, @Germany, @India, @Kazakhstan, @Pakistan, @Poland, @Puerto
+    Rico, @Romania e @Uganda (`pj-sc-f-<país>`, tag do país).
+  - Cada tarefa tem 4 subtarefas: Encontrar a associação ou circuito ›
+    Encontrar o site e as redes › Encontrar o Rep › Preencher na Dash
+    (Social Calendar › Membros).
+  - Tudo "Não iniciado", sem responsável e sem prazo (a Karina quer que o
+    Carinha pergunte a ela no WhatsApp — ver Prox Passos).
+  - A Dash publicou o código **antes** dos dados, pra nenhuma versão antiga
+    apagar a lista.
+- **Achado no site da WPF:** a página da **França** mostra o Facebook da
+  **Estônia** (grupo 408399293777767). O certo da FFPA é
+  facebook.com/FFPAsso.
+- **Testes (Chromium headless, dados simulados):** os 47 anteriores + 6
+  novos, sem erro de JavaScript:
+  - lista = guardados + "Membro" do CRM (Lead fica fora);
+  - situação completo/falta;
+  - editar célula cria a linha;
+  - busca;
+  - evento do membro preenche associação, site e Rep sozinho;
+  - membros gravados junto com os eventos.
+
+---
+
 ## 2026-10-28 (5ª) — Social Calendar: logo da WPF + visão Planilha
 
 Pedido da Karina às 12h40 (print do título): tirar o título e pôr o logo da

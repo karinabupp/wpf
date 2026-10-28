@@ -15,6 +15,31 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Carinha pergunta responsável e prazo no WhatsApp (Karina, 28/10)**
+  - **Regra da Karina:** responsável e prazo de tarefa nova: "sempre
+    pergunta pra mim no wpp".
+  - **Hoje:** as 10 tarefas de "Fontes dos membros" (Social Calendar)
+    estão sem responsável e sem Fim.
+  - **A fazer:** propor como o Carinha pergunta (uma mensagem com a lista,
+    botões de pessoa e de data) e gravar a resposta na Projetos. Seguir as
+    regras de envio do `lembretes.md` (máx. 2 seguidas, janela de 24h).
+  - *Onde:* `worker/whatsapp-bridge.js`.
+  - *Aberto em:* 2026-10-28
+
+- [ ] **Social Calendar — Membros: pendências (28/10)**
+  - **10 sem dados:** viraram tarefa na Projetos (`pj-sc-fontes`).
+    Preencher na visão Membros ao concluir.
+  - **Incompletos, sem tarefa por enquanto (Karina):** México, Mongólia e
+    Zâmbia (só Facebook), Nigéria e África do Sul (só site), Japão (sem
+    Instagram) etc.
+  - **Filipinas** (Metro Card Club, membro observador no site da WPF):
+    perguntei se entra e não houve resposta.
+  - **Site da WPF:** a página da França mostra o Facebook da Estônia;
+    corrigir para facebook.com/FFPAsso. A página da Tailândia não lista o
+    site e o Facebook da TPA (thaipokerassociation.com,
+    facebook.com/thaipokerassociation).
+  - *Aberto em:* 2026-10-28
+
 - [ ] **Canário: apagar? (Karina, 28/10 — esperando resposta)**
   - **Pedido:** "só em wpf (cbth não recebe e apaga canario)", ao pedir o
     Social Calendar.
@@ -34,9 +59,20 @@ reconstruir o raciocínio.
     - e-mail lido pelo Carinha;
     - campo no CRM.
     - Chegam como "Novo" e a equipe aprova.
-  - **Proposto em 28/10, sem resposta:** ao escolher um membro que já tem
-    evento, preencher sozinho associação, rep, website, Instagram e Facebook
-    com os do último evento dele.
+  - **Feito em 28/10:** a visão Membros guarda as fontes, e o evento do
+    membro já vem preenchido com elas.
+  - **REGRA AUTOMÁTICA (Karina, 28/10):** membro **sem nenhum evento nos
+    próximos 60 dias**, depois que o robô procurar, ganha uma tarefa na
+    Projetos.
+    - Lugar: Social Calendar › etapa "Membros sem eventos" › @País.
+    - Subtarefas: Contatar o Rep › Pedir o calendário de eventos ›
+      Cadastrar os eventos no Social Calendar.
+    - **Não criar agora pra todos.**
+  - **O robô/agente** vai ler a visão Membros:
+    - site, Instagram, Facebook e o campo Circuito (ex.: BSOP no Brasil,
+      Battle of Malta na Itália, CAP na Argentina);
+    - mais as principais mídias de poker;
+    - e cadastrar os eventos como "Novo".
   - **Outras redes:** hoje só Instagram e Facebook ("por agora", Karina).
   - **Também decidir:**
     - quem fica Responsável pelas subtarefas (hoje entram sem ninguém;

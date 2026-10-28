@@ -109,7 +109,11 @@ dois arquivos antes de propor qualquer coisa**:
   "SOCIAL CALENDAR" no index.html, seção `socialCalendar`). Eventos dos
   membros em Mês/Semana; "Vira matéria" → "Transformar em tarefas" cria na
   Projetos: Social Calendar (Marketing) › Mês › Evento › 4 subtarefas, com
-  prévia e confirmação. A Dash agora é Projetos · CRM · Social Calendar (WPF)
+  prévia e confirmação. Visões: Mês · Semana · Planilha (eventos) · **Membros** (fontes de
+  cada membro: associação, circuito, site, Instagram, Facebook, Rep — é daqui
+  que o robô vai buscar os eventos). Seção `socialCalendar` = `{ eventos,
+  membros }`. **Pesquisa de membro:** olhar Pipedrive, o CRM e SEMPRE a página
+  do membro em worldpokerfederation.org/member-nations (Karina, 28/10). A Dash agora é Projetos · CRM · Social Calendar (WPF)
   · Settings (Karina) · Meu Google.
 
 - **REGRA — mãe herda das filhas na Projetos (Karina, 20/10):** linha com
