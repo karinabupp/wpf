@@ -4575,6 +4575,13 @@
   .sc-card small { display: block; font-size: 11.5px; opacity: .85; margin-top: 3px; line-height: 1.35; overflow-wrap: anywhere; }
   .sc-card .sc-tag { display: inline-block; margin-top: 5px; font-size: 10.5px; font-weight: 600; background: rgba(255,255,255,.6); border-radius: 3px; padding: 1px 5px; }
   .sc-vazio { font-size: 12px; color: #c4c2bb; padding: 2px; }
+  /* 28/10 (Karina): tag "Cita WPF" nos cards. */
+  .sc-wpf { display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: .03em; color: #fff; background: #7b2ff2; border-radius: 3px; padding: 1px 4px; margin-right: 4px; vertical-align: 1px; text-transform: uppercase; }
+  .sc-card .sc-tag.sc-tag-wpf { background: #7b2ff2; color: #fff; margin-left: 4px; }
+  .sc-pl td.sc-pl-chk { text-align: center; vertical-align: middle; }
+  .sc-pl td.sc-pl-chk input { width: auto; }
+  #sc-modal .sc-chk { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #37352f; }
+  #sc-modal .sc-chk input { width: auto; }
   #sc-resumo { margin-top: 12px; font-size: 12px; color: #9b9a97; }
   /* 28/10 (Karina): logo da WPF no topo, igual à Projetos. */
   .sc-logo { min-height: 44px; display: flex; align-items: center; }
@@ -13792,6 +13799,8 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
       // 28/10 (Karina): planilha de eventos (torneios).
       descricao: String(e.descricao || ""), garantido: String(e.garantido || ""), associacao: String(e.associacao || ""),
       rep: String(e.rep || ""), website: String(e.website || ""), instagram: String(e.instagram || ""), facebook: String(e.facebook || ""),
+      // 28/10 (Karina): "Cita WPF" = alguém citou fazer um evento da WPF (tag no card). Origem/fonte: o Agente de Eventos.
+      citaWpf: !!e.citaWpf, origem: String(e.origem || ""), fonte: String(e.fonte || ""),
       status: STATUS_SC.some(s => s.id === e.status) ? e.status : "novo",
       tarefaId: e.tarefaId || "", criadoPor: e.criadoPor || "", criadoEm: e.criadoEm || "", atualizadoEm: e.atualizadoEm || ""
     };
@@ -13871,7 +13880,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
         const fora = dia < primeiro || dia > ultimo;
         html += `<div class="sc-dia ${fora ? "is-fora" : ""} ${dia === h ? "is-hoje" : ""}" data-dia="${dia}" tabindex="0" aria-label="${Number(dia.slice(8))} de ${MESES[deIso(dia).getMonth()]}${evs.length ? ", " + evs.length + " evento(s)" : ""}">
           <span class="sc-num">${Number(dia.slice(8))}</span>
-          ${evs.slice(0, MAX_NO_DIA).map(e => `<button type="button" class="sc-ev ${classeSt(e)}" data-ev="${esc(e.id)}" title="${esc(dicaEv(e))}">${esc(e.nome || "(sem nome)")}</button>`).join("")}
+          ${evs.slice(0, MAX_NO_DIA).map(e => `<button type="button" class="sc-ev ${classeSt(e)}" data-ev="${esc(e.id)}" title="${esc(dicaEv(e) + (e.citaWpf ? " · Cita WPF" : ""))}">${e.citaWpf ? `<span class="sc-wpf">WPF</span>` : ""}${esc(e.nome || "(sem nome)")}</button>`).join("")}
           ${evs.length > MAX_NO_DIA ? `<button type="button" class="sc-mais" data-mais="${dia}">+${evs.length - MAX_NO_DIA} mais</button>` : ""}
         </div>`;
       }
@@ -13892,7 +13901,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
           <div class="sc-slista" data-dia="${dia}">${evs.length ? evs.map(e => `<button type="button" class="sc-card ${classeSt(e)}" data-ev="${esc(e.id)}">
             <b>${esc(e.nome || "(sem nome)")}</b>
             <small>${esc([e.membro, e.local].filter(Boolean).join(" · "))}${fimDe(e) !== e.inicio ? `${e.membro || e.local ? "<br>" : ""}${dataCurta(e.inicio)} a ${dataCurta(fimDe(e))}` : ""}</small>
-            <span class="sc-tag">${esc((STATUS_SC.find(s => s.id === e.status) || {}).nome)}${e.tarefaId ? " · na Projetos" : ""}</span>
+            <span class="sc-tag">${esc((STATUS_SC.find(s => s.id === e.status) || {}).nome)}${e.tarefaId ? " · na Projetos" : ""}</span>${e.citaWpf ? `<span class="sc-tag sc-tag-wpf">Cita WPF</span>` : ""}
           </button>`).join("") : `<span class="sc-vazio">—</span>`}</div>
         </div>`;
       }
@@ -13909,11 +13918,12 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
   }
 
   // ── Planilha (28/10, Karina): a planilha de eventos, mesmos dados do calendário ──
-  const CAMPOS_TEXTO = ["descricao", "garantido", "associacao", "rep", "website", "instagram", "facebook"];
-  const CAMPOS_LINK = ["link", "website", "instagram", "facebook"];
+  const CAMPOS_TEXTO = ["descricao", "garantido", "associacao", "rep", "website", "instagram", "facebook", "fonte"];
+  const CAMPOS_LINK = ["link", "website", "instagram", "facebook", "fonte"];
   const comHttps = v => (v && !/^https?:\/\//i.test(v) ? "https://" + v : v);
   const COLUNAS_PL = [
     { k: "nome", rot: "Nome do evento", w: 230, cls: "sc-pl-nome" },
+    { k: "citaWpf", rot: "Cita WPF", chk: true, cls: "sc-pl-chk" },
     { k: "membro", rot: "Membro / País", w: 160, lista: true },
     { k: "inicio", rot: "Início", tipo: "date" },
     { k: "fim", rot: "Fim", tipo: "date" },
@@ -13926,19 +13936,21 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     { k: "website", rot: "Website", w: 200, link: true },
     { k: "instagram", rot: "Instagram", w: 200, link: true },
     { k: "facebook", rot: "Facebook", w: 200, link: true },
-    { k: "link", rot: "Link do evento", w: 200, link: true }
+    { k: "link", rot: "Link do evento", w: 200, link: true },
+    { k: "fonte", rot: "Fonte", w: 200, link: true }
   ];
   let buscaPl = "";
   const semAcento = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   function linhasPlanilha() {
     const termos = semAcento(buscaPl).split(/\s+/).filter(Boolean);
     return eventos.filter(e => vista.filtro.includes(e.status))
-      .filter(e => { if (!termos.length) return true; const alvo = semAcento([e.nome, e.membro, e.local, e.associacao, e.rep, e.descricao, e.obs, e.garantido].join(" ")); return termos.every(t => alvo.includes(t)); })
+      .filter(e => { if (!termos.length) return true; const alvo = semAcento([e.nome, e.membro, e.local, e.associacao, e.rep, e.descricao, e.obs, e.garantido, e.citaWpf ? "cita wpf" : ""].join(" ")); return termos.every(t => alvo.includes(t)); })
       .sort((a, b) => ((a.inicio || "9999") + a.nome).localeCompare((b.inicio || "9999") + b.nome));
   }
   function celulaPl(e, c, dis) {
     const v = e[c.k] || "";
     const base = `data-id="${esc(e.id)}" data-k="${c.k}" aria-label="${esc(c.rot)}" ${dis}`;
+    if (c.chk) return `<input type="checkbox" ${base} ${e[c.k] ? "checked" : ""}>`;
     if (c.area) return `<textarea ${base} rows="1">${esc(v)}</textarea>`;
     if (c.tipo === "date") return `<input type="date" ${base} value="${esc(v)}">`;
     const inp = `<input ${base} value="${esc(v)}"${c.lista ? ' list="sc-membros-pl" autocomplete="off"' : ""}${c.link ? ' type="url" placeholder="https://"' : ""}>`;
@@ -14023,6 +14035,10 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
   function gravarCelula(el) {
     const e = eventos.find(x => x.id === el.dataset.id), k = el.dataset.k;
     if (!e || !k || !podeEditar()) return;
+    if (el.type === "checkbox") {
+      if (!!e[k] === el.checked) return;
+      e[k] = el.checked; e.atualizadoEm = new Date().toISOString(); salvar(); render(); return;
+    }
     let v = String(el.value || "").trim();
     if (CAMPOS_LINK.includes(k)) v = comHttps(v);
     if (k === "nome" && !v) { el.value = e.nome; return; }                       // nome não fica vazio
@@ -14078,7 +14094,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     const d = deIso(dia);
     const m = abrirModal(`
       <header><div><h3>${d.getDate()} de ${MESES[d.getMonth()]}</h3><div class="sc-msub">${evs.length} evento${evs.length === 1 ? "" : "s"}</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
-      <div class="sc-corpo"><div id="sc-dia-lista">${evs.map(e => `<button type="button" class="sc-card ${classeSt(e)}" data-ev="${esc(e.id)}"><b>${esc(e.nome)}</b><small>${esc([e.membro, e.local].filter(Boolean).join(" · "))}</small></button>`).join("")}</div></div>
+      <div class="sc-corpo"><div id="sc-dia-lista">${evs.map(e => `<button type="button" class="sc-card ${classeSt(e)}" data-ev="${esc(e.id)}"><b>${e.citaWpf ? `<span class="sc-wpf">WPF</span>` : ""}${esc(e.nome)}</b><small>${esc([e.membro, e.local].filter(Boolean).join(" · "))}</small></button>`).join("")}</div></div>
       <footer><div></div><div>${podeEditar() ? `<button class="sc-btn sc-btn-pri" type="button" data-novo>+ Novo evento neste dia</button>` : ""}</div></footer>`);
     m.querySelector(".sc-fechar").onclick = fechar;
     m.querySelectorAll("[data-ev]").forEach(b => b.onclick = () => abrirEvento(b.dataset.ev));
@@ -14110,6 +14126,8 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
         <div class="sc-campo"><label for="sc-f-link">Link do evento</label><input id="sc-f-link" name="link" type="url" value="${esc(e.link)}" ${dis} placeholder="https://"></div>
         <div class="sc-campo"><label for="sc-f-instagram">Instagram</label><input id="sc-f-instagram" name="instagram" type="url" value="${esc(e.instagram)}" ${dis} placeholder="https://instagram.com/…"></div>
         <div class="sc-campo"><label for="sc-f-facebook">Facebook</label><input id="sc-f-facebook" name="facebook" type="url" value="${esc(e.facebook)}" ${dis} placeholder="https://facebook.com/…"></div>
+        <div class="sc-campo"><label class="sc-chk"><input type="checkbox" name="citaWpf" ${e.citaWpf ? "checked" : ""} ${dis}> Cita WPF</label></div>
+        <div class="sc-campo"><label for="sc-f-fonte">Fonte</label><input id="sc-f-fonte" name="fonte" type="url" value="${esc(e.fonte)}" ${dis} placeholder="De onde veio (link)"></div>
         <div class="sc-campo is-largo"><label>Status</label><div class="sc-status" role="radiogroup" aria-label="Status">${STATUS_SC.map(s => `<button type="button" role="radio" class="sc-st-${s.id} ${e.status === s.id ? "is-on" : ""}" data-st="${s.id}" aria-checked="${e.status === s.id}" ${dis}><i></i>${esc(s.nome)}</button>`).join("")}</div></div>
         ${naProj ? `<div class="sc-proj"><span>✅ Já virou tarefa na Projetos.</span><button type="button" class="sc-btn" data-abrir-pj>Abrir na Projetos</button></div>` : ""}
         <div class="sc-erro" role="alert"></div>
@@ -14145,6 +14163,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
       const v = k => String(f.get(k) || "").trim();
       const d = { nome: v("nome"), membro: v("membro"), inicio: v("inicio"), fim: v("fim"), local: v("local"), link: v("link"), obs: v("obs"), status };
       CAMPOS_TEXTO.forEach(k => { d[k] = v(k); });
+      d.citaWpf = f.get("citaWpf") === "on";
       if (d.fim === d.inicio) d.fim = "";
       if (!d.nome) return { erro: "Dê um nome ao evento.", campo: "#sc-f-nome" };
       if (!dataValida(d.inicio)) return { erro: "Escolha a data de início.", campo: "#sc-f-inicio" };
