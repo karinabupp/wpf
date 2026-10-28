@@ -12,6 +12,68 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (4ª) — Nova guia Social Calendar (só WPF)
+
+Pedido da Karina às 12h11: guia nova "Social Calendar", só na WPF, com um
+calendário Mês/Semana dos eventos dos membros; o que for aprovado vira matéria
+e vai pra tarefas na Projetos. Plano aprovado às 12h21 (estrutura das tarefas
+e campos do evento). O pedido "apaga Canário" ficou **sem mexer**: perguntei
+se é tirar a empresa Canário da Dash e ainda não houve resposta (Prox Passos).
+
+- **`index.html`:**
+  - **Menu:** ícone de calendário `#nav-social`, depois do CRM. Vista
+    `#social-view` em `NAV_VIEWS`. Escondido fora da WPF
+    (`html:not(.org-wpf)`). Na CBTH o módulo nem liga.
+  - **Bloco "SOCIAL CALENDAR"** (antes do `CATALOGO_PERMISSOES`):
+    - Calendário com visão **Mês** (grade seg–dom, até 3 eventos por dia,
+      "+N mais") e **Semana** (7 colunas com cartões).
+    - Navegação ‹ Hoje ›; filtro por status com contagem; resumo do período.
+    - **Evento:** nome, membro (sugestões do CRM: primeiro os países com
+      status em algum quadro, `membros2Bridge.paisesNoCrm`, depois todos),
+      início, fim, local, link e observações.
+    - **Status:** Novo (azul), Vira matéria (verde) e Descartado (cinza,
+      riscado).
+    - Clicar num dia cria um evento naquele dia. Excluir pede 2 cliques. Esc
+      fecha a janela.
+  - **Transformar em tarefas** (só com status "Vira matéria"):
+    - Mostra a prévia da árvore, marcando o que é novo e o que já existe.
+    - Cria só com "Criar na Projetos": Entrega **Social Calendar** (frente
+      Marketing, no fim da lista) › Etapa **mês do evento** (ex.: "Novembro
+      2026", em ordem) › Tarefa **nome do evento** (Fim = último dia do
+      evento, tag do país do membro) › 4 subtarefas.
+    - Subtarefas: Levantar as informações do evento › Escrever a matéria ›
+      Aprovar a matéria › Publicar a matéria.
+    - Tudo "Não iniciado", sem responsável, com a origem no Histórico de cada
+      linha.
+    - O evento guarda `tarefaId`: depois mostra "Abrir na Projetos" e não
+      duplica.
+    - **Ajuste à regra de nome limpo (13/10):** a proposta era "Matéria: Nome
+      do evento", mas a regra proíbe "Nome: detalhe". Ficou o nome do evento
+      dentro da etapa do mês.
+  - **Projetos:** novas `infoSocial`, `criarMateriaSocial` e `existeLinha`
+    na `projetosBridge`.
+  - **Sincronização:** seção nova **`socialCalendar`** (`{ eventos: [...] }`)
+    em `CLOUD_SECTIONS`, `secaoDaOrg` (só WPF), `preencherSecoesPorOrg` e
+    `applyAllData`. Ponte `socialBridge` (nunca manda vazio por cima da
+    nuvem).
+  - **Permissões (regra de 25/09):** grupo "Social Calendar" no
+    `CATALOGO_PERMISSOES`: `socialCalendar` (ver a aba),
+    `socialCalendarEditar` (cadastrar, editar e excluir) e
+    `socialCalendarTarefas` (transformar em tarefas). `nav-social` entra em
+    `NAV_TAB_PERMISSIONS`.
+- **Testes (Chromium headless, login e banco simulados):**
+  - **WPF, 37 verificações, sem erro de JavaScript:**
+    - abre no mês atual com hoje destacado; navega; clique no dia cria;
+    - sem nome não salva; evento de 3 dias aparece nos 3 dias;
+    - grava a seção no banco simulado; descartado riscado e filtro;
+    - semana; prévia; cria entrega/etapa/tarefa/subtarefas certas, com tag,
+      Fim e Histórico; não duplica; 2º evento reaproveita entrega e etapa;
+    - "Abrir na Projetos"; excluir em 2 cliques; Esc fecha;
+    - celular sem rolagem lateral.
+  - **CBTH:** ícone some, módulo não liga, seção não é lida nem gravada.
+
+---
+
 ## 2026-10-28 (3ª) — Dash voltou a salvar (gravação travada desde 27/10)
 
 Pedido da Karina às 11h45: "a dash não está salvando informações novas…

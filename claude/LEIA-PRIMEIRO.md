@@ -105,6 +105,13 @@ dois arquivos antes de propor qualquer coisa**:
   Eventos roxo, Comitê rosa, Marketing laranja queimado). A frente
   "Institucional" aparece como "Eventos" (id `institucional`).
 
+- **Social Calendar (28/10):** guia só da WPF (`#nav-social`, bloco
+  "SOCIAL CALENDAR" no index.html, seção `socialCalendar`). Eventos dos
+  membros em Mês/Semana; "Vira matéria" → "Transformar em tarefas" cria na
+  Projetos: Social Calendar (Marketing) › Mês › Evento › 4 subtarefas, com
+  prévia e confirmação. A Dash agora é Projetos · CRM · Social Calendar (WPF)
+  · Settings (Karina) · Meu Google.
+
 - **REGRA — mãe herda das filhas na Projetos (Karina, 20/10):** linha com
   algo dentro tem status, datas e "Finalizado em" calculados (não editáveis):
   todas canceladas → Cancelado; todas finalizadas → Finalizado; tudo o que

@@ -4515,6 +4515,103 @@
   #pj-tabela .pj-resp1.is-auto { cursor: default; color: #8a8985; background: none; border: 0; font: inherit; padding: 0; display: inline-flex; gap: 4px; align-items: center; }
   /* 21/10 (Karina): a Canário só tem a Projetos (sem CRM). */
   html.org-canario #nav-members2 { display: none !important; }
+  /* ── SOCIAL CALENDAR (28/10, Karina): só na WPF ── */
+  html:not(.org-wpf) #nav-social, html:not(.org-wpf) #social-view { display: none !important; }
+  #sc-wrap { padding: 20px 24px 60px; color: #37352f; }
+  .sc-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .sc-titulo { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .sc-sub { font-size: 12.5px; color: #9b9a97; margin-top: 3px; }
+  .sc-btn { border: 1px solid #e6e5e2; background: #fff; color: #37352f; border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; line-height: 1.2; }
+  .sc-btn:hover { background: #f7f7f5; }
+  .sc-btn:focus-visible, .sc-modo button:focus-visible, .sc-chip:focus-visible, .sc-ev:focus-visible, .sc-dia:focus-visible { outline: 2px solid #2383e2; outline-offset: 1px; }
+  .sc-btn-pri { background: #37352f; color: #fff; border-color: #37352f; font-weight: 600; }
+  .sc-btn-pri:hover { background: #4a4740; }
+  .sc-btn-perigo { color: #c4332b; border-color: #f0d3d0; }
+  .sc-btn-perigo:hover { background: #fdf2f1; }
+  .sc-btn:disabled { opacity: .5; cursor: default; }
+  .sc-ico { width: 32px; padding: 6px 0; font-size: 17px; }
+  .sc-barra { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sc-nav { display: flex; align-items: center; gap: 6px; }
+  .sc-nav h3 { margin: 0 0 0 10px; font-size: 17px; font-weight: 650; }
+  .sc-nav h3::first-letter { text-transform: uppercase; }
+  .sc-dir { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .sc-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sc-chip { border: 1px solid #e6e5e2; background: #fff; border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12.5px; cursor: pointer; color: #6b6a66; display: inline-flex; align-items: center; gap: 6px; }
+  .sc-chip.is-on { color: #37352f; border-color: #c9c7c1; background: #f7f7f5; }
+  .sc-chip:not(.is-on) { opacity: .55; }
+  .sc-chip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .sc-modo { display: inline-flex; border: 1px solid #e6e5e2; border-radius: 6px; overflow: hidden; }
+  .sc-modo button { border: 0; background: #fff; padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; color: #6b6a66; }
+  .sc-modo button + button { border-left: 1px solid #e6e5e2; }
+  .sc-modo button.is-ativo { background: #37352f; color: #fff; }
+  /* cores por status */
+  .sc-st-novo { --sc-fundo: #e7f0fb; --sc-texto: #1d4f86; --sc-ponto: #2f7bd4; }
+  .sc-st-materia { --sc-fundo: #e7f3df; --sc-texto: #2c5f12; --sc-ponto: #4b9a2b; }
+  .sc-st-descartado { --sc-fundo: #f1f1ef; --sc-texto: #8a8985; --sc-ponto: #b9b7b1; }
+  /* mês */
+  .sc-grade { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid #ecebe8; border-left: 1px solid #ecebe8; border-radius: 8px; overflow: hidden; }
+  .sc-cab { padding: 8px 8px 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #9b9a97; border-right: 1px solid #ecebe8; border-bottom: 1px solid #ecebe8; background: #fbfbfa; }
+  .sc-dia { min-height: 112px; border-right: 1px solid #ecebe8; border-bottom: 1px solid #ecebe8; padding: 6px; display: flex; flex-direction: column; gap: 3px; cursor: pointer; background: #fff; min-width: 0; }
+  .sc-dia:hover { background: #fbfbfa; }
+  .sc-dia.is-fora { background: #fafaf9; }
+  .sc-dia.is-fora .sc-num { color: #c4c2bb; }
+  .sc-num { font-size: 12px; font-weight: 600; color: #6b6a66; align-self: flex-end; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; flex: none; }
+  .sc-dia.is-hoje .sc-num { background: #e03e3e; color: #fff; }
+  .sc-ev { border: 0; text-align: left; font: inherit; font-size: 12px; line-height: 1.3; padding: 3px 7px; border-radius: 4px; background: var(--sc-fundo); color: var(--sc-texto); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; font-weight: 500; }
+  .sc-ev:hover { filter: brightness(0.96); }
+  .sc-st-descartado.sc-ev { text-decoration: line-through; }
+  .sc-mais { font-size: 11.5px; color: #9b9a97; padding: 0 4px; border: 0; background: none; text-align: left; cursor: pointer; font: inherit; }
+  .sc-mais:hover { color: #37352f; text-decoration: underline; }
+  /* semana */
+  .sc-semana { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+  .sc-scol { border: 1px solid #ecebe8; border-radius: 8px; background: #fff; display: flex; flex-direction: column; min-height: 320px; min-width: 0; }
+  .sc-scol.is-hoje { border-color: #e03e3e; box-shadow: inset 0 3px 0 #e03e3e; }
+  .sc-scab { padding: 10px 10px 8px; border-bottom: 1px solid #f1f0ee; display: flex; align-items: baseline; justify-content: space-between; cursor: pointer; }
+  .sc-scab b { font-size: 20px; font-weight: 650; }
+  .sc-scab span { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #9b9a97; }
+  .sc-slista { padding: 8px; display: flex; flex-direction: column; gap: 6px; flex: 1; cursor: pointer; }
+  .sc-card { border: 0; text-align: left; font: inherit; border-radius: 6px; padding: 8px 9px; background: var(--sc-fundo); color: var(--sc-texto); cursor: pointer; border-left: 3px solid var(--sc-ponto); width: 100%; }
+  .sc-card b { display: block; font-size: 12.5px; font-weight: 600; line-height: 1.3; }
+  .sc-card small { display: block; font-size: 11.5px; opacity: .85; margin-top: 3px; line-height: 1.35; overflow-wrap: anywhere; }
+  .sc-card .sc-tag { display: inline-block; margin-top: 5px; font-size: 10.5px; font-weight: 600; background: rgba(255,255,255,.6); border-radius: 3px; padding: 1px 5px; }
+  .sc-vazio { font-size: 12px; color: #c4c2bb; padding: 2px; }
+  #sc-resumo { margin-top: 12px; font-size: 12px; color: #9b9a97; }
+  /* janela */
+  #sc-modal { position: fixed; inset: 0; z-index: 2147482000; background: rgba(15,15,15,.38); display: flex; align-items: center; justify-content: center; padding: 16px; color: #37352f; font-size: 13.5px; }
+  #sc-modal .sc-caixa { background: #fff; width: min(560px, 100%); max-height: min(88vh, 820px); border-radius: 14px; box-shadow: 0 18px 50px rgba(15,15,15,.22); display: flex; flex-direction: column; overflow: hidden; }
+  #sc-modal header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 22px 6px; }
+  #sc-modal h3 { margin: 0; font-size: 17px; font-weight: 650; }
+  #sc-modal .sc-msub { color: #9b9a97; font-size: 12.5px; margin-top: 3px; }
+  #sc-modal .sc-fechar { border: 0; background: #f1f1ef; width: 30px; height: 30px; border-radius: 50%; font-size: 18px; line-height: 1; cursor: pointer; color: #6b6a66; flex: none; }
+  #sc-modal .sc-corpo { padding: 12px 22px 8px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+  #sc-modal .sc-campo { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  #sc-modal .sc-campo.is-largo { grid-column: 1 / -1; }
+  #sc-modal label { font-size: 11.5px; font-weight: 600; color: #6b6a66; }
+  #sc-modal input, #sc-modal textarea { border: 1px solid #e6e5e2; border-radius: 6px; padding: 7px 9px; font: inherit; font-size: 13.5px; color: #37352f; background: #fff; min-width: 0; width: 100%; box-sizing: border-box; }
+  #sc-modal textarea { min-height: 70px; resize: vertical; }
+  #sc-modal input:focus, #sc-modal textarea:focus { outline: none; border-color: #2383e2; box-shadow: 0 0 0 2px rgba(35,131,226,.2); }
+  #sc-modal .sc-status { display: flex; gap: 6px; flex-wrap: wrap; }
+  #sc-modal .sc-status button { border: 1px solid #e6e5e2; background: #fff; border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 12.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: #6b6a66; }
+  #sc-modal .sc-status button i { width: 8px; height: 8px; border-radius: 50%; background: var(--sc-ponto); }
+  #sc-modal .sc-status button.is-on { background: var(--sc-fundo); color: var(--sc-texto); border-color: transparent; font-weight: 600; }
+  #sc-modal .sc-erro { grid-column: 1 / -1; color: #c4332b; font-size: 12.5px; min-height: 0; }
+  #sc-modal .sc-proj { grid-column: 1 / -1; border: 1px solid #ecebe8; border-radius: 8px; padding: 10px 12px; background: #fbfbfa; font-size: 12.5px; color: #6b6a66; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  #sc-modal footer { display: flex; justify-content: space-between; gap: 8px; padding: 12px 22px 18px; border-top: 1px solid #f1f0ee; flex-wrap: wrap; }
+  #sc-modal footer div { display: flex; gap: 8px; flex-wrap: wrap; }
+  #sc-modal .sc-arvore { grid-column: 1 / -1; margin: 0; padding: 12px 14px; background: #fbfbfa; border: 1px solid #ecebe8; border-radius: 8px; list-style: none; font-size: 13px; line-height: 1.55; }
+  #sc-modal .sc-arvore ul { list-style: none; margin: 0; padding-left: 18px; }
+  #sc-modal .sc-arvore em { font-style: normal; font-size: 11px; color: #9b9a97; margin-left: 6px; }
+  #sc-modal .sc-arvore .is-novo { color: #2c5f12; font-weight: 600; }
+  #sc-modal .sc-nota { grid-column: 1 / -1; font-size: 12.5px; color: #6b6a66; margin: 0; }
+  #sc-dia-lista { display: flex; flex-direction: column; gap: 6px; grid-column: 1 / -1; }
+  @media (max-width: 900px) { .sc-semana { grid-template-columns: 1fr; } .sc-scol { min-height: 0; } .sc-slista { min-height: 40px; } }
+  @media (max-width: 760px) {
+    #sc-wrap { padding: 14px 16px 60px; }
+    .sc-dia { min-height: 76px; padding: 4px; }
+    .sc-ev { font-size: 10.5px; padding: 2px 4px; }
+    .sc-cab { padding: 6px 4px; font-size: 10px; }
+    #sc-modal .sc-corpo { grid-template-columns: 1fr; }
+  }
 </style>
 
 </head>
@@ -4563,6 +4660,15 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="8" r="4"/>
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7"/>
+    </svg>
+  </button>
+  <button class="nav-icon-btn" id="nav-social" data-tooltip="Social Calendar" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="5" width="18" height="16" rx="2"/>
+      <path d="M3 10h18"/>
+      <path d="M8 3v4"/>
+      <path d="M16 3v4"/>
+      <circle cx="12" cy="15.5" r="1.4" fill="currentColor" stroke="none"/>
     </svg>
   </button>
   <button class="nav-icon-btn" id="nav-marketing" data-tooltip="Marketing" type="button">
@@ -4810,6 +4916,37 @@
 
 
 
+
+<!-- SOCIAL CALENDAR (28/10, Karina): eventos dos membros num calendário
+     (Mês/Semana); evento aprovado vira tarefa na Projetos. Só na WPF. -->
+<div id="social-view" class="content-view hidden">
+  <div id="sc-wrap">
+    <div class="sc-topo">
+      <div>
+        <h2 class="sc-titulo">Social Calendar</h2>
+        <div class="sc-sub">Eventos dos membros · o que for aprovado vira matéria na Projetos</div>
+      </div>
+      <button id="sc-novo" class="sc-btn sc-btn-pri" type="button">+ Novo evento</button>
+    </div>
+    <div class="sc-barra">
+      <div class="sc-nav">
+        <button id="sc-ant" class="sc-btn sc-ico" type="button" aria-label="Anterior">‹</button>
+        <button id="sc-hoje" class="sc-btn" type="button">Hoje</button>
+        <button id="sc-prox" class="sc-btn sc-ico" type="button" aria-label="Próximo">›</button>
+        <h3 id="sc-periodo"></h3>
+      </div>
+      <div class="sc-dir">
+        <div id="sc-filtro" class="sc-chips" role="group" aria-label="Filtrar por status"></div>
+        <div class="sc-modo" role="group" aria-label="Visão">
+          <button type="button" data-modo="mes" class="is-ativo">Mês</button>
+          <button type="button" data-modo="semana">Semana</button>
+        </div>
+      </div>
+    </div>
+    <div id="sc-cal"></div>
+    <div id="sc-resumo"></div>
+  </div>
+</div>
 
 <div id="members2-view" class="content-view hidden">
 
@@ -5255,7 +5392,9 @@ if (sbAuth) {
 const CLOUD_SECTIONS = ["users", "historicoGeral", "members2", "members2__cbth",
   "tasksPilotoCadastro", "tasksPilotoCadastro__cbth",
   // Projetos, 08/10: planilha de Entregas (guia Projetos). Canário (21/10): só Projetos.
-  "projetos", "projetos__cbth", "projetos__canario", "tasksPilotoCadastro__canario"];
+  "projetos", "projetos__cbth", "projetos__canario", "tasksPilotoCadastro__canario",
+  // Social Calendar (28/10): só na WPF (secaoDaOrg).
+  "socialCalendar"];
 // Sufixo da empresa ativa, usado nos nomes de secao acima.
 const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 
@@ -5265,6 +5404,8 @@ const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 let projetosBridge = null;
 // 21/10: ponte do cadastro das tags (bloco "TAGS", antes da Projetos).
 let tagsBridge = null;
+// 28/10: ponte do Social Calendar (bloco "SOCIAL CALENDAR"); null até carregar.
+let socialBridge = null;
 // 21/10 (Karina): a Projetos é a aba de todo mundo (a Tasks saiu).
 function projetosLiberado() { return !!currentUser; }
 
@@ -5325,6 +5466,10 @@ function preencherSecoesPorOrg(p) {
     const pj = projetosBridge.get();
     if (pj !== undefined) p["projetos" + suf] = pj;
   }
+  if (socialBridge && ORG_ATUAL === "wpf") {
+    const sc = socialBridge.get();
+    if (sc !== undefined) p.socialCalendar = sc;
+  }
   return p;
 }
 
@@ -5338,6 +5483,7 @@ function applyAllData(data) {
   // da IIFE dela). O cadastro das tags vem antes: a Projetos desenha com ele.
   if (tagsBridge) tagsBridge.apply(data);
   if (projetosBridge) projetosBridge.apply(data);
+  if (socialBridge && ORG_ATUAL === "wpf") socialBridge.apply(data);
   if (window.membros2Bridge && membros2Bridge.apply) {
     membros2Bridge.apply(data["members2" + SUFIXO_ORG()]);
   }
@@ -5619,6 +5765,7 @@ const ehSecaoHistorico = s => SECOES_HISTORICO.includes(s);
 
 // So as secoes que a empresa ativa usa (as da outra empresa nem sao lidas).
 function secaoDaOrg(s) {
+  if (s === "socialCalendar") return ORG_ATUAL === "wpf"; // 28/10: só a WPF tem o Social Calendar
   const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2|tasksPiloto|tasksPilotoAreas|tasksPilotoKpis|tasksPilotoCadastro|projetos)(__.+)?$/.exec(s);
   if (!porEmpresa) return true;
   return (porEmpresa[2] || "") === SUFIXO_ORG();
@@ -6325,7 +6472,8 @@ async function saveUsersListNow() {
 // logout are never configurable — always there for everyone.
 const NAV_TAB_PERMISSIONS = {
   "nav-marketing": "tabMarketing",
-  "nav-forms": "tabForms"
+  "nav-forms": "tabForms",
+  "nav-social": "socialCalendar" // 28/10
 };
 
 function applyTabVisibility() {
@@ -6568,6 +6716,7 @@ function formatEntryDate(dateStr) {
 const NAV_VIEWS = {
   "nav-projetos": "projetos-view",
   "nav-members2": "members2-view",
+  "nav-social": "social-view",
   "nav-marketing": "marketing-view",
   "nav-forms": "forms-view",
   "nav-config": "config-view"
@@ -6584,6 +6733,7 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     });
     if (btnId === "nav-forms" && typeof loadFormsList === "function") loadFormsList();
     if (btnId === "nav-config" && typeof cfgCarregar === "function") cfgCarregar();
+    if (btnId === "nav-social" && socialBridge) socialBridge.abrir();
   });
 });
 
@@ -10219,6 +10369,12 @@ applyRolePermissions();
       setTimeout(() => tentar(20), 50);
     },
     paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    // 28/10 (Social Calendar): países com status em algum quadro do CRM.
+    paisesNoCrm: () => {
+      const nomes = new Set();
+      boards2.forEach(b => { const d = dadosDoBoard2(b.id) || {}; Object.keys(d).forEach(p => { if (d[p] && d[p].status) nomes.add(p); }); });
+      return [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR"));
+    },
     // 24/09: KPIs da Tasks que contavam da Members/Committee antigas agora
     // contam daqui. null = esse pipeline não existe nesta empresa.
     contarStatus: (boardId, status) => {
@@ -12912,6 +13068,48 @@ applyRolePermissions();
     return novo.id;
   }
 
+  // ── Social Calendar (Karina, 28/10): evento aprovado vira tarefa ──
+  // Entrega "Social Calendar" (frente Marketing) › Etapa = mês do evento ›
+  // Tarefa = nome do evento (tag do país do membro) › processo padrão (4
+  // subtarefas). Nome limpo (regra de 13/10). Só na WPF.
+  const SC_ENTREGA = "Social Calendar";
+  const SC_PASSOS = ["Levantar as informações do evento", "Escrever a matéria", "Aprovar a matéria", "Publicar a matéria"];
+  const SC_MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const scChaveEtapa = nome => { const m = /^(\S+)\s+(\d{4})$/.exec(String(nome || "").trim().toLowerCase()); const i = m ? SC_MESES.indexOf(m[1]) : -1; return i < 0 ? "9999-99" : m[2] + "-" + String(i + 1).padStart(2, "0"); };
+  const scEntrega = () => entregas.find(e => e.nome.trim().toLowerCase() === SC_ENTREGA.toLowerCase()) || null;
+  function infoSocial(etapa) {
+    const ent = scEntrega();
+    return { temEntrega: !!ent, temEtapa: !!(ent && ent.subtasks.some(x => x.nome === etapa)), passos: SC_PASSOS.slice(), entrega: SC_ENTREGA, pronta: temDados };
+  }
+  function criarMateriaSocial(d) {
+    if (SUF !== "" || !temDados || !d || !String(d.nome || "").trim() || !d.etapa) return null;
+    let ent = scEntrega();
+    if (!ent) {
+      ent = normalizar({ nome: SC_ENTREGA, status: "detalhar", frente: "marketing" }, 0);
+      registrar(ent, "Criou a entrega pelo Social Calendar");
+      entregas.push(ent); // entrega nova vai no fim (regra de 09/10)
+    }
+    let etapa = ent.subtasks.find(x => x.nome === d.etapa);
+    if (!etapa) {
+      etapa = normalizar({ nome: d.etapa, status: "naoiniciado" }, 1);
+      registrar(etapa, "Criou a etapa pelo Social Calendar");
+      const k = scChaveEtapa(d.etapa);
+      const i = ent.subtasks.findIndex(x => scChaveEtapa(x.nome) > k);
+      if (i < 0) ent.subtasks.push(etapa); else ent.subtasks.splice(i, 0, etapa);
+    }
+    const tarefa = normalizar({ nome: String(d.nome).trim(), status: "naoiniciado", endDate: d.endDate || "",
+      tags: { lugares: d.lugar ? [d.lugar] : [] },
+      subtasks: SC_PASSOS.map(nome => ({ nome, status: "naoiniciado" })) }, 2);
+    registrar(tarefa, "Criou a tarefa pelo Social Calendar");
+    tarefa.subtasks.forEach(x => registrar(x, "Criou a subtarefa pelo Social Calendar"));
+    etapa.subtasks.push(tarefa);
+    abertas.add(ent.id); abertas.add(etapa.id); abertas.add(tarefa.id); guardarAbertas();
+    calcularMaes();
+    salvar();
+    if (visivel()) render();
+    return tarefa.id;
+  }
+
   projetosBridge = {
     get: () => (temDados && projetosLiberado() ? entregas : undefined),
     apply: (data) => {
@@ -12936,6 +13134,10 @@ applyRolePermissions();
     usuarios: () => (typeof usersList !== "undefined" && usersList ? usersList : []).map(u => u.username).filter(Boolean),
     editar: (id, patch) => editarDeFora(id, patch),
     criar: (dentroId, d) => criarDeFora(dentroId, d),
+    // 28/10: Social Calendar.
+    infoSocial: etapa => infoSocial(etapa),
+    criarMateriaSocial: d => criarMateriaSocial(d),
+    existeLinha: id => !!achar(id),
     abrirLinha: id => {
       const nav = document.getElementById("nav-projetos");
       if (nav) nav.click();
@@ -13502,6 +13704,367 @@ function iniciarCarinha() {
 const SETTINGS_LOGINS = ["karina"];
 const CFG_WORKER = "https://wpf-whatsapp-bridge.worldpokerfederation.workers.dev";
 const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]];
+// ══════════════════════════════════════════════════════════════════════════
+// SOCIAL CALENDAR (28/10, Karina) — só na WPF
+// Eventos que os membros estão fazendo, num calendário Mês/Semana. Cada
+// evento tem status Novo → Vira matéria → Descartado; o que vira matéria é
+// transformado em tarefas na Projetos (Social Calendar › Mês › Evento ›
+// processo padrão), com prévia e confirmação. Por enquanto o evento é
+// cadastrado à mão; a entrada automática (formulário/e-mail/CRM) é a fase 2.
+// Dados: seção "socialCalendar" = { eventos: [ {id, nome, membro, inicio,
+// fim, local, link, obs, status, tarefaId, criadoPor, criadoEm, atualizadoEm} ] }.
+// ══════════════════════════════════════════════════════════════════════════
+(function () {
+  if (ORG_ATUAL !== "wpf") return;
+  const LS_KEY = "wpf_social_calendar";
+  const VISTA_KEY = "wpf_social_calendar_vista";
+  const STATUS_SC = [
+    { id: "novo", nome: "Novo" },
+    { id: "materia", nome: "Vira matéria" },
+    { id: "descartado", nome: "Descartado" }
+  ];
+  const MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+  const DIAS_CURTOS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+  const MAX_NO_DIA = 3;
+  const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  const deIso = s => { const [y, m, d] = String(s).split("-").map(Number); return new Date(y, m - 1, d); };
+  const hoje = () => iso(new Date());
+  const somar = (s, n) => { const d = deIso(s); d.setDate(d.getDate() + n); return iso(d); };
+  const segunda = s => { const d = deIso(s); const w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return iso(d); };
+  const dataCurta = s => (s ? s.slice(8, 10) + "/" + s.slice(5, 7) : "");
+  const dataValida = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s || "")) && !isNaN(deIso(s));
+  const fimDe = e => (dataValida(e.fim) && e.fim >= e.inicio ? e.fim : e.inicio);
+  const novoId = () => "sc-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const quem = () => (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
+  const podeEditar = () => typeof colabCan !== "function" || colabCan("socialCalendarEditar");
+  const podeTarefas = () => typeof colabCan !== "function" || colabCan("socialCalendarTarefas");
+
+  function normalizar(e) {
+    e = e && typeof e === "object" ? e : {};
+    return {
+      id: e.id || novoId(), nome: String(e.nome || ""), membro: String(e.membro || ""),
+      inicio: dataValida(e.inicio) ? e.inicio : "", fim: dataValida(e.fim) ? e.fim : "",
+      local: String(e.local || ""), link: String(e.link || ""), obs: String(e.obs || ""),
+      status: STATUS_SC.some(s => s.id === e.status) ? e.status : "novo",
+      tarefaId: e.tarefaId || "", criadoPor: e.criadoPor || "", criadoEm: e.criadoEm || "", atualizadoEm: e.atualizadoEm || ""
+    };
+  }
+
+  let eventos = [];
+  let temDados = false; // nunca manda [] por cima da nuvem
+  try {
+    const g = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (g && Array.isArray(g.eventos)) { eventos = g.eventos.map(normalizar); temDados = true; }
+  } catch (e) {}
+  let vista = { modo: "mes", ref: hoje(), filtro: STATUS_SC.map(s => s.id) };
+  try {
+    const v = JSON.parse(localStorage.getItem(VISTA_KEY) || "null");
+    if (v && (v.modo === "mes" || v.modo === "semana")) vista.modo = v.modo;
+    if (v && Array.isArray(v.filtro)) vista.filtro = v.filtro.filter(id => STATUS_SC.some(s => s.id === id));
+  } catch (e) {}
+  const guardarVista = () => { try { localStorage.setItem(VISTA_KEY, JSON.stringify({ modo: vista.modo, filtro: vista.filtro })); } catch (e) {} };
+
+  function salvar() {
+    temDados = true;
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ eventos })); } catch (e) {}
+    scheduleCloudSave();
+  }
+  const visivel = () => { const v = document.getElementById("social-view"); return !!(v && !v.classList.contains("hidden")); };
+
+  // ── Desenho ──
+  const doPeriodo = (de, ate) => eventos.filter(e => dataValida(e.inicio) && vista.filtro.includes(e.status) && e.inicio <= ate && fimDe(e) >= de)
+    .sort((a, b) => (a.inicio + a.nome).localeCompare(b.inicio + b.nome));
+  const doDia = (lista, dia) => lista.filter(e => e.inicio <= dia && fimDe(e) >= dia);
+  const classeSt = e => "sc-st-" + e.status;
+  const dicaEv = e => [e.nome, e.membro, e.inicio ? (fimDe(e) !== e.inicio ? dataCurta(e.inicio) + " a " + dataCurta(fimDe(e)) : dataCurta(e.inicio)) : "", e.local, (STATUS_SC.find(s => s.id === e.status) || {}).nome].filter(Boolean).join(" · ");
+
+  function render() {
+    const cal = document.getElementById("sc-cal");
+    if (!cal) return;
+    // filtro
+    document.getElementById("sc-filtro").innerHTML = STATUS_SC.map(s => {
+      const n = eventos.filter(e => e.status === s.id).length;
+      return `<button type="button" class="sc-chip sc-st-${s.id} ${vista.filtro.includes(s.id) ? "is-on" : ""}" data-st="${s.id}" aria-pressed="${vista.filtro.includes(s.id)}"><i style="background:var(--sc-ponto)"></i>${esc(s.nome)} <span>${n}</span></button>`;
+    }).join("");
+    document.querySelectorAll("#social-view .sc-modo button").forEach(b => b.classList.toggle("is-ativo", b.dataset.modo === vista.modo));
+    document.getElementById("sc-novo").disabled = !podeEditar();
+    const h = hoje();
+    if (vista.modo === "mes") {
+      const ref = deIso(vista.ref);
+      const primeiro = iso(new Date(ref.getFullYear(), ref.getMonth(), 1));
+      const ultimo = iso(new Date(ref.getFullYear(), ref.getMonth() + 1, 0));
+      const ini = segunda(primeiro);
+      let fim = somar(segunda(ultimo), 6);
+      document.getElementById("sc-periodo").textContent = MESES[ref.getMonth()] + " " + ref.getFullYear();
+      const lista = doPeriodo(ini, fim);
+      let html = DIAS_CURTOS.map(d => `<div class="sc-cab">${d}</div>`).join("");
+      for (let dia = ini; dia <= fim; dia = somar(dia, 1)) {
+        const evs = doDia(lista, dia);
+        const fora = dia < primeiro || dia > ultimo;
+        html += `<div class="sc-dia ${fora ? "is-fora" : ""} ${dia === h ? "is-hoje" : ""}" data-dia="${dia}" tabindex="0" aria-label="${Number(dia.slice(8))} de ${MESES[deIso(dia).getMonth()]}${evs.length ? ", " + evs.length + " evento(s)" : ""}">
+          <span class="sc-num">${Number(dia.slice(8))}</span>
+          ${evs.slice(0, MAX_NO_DIA).map(e => `<button type="button" class="sc-ev ${classeSt(e)}" data-ev="${esc(e.id)}" title="${esc(dicaEv(e))}">${esc(e.nome || "(sem nome)")}</button>`).join("")}
+          ${evs.length > MAX_NO_DIA ? `<button type="button" class="sc-mais" data-mais="${dia}">+${evs.length - MAX_NO_DIA} mais</button>` : ""}
+        </div>`;
+      }
+      cal.innerHTML = `<div class="sc-grade">${html}</div>`;
+      resumo(eventos.filter(e => dataValida(e.inicio) && e.inicio <= ultimo && fimDe(e) >= primeiro), "neste mês");
+    } else {
+      const ini = segunda(vista.ref), fim = somar(ini, 6);
+      const a = deIso(ini), b = deIso(fim);
+      document.getElementById("sc-periodo").textContent = a.getMonth() === b.getMonth()
+        ? `${a.getDate()} a ${b.getDate()} de ${MESES[b.getMonth()]} ${b.getFullYear()}`
+        : `${a.getDate()} de ${MESES[a.getMonth()]} a ${b.getDate()} de ${MESES[b.getMonth()]} ${b.getFullYear()}`;
+      const lista = doPeriodo(ini, fim);
+      let html = "";
+      for (let i = 0, dia = ini; i < 7; i++, dia = somar(dia, 1)) {
+        const evs = doDia(lista, dia);
+        html += `<div class="sc-scol ${dia === h ? "is-hoje" : ""}">
+          <div class="sc-scab" data-dia="${dia}" tabindex="0"><span>${DIAS_CURTOS[i]}</span><b>${Number(dia.slice(8))}</b></div>
+          <div class="sc-slista" data-dia="${dia}">${evs.length ? evs.map(e => `<button type="button" class="sc-card ${classeSt(e)}" data-ev="${esc(e.id)}">
+            <b>${esc(e.nome || "(sem nome)")}</b>
+            <small>${esc([e.membro, e.local].filter(Boolean).join(" · "))}${fimDe(e) !== e.inicio ? `${e.membro || e.local ? "<br>" : ""}${dataCurta(e.inicio)} a ${dataCurta(fimDe(e))}` : ""}</small>
+            <span class="sc-tag">${esc((STATUS_SC.find(s => s.id === e.status) || {}).nome)}${e.tarefaId ? " · na Projetos" : ""}</span>
+          </button>`).join("") : `<span class="sc-vazio">—</span>`}</div>
+        </div>`;
+      }
+      cal.innerHTML = `<div class="sc-semana">${html}</div>`;
+      resumo(eventos.filter(e => dataValida(e.inicio) && e.inicio <= fim && fimDe(e) >= ini), "nesta semana");
+    }
+  }
+  function resumo(lista, onde) {
+    const el = document.getElementById("sc-resumo");
+    if (!el) return;
+    if (!eventos.length) { el.textContent = "Nenhum evento ainda. Clique num dia ou em “+ Novo evento” pra cadastrar."; return; }
+    const c = id => lista.filter(e => e.status === id).length;
+    el.textContent = `${lista.length} evento${lista.length === 1 ? "" : "s"} ${onde}: ${c("novo")} novo${c("novo") === 1 ? "" : "s"}, ${c("materia")} pra matéria, ${c("descartado")} descartado${c("descartado") === 1 ? "" : "s"}.`;
+  }
+
+  // ── Janela (criar / editar / dia cheio / transformar em tarefas) ──
+  function fechar() { const m = document.getElementById("sc-modal"); if (m) m.remove(); document.removeEventListener("keydown", escFecha, true); }
+  function escFecha(ev) { if (ev.key === "Escape") { ev.stopPropagation(); fechar(); } }
+  function abrirModal(html, focoSel) {
+    fechar();
+    const m = document.createElement("div");
+    m.id = "sc-modal";
+    m.innerHTML = `<div class="sc-caixa" role="dialog" aria-modal="true">${html}</div>`;
+    m.addEventListener("mousedown", ev => { if (ev.target === m) fechar(); });
+    document.body.appendChild(m);
+    document.addEventListener("keydown", escFecha, true);
+    const f = focoSel && m.querySelector(focoSel);
+    if (f) f.focus();
+    return m;
+  }
+  function membrosLista() {
+    const b = window.membros2Bridge;
+    const crm = b && b.paisesNoCrm ? b.paisesNoCrm() : [];
+    const todos = b && b.paises ? b.paises() : [];
+    return crm.concat(todos.filter(p => !crm.includes(p)));
+  }
+
+  function abrirDia(dia) {
+    const evs = doDia(doPeriodo(dia, dia), dia);
+    const d = deIso(dia);
+    const m = abrirModal(`
+      <header><div><h3>${d.getDate()} de ${MESES[d.getMonth()]}</h3><div class="sc-msub">${evs.length} evento${evs.length === 1 ? "" : "s"}</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
+      <div class="sc-corpo"><div id="sc-dia-lista">${evs.map(e => `<button type="button" class="sc-card ${classeSt(e)}" data-ev="${esc(e.id)}"><b>${esc(e.nome)}</b><small>${esc([e.membro, e.local].filter(Boolean).join(" · "))}</small></button>`).join("")}</div></div>
+      <footer><div></div><div>${podeEditar() ? `<button class="sc-btn sc-btn-pri" type="button" data-novo>+ Novo evento neste dia</button>` : ""}</div></footer>`);
+    m.querySelector(".sc-fechar").onclick = fechar;
+    m.querySelectorAll("[data-ev]").forEach(b => b.onclick = () => abrirEvento(b.dataset.ev));
+    const n = m.querySelector("[data-novo]");
+    if (n) n.onclick = () => abrirEvento(null, dia);
+  }
+
+  function abrirEvento(id, diaNovo) {
+    const atual = id ? eventos.find(e => e.id === id) : null;
+    if (id && !atual) return;
+    const e = atual ? { ...atual } : normalizar({ inicio: diaNovo || hoje(), status: "novo" });
+    const pode = podeEditar();
+    const dis = pode ? "" : "disabled";
+    const naProj = e.tarefaId && projetosBridge && projetosBridge.existeLinha && projetosBridge.existeLinha(e.tarefaId);
+    const m = abrirModal(`
+      <header><div><h3>${atual ? "Evento" : "Novo evento"}</h3><div class="sc-msub">${atual && e.criadoPor ? "Cadastrado por " + esc(e.criadoPor) + (e.criadoEm ? " em " + dataCurta(e.criadoEm.slice(0, 10)) : "") : "Evento de um membro"}</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
+      <form class="sc-corpo" novalidate>
+        <div class="sc-campo is-largo"><label for="sc-f-nome">Nome do evento</label><input id="sc-f-nome" name="nome" value="${esc(e.nome)}" maxlength="160" ${dis} placeholder="Ex.: Campeonato Nacional Feminino"></div>
+        <div class="sc-campo is-largo"><label for="sc-f-membro">Membro</label><input id="sc-f-membro" name="membro" value="${esc(e.membro)}" list="sc-membros" autocomplete="off" ${dis} placeholder="País / federação do CRM"><datalist id="sc-membros">${membrosLista().map(p => `<option value="${esc(p)}">`).join("")}</datalist></div>
+        <div class="sc-campo"><label for="sc-f-inicio">Início</label><input id="sc-f-inicio" name="inicio" type="date" value="${esc(e.inicio)}" ${dis}></div>
+        <div class="sc-campo"><label for="sc-f-fim">Fim <span style="font-weight:400;color:#9b9a97">(se durar mais de um dia)</span></label><input id="sc-f-fim" name="fim" type="date" value="${esc(e.fim)}" ${dis}></div>
+        <div class="sc-campo"><label for="sc-f-local">Local</label><input id="sc-f-local" name="local" value="${esc(e.local)}" maxlength="160" ${dis} placeholder="Cidade, casa de jogo"></div>
+        <div class="sc-campo"><label for="sc-f-link">Link</label><input id="sc-f-link" name="link" type="url" value="${esc(e.link)}" ${dis} placeholder="https://"></div>
+        <div class="sc-campo is-largo"><label for="sc-f-obs">Observações</label><textarea id="sc-f-obs" name="obs" ${dis}>${esc(e.obs)}</textarea></div>
+        <div class="sc-campo is-largo"><label>Status</label><div class="sc-status" role="radiogroup" aria-label="Status">${STATUS_SC.map(s => `<button type="button" role="radio" class="sc-st-${s.id} ${e.status === s.id ? "is-on" : ""}" data-st="${s.id}" aria-checked="${e.status === s.id}" ${dis}><i></i>${esc(s.nome)}</button>`).join("")}</div></div>
+        ${naProj ? `<div class="sc-proj"><span>✅ Já virou tarefa na Projetos.</span><button type="button" class="sc-btn" data-abrir-pj>Abrir na Projetos</button></div>` : ""}
+        <div class="sc-erro" role="alert"></div>
+      </form>
+      <footer>
+        <div>${atual && pode ? `<button type="button" class="sc-btn sc-btn-perigo" data-excluir>Excluir</button>` : ""}</div>
+        <div>
+          ${pode && podeTarefas() && !naProj ? `<button type="button" class="sc-btn" data-tarefas ${e.status === "materia" ? "" : "hidden"}>Transformar em tarefas</button>` : ""}
+          ${pode ? `<button type="button" class="sc-btn sc-btn-pri" data-salvar>Salvar</button>` : `<button type="button" class="sc-btn" data-fechar>Fechar</button>`}
+        </div>
+      </footer>`, pode ? "#sc-f-nome" : ".sc-fechar");
+    const erro = m.querySelector(".sc-erro");
+    const form = m.querySelector("form");
+    let status = e.status;
+    m.querySelector(".sc-fechar").onclick = fechar;
+    const bf = m.querySelector("[data-fechar]"); if (bf) bf.onclick = fechar;
+    const bTar = m.querySelector("[data-tarefas]");
+    m.querySelectorAll(".sc-status button").forEach(b => b.onclick = () => {
+      status = b.dataset.st;
+      m.querySelectorAll(".sc-status button").forEach(x => { x.classList.toggle("is-on", x === b); x.setAttribute("aria-checked", x === b); });
+      if (bTar) bTar.hidden = status !== "materia";
+    });
+    const ab = m.querySelector("[data-abrir-pj]");
+    if (ab) ab.onclick = () => { fechar(); projetosBridge.abrirLinha(e.tarefaId); };
+    function ler() {
+      const f = new FormData(form);
+      const v = k => String(f.get(k) || "").trim();
+      const d = { nome: v("nome"), membro: v("membro"), inicio: v("inicio"), fim: v("fim"), local: v("local"), link: v("link"), obs: v("obs"), status };
+      if (d.fim === d.inicio) d.fim = "";
+      if (!d.nome) return { erro: "Dê um nome ao evento.", campo: "#sc-f-nome" };
+      if (!dataValida(d.inicio)) return { erro: "Escolha a data de início.", campo: "#sc-f-inicio" };
+      if (d.fim && (!dataValida(d.fim) || d.fim < d.inicio)) return { erro: "O fim não pode ser antes do início.", campo: "#sc-f-fim" };
+      if (d.link && !/^https?:\/\//i.test(d.link)) d.link = "https://" + d.link;
+      return { d };
+    }
+    function gravar() {
+      const r = ler();
+      if (r.erro) { erro.textContent = r.erro; const c = m.querySelector(r.campo); if (c) c.focus(); return null; }
+      const agora = new Date().toISOString();
+      let alvo = atual ? eventos.find(x => x.id === atual.id) : null;
+      if (!alvo) { alvo = normalizar({ criadoPor: quem(), criadoEm: agora }); eventos.push(alvo); }
+      Object.assign(alvo, r.d, { atualizadoEm: agora });
+      salvar();
+      render();
+      return alvo;
+    }
+    const bs = m.querySelector("[data-salvar]");
+    if (bs) bs.onclick = () => { if (gravar()) fechar(); };
+    form.addEventListener("submit", ev => { ev.preventDefault(); if (bs && gravar()) fechar(); });
+    const bx = m.querySelector("[data-excluir]");
+    if (bx) bx.onclick = () => {
+      if (bx.dataset.armado !== "1") { bx.dataset.armado = "1"; bx.textContent = "Confirmar exclusão"; setTimeout(() => { if (bx.isConnected) { bx.dataset.armado = ""; bx.textContent = "Excluir"; } }, 5000); return; }
+      eventos = eventos.filter(x => x.id !== atual.id);
+      salvar(); render(); fechar();
+    };
+    if (bTar) bTar.onclick = () => { const alvo = gravar(); if (alvo) previaTarefas(alvo.id); };
+  }
+
+  // ── Transformar em tarefas: prévia → confirmação → Projetos ──
+  const etapaDoEvento = e => { const d = deIso(fimDe(e)); const n = MESES[d.getMonth()]; return n.charAt(0).toUpperCase() + n.slice(1) + " " + d.getFullYear(); };
+  function previaTarefas(id) {
+    const e = eventos.find(x => x.id === id);
+    if (!e) return;
+    const pb = projetosBridge;
+    if (!pb || !pb.infoSocial || !pb.infoSocial("").pronta) {
+      abrirModal(`<header><div><h3>Transformar em tarefas</h3></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
+        <div class="sc-corpo"><p class="sc-nota">A Projetos ainda está carregando. Abra a guia Projetos uma vez e tente de novo.</p></div>`).querySelector(".sc-fechar").onclick = fechar;
+      return;
+    }
+    const etapa = etapaDoEvento(e);
+    const info = pb.infoSocial(etapa);
+    const novo = t => `<span class="is-novo">${esc(t)}</span><em>nova</em>`;
+    const ja = t => `${esc(t)}<em>já existe</em>`;
+    const fim = fimDe(e);
+    const m = abrirModal(`
+      <header><div><h3>Transformar em tarefas</h3><div class="sc-msub">Confira antes de criar na Projetos</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
+      <div class="sc-corpo">
+        <ul class="sc-arvore"><li>${info.temEntrega ? ja(info.entrega) : novo(info.entrega) + "<em>frente Marketing</em>"}
+          <ul><li>${info.temEtapa ? ja(etapa) : novo(etapa)}
+            <ul><li>${novo(e.nome)}<em>Fim ${dataCurta(fim)}/${fim.slice(0, 4)}${e.membro ? " · tag " + esc(e.membro) : ""}</em>
+              <ul>${info.passos.map(p => `<li>${novo(p)}</li>`).join("")}</ul>
+            </li></ul>
+          </li></ul>
+        </li></ul>
+        <p class="sc-nota">Tudo entra como “Não iniciado”, sem responsável. Depois é só ajustar na Projetos.</p>
+        <div class="sc-erro" role="alert"></div>
+      </div>
+      <footer><div><button type="button" class="sc-btn" data-voltar>Voltar</button></div><div><button type="button" class="sc-btn sc-btn-pri" data-criar>Criar na Projetos</button></div></footer>`, "[data-criar]");
+    m.querySelector(".sc-fechar").onclick = fechar;
+    m.querySelector("[data-voltar]").onclick = () => abrirEvento(id);
+    m.querySelector("[data-criar]").onclick = () => {
+      const atual = eventos.find(x => x.id === id);
+      if (!atual) return fechar();
+      if (atual.tarefaId && pb.existeLinha(atual.tarefaId)) { abrirEvento(id); return; } // já criado (duplo clique / outra pessoa)
+      const tid = pb.criarMateriaSocial({ nome: atual.nome, etapa, endDate: fimDe(atual), lugar: atual.membro });
+      if (!tid) { m.querySelector(".sc-erro").textContent = "Não consegui criar na Projetos. Nada foi mudado."; return; }
+      atual.tarefaId = tid;
+      atual.status = "materia";
+      atual.atualizadoEm = new Date().toISOString();
+      salvar(); render();
+      abrirModal(`<header><div><h3>Pronto ✅</h3><div class="sc-msub">“${esc(atual.nome)}” virou tarefa na Projetos</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
+        <div class="sc-corpo"><p class="sc-nota">Está em ${esc(info.entrega)} › ${esc(etapa)}, com as ${info.passos.length} subtarefas do processo.</p></div>
+        <footer><div></div><div><button type="button" class="sc-btn" data-ficar>Continuar aqui</button><button type="button" class="sc-btn sc-btn-pri" data-ir>Abrir na Projetos</button></div></footer>`, "[data-ir]");
+      const mm = document.getElementById("sc-modal");
+      mm.querySelector(".sc-fechar").onclick = fechar;
+      mm.querySelector("[data-ficar]").onclick = fechar;
+      mm.querySelector("[data-ir]").onclick = () => { fechar(); pb.abrirLinha(tid); };
+    };
+  }
+
+  // ── Eventos da tela ──
+  function ligar() {
+    const view = document.getElementById("social-view");
+    if (!view || view.dataset.ligado) return;
+    view.dataset.ligado = "1";
+    const mover = n => {
+      if (vista.modo === "mes") { const d = deIso(vista.ref); vista.ref = iso(new Date(d.getFullYear(), d.getMonth() + n, 1)); }
+      else vista.ref = somar(vista.ref, 7 * n);
+      render();
+    };
+    document.getElementById("sc-ant").onclick = () => mover(-1);
+    document.getElementById("sc-prox").onclick = () => mover(1);
+    document.getElementById("sc-hoje").onclick = () => { vista.ref = hoje(); render(); };
+    document.getElementById("sc-novo").onclick = () => { if (podeEditar()) abrirEvento(null, vista.modo === "semana" ? segunda(vista.ref) : (vista.ref.slice(0, 7) === hoje().slice(0, 7) ? hoje() : vista.ref.slice(0, 8) + "01")); };
+    view.querySelectorAll(".sc-modo button").forEach(b => b.onclick = () => {
+      if (vista.modo === b.dataset.modo) return;
+      // Mês → semana: a semana de hoje se hoje está no mês; senão, a 1ª semana do mês.
+      if (b.dataset.modo === "semana" && vista.ref.slice(0, 7) !== hoje().slice(0, 7)) vista.ref = vista.ref.slice(0, 8) + "01";
+      else if (b.dataset.modo === "semana") vista.ref = hoje();
+      vista.modo = b.dataset.modo; guardarVista(); render();
+    });
+    document.getElementById("sc-filtro").addEventListener("click", ev => {
+      const b = ev.target.closest("[data-st]");
+      if (!b) return;
+      const id = b.dataset.st;
+      vista.filtro = vista.filtro.includes(id) ? vista.filtro.filter(x => x !== id) : vista.filtro.concat(id);
+      guardarVista(); render();
+    });
+    const cal = document.getElementById("sc-cal");
+    cal.addEventListener("click", ev => {
+      const evb = ev.target.closest("[data-ev]");
+      if (evb) { abrirEvento(evb.dataset.ev); return; }
+      const mais = ev.target.closest("[data-mais]");
+      if (mais) { abrirDia(mais.dataset.mais); return; }
+      const dia = ev.target.closest("[data-dia]");
+      if (dia && podeEditar()) abrirEvento(null, dia.dataset.dia);
+    });
+    cal.addEventListener("keydown", ev => {
+      if (ev.key !== "Enter" && ev.key !== " ") return;
+      const dia = ev.target.closest(".sc-dia, .sc-scab");
+      if (!dia || ev.target.closest("[data-ev],[data-mais]")) return;
+      ev.preventDefault();
+      if (podeEditar()) abrirEvento(null, dia.dataset.dia);
+    });
+  }
+
+  socialBridge = {
+    get: () => (temDados ? { eventos } : undefined),
+    apply: data => {
+      const sc = data && data.socialCalendar;
+      if (!sc || !Array.isArray(sc.eventos)) return;
+      eventos = sc.eventos.map(normalizar);
+      temDados = true;
+      try { localStorage.setItem(LS_KEY, JSON.stringify({ eventos })); } catch (e) {}
+      if (visivel() && !document.getElementById("sc-modal")) render();
+    },
+    abrir: () => { ligar(); render(); },
+    // Pra teste e pra fase 2 (entrada automática).
+    _eventos: () => eventos
+  };
+})();
+
 const CATALOGO_PERMISSOES = [
   // 21/10 (Karina): a Tasks saiu; a Projetos é a aba de todo mundo.
   { grupo: "Projetos", itens: [
@@ -13517,6 +14080,12 @@ const CATALOGO_PERMISSOES = [
     { chave: "crmEditColors", rotulo: "Editar cores" },
     // 21/10: CRM ↔ Projetos.
     { chave: "crmProjetos", rotulo: "Ver e mexer nas tarefas da Projetos pelo CRM (mapa Avisos Gerais, janela do país, aviso ao mudar status)" }
+  ] },
+  // 28/10 (Karina): Social Calendar, só na WPF.
+  { grupo: "Social Calendar", itens: [
+    { chave: "socialCalendar", rotulo: "Ver a aba Social Calendar" },
+    { chave: "socialCalendarEditar", rotulo: "Cadastrar, editar e excluir eventos dos membros" },
+    { chave: "socialCalendarTarefas", rotulo: "Transformar evento em tarefas na Projetos" }
   ] },
   { grupo: "Marketing", itens: [
     { chave: "tabMarketing", rotulo: "Ver a aba Marketing" }

@@ -15,6 +15,35 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Canário: apagar? (Karina, 28/10 — esperando resposta)**
+  - **Pedido:** "só em wpf (cbth não recebe e apaga canario)", ao pedir o
+    Social Calendar.
+  - **Perguntei:** é tirar a empresa Canário da Dash (menu do logo e código,
+    guardando `projetos__canario` e `tasksPilotoCadastro__canario` no
+    banco)? Ou só que a Canário não recebe a guia nova?
+  - **Hoje:** a guia já não aparece na Canário (só WPF). Nada foi apagado.
+  - *Onde:* `index.html` (`ORGS`, `ORGS_SO_KARINA`, `html.org-canario`).
+  - *Aberto em:* 2026-10-28
+
+- [ ] **Social Calendar — fase 2: eventos chegando sozinhos (28/10)**
+  - **Fase 1 no ar:** calendário Mês/Semana, evento cadastrado à mão,
+    status e "Transformar em tarefas" (ver Changelog 28/10, 4ª).
+  - **Fase 2:** os eventos dos membros entram sem digitar. Opções a decidir
+    com a Karina:
+    - formulário público pros membros (`form.html` já existe);
+    - e-mail lido pelo Carinha;
+    - campo no CRM.
+    - Chegam como "Novo" e a equipe aprova.
+  - **Também decidir:**
+    - quem fica Responsável pelas subtarefas (hoje entram sem ninguém;
+      "Aprovar a matéria" leva quem aprova, regra de 13/10);
+    - se o Carinha avisa de evento novo;
+    - se a etapa deve ser o mês do início ou do fim (hoje: mês do último
+      dia).
+  - *Onde:* `index.html`, bloco "SOCIAL CALENDAR" e `criarMateriaSocial`
+    (bloco PROJETOS).
+  - *Aberto em:* 2026-10-28
+
 - [ ] **Projetos pesada: Histórico das linhas com 2,1 MB (28/10)**
   A seção `projetos` tem 3,2 MB de texto, e 2,1 MB disso é o `historico` de
   cada linha (2.533 linhas). Em 28/10 isso travou a gravação da Dash pelo
