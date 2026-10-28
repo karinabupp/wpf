@@ -34,6 +34,10 @@ reconstruir o raciocínio.
     - e-mail lido pelo Carinha;
     - campo no CRM.
     - Chegam como "Novo" e a equipe aprova.
+  - **Proposto em 28/10, sem resposta:** ao escolher um membro que já tem
+    evento, preencher sozinho associação, rep, website, Instagram e Facebook
+    com os do último evento dele.
+  - **Outras redes:** hoje só Instagram e Facebook ("por agora", Karina).
   - **Também decidir:**
     - quem fica Responsável pelas subtarefas (hoje entram sem ninguém;
       "Aprovar a matéria" leva quem aprova, regra de 13/10);

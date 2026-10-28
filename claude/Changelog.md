@@ -12,6 +12,54 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (5ª) — Social Calendar: logo da WPF + visão Planilha
+
+Pedido da Karina às 12h40 (print do título): tirar o título e pôr o logo da
+WPF; criar dentro da guia uma visão em planilha, "a planilha de eventos" (os
+torneios), com nome, descrição, datas, garantido, relevant info, membro/país,
+associação, redes, website e rep. Aprovado às 12h46: Garantido = valor
+garantido do prêmio (GTD); uma coluna por rede, por enquanto Instagram e
+Facebook.
+
+- **`index.html`, bloco "SOCIAL CALENDAR":**
+  - **Topo:** sai "Social Calendar" e o subtítulo; entra o logo da WPF
+    (`.sc-logo`, clona o `#logo`, igual à Projetos).
+  - **Visão Planilha:** botão Mês | Semana | **Planilha**. Os mesmos eventos
+    do calendário (mudou num, muda no outro).
+    - Uma linha por torneio, edição direto na célula: grava ao sair da
+      célula; Enter confirma.
+    - Busca por evento, país, associação, rep, descrição etc. Filtro de
+      status. Ordem por data de início.
+    - "+ Novo evento" cria a linha e já foca o nome.
+    - Nome do evento fica fixo à esquerda ao rolar pro lado.
+    - Colunas: Nome do evento · Membro / País (sugestões do CRM) · Início ·
+      Fim · Garantido (GTD) · Descrição · Relevant info · Local · Associação ·
+      Rep · Website · Instagram · Facebook · Link do evento · Status.
+    - Status Vira matéria → "Transformar em tarefas" (mesma prévia); evento
+      já convertido → "Na Projetos ↗"; "Abrir" mostra a janela do evento.
+    - Links: ganham https:// e ficam clicáveis (↗).
+    - Travas: nome não fica vazio; início obrigatório; fim não antes do
+      início.
+  - **Campos novos no evento:** `descricao`, `garantido`, `associacao`,
+    `rep`, `website`, `instagram`, `facebook`. A janela do evento também
+    ganhou esses campos. "Observações" virou **Relevant info** (mesmo campo
+    `obs`) e "Link" virou **Link do evento**.
+  - **Nuvem:** o calendário não redesenha com alguém digitando na planilha.
+- **Não feito (sem resposta):** preencher sozinho associação, rep, website e
+  redes a partir do último evento do mesmo membro. Está no Prox Passos.
+- **Testes (Chromium headless, dados simulados):** os 37 anteriores + 11
+  novos, sem erro de JavaScript:
+  - logo no lugar do título; planilha com o evento do calendário; colunas
+    na ordem;
+  - célula grava (GTD; link com https e ↗); nova linha foca o nome; nome
+    não fica vazio;
+  - busca; status mostra "Transformar em tarefas"; convertido mostra "Na
+    Projetos ↗";
+  - janela com os campos novos; evento criado na planilha aparece no
+    calendário; celular sem rolagem lateral.
+
+---
+
 ## 2026-10-28 (4ª) — Nova guia Social Calendar (só WPF)
 
 Pedido da Karina às 12h11: guia nova "Social Calendar", só na WPF, com um
