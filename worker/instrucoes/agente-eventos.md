@@ -5,6 +5,11 @@
 > o agente na mão.
 > Definido pela Karina em 28/10/2026: "o robô vai ser a pessoa que faz
 > isso". Mudou aqui = registrar no Changelog.
+> **Correção de 28/10 (15h32), depois da 1ª rodada:** a 1ª rodada criou 29
+> tarefas "sem eventos" pra membros cujo site nem abriu, e a Karina mandou
+> apagar. Por isso as regras "Site que não abriu ≠ sem eventos" e "só onde
+> tem federação". Uma instrução extra que vier junto com a rodada também
+> manda; em caso de dúvida, **não crie** a tarefa e anote no diário.
 > **Aprovações da Karina (28/10):** roda como tarefa agendada; grava
 > **direto** no calendário como "Novo"; tarefa nova sem dono → o Carinha
 > pergunta responsável e prazo a ela no WhatsApp (automático).
@@ -42,8 +47,10 @@ e regrave por cima: alguém pode estar editando na Dash. Sempre
 1. **Ler** `socialCalendar` (membros + eventos) e o diário
    `agente_eventos_log`. Hoje = data de São Paulo.
 2. **Procurar eventos de cada membro** (os 45 de `membros`):
-   - **Janela:** eventos que começam nos próximos **120 dias**, ou que estão
-     acontecendo.
+   - **Janela (Karina, 28/10):** todo evento **com data confirmada pelo
+     organizador**, de hoje (incluindo os que estão acontecendo) até o **fim
+     do ano seguinte**. O calendário tem que mostrar os meses com os eventos
+     já confirmados.
    - **Fontes, nesta ordem:**
      1. o **site** e o **circuito/evento oficial** do membro (campo
         `circuito`; a `obs` diz onde fica o calendário — ex.: BSOP no
@@ -76,12 +83,18 @@ e regrave por cima: alguém pode estar editando na Dash. Sempre
    - **Membro sem informação:** sem `associacao` **ou** sem nenhum link
      (website, instagram, facebook) → tarefa em **"Fontes dos membros"**
      (`pj-sc-fontes`).
-   - **Membro sem eventos:** nenhum evento (fora Descartado) começando nos
-     próximos **60 dias**, depois da sua busca → tarefa em **"Membros sem
-     eventos"** (crie a etapa `pj-sc-sem-eventos` dentro de `pj-sc` se não
-     existir, logo depois de "Fontes dos membros").
-   - **Não crie** a tarefa "sem eventos" pra membro que já está em
-     "Fontes dos membros" com tarefa aberta. Primeiro achar as fontes.
+   - **Membro sem eventos = checar se está ativo (Karina, 28/10):** só
+     onde **tem federação** (membro com `associacao` preenchida) **e não
+     tem nenhum evento** no calendário (fora Descartado) de hoje até o fim
+     do ano seguinte, **depois de você ter conseguido olhar as fontes
+     dele** → tarefa em **"Membros sem eventos"**. Se a etapa
+     `pj-sc-sem-eventos` não existir dentro de `pj-sc`, crie logo depois de
+     "Fontes dos membros".
+   - **Site que não abriu ≠ sem eventos.** Se você não conseguiu ler o site
+     oficial nem achar nada nas mídias por falha de acesso, **não crie** a
+     tarefa: anote no diário como "não verificado".
+   - **Não crie** a tarefa "sem eventos" pra membro sem federação (esse
+     está em "Fontes dos membros").
    - Nunca reabra tarefa finalizada nem cancelada. Nunca apague tarefa.
 7. **Resumo pra Karina** no WhatsApp (só se algo mudou; ver abaixo).
 8. **Diário:** atualize `agente_eventos_log` com data, contagens e erros.
@@ -124,12 +137,13 @@ tarefa, processo padrão igual em todas.
     3. Encontrar o Rep
     4. Preencher na Dash (Social Calendar › Membros)
   - Grave também `membros[].tarefaInfoId` = id da tarefa.
-- **Membros sem eventos**:
+- **Membros sem eventos** (checar se está ativo):
   - Tarefa: `@País` (id `pj-sc-se-<slug>`).
   - Subtarefas, nesta ordem:
-    1. Contatar o Rep
-    2. Pedir o calendário de eventos
-    3. Cadastrar os eventos no Social Calendar
+    1. Checar se a federação está ativa
+    2. Contatar o Rep
+    3. Pedir o calendário de eventos
+    4. Cadastrar os eventos no Social Calendar
 - **Toda linha nova:**
   - `status: "naoiniciado"`, `assignees: []`, sem datas;
   - `historico: [{ id, quando: <ISO>, autor: "Agente", tipo: "edicao",

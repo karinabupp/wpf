@@ -12,6 +12,65 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (8ª) — Calendário com eventos confirmados + "checar se está ativo" + Matéria/Story/Post com responsável
+
+Pedidos da Karina à tarde: "a dash está em branco? … tem que ter os meses e
+as datas de eventos que já foram confirmados", "1. apaga 2. sim 3. … onde
+tem fed e não tem evento, tem que ter tarefa de checar se eles estão
+ativos", e o fluxo "virar matéria → story compartilhado ou post → quem
+fica com cada passo" (+ "levantar informações para o post").
+
+- **Supabase (dados), com backups antes de cada mudança**
+  (`bkp_projetos_2026-10-28_antes_apagar_sem_eventos`,
+  `bkp_projetos_2026-10-28_antes_membros_sem_eventos`):
+  - **Apagado ("1. apaga"):** as 29 tarefas que a 1ª rodada do agente
+    criou (membros cujo site nem abriu) e os 2 eventos da Estônia sem data
+    confirmada.
+  - **`socialCalendar.eventos`: 27 eventos, 12 países**, só com data
+    confirmada pelo organizador, de hoje até o fim de 2027:
+    - Australia (APT ×6), Belgium ×4, France ×5, Norway (Poker-NM),
+      Ukraine ×2, Barbados ×2 e os que já estavam;
+    - **BPT56** (Belarus, 06–16/11, Minsk) e **RVS Cup 2026** (Philippines,
+      06–16/11, Metro Card Club, ₱10M GTD Main), conferidos no navegador.
+    - Associação, Rep, site e redes copiados do membro.
+  - **Projetos › Social Calendar › nova etapa "Membros sem eventos"**
+    (`pj-sc-sem-eventos`, logo depois de Fontes dos membros): **22 tarefas**
+    @Armenia, @Basque Country, @Bulgaria, @Colombia, @Czechia,
+    @Dominican Republic, @Estonia, @Hong Kong, @Iceland, @Israel, @Mexico,
+    @Mongolia, @Nigeria, @Peru, @South Africa, @South Korea, @Spain,
+    @Sweden, @Taiwan, @Thailand, @Uruguay, @Zambia.
+    - Só onde tem federação e não tem evento.
+    - Subtarefas: Checar se a federação está ativa › Contatar o Rep › Pedir
+      o calendário de eventos › Cadastrar os eventos no Social Calendar.
+    - Autor "Claude" + "Criou a tarefa": o Carinha pergunta responsável e
+      prazo pra Karina no WhatsApp.
+- **`worker/instrucoes/agente-eventos.md`:**
+  - Janela: evento com data confirmada, de hoje até o fim do ano seguinte.
+  - "Membros sem eventos" = checar se está ativo, só onde tem federação.
+  - **Site que não abriu ≠ sem eventos:** não cria tarefa, anota "não
+    verificado" no diário.
+  - Nota da correção (15h32) no topo.
+- **`index.html`, Social Calendar › "Transformar em tarefas":**
+  - Escolhe o formato: **Matéria** (marcada), **Story compartilhado**,
+    **Post** (um, dois ou os três).
+  - Cada passo tem um **responsável** (lista de usuários da Dash, ou "Sem
+    responsável").
+    - Matéria: Levantar as informações do evento › Escrever › Aprovar ›
+      Publicar a matéria.
+    - Story: Compartilhar o story.
+    - Post: Levantar as informações para o post › Criar › Aprovar › Postar
+      o post.
+  - A prévia mostra a árvore com o responsável de cada passo. Sem formato
+    escolhido, o botão não cria.
+  - **Correção:** o prazo (último dia do evento) e o responsável vão em
+    **cada subtarefa**. Antes ficavam na tarefa mãe e se perdiam, porque
+    ela é calculada pelas de dentro.
+  - `SC_FORMATOS`, `criarMateriaSocial({…, passos:[{nome, responsavel}]})`,
+    `previaTarefas`.
+  - **Testes:** 64 verificações no navegador sem tela (formatos, 9
+    subtarefas na ordem, prazo em todas, responsável só onde escolhido,
+    botão travado sem formato) + CBTH intacta.
+
 ## 2026-10-28 (7ª) — Agente de Eventos + Carinha pergunta dono/prazo + tag "Cita WPF" + Filipinas e Malásia
 
 Pedidos da Karina às 14h20 e 14h28. Aprovações: Carinha perguntar no

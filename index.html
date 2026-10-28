@@ -4645,6 +4645,12 @@
   #sc-modal footer div { display: flex; gap: 8px; flex-wrap: wrap; }
   #sc-modal .sc-arvore { grid-column: 1 / -1; margin: 0; padding: 12px 14px; background: #fbfbfa; border: 1px solid #ecebe8; border-radius: 8px; list-style: none; font-size: 13px; line-height: 1.55; }
   #sc-modal .sc-arvore ul { list-style: none; margin: 0; padding-left: 18px; }
+  #sc-modal .sc-formatos { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+  #sc-modal .sc-formato { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid #e3e2de; border-radius: 8px; font-size: 13px; cursor: pointer; }
+  #sc-modal .sc-passos { grid-column: 1 / -1; display: grid; gap: 10px; }
+  #sc-modal .sc-passos-tit { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #9b9a97; margin-bottom: 4px; }
+  #sc-modal .sc-passo { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; padding: 3px 0; }
+  #sc-modal .sc-passo select { min-width: 160px; max-width: 50%; }
   #sc-modal .sc-arvore em { font-style: normal; font-size: 11px; color: #9b9a97; margin-left: 6px; }
   #sc-modal .sc-arvore .is-novo { color: #2c5f12; font-weight: 600; }
   #sc-modal .sc-nota { grid-column: 1 / -1; font-size: 12.5px; color: #6b6a66; margin: 0; }
@@ -13124,12 +13130,20 @@ applyRolePermissions();
   // subtarefas). Nome limpo (regra de 13/10). Só na WPF.
   const SC_ENTREGA = "Social Calendar";
   const SC_PASSOS = ["Levantar as informações do evento", "Escrever a matéria", "Aprovar a matéria", "Publicar a matéria"];
+  // 28/10 (Karina): depois de virar matéria, dá pra escolher Story
+  // compartilhado e/ou Post; cada passo vira subtarefa com responsável.
+  const SC_FORMATOS = [
+    { id: "materia", nome: "Matéria", passos: SC_PASSOS },
+    { id: "story", nome: "Story compartilhado", passos: ["Compartilhar o story"] },
+    { id: "post", nome: "Post", passos: ["Levantar as informações para o post", "Criar o post", "Aprovar o post", "Postar o post"] }
+  ];
   const SC_MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
   const scChaveEtapa = nome => { const m = /^(\S+)\s+(\d{4})$/.exec(String(nome || "").trim().toLowerCase()); const i = m ? SC_MESES.indexOf(m[1]) : -1; return i < 0 ? "9999-99" : m[2] + "-" + String(i + 1).padStart(2, "0"); };
   const scEntrega = () => entregas.find(e => e.nome.trim().toLowerCase() === SC_ENTREGA.toLowerCase()) || null;
   function infoSocial(etapa) {
     const ent = scEntrega();
-    return { temEntrega: !!ent, temEtapa: !!(ent && ent.subtasks.some(x => x.nome === etapa)), passos: SC_PASSOS.slice(), entrega: SC_ENTREGA, pronta: temDados };
+    return { temEntrega: !!ent, temEtapa: !!(ent && ent.subtasks.some(x => x.nome === etapa)), passos: SC_PASSOS.slice(),
+      formatos: SC_FORMATOS.map(f => ({ id: f.id, nome: f.nome, passos: f.passos.slice() })), entrega: SC_ENTREGA, pronta: temDados };
   }
   function criarMateriaSocial(d) {
     if (SUF !== "" || !temDados || !d || !String(d.nome || "").trim() || !d.etapa) return null;
@@ -13147,9 +13161,14 @@ applyRolePermissions();
       const i = ent.subtasks.findIndex(x => scChaveEtapa(x.nome) > k);
       if (i < 0) ent.subtasks.push(etapa); else ent.subtasks.splice(i, 0, etapa);
     }
-    const tarefa = normalizar({ nome: String(d.nome).trim(), status: "naoiniciado", endDate: d.endDate || "",
+    // Prazo e responsável ficam nas subtarefas: a tarefa (mãe) é calculada
+    // a partir delas (calcularMaes), então prazo posto nela se perdia.
+    const passos = (Array.isArray(d.passos) && d.passos.length ? d.passos : SC_PASSOS.map(nome => ({ nome })))
+      .filter(x => x && String(x.nome || "").trim());
+    const tarefa = normalizar({ nome: String(d.nome).trim(), status: "naoiniciado",
       tags: { lugares: d.lugar ? [d.lugar] : [] },
-      subtasks: SC_PASSOS.map(nome => ({ nome, status: "naoiniciado" })) }, 2);
+      subtasks: passos.map(x => ({ nome: String(x.nome).trim(), status: "naoiniciado", endDate: d.endDate || "",
+        assignees: x.responsavel ? [x.responsavel] : [] })) }, 2);
     registrar(tarefa, "Criou a tarefa pelo Social Calendar");
     tarefa.subtasks.forEach(x => registrar(x, "Criou a subtarefa pelo Social Calendar"));
     etapa.subtasks.push(tarefa);
@@ -14210,34 +14229,68 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     const novo = t => `<span class="is-novo">${esc(t)}</span><em>nova</em>`;
     const ja = t => `${esc(t)}<em>já existe</em>`;
     const fim = fimDe(e);
+    // 28/10 (Karina): escolhe o formato (Matéria / Story compartilhado /
+    // Post) e quem faz cada passo; cada passo vira uma subtarefa.
+    const formatos = info.formatos || [{ id: "materia", nome: "Matéria", passos: info.passos }];
+    const pessoas = (pb.usuarios ? pb.usuarios() : []).slice().sort((x, y) => x.localeCompare(y, "pt-BR"));
+    const escolhidos = new Set(["materia"]);
+    const donos = {};
+    const chave = (f, i) => f + "|" + i;
     const m = abrirModal(`
-      <header><div><h3>Transformar em tarefas</h3><div class="sc-msub">Confira antes de criar na Projetos</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
+      <header><div><h3>Transformar em tarefas</h3><div class="sc-msub">Escolha o formato e quem faz cada passo</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
       <div class="sc-corpo">
-        <ul class="sc-arvore"><li>${info.temEntrega ? ja(info.entrega) : novo(info.entrega) + "<em>frente Marketing</em>"}
-          <ul><li>${info.temEtapa ? ja(etapa) : novo(etapa)}
-            <ul><li>${novo(e.nome)}<em>Fim ${dataCurta(fim)}/${fim.slice(0, 4)}${e.membro ? " · tag " + esc(e.membro) : ""}</em>
-              <ul>${info.passos.map(p => `<li>${novo(p)}</li>`).join("")}</ul>
-            </li></ul>
-          </li></ul>
-        </li></ul>
-        <p class="sc-nota">Tudo entra como “Não iniciado”, sem responsável. Depois é só ajustar na Projetos.</p>
+        <div class="sc-formatos" role="group" aria-label="Formato">${formatos.map(f => `<label class="sc-formato"><input type="checkbox" data-formato="${esc(f.id)}" ${escolhidos.has(f.id) ? "checked" : ""}> ${esc(f.nome)}</label>`).join("")}</div>
+        <div class="sc-passos"></div>
+        <ul class="sc-arvore"></ul>
+        <p class="sc-nota">Tudo entra como “Não iniciado”, com prazo no último dia do evento (${dataCurta(fim)}/${fim.slice(0, 4)}). Passo sem responsável fica em aberto na Projetos.</p>
         <div class="sc-erro" role="alert"></div>
       </div>
       <footer><div><button type="button" class="sc-btn" data-voltar>Voltar</button></div><div><button type="button" class="sc-btn sc-btn-pri" data-criar>Criar na Projetos</button></div></footer>`, "[data-criar]");
+    const passosEscolhidos = () => formatos.filter(f => escolhidos.has(f.id))
+      .flatMap(f => f.passos.map((nome, i) => ({ nome, responsavel: donos[chave(f.id, i)] || "" })));
+    const desenhar = () => {
+      m.querySelector(".sc-passos").innerHTML = formatos.filter(f => escolhidos.has(f.id)).map(f => `
+        <div class="sc-passos-grupo"><div class="sc-passos-tit">${esc(f.nome)}</div>
+          ${f.passos.map((nome, i) => `<label class="sc-passo"><span>${esc(nome)}</span>
+            <select data-dono="${esc(chave(f.id, i))}"><option value="">Sem responsável</option>${pessoas.map(u => `<option value="${esc(u)}" ${donos[chave(f.id, i)] === u ? "selected" : ""}>${esc(u)}</option>`).join("")}</select></label>`).join("")}
+        </div>`).join("") || `<p class="sc-nota">Escolha pelo menos um formato.</p>`;
+      const ps = passosEscolhidos();
+      m.querySelector(".sc-arvore").innerHTML = `<li>${info.temEntrega ? ja(info.entrega) : novo(info.entrega) + "<em>frente Marketing</em>"}
+          <ul><li>${info.temEtapa ? ja(etapa) : novo(etapa)}
+            <ul><li>${novo(e.nome)}<em>${e.membro ? "tag " + esc(e.membro) : ""}</em>
+              <ul>${ps.map(p => `<li>${novo(p.nome)}<em>${p.responsavel ? esc(p.responsavel) : "sem responsável"}</em></li>`).join("")}</ul>
+            </li></ul>
+          </li></ul>
+        </li>`;
+      m.querySelector("[data-criar]").disabled = !ps.length;
+    };
+    m.querySelectorAll("[data-formato]").forEach(cb => cb.onchange = () => {
+      if (cb.checked) escolhidos.add(cb.dataset.formato); else escolhidos.delete(cb.dataset.formato);
+      desenhar();
+    });
+    m.querySelector(".sc-passos").addEventListener("change", ev => {
+      const sel = ev.target.closest("[data-dono]");
+      if (!sel) return;
+      donos[sel.dataset.dono] = sel.value;
+      desenhar();
+    });
+    desenhar();
     m.querySelector(".sc-fechar").onclick = fechar;
     m.querySelector("[data-voltar]").onclick = () => abrirEvento(id);
     m.querySelector("[data-criar]").onclick = () => {
       const atual = eventos.find(x => x.id === id);
       if (!atual) return fechar();
       if (atual.tarefaId && pb.existeLinha(atual.tarefaId)) { abrirEvento(id); return; } // já criado (duplo clique / outra pessoa)
-      const tid = pb.criarMateriaSocial({ nome: atual.nome, etapa, endDate: fimDe(atual), lugar: atual.membro });
+      const ps = passosEscolhidos();
+      if (!ps.length) { m.querySelector(".sc-erro").textContent = "Escolha pelo menos um formato."; return; }
+      const tid = pb.criarMateriaSocial({ nome: atual.nome, etapa, endDate: fimDe(atual), lugar: atual.membro, passos: ps });
       if (!tid) { m.querySelector(".sc-erro").textContent = "Não consegui criar na Projetos. Nada foi mudado."; return; }
       atual.tarefaId = tid;
       atual.status = "materia";
       atual.atualizadoEm = new Date().toISOString();
       salvar(); render();
       abrirModal(`<header><div><h3>Pronto ✅</h3><div class="sc-msub">“${esc(atual.nome)}” virou tarefa na Projetos</div></div><button class="sc-fechar" type="button" aria-label="Fechar">×</button></header>
-        <div class="sc-corpo"><p class="sc-nota">Está em ${esc(info.entrega)} › ${esc(etapa)}, com as ${info.passos.length} subtarefas do processo.</p></div>
+        <div class="sc-corpo"><p class="sc-nota">Está em ${esc(info.entrega)} › ${esc(etapa)}, com ${ps.length} subtarefa${ps.length === 1 ? "" : "s"}.</p></div>
         <footer><div></div><div><button type="button" class="sc-btn" data-ficar>Continuar aqui</button><button type="button" class="sc-btn sc-btn-pri" data-ir>Abrir na Projetos</button></div></footer>`, "[data-ir]");
       const mm = document.getElementById("sc-modal");
       mm.querySelector(".sc-fechar").onclick = fechar;

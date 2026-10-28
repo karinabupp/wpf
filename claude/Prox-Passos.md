@@ -15,7 +15,10 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Conferir a 1ª rodada do Agente de Eventos (29/10, 7h42)**
+- [ ] **Conferir a próxima rodada do Agente de Eventos (qui 29/10, 7h42)**
+  - A 1ª rodada (28/10) criou 29 tarefas indevidas (sites que não abriram)
+    e foram apagadas a pedido da Karina; as regras foram corrigidas.
+    Conferir que agora ele **não** cria tarefa sem ter conseguido olhar.
   - Ver o resumo da tarefa agendada e o diário
     (`wpf_agente_config.agente_eventos_log`).
   - Conferir na Dash:
@@ -57,6 +60,27 @@ reconstruir o raciocínio.
   - *Onde:* `index.html` (`ORGS`, `ORGS_SO_KARINA`, `html.org-canario`).
   - *Aberto em:* 2026-10-28
 
+- [ ] **Social Calendar — países não verificados (28/10)**
+  - Sites que não abriram daqui (nuvem bloqueia) ou sem datas: South
+    Africa, Nigeria, Uruguay, Colombia, Czechia, Spain (site em
+    manutenção), Armenia, Hong Kong; South Korea (THAK mostra APLC sem
+    datas).
+  - Eles estão entre as 22 tarefas "Membros sem eventos". Se a equipe achar
+    eventos, cadastra e finaliza a tarefa.
+  - Sem evento futuro confirmado que cite a WPF: Ladies Weekend, Asian
+    Nations Cup e Summit já aconteceram em out/2026.
+  - *Onde:* Social Calendar; `worker/instrucoes/agente-eventos.md`.
+  - *Aberto em:* 2026-10-28
+
+- [ ] **Social Calendar — formatos: próximos passos possíveis (28/10)**
+  - Hoje o prazo de todos os passos é o último dia do evento. Talvez
+    divulgação (story/post) precise sair **antes** do evento — perguntar à
+    Karina se quer prazos diferentes por passo.
+  - Evento já convertido não dá pra acrescentar Story/Post depois pela
+    Social Calendar (só na Projetos, à mão).
+  - *Onde:* `index.html` (`previaTarefas`, `criarMateriaSocial`).
+  - *Aberto em:* 2026-10-28
+
 - [ ] **Social Calendar — fase 2: eventos chegando sozinhos (28/10)**
   - **Fase 1 no ar:** calendário Mês/Semana, evento cadastrado à mão,
     status e "Transformar em tarefas" (ver Changelog 28/10, 4ª).
@@ -68,13 +92,11 @@ reconstruir o raciocínio.
     - Chegam como "Novo" e a equipe aprova.
   - **Feito em 28/10:** a visão Membros guarda as fontes, e o evento do
     membro já vem preenchido com elas.
-  - **REGRA AUTOMÁTICA (Karina, 28/10):** membro **sem nenhum evento nos
-    próximos 60 dias**, depois que o robô procurar, ganha uma tarefa na
-    Projetos.
-    - Lugar: Social Calendar › etapa "Membros sem eventos" › @País.
-    - Subtarefas: Contatar o Rep › Pedir o calendário de eventos ›
-      Cadastrar os eventos no Social Calendar.
-    - **Não criar agora pra todos.**
+  - **REGRA AUTOMÁTICA (Karina, 28/10, atualizada à tarde):** onde tem
+    federação e **não tem evento** (de hoje ao fim do ano seguinte) →
+    tarefa "checar se está ativo" em Social Calendar › "Membros sem
+    eventos" › @País. **Feito:** 22 tarefas criadas em 28/10 (Changelog,
+    8ª).
   - **O robô/agente** vai ler a visão Membros:
     - site, Instagram, Facebook e o campo Circuito (ex.: BSOP no Brasil,
       Battle of Malta na Itália, CAP na Argentina);
