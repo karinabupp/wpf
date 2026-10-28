@@ -12,6 +12,40 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (2ª) — Agenda: título curto com o contexto primeiro
+
+Pedido da Karina às 11h38 ("agora", item c do Prox Passos de 22/10). Ela
+aprovou às 11h40, com uma condição: "não precisa mexer em tarefas anteriores
+a hoje".
+
+- **Causa:** o que diferencia uma tarefa da outra (país, evento) ficava no
+  fim do título, e o Google corta o fim. "Contatar o candidato selecionado
+  da Holanda" e "…da Lituânia" apareciam iguais.
+- **`worker/whatsapp-bridge.js`:**
+  - **Nova `pjTitulosCurtos`:** chamada ao Haiku que escreve "<o que
+    diferencia> · <ação curta>", até 45 caracteres (ex.: "Holanda · Contatar
+    o candidato"). Fica guardado em `estado.textos[id].titulo`, e `tsig`
+    guarda o "oque" de quando foi gerado: se ele mudar, gera de novo. Não
+    mexe no "oque" nem no revisado, então o WhatsApp não muda.
+  - **`pjTituloAgenda`:**
+    - Dia de hoje em diante: usa o título curto ("CBTH · " no começo, quando
+      for da CBTH).
+    - Dia anterior a hoje: mantém o título que já está no Google, só sem a
+      🔴/🟡.
+    - Sem título curto (IA falhou): volta ao texto antigo.
+  - **`pjAgendaSync`:** só pede título curto pras tarefas de hoje em diante.
+- **`worker/instrucoes/lembretes.md`:** regra do título.
+- **Testes:**
+  - **Google/IA simulados:** a futura ganha o título curto; a atrasada mantém
+    o título (só perde a bolinha); a atrasada nova usa o texto antigo, sem
+    chamar a IA. Na rodada seguinte a IA não é chamada de novo. No dia
+    seguinte, a de ontem não muda de título.
+  - **Haiku real, com 6 tarefas reais:** "Lituânia · Contatar o
+    selecionado", "Dinamarca · Pesquisar candidato", "LW 2026 · Aprovar post
+    de depoimentos", "LW 2026 · Consolidar relatório final".
+
+---
+
 ## 2026-10-28 — Agenda: tarefa só no dia do Fim, sem 🟡/🔴
 
 Pedido da Karina às 9h52, com print do dia 28/10 lotado de 🔴 e 🟡: "quero

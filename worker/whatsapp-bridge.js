@@ -3670,9 +3670,48 @@ function pjDiaAgenda(it, fdsVistos) {
   }
   return dia;
 }
-function pjTituloAgenda(it, estado) {
-  const t = (estado.textos[it.no.id] && estado.textos[it.no.id].oque) || pjTextoPadrao(it).oque;
+function pjTituloAgenda(it, estado, due, hoje, atual) {
+  // Dia anterior a hoje (Karina, 28/10): não mexe no título que já está lá (só tira a bolinha).
+  if (atual && due < hoje) return String(atual).replace(/^(🔴|🟡)\s*/u, "");
+  const tx = estado.textos[it.no.id] || {};
+  // Título curto (Karina, 28/10): o que diferencia primeiro, a ação depois ("Holanda · Contatar o candidato").
+  if (due >= hoje && tx.titulo && tx.tsig === tx.oque) return `${it.org === "cbth" ? "CBTH · " : ""}${corta(tx.titulo, 60)}`;
+  const t = tx.oque || pjTextoPadrao(it).oque;
   return `${corta(t, 120)}${it.org === "cbth" ? " · CBTH" : ""}`;
+}
+// Gera o título curto da agenda (só pra quem cai hoje ou depois). Não mexe no "oque" nem no revisado.
+async function pjTitulosCurtos(env, itens, estado) {
+  const faltam = itens.filter(it => estado.textos[it.no.id] && !(estado.textos[it.no.id].titulo && estado.textos[it.no.id].tsig === estado.textos[it.no.id].oque));
+  if (!faltam.length) return false;
+  const lista = faltam.map((it, i) => `#${i + 1}
+Caminho (de cima pra baixo): ${it.pais.map(p => p.nome).join(" › ") || "(é a própria entrega)"}
+Linha: ${it.no.nome}
+O que fazer: ${estado.textos[it.no.id].oque}`).join("\n");
+  let saida = [];
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: HAIKU, max_tokens: 800,
+        system: `Você escreve títulos de tarefas pra uma agenda do Google, que corta o fim do título. Pra cada item, escreva "titulo" com até 45 caracteres no formato "<o que diferencia> · <ação curta>".
+- "o que diferencia" vem PRIMEIRO: o país, o evento ou o projeto da tarefa, curto (abrevie nomes longos: "Ladies Weekend 2026" → "LW 2026", "TDA na Ásia" → "TDA Ásia").
+- "ação curta": verbo + objeto, sem repetir o que já está no começo.
+Ex.: "Contatar o candidato selecionado da Holanda" → "Holanda · Contatar o candidato"; "Enviar release para PokerNews sobre TDA na Ásia" → "TDA Ásia · Enviar release pra PokerNews".
+Use só o que está no item; não invente. Não escreva "CBTH". Português do Brasil, sem emoji, sem parênteses.
+Responda SÓ JSON: {"itens":[{"n":1,"titulo":"..."}]}`,
+        messages: [{ role: "user", content: lista }] })
+    });
+    const corpo = await res.json().catch(() => null);
+    const t = res.ok && corpo ? (corpo.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/```(json)?/g, "").trim() : "";
+    saida = JSON.parse(t.slice(t.indexOf("{"), t.lastIndexOf("}") + 1)).itens || [];
+  } catch (e) { saida = []; }
+  let mudou = false;
+  faltam.forEach((it, i) => {
+    const d = saida.find(x => x && x.n === i + 1);
+    const ti = d && typeof d.titulo === "string" ? limpo(d.titulo).replace(/\s+/g, " ").replace(/^cbth\s*·\s*/i, "").replace(/\.$/, "") : "";
+    if (ti.length >= 4) { estado.textos[it.no.id].titulo = corta(ti, 60); estado.textos[it.no.id].tsig = estado.textos[it.no.id].oque; mudou = true; }
+  });
+  return mudou;
 }
 function pjNotasAgenda(it, estado) {
   const ctx = (estado.textos[it.no.id] && estado.textos[it.no.id].contexto) || "";
@@ -3720,11 +3759,12 @@ async function pjAgendaSync(env, conexao, pessoa, hoje) {
   if (semTexto.length) { await pjDescrever(env, semTexto, estado); mudou = true; }
   const semRevisao = alvo.filter(x => estado.textos[x.no.id] && !estado.textos[x.no.id].revisado);
   if (semRevisao.length) { await pjRevisarTextos(env, semRevisao, estado, pessoa.nome_tasks); mudou = true; }
+  if (await pjTitulosCurtos(env, alvo.filter(it => pjDiaAgenda(it, estado.fds) >= hoje), estado)) mudou = true;
   for (const it of alvo) {
     const id = it.no.id, fim = it.no.endDate;
     const due = pjDiaAgenda(it, estado.fds);
-    const titulo = pjTituloAgenda(it, estado);
     let a = estado.agenda[id];
+    const titulo = pjTituloAgenda(it, estado, due, hoje, a && !a.apagada ? a.titulo : "");
     if (a && a.apagada) { if (a.fim === fim) continue; a = null; }
     if (!a) {
       if (due > hoje) continue;

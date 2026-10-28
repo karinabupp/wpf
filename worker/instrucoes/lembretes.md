@@ -143,6 +143,11 @@
   ser que já tenha sido confirmado no WhatsApp ("Sim, proposital") ou seja
   do Ladies Weekend — aí fica no sábado/domingo.
 - Mudou o Fim na Dash: a tarefa muda de dia na agenda junto.
+- **Título curto, contexto primeiro (Karina, 28/10):** "Holanda · Contatar o
+  candidato", "LW 2026 · Aprovar post de depoimentos"; CBTH vira "CBTH · …"
+  no começo. Gerado pela IA (`pjTitulosCurtos`) só pra tarefa de hoje em
+  diante; a de dia anterior a hoje fica com o título que já tem (só sem a
+  bolinha). O texto completo e o link ficam na descrição.
 - **Concluir na agenda = Finalizado na Projetos** (em até 1 hora).
   Finalizada na Dash = concluída na agenda. Cancelada ou passada pra outra
   pessoa: sai da agenda.
