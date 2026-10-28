@@ -4606,6 +4606,14 @@
   .sc-pl .sc-pl-acoes button { margin: 1px 2px; padding: 4px 9px; font-size: 12px; }
   .sc-pl-add { margin-top: 10px; }
   .sc-pl-vazio { padding: 22px; color: #9b9a97; font-size: 13px; }
+  /* 28/10 (Karina): visão Membros — fontes de cada membro (o robô vai ler daqui). */
+  .sc-pl td.sc-pl-pais { font-weight: 600; padding: 8px 10px; white-space: nowrap; }
+  .sc-mb-sit { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+  .sc-mb-sit b { font-weight: 600; border-radius: 999px; padding: 2px 9px; }
+  .sc-mb-sit .is-ok { background: #e7f3df; color: #2c5f12; }
+  .sc-mb-sit .is-falta { background: #fbf0d9; color: #8a5a00; }
+  .sc-mb-sit button { border: 0; background: none; color: #2383e2; cursor: pointer; font: inherit; font-size: 12px; padding: 0; }
+  .sc-mb-sit button:hover { text-decoration: underline; }
   /* janela */
   #sc-modal { position: fixed; inset: 0; z-index: 2147482000; background: rgba(15,15,15,.38); display: flex; align-items: center; justify-content: center; padding: 16px; color: #37352f; font-size: 13.5px; }
   #sc-modal .sc-caixa { background: #fff; width: min(560px, 100%); max-height: min(88vh, 820px); border-radius: 14px; box-shadow: 0 18px 50px rgba(15,15,15,.22); display: flex; flex-direction: column; overflow: hidden; }
@@ -4963,12 +4971,13 @@
         <h3 id="sc-periodo"></h3>
       </div>
       <div class="sc-dir">
-        <input id="sc-busca" type="search" placeholder="Buscar evento, país, associação…" aria-label="Buscar na planilha" hidden>
+        <input id="sc-busca" type="search" placeholder="Buscar evento, país, associação…" aria-label="Buscar" hidden>
         <div id="sc-filtro" class="sc-chips" role="group" aria-label="Filtrar por status"></div>
         <div class="sc-modo" role="group" aria-label="Visão">
           <button type="button" data-modo="mes" class="is-ativo">Mês</button>
           <button type="button" data-modo="semana">Semana</button>
           <button type="button" data-modo="planilha">Planilha</button>
+          <button type="button" data-modo="membros">Membros</button>
         </div>
       </div>
     </div>
@@ -10398,6 +10407,11 @@ applyRolePermissions();
       setTimeout(() => tentar(20), 50);
     },
     paises: () => allCountries2.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, "pt-BR")),
+    // 28/10 (Social Calendar › Membros): países com status "Membro" no quadro Federações.
+    paisesMembro: () => {
+      const d = dadosDoBoard2("federacoes") || {};
+      return Object.keys(d).filter(p => d[p] && d[p].status === "Membro").sort((a, b) => a.localeCompare(b, "pt-BR"));
+    },
     // 28/10 (Social Calendar): países com status em algum quadro do CRM.
     paisesNoCrm: () => {
       const nomes = new Set();
@@ -13783,23 +13797,36 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     };
   }
 
+  // Membros (28/10, Karina): as fontes de cada membro — associação, circuito,
+  // site, redes, Rep. É a lista que o robô vai ler pra achar os eventos.
+  const CAMPOS_MB = ["associacao", "circuito", "website", "instagram", "facebook", "rep", "obs"];
+  function normalizarMembro(m) {
+    m = m && typeof m === "object" ? m : {};
+    const o = { id: String(m.id || m.pais || ""), pais: String(m.pais || m.id || "") };
+    CAMPOS_MB.forEach(k => { o[k] = String(m[k] || ""); });
+    o.tarefaInfoId = m.tarefaInfoId || "";
+    o.atualizadoEm = m.atualizadoEm || "";
+    return o;
+  }
   let eventos = [];
+  let membros = [];
   let temDados = false; // nunca manda [] por cima da nuvem
   try {
     const g = JSON.parse(localStorage.getItem(LS_KEY) || "null");
     if (g && Array.isArray(g.eventos)) { eventos = g.eventos.map(normalizar); temDados = true; }
+    if (g && Array.isArray(g.membros)) membros = g.membros.map(normalizarMembro).filter(m => m.id);
   } catch (e) {}
   let vista = { modo: "mes", ref: hoje(), filtro: STATUS_SC.map(s => s.id) };
   try {
     const v = JSON.parse(localStorage.getItem(VISTA_KEY) || "null");
-    if (v && ["mes", "semana", "planilha"].includes(v.modo)) vista.modo = v.modo;
+    if (v && ["mes", "semana", "planilha", "membros"].includes(v.modo)) vista.modo = v.modo;
     if (v && Array.isArray(v.filtro)) vista.filtro = v.filtro.filter(id => STATUS_SC.some(s => s.id === id));
   } catch (e) {}
   const guardarVista = () => { try { localStorage.setItem(VISTA_KEY, JSON.stringify({ modo: vista.modo, filtro: vista.filtro })); } catch (e) {} };
 
   function salvar() {
     temDados = true;
-    try { localStorage.setItem(LS_KEY, JSON.stringify({ eventos })); } catch (e) {}
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ eventos, membros })); } catch (e) {}
     scheduleCloudSave();
   }
   const visivel = () => { const v = document.getElementById("social-view"); return !!(v && !v.classList.contains("hidden")); };
@@ -13821,10 +13848,14 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     }).join("");
     document.querySelectorAll("#social-view .sc-modo button").forEach(b => b.classList.toggle("is-ativo", b.dataset.modo === vista.modo));
     document.getElementById("sc-novo").disabled = !podeEditar();
-    const planilha = vista.modo === "planilha";
-    document.querySelector("#social-view .sc-nav").style.visibility = planilha ? "hidden" : "";
-    document.getElementById("sc-busca").hidden = !planilha;
+    const planilha = vista.modo === "planilha", modoMb = vista.modo === "membros";
+    document.querySelector("#social-view .sc-nav").style.visibility = planilha || modoMb ? "hidden" : "";
+    document.getElementById("sc-busca").hidden = !(planilha || modoMb);
+    document.getElementById("sc-busca").placeholder = modoMb ? "Buscar país, associação, Rep…" : "Buscar evento, país, associação…";
+    document.getElementById("sc-filtro").style.display = modoMb ? "none" : "";
+    document.getElementById("sc-novo").style.visibility = modoMb ? "hidden" : "";
     const h = hoje();
+    if (modoMb) { renderMembros(cal); return; }
     if (planilha) { renderPlanilha(cal); return; }
     if (vista.modo === "mes") {
       const ref = deIso(vista.ref);
@@ -13933,6 +13964,61 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     const n = linhas.length;
     document.getElementById("sc-resumo").textContent = `${n} evento${n === 1 ? "" : "s"} na planilha${buscaPl || vista.filtro.length < STATUS_SC.length ? " (com filtro)" : ""}.`;
   }
+  // ── Membros ──
+  const COLUNAS_MB = [
+    { k: "associacao", rot: "Associação", w: 240 },
+    { k: "circuito", rot: "Circuito / evento oficial", w: 220 },
+    { k: "website", rot: "Website", w: 210, link: true },
+    { k: "instagram", rot: "Instagram", w: 210, link: true },
+    { k: "facebook", rot: "Facebook", w: 210, link: true },
+    { k: "rep", rot: "Rep", w: 240 },
+    { k: "obs", rot: "Observações", w: 280, area: true }
+  ];
+  const membroCompleto = m => !!(m.associacao && (m.website || m.instagram || m.facebook) && m.rep);
+  // A lista: os membros guardados + quem é "Membro" no CRM e ainda não tem linha.
+  function linhasMembros() {
+    const b = window.membros2Bridge;
+    const doCrm = b && b.paisesMembro ? b.paisesMembro() : [];
+    const todos = membros.slice();
+    doCrm.forEach(p => { if (!todos.some(m => m.id === p)) todos.push(normalizarMembro({ id: p, pais: p })); });
+    const termos = semAcento(buscaPl).split(/\s+/).filter(Boolean);
+    return todos.filter(m => !termos.length || termos.every(t => semAcento([m.pais, m.associacao, m.circuito, m.rep, m.obs].join(" ")).includes(t)))
+      .sort((a, b) => a.pais.localeCompare(b.pais, "pt-BR"));
+  }
+  function renderMembros(cal) {
+    const linhas = linhasMembros();
+    const pode = podeEditar(), dis = pode ? "" : "disabled";
+    const cab = `<th style="min-width:150px">País</th>` + COLUNAS_MB.map(c => `<th style="min-width:${c.w}px">${esc(c.rot)}</th>`).join("") + "<th>Situação</th>";
+    const corpo = linhas.map(m => {
+      const ok = membroCompleto(m);
+      const temTarefa = m.tarefaInfoId && projetosBridge && projetosBridge.existeLinha && projetosBridge.existeLinha(m.tarefaInfoId);
+      return `<tr data-id="${esc(m.id)}"><td class="sc-pl-nome sc-pl-pais">${esc(m.pais)}</td>${COLUNAS_MB.map(c => `<td style="min-width:${c.w}px;max-width:${c.w + 80}px">${celulaPl(m, c, dis).replace(/data-id=/g, "data-mb=")}</td>`).join("")}
+        <td><span class="sc-mb-sit">${ok ? `<b class="is-ok">✅ Completo</b>` : `<b class="is-falta">⚠️ Falta info</b>`}${temTarefa ? `<button type="button" data-abrir-pj="${esc(m.tarefaInfoId)}">Tarefa ↗</button>` : ""}</span></td></tr>`;
+    }).join("");
+    const nOk = linhas.filter(membroCompleto).length;
+    cal.innerHTML = `<div class="sc-pl-rolagem"><table class="sc-pl sc-mb"><thead><tr>${cab}</tr></thead><tbody>${corpo}</tbody></table>
+      ${linhas.length ? "" : `<div class="sc-pl-vazio">Nenhum membro com essa busca.</div>`}</div>`;
+    document.getElementById("sc-resumo").textContent = `${linhas.length} membros · ${nOk} completos · ${linhas.length - nOk} com informação faltando. É daqui que o robô vai buscar os eventos.`;
+  }
+  function gravarCelulaMembro(el) {
+    const id = el.dataset.mb, k = el.dataset.k;
+    if (!id || !CAMPOS_MB.includes(k) || !podeEditar()) return;
+    let m = membros.find(x => x.id === id);
+    let v = String(el.value || "").trim();
+    if (CAMPOS_LINK.includes(k)) v = comHttps(v);
+    if (!m) { if (!v) return; m = normalizarMembro({ id, pais: id }); membros.push(m); }
+    if ((m[k] || "") === v) return;
+    m[k] = v; m.atualizadoEm = new Date().toISOString();
+    salvar();
+    if (CAMPOS_LINK.includes(k) || k === "associacao" || k === "rep") render();
+  }
+  // Evento novo de um membro: associação, site, redes e Rep vêm da lista de Membros.
+  function dadosDoMembro(pais) {
+    const m = membros.find(x => semAcento(x.pais) === semAcento(pais));
+    if (!m) return null;
+    return { associacao: m.associacao, rep: m.rep, website: m.website, instagram: m.instagram, facebook: m.facebook };
+  }
+
   // Grava uma célula (sem redesenhar, pra não tirar o foco).
   function gravarCelula(el) {
     const e = eventos.find(x => x.id === el.dataset.id), k = el.dataset.k;
@@ -13946,10 +14032,12 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     if ((e[k] || "") === v) return;
     e[k] = v;
     if (k === "fim" && v === e.inicio) e.fim = "";
+    let preencheu = false;
+    if (k === "membro") { const dm = dadosDoMembro(v); if (dm) Object.keys(dm).forEach(c => { if (!e[c] && dm[c]) { e[c] = dm[c]; preencheu = true; } }); }
     e.atualizadoEm = new Date().toISOString();
     salvar();
     // Status, datas e links mudam o que aparece na linha: redesenha.
-    if (k === "status" || k === "inicio" || CAMPOS_LINK.includes(k)) render();
+    if (k === "status" || k === "inicio" || CAMPOS_LINK.includes(k) || preencheu) render();
   }
   function novaLinhaPl() {
     if (!podeEditar()) return;
@@ -14046,6 +14134,12 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     });
     const ab = m.querySelector("[data-abrir-pj]");
     if (ab) ab.onclick = () => { fechar(); projetosBridge.abrirLinha(e.tarefaId); };
+    const inMembro = m.querySelector("#sc-f-membro");
+    if (inMembro) inMembro.addEventListener("change", () => {
+      const dm = dadosDoMembro(inMembro.value.trim());
+      if (!dm) return;
+      Object.keys(dm).forEach(c => { const f = m.querySelector("#sc-f-" + c); if (f && !f.value.trim() && dm[c]) f.value = dm[c]; });
+    });
     function ler() {
       const f = new FormData(form);
       const v = k => String(f.get(k) || "").trim();
@@ -14170,7 +14264,11 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     });
     const cal = document.getElementById("sc-cal");
     // Planilha (28/10): grava ao sair da célula / mudar o select.
-    cal.addEventListener("change", ev => { const el = ev.target.closest(".sc-pl [data-k]"); if (el) gravarCelula(el); });
+    cal.addEventListener("change", ev => {
+      const el = ev.target.closest(".sc-pl [data-k]");
+      if (!el) return;
+      if (el.dataset.mb) gravarCelulaMembro(el); else gravarCelula(el);
+    });
     cal.addEventListener("keydown", ev => {
       const el = ev.target.closest(".sc-pl input[data-k]");
       if (el && ev.key === "Enter") { ev.preventDefault(); el.blur(); }
@@ -14179,7 +14277,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
     cal.addEventListener("click", ev => {
       if (ev.target.closest("[data-add-pl]")) { novaLinhaPl(); return; }
       const ap = ev.target.closest("[data-abrir-pj]");
-      if (ap && ap.closest(".sc-pl")) { projetosBridge.abrirLinha(ap.dataset.abrirPj); return; }
+      if (ap && ap.closest(".sc-pl, .sc-mb-sit")) { projetosBridge.abrirLinha(ap.dataset.abrirPj); return; }
       const tp = ev.target.closest("[data-tarefas-pl]");
       if (tp) { previaTarefas(tp.dataset.tarefasPl); return; }
       if (ev.target.closest(".sc-pl") && !ev.target.closest("[data-ev]")) return; // clique numa célula: só edita
@@ -14200,19 +14298,21 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"], ["canario", "Canário"]]
   }
 
   socialBridge = {
-    get: () => (temDados ? { eventos } : undefined),
+    get: () => (temDados ? { eventos, membros } : undefined),
     apply: data => {
       const sc = data && data.socialCalendar;
       if (!sc || !Array.isArray(sc.eventos)) return;
       eventos = sc.eventos.map(normalizar);
+      if (Array.isArray(sc.membros)) membros = sc.membros.map(normalizarMembro).filter(m => m.id);
       temDados = true;
-      try { localStorage.setItem(LS_KEY, JSON.stringify({ eventos })); } catch (e) {}
+      try { localStorage.setItem(LS_KEY, JSON.stringify({ eventos, membros })); } catch (e) {}
       const ae = document.activeElement;
       if (visivel() && !document.getElementById("sc-modal") && !(ae && ae.closest && ae.closest(".sc-pl, #sc-busca"))) render();
     },
     abrir: () => { ligar(); render(); },
     // Pra teste e pra fase 2 (entrada automática).
-    _eventos: () => eventos
+    _eventos: () => eventos,
+    _membros: () => membros
   };
 })();
 
