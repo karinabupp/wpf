@@ -5304,7 +5304,7 @@ function collectAllData() {
   return preencherSecoesPorOrg({
     revision: localRevision,
     users: usersList.map(ensureUserDefaults), // nunca leva senha
-    historicoGeral: historicoGeral.length ? historicoGeral : undefined
+    historicoGeral: historicoGeral.length ? historicoGeralParaNuvem() : undefined
   });
 }
 
@@ -5374,6 +5374,45 @@ const HISTORICO_GERAL_MAX = 10;
 // 10 versões cobriam poucos minutos e pesavam 5 MB), e sem os históricos
 // dentro (cada versão carregava o histórico da Tasks inteiro).
 const HISTORICO_GERAL_INTERVALO_MS = 30 * 60 * 1000;
+// 28/10 (Karina): a cópia que vai pra NUVEM é leve — no máximo 5 versões e
+// sem o Histórico de cada linha da Projetos. Com 10 versões completas ela
+// chegou a 12,7 MB e o banco cancelava a gravação inteira (passava de 8 s),
+// levando junto as edições de verdade. Este navegador continua com as 10.
+const HISTORICO_GERAL_NUVEM_MAX = 5;
+const ehSecaoProjetos = k => /^projetos(__.+)?$/.test(k);
+function semHistoricoDasLinhas(lista) {
+  if (!Array.isArray(lista)) return lista;
+  return lista.map(no => {
+    if (!no || typeof no !== "object") return no;
+    const { historico, ...resto } = no;
+    if (Array.isArray(resto.subtasks)) resto.subtasks = semHistoricoDasLinhas(resto.subtasks);
+    return resto;
+  });
+}
+function versaoLeve(v) {
+  if (!v || !v.data) return v;
+  const data = { ...v.data };
+  Object.keys(data).forEach(k => { if (ehSecaoProjetos(k)) data[k] = semHistoricoDasLinhas(data[k]); });
+  return { ...v, data };
+}
+function historicoGeralParaNuvem() {
+  return historicoGeral.slice(0, HISTORICO_GERAL_NUVEM_MAX).map(versaoLeve);
+}
+// Restaurar uma versão leve não apaga o Histórico das linhas: cada linha
+// que voltar sem ele fica com o Histórico que tem hoje.
+function manterHistoricoDasLinhas(dadosVersao) {
+  const atual = collectAllData();
+  const d = JSON.parse(JSON.stringify(dadosVersao));
+  Object.keys(d).forEach(k => {
+    if (!ehSecaoProjetos(k) || !Array.isArray(atual[k])) return;
+    const porId = {};
+    const guardar = l => (l || []).forEach(no => { if (no && typeof no === "object") { if (no.id && no.historico !== undefined) porId[no.id] = no.historico; guardar(no.subtasks); } });
+    const repor = l => (l || []).forEach(no => { if (no && typeof no === "object") { if (no.historico === undefined && no.id && porId[no.id] !== undefined) no.historico = porId[no.id]; repor(no.subtasks); } });
+    guardar(atual[k]);
+    repor(d[k]);
+  });
+  return d;
+}
 // O piloto (07/10) também fica fora das versões do histórico geral: é uma cópia
 // de teste e dobraria o tamanho de cada versão.
 const SECOES_HISTORICO_TODAS = ["historicoGeral", "tasks2Historico", "tasks2Historico__cbth",
@@ -5470,7 +5509,7 @@ function restaurarVersaoGeral(indice) {
   // O estado atual vira versao ANTES da troca: restaurar por engano tem
   // volta.
   registrarVersaoGeral(collectAllData(), true);
-  applyAllData(v.data);
+  applyAllData(manterHistoricoDasLinhas(v.data));
   bumpLocalRevision();
   scheduleCloudSave({ forcar: true }); // restaurar substitui, nao junta
   return true;
@@ -5907,6 +5946,33 @@ function aplicarDaNuvem(data, carimbos) {
 // ─── Envio ────────────────────────────────────────────────────────────────
 // Se ja ha um envio andando, espera ele terminar e envia de novo (o que
 // mudou nesse meio tempo). Devolve true/false; com lancarErro, lanca.
+// Grava um grupo de seções (upsert) e atualiza a base/carimbos delas.
+async function gravarLinhasNaNuvem(rows) {
+  const corpo = JSON.stringify(rows);
+  const enviado = JSON.parse(corpo);
+  await tokenFresco();
+  const res = await fetch(`${SUPABASE_TABLE_URL}?select=section,updated_at`, {
+    method: "POST",
+    headers: { ...SUPABASE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation" },
+    body: corpo
+  });
+  if (!res.ok) {
+    let detail = "";
+    try { detail = await res.text(); } catch (e) {}
+    throw new Error(`HTTP ${res.status}${detail ? " — " + detail.slice(0, 200) : ""}`);
+  }
+  let resposta = null;
+  try { resposta = await res.json(); } catch (e) { resposta = null; }
+  const carimbos = {};
+  if (Array.isArray(resposta)) resposta.forEach(r => { if (r && r.section) carimbos[r.section] = r.updated_at; });
+  enviado.forEach(r => {
+    encolherPermitido.delete(r.section);
+    cloudTamanhos[r.section] = tamanhoJson(r.data);
+    cloudBase[r.section] = baseDaSecao(r.data, r.section);
+    cloudStamps[r.section] = carimbos[r.section] || r.updated_at;
+  });
+  guardarBase();
+}
 let cloudEnvioAtual = Promise.resolve(true);
 function enviarParaNuvem(opcoes) {
   if (cloudEnviando) return cloudEnvioAtual.catch(() => {}).then(() => enviarParaNuvem(opcoes));
@@ -5971,30 +6037,16 @@ async function enviarAgora(opcoes) {
       const rows = mudadas.filter(s => all[s] !== undefined).map(section => ({
         section, data: all[section], revision: localRevision, updated_at: agora
       }));
-      const corpo = JSON.stringify(rows);
-      const enviado = JSON.parse(corpo);
-      await tokenFresco();
-      const res = await fetch(`${SUPABASE_TABLE_URL}?select=section,updated_at`, {
-        method: "POST",
-        headers: { ...SUPABASE_HEADERS, "Prefer": "resolution=merge-duplicates,return=representation" },
-        body: corpo
-      });
-      if (!res.ok) {
-        let detail = "";
-        try { detail = await res.text(); } catch (e) {}
-        throw new Error(`HTTP ${res.status}${detail ? " — " + detail.slice(0, 200) : ""}`);
+      // 28/10: os dados vão primeiro, sozinhos; o histórico geral (cópia de
+      // segurança, pesado) vai depois, em outro envio. Se ele falhar, as
+      // edições já estão salvas e ele tenta de novo na próxima gravação.
+      const rowsDados = rows.filter(r => !ehSecaoHistorico(r.section));
+      const rowsHist = rows.filter(r => ehSecaoHistorico(r.section));
+      if (rowsDados.length) await gravarLinhasNaNuvem(rowsDados);
+      if (rowsHist.length) {
+        try { await gravarLinhasNaNuvem(rowsHist); }
+        catch (e) { console.warn("Histórico geral não subiu (os dados já estão salvos):", e); }
       }
-      let resposta = null;
-      try { resposta = await res.json(); } catch (e) { resposta = null; }
-      const carimbos = {};
-      if (Array.isArray(resposta)) resposta.forEach(r => { if (r && r.section) carimbos[r.section] = r.updated_at; });
-      enviado.forEach(r => {
-        encolherPermitido.delete(r.section);
-        cloudTamanhos[r.section] = tamanhoJson(r.data);
-        cloudBase[r.section] = baseDaSecao(r.data, r.section);
-        cloudStamps[r.section] = carimbos[r.section] || r.updated_at;
-      });
-      guardarBase();
     }
     if (cloudEdicoes === edicoesNoInicio) marcarPendente(false);
     setCloudStatus(juntou ? "merged" : "synced");

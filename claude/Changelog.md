@@ -12,6 +12,46 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-28 (3ª) — Dash voltou a salvar (gravação travada desde 27/10)
+
+Pedido da Karina às 11h45: "a dash não está salvando informações novas…
+testei em projetos". Ela aprovou às 11h57.
+
+- **Diagnóstico (logs do Supabase):**
+  - Desde 27/10 por volta das 12h16, as 74 gravações feitas pelo navegador
+    deram erro 500 (`57014 canceling statement due to statement timeout`).
+  - Só o Carinha gravou nesse período (PATCH só da seção `projetos`).
+  - **Causa:** cada gravação subia junto o `historicoGeral`, as 10 cópias da
+    Dash inteira. Ele estava com 12,7 MB de texto, e só ler isso leva ~2,8 s
+    no banco. O limite do papel `authenticated` é de 8 s.
+  - Como dados e cópia iam no mesmo envio, a cópia travava as edições.
+  - O que pesa nas cópias é o Histórico de cada linha da Projetos: 2,1 MB
+    dos 3,2 MB da seção `projetos`.
+- **`index.html` (bloco "SINCRONIZACAO COM A NUVEM" / "Histórico geral"):**
+  - **Envio separado:** nova `gravarLinhasNaNuvem`.
+    - As seções de dados sobem primeiro, num envio só delas.
+    - O `historicoGeral` sobe depois, em outro envio. Se ele falhar, só
+      avisa no console: as edições já estão salvas, aparece "Sincronizado",
+      e ele tenta de novo na próxima gravação.
+  - **Cópia leve na nuvem:** `historicoGeralParaNuvem`.
+    - No máximo 5 versões (`HISTORICO_GERAL_NUVEM_MAX`) e sem o
+      `historico` das linhas da Projetos (`versaoLeve`).
+    - Fica em torno de 5–6 MB em vez de 12,7 MB.
+    - O navegador continua guardando as 10 versões completas.
+  - **Restaurar versão:** `manterHistoricoDasLinhas`. Cada linha que volta
+    sem Histórico fica com o Histórico que tem hoje; nada é inventado pra
+    linha que não existe mais.
+- **Edições feitas desde 27/10:** estavam guardadas como pendentes em cada
+  navegador. Sobem sozinhas (com a junta de sempre) quando a pessoa abrir ou
+  recarregar a Dash.
+- **Testes:**
+  - Os scripts da Dash passaram na checagem de sintaxe.
+  - 11 verificações das funções novas passaram: 5 versões, sem Histórico de
+    linha, sublinhas mantidas, restaurar mantém o Histórico de hoje, versão
+    original intacta, navegador com as 10 completas.
+
+---
+
 ## 2026-10-28 (2ª) — Agenda: título curto com o contexto primeiro
 
 Pedido da Karina às 11h38 ("agora", item c do Prox Passos de 22/10). Ela

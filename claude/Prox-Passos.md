@@ -15,6 +15,21 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Projetos pesada: Histórico das linhas com 2,1 MB (28/10)**
+  A seção `projetos` tem 3,2 MB de texto, e 2,1 MB disso é o `historico` de
+  cada linha (2.533 linhas). Em 28/10 isso travou a gravação da Dash pelo
+  `historicoGeral` (corrigido: envio separado + cópia leve). Mas a própria
+  `projetos` continua crescendo, e o limite do banco é de 8 s por gravação.
+  - **Opções pra decidir com a Karina:**
+    - limitar o Histórico de cada linha (ex.: últimos 30 registros);
+    - mover o Histórico pra uma tabela própria.
+  - **Conferir também:** se o `historicoGeral` na nuvem caiu pra ~5 MB depois
+    da 1ª gravação da Karina; e os erros 520/521 de 27/10 à noite (Cloudflare
+    do Supabase, isolados).
+  - *Onde:* `index.html` (Projetos e "Histórico geral"); Supabase,
+    `wpf_dashboard_data`.
+  - *Aberto em:* 2026-10-28
+
 - [ ] **Agenda do Google repetindo tarefas (proposta de 22/10)**
   **28/10 — feito (a + b + c):** a tarefa entra só no dia do Fim e fica lá;
   sem 🟡/🔴; fds sem confirmação → segunda depois (ver Changelog 28/10).
