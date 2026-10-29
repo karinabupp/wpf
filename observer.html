@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>WPF · Observer: formulários e respostas</title>
+<style>
+  :root {
+    --bg: #f4f6fa; --card: #ffffff; --ink: #1b2536; --muted: #66748a;
+    --line: #e1e6ee; --accent: #1f3a6e; --accent-soft: #e8eef9; --danger: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 14px/1.45 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .hidden { display: none !important; }
+  header { display: flex; align-items: center; gap: 16px; padding: 14px 24px;
+    background: var(--card); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; flex: 1; min-width: 200px; }
+  header a.back { color: var(--accent); text-decoration: none; font-weight: 600; }
+  header a.back:hover { text-decoration: underline; }
+  #quem { color: var(--muted); font-size: 13px; }
+  main { padding: 20px 24px 40px; max-width: 1500px; margin: 0 auto; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+  #gate { max-width: 420px; margin: 48px auto; padding: 28px; }
+  #gate h2 { margin: 0 0 6px; font-size: 18px; }
+  #gate p { color: var(--muted); margin: 0 0 16px; }
+  #gate label { display: block; font-weight: 600; margin: 12px 0 4px; }
+  #gate input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); padding: 8px 14px; }
+  button:hover { background: var(--accent-soft); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; margin-top: 16px; width: 100%; }
+  button.primary:hover { opacity: .92; background: var(--accent); }
+  .erro { color: var(--danger); margin-top: 12px; min-height: 1.2em; }
+  #app { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 860px) { #app { grid-template-columns: 1fr; } }
+  #lista { padding: 14px; }
+  #lista h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 0 0 10px; }
+  .toggle { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+  .formitem { display: block; width: 100%; text-align: left; padding: 10px 12px; margin-bottom: 8px; }
+  .formitem.ativo { background: var(--accent-soft); border-color: var(--accent); }
+  .formitem .t { font-weight: 600; display: block; }
+  .formitem .n { color: var(--muted); font-size: 12px; }
+  #detalhe { padding: 18px; min-width: 0; }
+  #detalhe h2 { margin: 0 0 4px; font-size: 18px; }
+  #descricao { color: var(--muted); margin: 0 0 14px; white-space: pre-wrap; }
+  .barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .barra input[type=search] { flex: 1; min-width: 200px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  .contagem { color: var(--muted); font-size: 13px; }
+  .tabela-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 70vh; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { position: sticky; top: 0; background: #f0f3f8; font-size: 12px; text-transform: uppercase;
+    letter-spacing: .03em; color: var(--muted); white-space: nowrap; z-index: 1; }
+  td { max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.data { white-space: nowrap; color: var(--muted); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--accent-soft); }
+  .vazio { padding: 32px; text-align: center; color: var(--muted); }
+  .rodape { color: var(--muted); font-size: 12px; margin-top: 14px; }
+  #modal { position: fixed; inset: 0; background: rgba(15, 25, 45, .55); display: flex;
+    align-items: center; justify-content: center; padding: 20px; z-index: 10; }
+  #modal .caixa { background: var(--card); border-radius: 14px; max-width: 720px; width: 100%;
+    max-height: 88vh; overflow: auto; padding: 22px 24px; }
+  #modal h3 { margin: 0 0 4px; }
+  #modal .quando { color: var(--muted); margin-bottom: 14px; font-size: 13px; }
+  #modal dt { font-weight: 600; margin-top: 14px; }
+  #modal dd { margin: 4px 0 0; white-space: pre-wrap; word-break: break-word; }
+  #modal .fechar { float: right; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="./">← Voltar para a Dash</a>
+  <h1>Observer · formulários e respostas</h1>
+  <span id="quem"></span>
+  <button id="btn-atualizar" class="hidden" type="button">Atualizar</button>
+</header>
+
+<main>
+  <section id="carregando" class="card" style="padding:28px;text-align:center;color:var(--muted)">Carregando…</section>
+
+  <section id="gate" class="card hidden">
+    <h2>Entre com sua conta da Dash</h2>
+    <p>Esta página é só para a equipe. Use o mesmo e-mail e senha da Dash.</p>
+    <label for="g-email">E-mail</label>
+    <input id="g-email" type="email" autocomplete="username">
+    <label for="g-senha">Senha</label>
+    <input id="g-senha" type="password" autocomplete="current-password">
+    <button id="g-entrar" class="primary" type="button">Entrar</button>
+    <div id="g-erro" class="erro"></div>
+  </section>
+
+  <section id="app" class="hidden">
+    <aside id="lista" class="card">
+      <h2>Formulários</h2>
+      <label class="toggle"><input type="checkbox" id="ver-todos"> Mostrar todos os formulários</label>
+      <div id="lista-itens"></div>
+    </aside>
+    <section id="detalhe" class="card">
+      <div id="detalhe-vazio" class="vazio">Escolha um formulário à esquerda.</div>
+      <div id="detalhe-conteudo" class="hidden">
+        <h2 id="titulo"></h2>
+        <p id="descricao"></p>
+        <div class="barra">
+          <input id="busca" type="search" placeholder="Buscar nas respostas…">
+          <span class="contagem" id="contagem"></span>
+          <button id="btn-csv" type="button">Exportar CSV</button>
+        </div>
+        <div class="tabela-wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+        <div class="rodape">Somente leitura. Para apagar uma resposta ou editar o formulário, use a Dash.</div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div id="modal" class="hidden" role="dialog" aria-modal="true">
+  <div class="caixa">
+    <button class="fechar" id="modal-fechar" type="button">Fechar</button>
+    <h3 id="modal-titulo"></h3>
+    <div class="quando" id="modal-quando"></div>
+    <dl id="modal-corpo"></dl>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+// Página somente de LEITURA: formulários de Observer + respostas.
+// Usa o mesmo login da Dash (Supabase Auth, mesma chave de sessão
+// "wpf_sb_auth"): quem já entrou na Dash entra aqui sem digitar nada.
+// O banco confere o token e a lista de acesso (wpf_meu_acesso); a chave
+// anon sozinha não lê nada. Nada é gravado ou apagado por esta página.
+// ─────────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://ufwmktomjfcvloswgnyt.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmd21rdG9tamZjdmxvc3dnbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MjIyMDAsImV4cCI6MjEwMDM5ODIwMH0.NAhI21Vs1aYqJQ_P9QAVTsRQWr_8bYlaE1fPg2KS-mg";
+
+// Formulários mostrados por padrão (os demais aparecem em "Mostrar todos").
+const OBSERVER_FORM_IDS = ["form-1785361051984-tu9za"]; // WPF Affiliation Submission
+const OBSERVER_TITLE_REGEX = /observer|affiliation/i;
+
+const $ = (id) => document.getElementById(id);
+const sb = (window.supabase && window.supabase.createClient)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storageKey: "wpf_sb_auth" }
+    })
+  : null;
+
+let formularios = [];
+let contagens = {};
+let formAtual = null;
+let respostas = [];
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+async function token() {
+  if (!sb) throw new Error("login indisponivel");
+  const { data } = await sb.auth.getSession();
+  if (!data || !data.session) throw new Error("sem login");
+  return data.session.access_token;
+}
+
+async function chamar(caminho, opcoes) {
+  const t = await token();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${caminho}`, Object.assign({
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${t}`, "Content-Type": "application/json" }
+  }, opcoes || {}));
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function mostrar(qual) {
+  ["carregando", "gate", "app"].forEach((id) => $(id).classList.toggle("hidden", id !== qual));
+  $("btn-atualizar").classList.toggle("hidden", qual !== "app");
+}
+
+async function iniciar() {
+  mostrar("carregando");
+  if (!sb) { mostrar("gate"); $("g-erro").textContent = "Não consegui carregar o login. Recarregue a página."; return; }
+  const { data } = await sb.auth.getSession();
+  if (!data || !data.session) { mostrar("gate"); return; }
+  let acesso = null;
+  try {
+    const r = await chamar("rpc/wpf_meu_acesso", { method: "POST", body: "{}" });
+    acesso = Array.isArray(r) ? r[0] : r;
+  } catch (e) {
+    mostrar("gate");
+    $("g-erro").textContent = "Não consegui conferir seu acesso agora. Tente de novo.";
+    return;
+  }
+  if (!acesso || !acesso.papel) {
+    mostrar("gate");
+    $("g-erro").textContent = "Este e-mail não tem acesso à Dash. Fale com a Karina.";
+    return;
+  }
+  if (acesso.precisa_trocar_senha) {
+    mostrar("gate");
+    $("g-erro").textContent = "Você precisa trocar a senha provisória. Entre primeiro na Dash.";
+    return;
+  }
+  $("quem").textContent = acesso.nome || "";
+  mostrar("app");
+  await carregarFormularios();
+}
+
+$("g-entrar").addEventListener("click", async () => {
+  const email = $("g-email").value.trim().toLowerCase();
+  const senha = $("g-senha").value;
+  const erro = $("g-erro");
+  if (!email || !senha) { erro.textContent = "Preencha e-mail e senha."; return; }
+  erro.textContent = "Entrando…";
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (error) { erro.textContent = "E-mail ou senha incorretos."; return; }
+  } catch (e) { erro.textContent = "Não consegui entrar agora. Confira a internet."; return; }
+  $("g-senha").value = "";
+  erro.textContent = "";
+  await iniciar();
+});
+$("g-senha").addEventListener("keydown", (e) => { if (e.key === "Enter") $("g-entrar").click(); });
+
+async function carregarFormularios() {
+  try {
+    formularios = await chamar("wpf_forms?select=*&order=updated_at.desc");
+    // Contagem por formulário (o banco devolve no máximo 1000 linhas por consulta).
+    const linhas = await chamar("wpf_form_responses?select=form_id");
+    contagens = {};
+    linhas.forEach((l) => { contagens[l.form_id] = (contagens[l.form_id] || 0) + 1; });
+  } catch (e) {
+    $("lista-itens").innerHTML = `<div class="erro">Não consegui carregar os formulários (${esc(e.message)}).</div>`;
+    return;
+  }
+  desenharLista();
+  if (formAtual) {
+    const ainda = formularios.find((f) => f.id === formAtual.id);
+    if (ainda) await abrirFormulario(ainda.id); else limparDetalhe();
+  } else {
+    const primeiro = formulariosVisiveis()[0];
+    if (primeiro) await abrirFormulario(primeiro.id);
+  }
+}
+
+function ehObserver(f) {
+  return OBSERVER_FORM_IDS.includes(f.id) || OBSERVER_TITLE_REGEX.test(f.title || "");
+}
+function formulariosVisiveis() {
+  return $("ver-todos").checked ? formularios : formularios.filter(ehObserver);
+}
+
+function desenharLista() {
+  const visiveis = formulariosVisiveis();
+  if (!visiveis.length) {
+    $("lista-itens").innerHTML = `<div class="contagem">Nenhum formulário de Observer encontrado. Marque "Mostrar todos os formulários".</div>`;
+    return;
+  }
+  $("lista-itens").innerHTML = visiveis.map((f) => {
+    const n = contagens[f.id] || 0;
+    const ativo = formAtual && formAtual.id === f.id ? " ativo" : "";
+    return `<button type="button" class="formitem${ativo}" data-id="${esc(f.id)}">
+      <span class="t">${esc(f.title || "Sem título")}</span>
+      <span class="n">${n} ${n === 1 ? "resposta" : "respostas"}${f.status === "draft" ? " · rascunho" : ""}</span>
+    </button>`;
+  }).join("");
+  $("lista-itens").querySelectorAll(".formitem").forEach((b) =>
+    b.addEventListener("click", () => abrirFormulario(b.dataset.id)));
+}
+$("ver-todos").addEventListener("change", desenharLista);
+
+function limparDetalhe() {
+  formAtual = null; respostas = [];
+  $("detalhe-vazio").classList.remove("hidden");
+  $("detalhe-conteudo").classList.add("hidden");
+}
+
+async function abrirFormulario(id) {
+  formAtual = formularios.find((f) => f.id === id);
+  if (!formAtual) return;
+  desenharLista();
+  $("detalhe-vazio").classList.add("hidden");
+  $("detalhe-conteudo").classList.remove("hidden");
+  $("titulo").textContent = formAtual.title || "Sem título";
+  $("descricao").textContent = formAtual.description || "";
+  $("busca").value = "";
+  $("tbody").innerHTML = `<tr><td class="vazio" colspan="99">Carregando…</td></tr>`;
+  try {
+    respostas = await chamar(`wpf_form_responses?form_id=eq.${encodeURIComponent(id)}&select=*&order=submitted_at.desc`);
+  } catch (e) {
+    respostas = [];
+    $("tbody").innerHTML = `<tr><td class="vazio" colspan="99">Não consegui carregar as respostas (${esc(e.message)}).</td></tr>`;
+    return;
+  }
+  desenharTabela();
+}
+
+function perguntas() { return (formAtual && formAtual.questions) || []; }
+function quando(r) { return r.submitted_at ? new Date(r.submitted_at).toLocaleString("pt-BR") : ""; }
+
+// Texto simples de uma resposta (arquivo → nome do arquivo; lista → separada por vírgula).
+function textoDe(valor) {
+  if (valor == null || valor === "") return "";
+  if (Array.isArray(valor)) return valor.join(", ");
+  if (typeof valor === "object") return valor.name ? String(valor.name) : "";
+  return String(valor);
+}
+
+function desenharTabela() {
+  const qs = perguntas();
+  $("thead").innerHTML = `<tr><th>Enviada em</th>${qs.map((q) => `<th>${esc(q.label || "")}</th>`).join("")}</tr>`;
+  const termo = $("busca").value.trim().toLowerCase();
+  const filtradas = respostas.filter((r) => {
+    if (!termo) return true;
+    const texto = [quando(r)].concat(qs.map((q) => textoDe((r.answers || {})[q.id]))).join(" ").toLowerCase();
+    return texto.includes(termo);
+  });
+  $("contagem").textContent = `${filtradas.length} de ${respostas.length} ${respostas.length === 1 ? "resposta" : "respostas"}`;
+  if (!filtradas.length) {
+    $("tbody").innerHTML = `<tr><td class="vazio" colspan="${qs.length + 1}">${respostas.length ? "Nenhuma resposta bate com a busca." : "Ainda não há respostas."}</td></tr>`;
+    return;
+  }
+  $("tbody").innerHTML = filtradas.map((r, i) => {
+    const celulas = qs.map((q) => {
+      const t = textoDe((r.answers || {})[q.id]);
+      return `<td title="${esc(t)}">${esc(t) || "—"}</td>`;
+    }).join("");
+    return `<tr data-i="${respostas.indexOf(r)}"><td class="data">${esc(quando(r))}</td>${celulas}</tr>`;
+  }).join("");
+  $("tbody").querySelectorAll("tr[data-i]").forEach((tr) =>
+    tr.addEventListener("click", () => abrirDetalhe(respostas[Number(tr.dataset.i)])));
+}
+$("busca").addEventListener("input", desenharTabela);
+
+function abrirDetalhe(r) {
+  if (!r) return;
+  $("modal-titulo").textContent = formAtual.title || "Resposta";
+  $("modal-quando").textContent = "Enviada em " + quando(r);
+  const corpo = $("modal-corpo");
+  corpo.innerHTML = "";
+  perguntas().forEach((q) => {
+    const valor = (r.answers || {})[q.id];
+    const dt = document.createElement("dt");
+    dt.textContent = q.label || "";
+    const dd = document.createElement("dd");
+    const t = textoDe(valor);
+    // Anexo: só vira link se for um arquivo embutido (data:), nunca uma URL qualquer.
+    if (valor && typeof valor === "object" && !Array.isArray(valor) && valor.name &&
+        typeof valor.dataUrl === "string" && valor.dataUrl.startsWith("data:")) {
+      const a = document.createElement("a");
+      a.href = valor.dataUrl; a.download = String(valor.name); a.textContent = String(valor.name);
+      dd.appendChild(a);
+    } else {
+      dd.textContent = t || "—";
+    }
+    corpo.appendChild(dt); corpo.appendChild(dd);
+  });
+  $("modal").classList.remove("hidden");
+}
+function fecharDetalhe() { $("modal").classList.add("hidden"); }
+$("modal-fechar").addEventListener("click", fecharDetalhe);
+$("modal").addEventListener("click", (e) => { if (e.target === $("modal")) fecharDetalhe(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") fecharDetalhe(); });
+
+$("btn-atualizar").addEventListener("click", carregarFormularios);
+
+$("btn-csv").addEventListener("click", () => {
+  if (!formAtual) return;
+  const qs = perguntas();
+  const celula = (v) => {
+    let s = String(v == null ? "" : v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // evita fórmulas ao abrir no Excel
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  const linhas = [["Enviada em"].concat(qs.map((q) => q.label || ""))]
+    .concat(respostas.map((r) => [quando(r)].concat(qs.map((q) => textoDe((r.answers || {})[q.id])))));
+  const csv = "\ufeff" + linhas.map((l) => l.map(celula).join(",")).join("\r\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = ((formAtual.title || "formulario").replace(/[^\w\-]+/g, "_") || "formulario") + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+iniciar();
+</script>
+</body>
+</html>

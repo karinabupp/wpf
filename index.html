@@ -4736,6 +4736,12 @@
       <path d="M9 12.5l3 3 3-3"/>
     </svg>
   </button>
+  <button class="nav-icon-btn" id="nav-observer" data-tooltip="Observer" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  </button>
   <button class="nav-icon-btn" id="nav-config" data-tooltip="Settings" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
@@ -6776,6 +6782,15 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     if (btnId === "nav-social" && socialBridge) socialBridge.abrir();
   });
 });
+
+// 29/10: botão "Observer" abre a página separada observer.html (formulários de
+// Observer + respostas, só leitura). Fica fora do NAV_VIEWS: não troca de tela.
+(function () {
+  const botaoObserver = document.getElementById("nav-observer");
+  if (botaoObserver) botaoObserver.addEventListener("click", () => {
+    window.open("observer.html", "_blank", "noopener");
+  });
+})();
 
 // ═══════════════════════════════════════════════════════════
 // MARKETING — reads WPF_Marketing_Intelligence Google Sheet
