@@ -12,6 +12,30 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-29 — Social Calendar só com os torneios principais
+
+Pedido da Karina (28/10, 16h37): "puxa só os principais torneios de cada
+um, os maiores deles, se não lugares como o Pokahnights vai ter divulgação
+todo dia". Aprovado em 29/10: lista proposta, marcar como Descartado (não
+apagar), circuitos grandes com 2 ou 3 por ano.
+
+- **Supabase, `socialCalendar.eventos`** (backup
+  `bkp_socialcalendar_2026_10_29_antes_descartar`): **13 eventos marcados
+  como Descartado.**
+  - Bélgica: Pokahnights Halloween, Pokahnights Tag Team, Big Bounty.
+  - Austrália: APT Gold Coast, Adelaide II, Sydney II, Melbourne IV.
+  - Barbados: Freezeout.
+  - França: as 4 etapas classificatórias da CFEPA.
+  - Ucrânia: satélites online.
+  - Ficaram 18 como Novo (inclui 4 da Belarus que o agente trouxe na rodada
+    de 29/10; ver Prox Passos).
+  - Descartado em vez de apagar: o agente vê que já existe e não recria.
+- **`worker/instrucoes/agente-eventos.md`:** regra "Só os principais".
+  - Por membro, só o campeonato ou festival principal.
+  - Circuito grande: no máximo 2 ou 3 por ano, os maiores.
+  - Nunca: semanal/diário, satélite, classificatória, temático, side event.
+  - Descartado nunca é recriado.
+
 ## 2026-10-28 (8ª) — Calendário com eventos confirmados + "checar se está ativo" + Matéria/Story/Post com responsável
 
 Pedidos da Karina à tarde: "a dash está em branco? … tem que ter os meses e

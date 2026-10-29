@@ -65,6 +65,17 @@ e regrave por cima: alguém pode estar editando na Dash. Sempre
      Tailândia = principalmente eventos da **TPA** (torneio de outro
      organizador só se a TPA reconhecer como oficial); Itália = FIGP +
      **Battle of Malta**.
+   - **Só os principais (Karina, 29/10):** "puxa só os principais torneios
+     de cada um, os maiores deles". Por membro entra o **campeonato ou
+     festival principal**: main event, final nacional, maior garantido.
+     - Circuito com várias etapas grandes (ex.: BSOP, APT, BPT): **no
+       máximo 2 ou 3 por ano**, sempre as maiores (maior garantido, final,
+       championship).
+     - **Nunca entram:** torneio semanal/diário da casa, satélite (inclusive
+       online), etapa classificatória, evento temático (Halloween, Tag
+       Team…), side event isolado.
+     - Na dúvida, não entra; anote no diário.
+     - Evento **Descartado** já foi visto e recusado: nunca recrie.
 3. **Procurar quem cita a WPF** (Karina, 28/10): qualquer evento, em
    qualquer lugar, que diga ser da WPF, chancelado pela WPF ou com a WPF.
    **Entra mesmo que não seja membro, parceiro nem grupo**, com
