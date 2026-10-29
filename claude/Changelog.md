@@ -12,6 +12,37 @@ toda sessão em que algo for alterado.
 
 ---
 
+## 2026-10-29 (2ª) — Prazos de story/post antes do evento + Canário removida
+
+Aprovações da Karina (13h12): "pra quem for ter post, é isso mesmo" (tabela
+de prazos) e "da dash? sim" (apagar a Canário).
+
+- **`index.html`, Social Calendar › "Transformar em tarefas":**
+  - Prazo de cada passo, contado do **1º dia** do evento (`SC_FORMATOS.antes`):
+    - Post: Levantar as informações 10 dias antes, Criar 7, Aprovar 5,
+      Postar 3.
+    - Story: Compartilhar 1 dia antes.
+    - Matéria: continua no último dia do evento.
+  - Sábado/domingo volta pra sexta; prazo que já passou fica pra hoje.
+  - A lista de passos e a prévia mostram "até dd/mm" em cada um.
+  - Teste: evento 06–08/11 com "hoje" 28/10 → story 05/11; post 28/10,
+    30/10, 30/10 (domingo → sexta), 03/11.
+- **Canário Growth Lab removida da Dash** (`index.html`,
+  `worker/whatsapp-bridge.js`):
+  - Saíram: a empresa e os logos (`ORGS.canario`, `CANARIO_LOGO_SRC`,
+    `CANARIO_ICON_SRC`), `ORGS_SO_KARINA` e a trava de login, o CSS
+    `html.org-canario`, as seções `projetos__canario` e
+    `tasksPilotoCadastro__canario` do sync, `org=canario` nos links, a
+    coluna Canário em Configurações (`CFG_EMPRESAS`) e no Carinha
+    (`EMPRESAS_SETTINGS`).
+  - Navegador salvo na Canário abre na WPF.
+  - No banco não havia nenhuma seção da Canário: nada a apagar lá.
+  - Docs: nota da Canário no LEIA-PRIMEIRO trocada; 2 itens dela saíram do
+    Prox Passos.
+- **Testes:** 64 verificações do Social Calendar + CBTH + Canário (abre na
+  WPF, menu e Configurações com 2 empresas, sem seção da Canário), sem erro
+  de JavaScript.
+
 ## 2026-10-29 — Social Calendar só com os torneios principais
 
 Pedido da Karina (28/10, 16h37): "puxa só os principais torneios de cada

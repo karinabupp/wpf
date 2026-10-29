@@ -50,16 +50,6 @@ reconstruir o raciocínio.
     facebook.com/thaipokerassociation).
   - *Aberto em:* 2026-10-28
 
-- [ ] **Canário: apagar? (Karina, 28/10 — esperando resposta)**
-  - **Pedido:** "só em wpf (cbth não recebe e apaga canario)", ao pedir o
-    Social Calendar.
-  - **Perguntei:** é tirar a empresa Canário da Dash (menu do logo e código,
-    guardando `projetos__canario` e `tasksPilotoCadastro__canario` no
-    banco)? Ou só que a Canário não recebe a guia nova?
-  - **Hoje:** a guia já não aparece na Canário (só WPF). Nada foi apagado.
-  - *Onde:* `index.html` (`ORGS`, `ORGS_SO_KARINA`, `html.org-canario`).
-  - *Aberto em:* 2026-10-28
-
 - [ ] **Social Calendar — países não verificados (28/10)**
   - Sites que não abriram daqui (nuvem bloqueia) ou sem datas: South
     Africa, Nigeria, Uruguay, Colombia, Czechia, Spain (site em
@@ -72,12 +62,10 @@ reconstruir o raciocínio.
   - *Onde:* Social Calendar; `worker/instrucoes/agente-eventos.md`.
   - *Aberto em:* 2026-10-28
 
-- [ ] **Social Calendar — formatos: próximos passos possíveis (28/10)**
-  - Hoje o prazo de todos os passos é o último dia do evento. Talvez
-    divulgação (story/post) precise sair **antes** do evento — perguntar à
-    Karina se quer prazos diferentes por passo.
+- [ ] **Social Calendar — formatos: acrescentar depois (28/10)**
   - Evento já convertido não dá pra acrescentar Story/Post depois pela
-    Social Calendar (só na Projetos, à mão).
+    Social Calendar (só na Projetos, à mão). Prazos antes do evento: feito
+    em 29/10.
   - *Onde:* `index.html` (`previaTarefas`, `criarMateriaSocial`).
   - *Aberto em:* 2026-10-28
 
@@ -145,14 +133,6 @@ reconstruir o raciocínio.
     O dia 28/10 deve ter só o que vence hoje, com títulos curtos
     ("Holanda · …").
   - *Aberto em:* 2026-10-22
-
-- [ ] **Canário: travar também no banco (ideia, 21/10)** — hoje só a Dash
-  esconde a Canário de quem não é a Karina; a política do Supabase
-  (`wpf_dashboard_data`, `wpf_tem_acesso()`) deixa qualquer pessoa da equipe
-  ler/gravar qualquer seção, inclusive `projetos__canario`. Se a Karina
-  quiser, criar política que limite as seções `*__canario` ao e-mail dela
-  (SQL, com o OK dela).
-  - *Aberto em:* 2026-10-21
 
 - [ ] **Depois da Dash enxuta (etapas 1–3 feitas em 21/10)** — pendências:
   - *Decidir com a Karina:* o **Detalhador** (`worker/instrucoes/detalhador.md`)

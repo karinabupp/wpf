@@ -4532,7 +4532,7 @@ async function rotaChatDash(env, request) {
 //   POST /admin/reset-senha → senha provisória nova; volta só na resposta.
 // A senha provisória não é gravada em lugar nenhum além do Supabase Auth.
 const LOGINS_SETTINGS = ["karina"];
-const EMPRESAS_SETTINGS = ["wpf", "cbth", "canario"];
+const EMPRESAS_SETTINGS = ["wpf", "cbth"]; // 29/10: Canário saiu da Dash
 async function sbAuthAdmin(env, caminho, opcoes = {}) {
   const res = await fetch(`${env.SUPABASE_URL}/auth/v1/admin/${caminho}`, {
     method: opcoes.method || "GET",

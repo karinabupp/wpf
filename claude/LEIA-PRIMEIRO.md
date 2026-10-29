@@ -87,11 +87,9 @@ dois arquivos antes de propor qualquer coisa**:
   e nada de "Nome: detalhe" em linha nenhuma: vira sublinha (ou Responsável/
   data). Detalhes em **`worker/instrucoes/organizacao-projetos.md`**.
 
-- **Canário (21/10):** 3ª empresa no menu do logo (`ORGS.canario`), **só
-  pro login `karina`** (`ORGS_SO_KARINA`; outro login cai na WPF). Só tem
-  **Projetos** (`projetos__canario`; cadastro `tasksPilotoCadastro__canario`)
-  — sem CRM (escondido por `html.org-canario`, e o pacote do CRM não é
-  gravado). O Carinha não lê a Canário.
+- **Canário: removida em 29/10** (pedido da Karina). A Dash tem só **WPF e
+  CBTH**. Navegador salvo na Canário abre na WPF. Não havia dados dela no
+  banco.
 - **Dash enxuta (21/10):** a Dash é **Projetos · CRM · Settings (só Karina)
   · Meu Google**, em cada empresa. Tasks, Tasks (piloto) e Gestão saíram do
   menu e do código; os dados delas (`tasks2*`, `tasksPiloto*`) seguem no
