@@ -11,7 +11,17 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-10-29 (3ª) — Página Observer (formulários + respostas, só leitura) e botão no menu
 
+Pedido de Isabela.
+
+observer.html (arquivo novo): página separada, somente leitura, que mostra os formulários de Observer (por padrão o WPF Affiliation Submission, form-1785361051984-tu9za, e qualquer formulário cujo título tenha "observer" ou "affiliation"; "Mostrar todos" lista os demais) e as respostas de cada um: tabela com busca, detalhe da resposta ao clicar na linha e exportar CSV.
+Login: o mesmo da Dash (Supabase Auth, mesma chave de sessão wpf_sb_auth). Quem já entrou na Dash abre a página sem digitar nada; sem sessão, aparece e-mail/senha. O acesso é conferido por wpf_meu_acesso. Não grava nem apaga nada (excluir resposta e editar formulário continuam só na Dash).
+Dados: tabelas wpf_forms e wpf_form_responses (sem mudança de banco).
+Respostas vêm de formulário público, então tudo é escapado na tela e só anexo data: vira link.
+index.html (15 linhas novas, nada removido): botão Observer (ícone de olho) no menu lateral, depois do Forms, que abre observer.html em outra aba. Fica fora do NAV_VIEWS: não troca de tela.
+Por quê: ver os formulários de Observer e as respostas sem mexer na aba Forms (que saiu do menu em 22/09).
+Verificação: teste com dados simulados (lista, tabela, detalhe, busca, CSV, login ausente, e tentativas de HTML/javascript: nas respostas). Não testado com o Supabase real: conferir o 1º acesso depois de publicar.
 ## 2026-10-29 (2ª) — Prazos de story/post antes do evento + Canário removida
 
 Aprovações da Karina (13h12): "pra quem for ter post, é isso mesmo" (tabela
