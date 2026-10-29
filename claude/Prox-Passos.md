@@ -60,14 +60,6 @@ reconstruir o raciocínio.
   - *Onde:* `index.html` (`ORGS`, `ORGS_SO_KARINA`, `html.org-canario`).
   - *Aberto em:* 2026-10-28
 
-- [ ] **Social Calendar — Belarus com 5 eventos (29/10)**
-  - A rodada de 29/10 (antes da regra "só os principais") trouxe BPT57
-    (jan/27), BPT58 (abr/27), XIX Championship (jul/27) e BPT60 (nov/27),
-    além do BPT56 (nov/26). Em 2027 são 4: passa do limite de 2 ou 3.
-  - Proposta a confirmar com a Karina: descartar um (BPT58 ou BPT60).
-  - *Onde:* Social Calendar (ids `sc-ag-belarus-…`).
-  - *Aberto em:* 2026-10-29
-
 - [ ] **Social Calendar — países não verificados (28/10)**
   - Sites que não abriram daqui (nuvem bloqueia) ou sem datas: South
     Africa, Nigeria, Uruguay, Colombia, Czechia, Spain (site em

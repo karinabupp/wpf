@@ -27,8 +27,10 @@ apagar), circuitos grandes com 2 ou 3 por ano.
   - Barbados: Freezeout.
   - França: as 4 etapas classificatórias da CFEPA.
   - Ucrânia: satélites online.
-  - Ficaram 18 como Novo (inclui 4 da Belarus que o agente trouxe na rodada
-    de 29/10; ver Prox Passos).
+  - Ficaram 18 como Novo, incluindo os 4 da Belarus que o agente trouxe na
+    rodada de 29/10 (BPT57, BPT58, XIX Championship, BPT60). A Karina
+    decidiu **manter os 4** ("não descarta"), mesmo passando do limite de
+    2 ou 3 por ano.
   - Descartado em vez de apagar: o agente vê que já existe e não recria.
 - **`worker/instrucoes/agente-eventos.md`:** regra "Só os principais".
   - Por membro, só o campeonato ou festival principal.
