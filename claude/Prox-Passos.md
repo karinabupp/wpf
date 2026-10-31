@@ -15,6 +15,21 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Conferir a trava de fim de semana do Carinha (dom 01/11 e seg 02/11)**
+  - *Contexto:* 31/10 a Karina recebeu mensagem do Carinha num sábado. Foi
+    posta uma trava geral no `scheduled` (sáb/dom nenhuma rodada automática).
+    Conferir: domingo 01/11 ninguém recebe nada do Carinha nem evento novo na
+    agenda; segunda 02/11 a rodada das 9h25 volta e os e-mails do fds chegam
+    (pode vir um lote maior de e-mail na segunda — ver se incomoda).
+  - *Lembrar:* a regra "fds só manda tarefa que começa/termina no fds"
+    (26/10) foi SUBSTITUÍDA — não religar.
+  - *Onde:* `worker/whatsapp-bridge.js`, `scheduled`.
+  - *Aberto em:* 31/10
+- [ ] **Trocar o token do GitHub** — o token está em texto aberto nas
+  instruções do projeto WPF Gestão. Gerar um novo, atualizar as instruções e
+  revogar o antigo (Karina faz no GitHub).
+  - *Aberto em:* 31/10
+
 - [ ] **Conferir a próxima rodada do Agente de Eventos (qui 29/10, 7h42)**
   - A 1ª rodada (28/10) criou 29 tarefas indevidas (sites que não abriram)
     e foram apagadas a pedido da Karina; as regras foram corrigidas.
@@ -239,8 +254,7 @@ reconstruir o raciocínio.
      responsável da tarefa (hoje só a Karina recebe as dela).
   - *Limites conhecidos:* (resolvido em 14/10, 3ª: a conversa também lê a
     Projetos pra quem está liberado; a equipe segue no Carinha antigo até
-    liberar). E-mail no fim de semana também chega (rotina nova roda todo
-    dia, 8h–21h). Tarefa que vence em fim de semana e já aparece no dia
+    liberar). (31/10: no fim de semana nada roda — e-mail do fds chega na segunda.) Tarefa que vence em fim de semana e já aparece no dia
     (ex.: entrou no amarelo) só ganha a pergunta "é proposital?" no dia
     seguinte. A mensagem leva o link da linha (`?pj=`), que só abre a
     Projetos pra quem está em `PILOTO_LOGINS` (hoje só a Karina).

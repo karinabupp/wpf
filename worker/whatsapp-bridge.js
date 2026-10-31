@@ -4686,6 +4686,14 @@ async function rotaAdmin(env, request, url) {
 export default {
   async scheduled(event, env, ctx) {
     const trabalho = (async () => {
+      // TRAVA DE FIM DE SEMANA (Karina, 31/10 — substitui a regra de 26/10):
+      // sábado e domingo (horário de SP) nenhuma rodada automática roda.
+      // Zero mensagem por iniciativa do Carinha (tarefa de fds, e-mail, Slack,
+      // template) e nada criado/mexido na agenda do Google. Se a pessoa
+      // escrever, o webhook responde normalmente (não passa por aqui).
+      // E-mails e reuniões do fds são lidos na segunda pela rodada normal.
+      // A pergunta "é proposital?" de prazo no fds sai nos dias úteis antes.
+      if (pjEhFds(Date.now())) return;
       // Google tem a rodada dele (meia hora depois), pra não somar chamadas com as outras.
       if (event.cron === CRON_GOOGLE) { await googleRodada(env); return; }
       if (event.cron !== CRON_HORA_FIXA) { try { await readaiRodada(env); } catch (e) { console.log("erro no Read AI:", e && e.message); } }

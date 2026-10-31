@@ -11,6 +11,28 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-10-31 — Carinha: nada no fim de semana (trava geral)
+
+Pedido da Karina (31/10, 9h26): o Carinha mandou mensagem no WhatsApp num
+sábado; "não pode mais mandar mensagem de fim de semana". Aprovado às 10h27
+(itens 1 a 5; se ela escrever, ele responde).
+
+- **O que mudou:** trava única no começo do `scheduled` — sábado e domingo
+  (horário de SP) nenhuma rodada automática roda: nem a das 9h25, nem as dos
+  :05/:35, nem a do Google, nem a do Read AI. Resultado: zero mensagem por
+  iniciativa do Carinha (tarefa de fds, e-mail, Slack, template) e nada
+  criado/mexido na agenda do Google no fds.
+- **Continua:** se a pessoa escrever no fds, o webhook responde normalmente.
+- **Pergunta "é proposital?"** (prazo/início no fds): já sai nos dias úteis
+  antes (`pjItensPlano` junta `pjItensFds` em dia útil); agora só não sai
+  mais no próprio sábado/domingo. Sem mudança de código nessa parte.
+- **Segunda:** e-mails (Gmail pelo `gmail_ultimo`) e reuniões do Read AI
+  (`readai_desde`) do fds são lidos na primeira rodada da segunda.
+- **Substitui** a decisão de 26/10 (no fds podia mandar tarefa que começa ou
+  termina no sábado/domingo). As regras de agenda de 26/10 e 27/10 para
+  eventos com data no fds continuam (só confirmados entram).
+- **Onde:** `worker/whatsapp-bridge.js` (`scheduled`, ~linha 4688).
+- **Por quê:** regra da Karina — nada de mensagem no fim de semana.
 ## 2026-10-29 (3ª) — Página Observer (formulários + respostas, só leitura) e botão no menu
 
 Pedido de Isabela.
