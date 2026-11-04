@@ -11,6 +11,25 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-04 — Observer abre dentro da Dash (sem nova aba)
+
+Pedido da usuária (04/11); autorizado por ela. Arquivos entregues para upload
+manual (a sessão não tinha acesso de escrita ao GitHub).
+
+- **O que mudou:** o botão **Observer** do menu principal continua no mesmo
+  lugar, mas agora troca a tela da Dash para a nova `observer-view`, que
+  mostra `observer.html` num iframe (mesma origem). Não abre mais aba nova.
+  O iframe só carrega na primeira vez que o botão é clicado.
+- **Login:** nenhum extra. A página usa a mesma sessão da Dash (`wpf_sb_auth`);
+  se a sessão tiver expirado, aparece o login da própria página.
+- **Também:** `observer-view` entrou no rótulo de presença ("Observer").
+- **Onde:** `index.html` (nova `<div id="observer-view">` antes de
+  `config-view`; `NAV_VIEWS`; handler antigo `window.open` removido).
+  `observer.html` não mudou e continua acessível direto.
+- **Por quê:** usar o Observer sem sair da Dash.
+- **Não testado no navegador** (sessão sem acesso à Dash publicada): conferir
+  após o upload.
+
 ## 2026-10-31 — Carinha: nada no fim de semana (trava geral)
 
 Pedido da Karina (31/10, 9h26): o Carinha mandou mensagem no WhatsApp num

@@ -15,6 +15,29 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Conferir o Observer dentro da Dash (04/11)**
+  - *Contexto:* o botão agora abre `observer-view` (iframe de `observer.html`).
+    Conferir: abre sem nova aba, sem pedir login, a lista e as respostas
+    carregam, e trocar de tela e voltar funciona.
+  - *Onde:* `index.html` (`observer-view`, `NAV_VIEWS`).
+  - *Aberto em:* 04/11
+- [ ] **CBTH: completar as tarefas entre as etapas com o Detalhador (04/11)**
+  - *Contexto:* autorizado, mas NÃO executado: os dados ficam no Supabase
+    (`projetos__cbth`) e a sessão não tinha acesso. Seguir `detalhador.md` e
+    `organizacao-projetos.md`; mostrar a árvore e esperar "sim"; salvar a
+    Dash antes e recarregar depois.
+  - *Aberto em:* 04/11
+- [ ] **Programa de Excelência, etapa "27 federações" (04/11)**
+  - *Contexto:* autorizado, mas NÃO executado (dados no Supabase). Trocar
+    "enviar email de convocação" por "enviar mensagem cobrando envio de
+    estatuto e 3 ultimas atas" em todas as federações, listando as
+    ocorrências antes. Detalhar antes/depois com a reunião de 28/10
+    (Alinhamento Jurídico – CBTH, com o Alberoni): antes = aprovação do
+    material pela Priscila, comunicado sobre os projetos de 2027, reuniões
+    preliminares; depois = avaliação da documentação pela CBTH, necessidades
+    de regularização, relatório da Priscila, reuniões individuais e apoio
+    contábil/tributário se houver pendência.
+  - *Aberto em:* 04/11
 - [ ] **Conferir a trava de fim de semana do Carinha (dom 01/11 e seg 02/11)**
   - *Contexto:* 31/10 a Karina recebeu mensagem do Carinha num sábado. Foi
     posta uma trava geral no `scheduled` (sáb/dom nenhuma rodada automática).
