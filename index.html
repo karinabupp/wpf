@@ -4773,6 +4773,11 @@
 
 <!-- SETTINGS (25/09): só pro login da Karina. Quem lê/grava é o Worker
      (/admin/*), que confere o login de novo — esconder aqui é só a tela. -->
+<!-- 04/11: Observer dentro da Dash (iframe da mesma origem; usa a sessão já aberta) -->
+<div id="observer-view" class="content-view hidden">
+  <iframe id="observer-frame" title="Observer: formulários e respostas" style="width:100%; height:calc(100vh - 40px); border:0; border-radius:8px; background:transparent;"></iframe>
+</div>
+
 <div id="config-view" class="content-view hidden">
   <div id="cfg-wrap">
     <div id="cfg-topo">
@@ -6765,6 +6770,7 @@ const NAV_VIEWS = {
   "nav-social": "social-view",
   "nav-marketing": "marketing-view",
   "nav-forms": "forms-view",
+  "nav-observer": "observer-view",
   "nav-config": "config-view"
 };
 Object.keys(NAV_VIEWS).forEach(btnId => {
@@ -6779,18 +6785,12 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     });
     if (btnId === "nav-forms" && typeof loadFormsList === "function") loadFormsList();
     if (btnId === "nav-config" && typeof cfgCarregar === "function") cfgCarregar();
+    if (btnId === "nav-observer") { const fr = document.getElementById("observer-frame"); if (fr && !fr.getAttribute("src")) fr.setAttribute("src", "observer.html"); }
     if (btnId === "nav-social" && socialBridge) socialBridge.abrir();
   });
 });
 
-// 29/10: botão "Observer" abre a página separada observer.html (formulários de
-// Observer + respostas, só leitura). Fica fora do NAV_VIEWS: não troca de tela.
-(function () {
-  const botaoObserver = document.getElementById("nav-observer");
-  if (botaoObserver) botaoObserver.addEventListener("click", () => {
-    window.open("observer.html", "_blank", "noopener");
-  });
-})();
+// 04/11: botão "Observer" agora abre dentro da Dash (observer-view, ver NAV_VIEWS); sem nova aba.
 
 // ═══════════════════════════════════════════════════════════
 // MARKETING — reads WPF_Marketing_Intelligence Google Sheet
@@ -13428,7 +13428,7 @@ function presencaOnde() {
     const pl = document.getElementById("planilha2-wrap");
     return "CRM › " + (pl && !pl.classList.contains("hidden") ? "Planilha" : "Mapa");
   }
-  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing" }[id] || "Dash";
+  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing", "observer-view": "Observer" }[id] || "Dash";
 }
 // Em que célula a pessoa clicou/está editando.
 function presencaFocoDe(el) {
