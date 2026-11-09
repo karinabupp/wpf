@@ -927,6 +927,7 @@ Como conversar:
 Mudanças:
 - Pra mudar ou criar, chame propor_mudanca, propor_criacao, propor_members ou propor_contexto. Uma proposta por vez.
 - Você NUNCA grava e NUNCA diz que já mudou ("pronto", "feito", "atualizei" são proibidos antes do sim). O sistema mostra o resumo e pergunta "Confirma?" sozinho; junto da ferramenta escreva no máximo uma frase curta tipo "Posso deixar assim:", sem pedir confirmação.
+- NUNCA diga que mudou, parou, tirou, desligou ou configurou algo sem ter usado uma ferramenta que faz isso. Avisos de e-mail que você manda por conta própria: ajustar_avisos_email. Qualquer outra mudança no seu jeito de funcionar (o que você manda, quando, regras): passar_pra_karina, e diga que passou o pedido pra Karina — nunca prometa que já mudou.
 - Sugestões vindas de reunião ou de aviso (a pessoa respondeu "Criar tarefa", "Criar 1"…): ache 2–3 lugares possíveis com buscar, pergunte onde (opções) e só então use propor_criacao. "Já existe" / "Ignorar": só confirme em uma linha.
 - Contexto: só Meta e Projeto têm. Quando a pessoa contar algo relevante sobre uma Meta/Projeto (decisão, parceiro, motivo, prazo combinado) que não está no contexto, ofereça registrar com propor_contexto.
 - Criar linha: SEMPRE pergunte onde ela entra, mesmo que pareça óbvio — uma mensagem curta com 2–3 lugares possíveis como opções (ex.: [[opções: Kit boas-vindas | Ladies Weekend | Outro lugar]]). Só depois da escolha chame propor_criacao com local_confirmado=true. Nunca invente o lugar.
@@ -1070,8 +1071,11 @@ function detectarAvisos(empresas, indice, pessoa, snap, hoje) {
 // agora). Pendente que deixou de valer (resolveram antes do aviso) sai.
 // Assunto que a pessoa dispensou ("Já vi, deixa comigo") não volta.
 async function sincronizarAvisos(env, tel, itens) {
-  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao,avisado_em,via&telefone=eq.${tel}`);
+  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao,avisado_em,via,detectado_em,valido_ate&telefone=eq.${tel}`);
   const existentes = r.ok && Array.isArray(r.dados) ? r.dados : [];
+  // E-mail parado na fila tempo demais (09/11): sai como "vencido".
+  const velhos = existentes.filter(e => !e.avisado_em && avisoEmailVencido(e));
+  if (velhos.length) { await marcarChaves(env, tel, velhos.map(e => e.chave), "vencido"); velhos.forEach(e => { e.avisado_em = new Date().toISOString(); e.via = "vencido"; }); }
   const agora = new Date().toISOString();
   if (!existentes.length) {
     if (itens.length) await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal",
@@ -1102,9 +1106,23 @@ function prefixoNo(chave) {
   return p.length >= 3 ? p[0] + "|" + p[1] + "|" : null;
 }
 
+// Validade dos avisos de e-mail (Karina, 09/11): aviso que ficou na fila mais
+// de EMAIL_VALIDADE_DIAS_UTEIS dias úteis, ou convite de reunião que já
+// passou (valido_ate), não sai mais — é marcado "vencido".
+const EMAIL_VALIDADE_DIAS_UTEIS = 2;
+function avisoEmailVencido(a, agoraMs) {
+  if (!String((a && a.chave) || "").startsWith("email|")) return false;
+  agoraMs = agoraMs || Date.now();
+  if (a.valido_ate && Date.parse(a.valido_ate) < agoraMs) return true;
+  const det = Date.parse(a.detectado_em);
+  return !!det && diasUteisEntre(det, agoraMs) > EMAIL_VALIDADE_DIAS_UTEIS;
+}
 async function pendentesDe(env, tel) {
-  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao&telefone=eq.${tel}&avisado_em=is.null`);
-  return r.ok && Array.isArray(r.dados) ? r.dados : [];
+  const r = await sb(env, `${TAB_AVISOS}?select=id,chave,descricao,detectado_em,valido_ate&telefone=eq.${tel}&avisado_em=is.null`);
+  const todos = r.ok && Array.isArray(r.dados) ? r.dados : [];
+  const vencidos = todos.filter(a => avisoEmailVencido(a));
+  if (vencidos.length) await marcarChaves(env, tel, vencidos.map(a => a.chave), "vencido");
+  return todos.filter(a => !vencidos.includes(a));
 }
 async function marcarAvisados(env, tel, via) {
   await sb(env, `${TAB_AVISOS}?telefone=eq.${tel}&avisado_em=is.null`, { method: "PATCH", prefer: "return=minimal", body: { avisado_em: new Date().toISOString(), via } });
@@ -1776,6 +1794,24 @@ Responda SÓ JSON: {"emails":[{"n":<número>,"importancia":"muito|sim|nao","resu
   return { saida, uso: corpo.usage || {} };
 }
 
+// Convite de agenda (09/11): tira a data do evento do assunto do Google
+// ("Invitation: X @ Fri Nov 6, 2026 14:00 - 15:00 (GMT-3)" / "Convite: X @
+// sex., 6 de nov. de 2026 ..."). Devolve o fim do dia do evento (SP) ou null.
+const MESES_CONVITE = { jan: 1, feb: 2, fev: 2, mar: 3, apr: 4, abr: 4, may: 5, mai: 5, jun: 6, jul: 7, aug: 8, ago: 8, sep: 9, set: 9, oct: 10, out: 10, nov: 11, dec: 12, dez: 12 };
+function fimDoConvite(assunto) {
+  const s = String(assunto || "");
+  if (!/^(updated |new event: |convite|invitation|updated invitation|convite atualizado)/i.test(s.trim()) || !s.includes("@")) return null;
+  const depois = s.slice(s.indexOf("@") + 1);
+  let m = depois.match(/\b([A-Za-z]{3})[a-z]*\.? (\d{1,2}),? (\d{4})/), d, mes, ano;
+  if (m && MESES_CONVITE[m[1].toLowerCase()]) { mes = MESES_CONVITE[m[1].toLowerCase()]; d = +m[2]; ano = +m[3]; }
+  else {
+    m = depois.match(/(\d{1,2}) de ([a-zç]{3})[a-zç]*\.? de (\d{4})/i);
+    if (!m || !MESES_CONVITE[m[2].toLowerCase()]) return null;
+    d = +m[1]; mes = MESES_CONVITE[m[2].toLowerCase()]; ano = +m[3];
+  }
+  const t = Date.UTC(ano, mes - 1, d, 23 + 3, 59); // 23h59 em SP (UTC-3)
+  return isNaN(t) ? null : new Date(t).toISOString();
+}
 // donoEmail: caixa de quem (conexão Google). Sem ele: rota antiga do script.
 // compartilhado: cache entre pessoas na mesma rodada (cadastro e Dash).
 async function processarEmails(env, emails, donoEmail, compartilhado) {
@@ -1800,6 +1836,21 @@ async function processarEmails(env, emails, donoEmail, compartilhado) {
   if (!novos.length) return { recebidos: 0 };
   if (!compartilhado.indice) compartilhado.indice = indexar((await carregarDash(env)).empresas);
   const indice = compartilhado.indice;
+  // Um e-mail = um aviso (09/11): conversa que já virou aviso pra esta pessoa
+  // não volta como "parada sem resposta".
+  const threadsAvisadas = new Set();
+  const threadsSR = [...new Set(novos.filter(e => e.tipo === "sem_resposta" && e.thread).map(e => e.thread))];
+  if (DONO_TEL && threadsSR.length) {
+    const re = await sb(env, `${TAB_EMAILS}?select=id,thread&dono=eq.${encodeURIComponent(dono.email.toLowerCase())}&thread=in.(${threadsSR.map(encodeURIComponent).join(",")})`);
+    const doFio = (re.ok && re.dados) || [];
+    const chaves = doFio.map(x => String(x.id).startsWith("sr:") ? `email|sem_resposta|${x.thread}` : `email|${x.id}`);
+    if (chaves.length) {
+      const lista = chaves.map(c => `"${c.replace(/"/g, "")}"`).join(",");
+      const ra = await sb(env, `${TAB_AVISOS}?select=chave&telefone=eq.${DONO_TEL}&chave=in.(${encodeURIComponent(lista)})`);
+      const ja = new Set(((ra.ok && ra.dados) || []).map(x => x.chave));
+      doFio.forEach((x, i) => { if (ja.has(chaves[i])) threadsAvisadas.add(x.thread); });
+    }
+  }
   let urgente = false;
   for (let i = 0; i < novos.length; i += MAX_EMAILS_LOTE) {
     const lote = novos.slice(i, i + MAX_EMAILS_LOTE);
@@ -1812,12 +1863,19 @@ async function processarEmails(env, emails, donoEmail, compartilhado) {
         assunto: corta(e.assunto, 300), data: e.data || null, trecho: corta(String(e.trecho || "").replace(/\s+/g, " "), 600), link: e.link || null, decisao: d });
       if (d.importancia !== "sim" && d.importancia !== "muito") continue;
       if (!DONO_TEL) continue; // sem WhatsApp cadastrado: guarda, não avisa
+      // Pediu pra não receber aviso de e-mail (recebe_email, 09/11): guarda, não avisa.
+      if (dono.recebe_email === false) continue;
+      if (e.thread && threadsAvisadas.has(e.thread)) continue;
+      // Convite de reunião que já passou não vira aviso.
+      const fimConvite = fimDoConvite(e.assunto);
+      if (fimConvite && Date.parse(fimConvite) < Date.now()) continue;
       // Quem mais da equipe está no Para/Cc: só é MENCIONADO pra dona/o.
       const destinatarios = extrairEmails(`${e.para || ""},${e.cc || ""}`);
       const tambem = pessoas.filter(p => p.telefone !== DONO_TEL && p.email && destinatarios.includes(p.email.toLowerCase())).map(p => String(p.nome_tasks).split(" ")[0]);
       const descricao = `E-mail ${e.tipo === "sem_resposta" ? "PARADO SEM RESPOSTA " : ""}de ${nomeDoRemetente(e.de)} — "${corta(e.assunto, 90)}": ${d.resumo || ""}${d.importancia === "muito" ? " (atenção imediata)" : ""}${tambem.length ? ` — também no Para/Cc: ${tambem.join(", ")} (não foram avisados).` : ""}${e.link ? ` Link: ${e.link}` : ""}`;
       const chave = `email|${e.tipo === "sem_resposta" ? "sem_resposta|" + (e.thread || e.id) : e.id}`;
-      avisos.push({ telefone: DONO_TEL, chave, descricao });
+      avisos.push({ telefone: DONO_TEL, chave, descricao, valido_ate: fimConvite });
+      if (e.thread) threadsAvisadas.add(e.thread);
       if (d.importancia === "muito") urgente = true;
     }
     // Uma gravação por lote (economiza chamadas).
@@ -3911,6 +3969,39 @@ const F_PJ_BUSCAR = {
     equipe: { type: "boolean", description: "true SÓ quando a pessoa pediu sobre a equipe toda" },
     incluir_finalizadas: { type: "boolean" } } }
 };
+// Configuração pela própria pessoa (09/11): o Carinha prometia "não vem
+// mais" sem ter como mudar. Agora: avisos de e-mail por ferramenta (com sim)
+// e o resto vai como pedido pra Karina.
+const F_AVISOS_EMAIL = {
+  name: "ajustar_avisos_email", description: "Liga ou desliga os avisos de e-mail que você manda POR CONTA PRÓPRIA pra esta pessoa (só os dela). Use quando ela pedir pra parar (ou voltar a) receber avisos de e-mail. As tarefas não mudam. Não grava: o sistema pede confirmação.",
+  input_schema: { type: "object", properties: { receber: { type: "boolean", description: "false = parar; true = voltar a receber" } }, required: ["receber"] }
+};
+const F_PEDIR_KARINA = {
+  name: "passar_pra_karina", description: "Passa pra Karina um pedido que você NÃO consegue fazer com as suas ferramentas (mudar o que você manda, quando manda, alguma regra sua). Use em vez de prometer. Depois diga à pessoa que passou o pedido pra Karina.",
+  input_schema: { type: "object", properties: { pedido: { type: "string", description: "o pedido, com as palavras da pessoa" } }, required: ["pedido"] }
+};
+async function passarPraKarina(env, pessoa, tel, pedido) {
+  const r = await sb(env, `${TAB_PESSOAS}?select=telefone&admin=eq.true`);
+  const admins = ((r.ok && r.dados) || []).map(a => a.telefone).filter(t => t && t !== tel);
+  if (!admins.length) return "Não há pra quem passar.";
+  const agora = Date.now();
+  await sb(env, TAB_AVISOS, { method: "POST", prefer: "resolution=ignore-duplicates,return=minimal", body: admins.map(t => ({
+    telefone: t, chave: `sistema|pedido|${tel}|${agora}`, descricao: `📩 Pedido de ${primeiroNome(pessoa.nome_tasks)} pro Carinha: "${corta(String(pedido || ""), 400)}"` })) });
+  return "Pedido passado pra Karina (ela vê quando falar com você). Diga isso à pessoa, sem prometer que já mudou.";
+}
+async function aplicarAvisosEmail(env, pessoa, tel, pend) {
+  const receber = !!pend.acao.receber;
+  const r = await sb(env, `${TAB_PESSOAS}?telefone=eq.${tel}`, { method: "PATCH", prefer: "return=minimal", body: { recebe_email: receber } });
+  if (!r.ok) return false;
+  if (!receber) {
+    const p = await sb(env, `${TAB_AVISOS}?select=chave&telefone=eq.${tel}&avisado_em=is.null&chave=like.email%7C*`);
+    const ch = ((p.ok && p.dados) || []).map(x => x.chave);
+    if (ch.length) await marcarChaves(env, tel, ch, "descartado_pedido");
+  }
+  await sb(env, TAB_AUDIT, { method: "POST", prefer: "return=minimal", body: [{ telefone: tel, pessoa: pessoa.nome_tasks, secao: "config", acao: "recebe_email", depois: { recebe_email: receber }, pendencia_id: pend.id }] });
+  return true;
+}
+
 const F_PJ_HOJE = {
   name: "tarefas_de_hoje", description: "As tarefas da pessoa que pedem atenção hoje (mesma lista da mensagem da manhã: começa hoje, entrou no prazo, vence hoje, atrasada).",
   input_schema: { type: "object", properties: {} }
@@ -3954,6 +4045,7 @@ Como conversar:
 Mudanças:
 - Mudar: propor_mudanca_projetos (status: naoiniciado, andamento, bloqueado, finalizado, cancelado; datas AAAA-MM-DD). Criar: propor_criacao_projetos. Uma proposta por vez.
 - Você NUNCA grava e NUNCA diz que já mudou antes do sim; o sistema mostra o resumo e pergunta sozinho. Junto da ferramenta, no máximo uma frase curta.
+- NUNCA diga que mudou, parou, tirou, desligou ou configurou algo sem ter usado uma ferramenta que faz isso. Avisos de e-mail que você manda por conta própria: ajustar_avisos_email. Qualquer outra mudança no seu jeito de funcionar (o que você manda, quando, regras): passar_pra_karina, e diga que passou o pedido pra Karina — nunca prometa que já mudou.
 - Criar: SEMPRE pergunte onde entra (2–3 lugares encontrados com buscar_projetos como opções) e só depois chame com local_confirmado=true.
 - Não existe apagar (só pela Dash). Datas relativas contam a partir de hoje.
 - E-mail: os avisos de e-mail vêm do sistema; se a pessoa perguntar, use as ferramentas do Google.
@@ -4293,6 +4385,17 @@ async function tratarMensagem(env, msg, textoRecebido) {
       }
     }
   }
+  // Avisos de e-mail da própria pessoa (09/11).
+  if (pend && pend.acao && pend.acao.tipo === "cfg_email") {
+    if (ehSim(texto)) {
+      await marcarPendencia(env, pend.id, "confirmada");
+      const ok = await aplicarAvisosEmail(env, pessoa, tel, pend);
+      if (!ok) await marcarPendencia(env, pend.id, "falhou");
+      await enviarTexto(env, tel, !ok ? "Não consegui mudar agora. Nada foi alterado." : pend.acao.receber ? "Pronto ✅ Voltei a te avisar dos e-mails importantes." : "Pronto ✅ Não te mando mais aviso de e-mail. As tarefas continuam.");
+      return;
+    }
+    if (ehNao(texto)) { await marcarPendencia(env, pend.id, "cancelada"); await enviarTexto(env, tel, "Ok, deixei como estava."); return; }
+  }
   const pendGoogle = !!(pend && pend.acao && String(pend.acao.tipo || "").startsWith("google_"));
   if (pend && ehSim(texto)) {
     if (pendGoogle) {
@@ -4373,11 +4476,12 @@ async function tratarMensagem(env, msg, textoRecebido) {
   try {
     for (let rodada = 0; rodada < MAX_RODADAS; rodada++) {
       const fG = ferramentasGoogle(conexaoG);
+      const fCfg = [...(conexaoG || pessoa.admin ? [F_AVISOS_EMAIL] : []), ...(pessoa.admin ? [] : [F_PEDIR_KARINA])];
       const ferramentas = pjLib
-        ? [F_PJ_HOJE, F_PJ_BUSCAR, ...(pessoa.admin ? [F_REUNIOES, F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_PJ_MUDAR, F_PJ_CRIAR, ...fG, ...(modelo === HAIKU ? [F_SONNET] : [])]
+        ? [F_PJ_HOJE, F_PJ_BUSCAR, ...(pessoa.admin ? [F_REUNIOES, F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_PJ_MUDAR, F_PJ_CRIAR, ...fCfg, ...fG, ...(modelo === HAIKU ? [F_SONNET] : [])]
         : modelo === HAIKU
-        ? [F_BUSCAR, F_ALERTAS, F_REUNIOES, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, ...fG, F_SONNET]
-        : [F_BUSCAR, F_ALERTAS, F_REUNIOES, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, ...fG, F_ANALISE];
+        ? [F_BUSCAR, F_ALERTAS, F_REUNIOES, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, ...fCfg, ...fG, F_SONNET]
+        : [F_BUSCAR, F_ALERTAS, F_REUNIOES, ...(pessoa.admin ? [F_BUSCAR_MEMBERS, F_MEMBERS] : []), F_MUDANCA, F_CRIACAO, F_CONTEXTO, ...fCfg, ...fG, F_ANALISE];
       ferramentas[ferramentas.length - 1] = { ...ferramentas[ferramentas.length - 1], cache_control: { type: "ephemeral" } };
       const system = [{ type: "text", text: pjLib ? instrucoesPj(modelo, !!fG.length) : instrucoes(modelo, !!fG.length), cache_control: { type: "ephemeral" } }];
       const resp = await chamarClaude(env, modelo, system, ferramentas, mensagens);
@@ -4425,6 +4529,12 @@ async function tratarMensagem(env, msg, textoRecebido) {
       else if (u.name === "propor_contexto") proposta = validarContexto(u.input || {}, indice, pessoa);
       else if (u.name === "resumo_alertas") resultado = resumoAlertas(empresas, indice, pessoa, hoje);
       else if (u.name === "buscar_reunioes") resultado = await buscarReunioes(env, u.input || {}, pessoa);
+      else if (u.name === "ajustar_avisos_email") {
+        const receber = !!(u.input && u.input.receber);
+        if ((pessoa.recebe_email !== false) === receber) resultado = receber ? "Já está ligado: ela já recebe os avisos de e-mail." : "Já está desligado: ela não recebe aviso de e-mail.";
+        else proposta = { acao: { tipo: "cfg_email", receber }, resumo: receber ? "Voltar a te mandar aviso dos e-mails importantes que chegarem pra você." : "Parar de te mandar aviso de e-mail (você continua vendo tudo no seu Gmail). As tarefas continuam vindo normalmente." };
+      }
+      else if (u.name === "passar_pra_karina") resultado = pessoa.admin ? "Você está falando com a própria Karina." : await passarPraKarina(env, pessoa, tel, (u.input || {}).pedido);
       else if (NOMES_FERRAMENTAS_GOOGLE.has(u.name) && fG.some(f => f.name === u.name)) {
         const g = await usarFerramentaGoogle(env, conexaoG, u.name, u.input || {});
         if (g.proposta) proposta = g.proposta; else resultado = g.resultado;
@@ -4776,5 +4886,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { pjJuntarSlack, pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { fimDoConvite, avisoEmailVencido, pendentesDe, aplicarAvisosEmail, passarPraKarina, pjJuntarSlack, pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };

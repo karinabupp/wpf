@@ -15,6 +15,32 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Conferir os avisos de e-mail do Carinha (09/11)**
+  - *Contexto:* Changelog 09/11 (3ª). Conferir na terça 10/11: o Leonardo não
+    recebe nenhum aviso de e-mail; Roberto/Isabela/Karina recebem só e-mail
+    recente (nada com mais de 2 dias úteis), nenhum convite de reunião que já
+    passou, e nenhuma conversa avisada duas vezes. Query: avisos com
+    `via = 'vencido'` e mensagens `tipo_proativa = 'aviso'` do dia.
+  - *Decidir:* se Roberto e Isabela também ficam sem aviso de e-mail (hoje
+    `recebe_email = true`). Agora eles mesmos conseguem pedir ao Carinha.
+  - *Melhoria possível:* o pedido pra Karina (`sistema|pedido|…`) só chega
+    quando ela escreve pro Carinha; se precisar chegar sozinho, incluir esse
+    tipo no `pjDespachar`.
+  - *Onde:* `worker/whatsapp-bridge.js`; `wpf_agente_avisos`,
+    `wpf_agente_pessoas`.
+  - *Aberto em:* 09/11
+- [ ] **"Reunião Léo" repetida na lista de reuniões (09/11)**
+  - *Contexto:* na mensagem das 9h25 de 09/11 o Leonardo recebeu "19:00–20:00
+    · Reunião Léo" duas vezes. Ver se são dois eventos na agenda dele (ex.:
+    convite duplicado) ou se o Carinha junta a mesma reunião duas vezes.
+  - *Onde:* `worker/whatsapp-bridge.js` (reuniões do dia na rodada da
+    Projetos).
+  - *Aberto em:* 09/11
+- [ ] **Supabase: tabela de backup sem RLS (09/11)**
+  - *Contexto:* `bkp_socialcalendar_2026_10_29_antes_descartar` está sem RLS:
+    quem tem a chave anon lê e altera. Opções: ativar RLS sem política (só o
+    service role acessa) ou apagar o backup. Decisão da Karina.
+  - *Aberto em:* 09/11
 - [ ] **Conferir o Observer dentro da Dash (04/11)**
   - *Contexto:* o botão agora abre `observer-view` (iframe de `observer.html`).
     Conferir: abre sem nova aba, sem pedir login, a lista e as respostas

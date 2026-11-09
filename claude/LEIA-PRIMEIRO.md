@@ -162,6 +162,12 @@ dois arquivos antes de propor qualquer coisa**:
   `avisos_somente_email` em `wpf_agente_config`; só desligar com ordem dela.
   Exceção (14/10): quem está em `projetos_liberados` (hoje só a Karina) segue
   a rotina nova da Projetos (item acima).
+- **Avisos de e-mail por pessoa (Karina, 09/11):** `recebe_email` em
+  `wpf_agente_pessoas` (false = guarda o e-mail, não avisa; hoje só o
+  Leonardo). A própria pessoa liga/desliga pelo Carinha (`ajustar_avisos_email`,
+  com Sim). Aviso de e-mail vale 2 dias úteis na fila; convite de reunião
+  passada nunca sai; uma conversa = um aviso. O Carinha nunca diz que mudou
+  algo sem ferramenta; o resto vai pra Karina (`passar_pra_karina`).
 - **Google de cada pessoa (12/10):** conexão em `google.html` ou no ícone
   "Meu Google" da Dash; chave em `wpf_agente_google` (só o robô lê). App
   "Carinha" no Google Cloud da organização WPF (interno + confiável).

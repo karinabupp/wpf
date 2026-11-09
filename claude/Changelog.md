@@ -11,6 +11,43 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-09 (3ª) — Carinha: avisos de e-mail (pedido do Leonardo)
+
+Pergunta da Karina (17h35) sobre a última mensagem do Leonardo. Encontrado:
+o Leonardo pediu 3 vezes (13h31, 14h06, 16h07) pra parar os avisos de e-mail;
+o Carinha respondeu "não vem mais" sem ter ferramenta pra isso, e às 17h06
+mandou mais 2 (um convite de reunião de 06/11 e a Mongólia, já avisada às
+13h05). Aprovado pela Karina às 17h42: tudo, menos mandar mensagem ao Leonardo.
+
+- **Contenção (Supabase, 17h4x):** os 3 avisos de e-mail que estavam na fila
+  do Leonardo (Mongólia, convite atualizado do PPT, Contact WPF Site) foram
+  marcados `via = 'descartado_pedido'` (não apagados).
+- **Banco:** `wpf_agente_pessoas.recebe_email` (padrão `true`; Leonardo =
+  `false`) e `wpf_agente_avisos.valido_ate`. Script:
+  `sql/2026-11-09_recebe_email.sql`.
+- **Worker (`worker/whatsapp-bridge.js`):**
+  1. `recebe_email = false`: o e-mail continua sendo lido e guardado
+     (`wpf_agente_emails`), mas não vira aviso (`processarEmails`).
+  2. Ferramenta `ajustar_avisos_email` (com Sim/Não): a própria pessoa liga ou
+     desliga os avisos de e-mail dela; ao desligar, a fila de e-mail dela é
+     descartada. Ferramenta `passar_pra_karina`: o que o Carinha não consegue
+     mudar vira aviso `sistema|pedido|…` pra Karina (chega quando ela falar
+     com o Carinha). Regra nova nas instruções (`instrucoes` e
+     `instrucoesPj`): nunca dizer que mudou algo sem ter usado ferramenta.
+  3. Validade: aviso de e-mail com mais de 2 dias úteis na fila sai como
+     `via = 'vencido'` (`pendentesDe` e `sincronizarAvisos`); convite de
+     reunião cuja data já passou não vira aviso e, se estiver na fila, vence
+     no fim do dia do evento (`fimDoConvite`, `valido_ate`).
+  4. Um e-mail = um aviso: conversa que já virou aviso pra pessoa não volta
+     como "parada sem resposta" (nem no mesmo lote).
+- **Não mexeu:** Roberto, Isabela e Karina continuam com `recebe_email =
+  true`. Tarefas do Leonardo continuam. Nenhuma mensagem foi mandada a ele.
+- **Testes:** 24 verificações com Supabase e Claude simulados (convites em
+  inglês/português, validade, recebe_email, conversa repetida, confirmação,
+  pedido pra Karina).
+- **Por quê:** o Leonardo já vê os e-mails no Gmail e não quer aviso; o
+  Carinha prometia o que não fazia e mandava aviso velho e repetido.
+
 ## 2026-11-09 (2ª) — Projetos: cobrança final da Isabela vai pra 23/11 nos 7 países
 
 Pedido da Karina (09/11, 9h44: "Muda o do Ecuador TB, joga mais pra frente";
