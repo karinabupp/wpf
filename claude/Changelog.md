@@ -11,6 +11,26 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-09 (2ª) — Projetos: cobrança final da Isabela vai pra 23/11 nos 7 países
+
+Pedido da Karina (09/11, 9h44: "Muda o do Ecuador TB, joga mais pra frente";
+9h45: "Faz pra todas em 23/11").
+
+- **Correção do resumo anterior:** as 7 tarefas de 12/11 da Isabela não eram
+  todas do Ecuador; era a mesma tarefa em 7 países.
+- **O que mudou (Supabase, `projetos`, revision 19244 → 19245):** "Coletar
+  documentos › Fazer a cobrança final › Avisar que não dá pra manter a
+  posição por muito mais tempo" saiu de 12/11 pra **seg 23/11** (início e
+  fim) em Ecuador, Portugal, Macao, Malaysia, Philippines, Singapore e
+  Panama. As mães foram recalculadas e tudo ficou no Histórico. Assim a
+  cobrança final dela fica depois da 5ª cobrança da Karina (16/11).
+- **Não mexeu:** Portugal › Fazer a 4ª cobrança (Isabela, vencida em 29/10)
+  continua como estava.
+- **Onde:** backup `bkp_projetos_2026-11-09_antes_cobranca_final`; script
+  `sql/2026-11-09_cobranca_final_23-11.sql`.
+- **Por quê:** manter a ordem das cobranças depois do adiamento das tarefas
+  da Karina (entrada abaixo).
+
 ## 2026-11-09 — Projetos: nada desta semana pra Karina em 50 Federações e 10 Grupos Fem
 
 Pedido da Karina (09/11, 9h32): tudo o que começa ou está vencido esta semana
