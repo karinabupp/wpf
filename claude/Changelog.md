@@ -11,6 +11,38 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-09 — Projetos: nada desta semana pra Karina em 50 Federações e 10 Grupos Fem
+
+Pedido da Karina (09/11, 9h32): tudo o que começa ou está vencido esta semana
+em "50 Federações Membros" e "10 Grupos Fem Membros" passa a começar a partir
+da semana que vem. Aprovado às 9h37: "1 não inclui" (só as tarefas dela; as da
+Isabela ficam como estão) e "2 B" (manter a sequência).
+
+- **O que mudou (Supabase, seção `projetos`, revision 19243 → 19244):**
+  - **Critério:** tarefas abertas de ponta da Karina com início ou fim até
+    15/11. Eram 79 na 50 Federações e 19 na 10 Grupos Fem.
+  - **Regra B, por grupo:** o grupo é o @País na 50 Federações, as linhas do
+    Pesquisador de Ações, e "Pesquisar os principais grupos femininos por
+    região" na Grupos Fem. Em cada grupo, todas as tarefas abertas dela
+    andam o mesmo número de **dias úteis**, de forma que a primeira caia em
+    **seg 16/11**. As de depois do mesmo grupo andam junto, pra não perder a
+    ordem. Fim de semana conta como a segunda seguinte.
+  - **Exemplos:** Denmark: Receber resposta fica de 16 a 23/11 e Recontatar
+    vai pra 24/11. Ecuador: prazo de 12/11 → 23/11. Grupos Fem: pesquisa por
+    região de 16/11 a 01/12.
+  - **Resultado:** 131 tarefas com datas novas na 50 Federações (19 países e
+    8 linhas do Pesquisador de Ações) e 25 na Grupos Fem. Início e fim das
+    mães recalculados (59), cada mudança no Histórico com autor "Claude (a
+    pedido da Karina)". Zero tarefa dela ainda nesta semana nessas duas
+    entregas; nenhuma com início depois do fim.
+  - **Não mexeu:** as 8 da Isabela (Portugal, 4ª cobrança vencida em 29/10;
+    Ecuador, cobrança final 12/11), tarefas finalizadas e canceladas, e
+    tarefas sem data.
+- **Onde:** Supabase `wpf_dashboard_data`, seção `projetos`. Backup em
+  `bkp_projetos_2026-11-09_antes_adiar_semana`. Script em
+  `sql/2026-11-09_adiar_semana_karina.sql`.
+- **Por quê:** a Karina não quer nada destas duas entregas na semana de 09/11.
+
 ## 2026-11-04 — Observer abre dentro da Dash (sem nova aba)
 
 Pedido da usuária (04/11); autorizado por ela. Arquivos entregues para upload
