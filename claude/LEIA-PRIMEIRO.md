@@ -174,6 +174,15 @@ dois arquivos antes de propor qualquer coisa**:
   Piloto: só admin; liberar = config `google_liberados`. Mexer em e-mail,
   agenda ou Drive: sempre com o "sim" e só na conta de quem pediu.
 
+- **REGRA — testes só em nome da Karina (10/11):** toda resposta, linha ou
+  dado de teste (no banco, em prévias ou prints) usa só o nome "Karina
+  Bupp". Nunca inventar teste em nome de outra pessoa da equipe ou do comitê.
+- **Forms (10/11):** guia `#nav-fsh` (só WPF), planilha de respostas no
+  visual da Projetos; quais forms entram = `FSH_FORMS` no index.html.
+  Formulário do Comitê Feminino: `womens-committee.html`, perguntas em
+  `wpf_forms` (id `wc-2027-guidelines-projects`) — mudar pergunta = mudar o
+  banco.
+
 ## O que o Claude NÃO consegue fazer sozinho
 
 Publicar no GitHub, sim. Mas **Cloudflare, Supabase e Meta dependem da

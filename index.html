@@ -4662,58 +4662,64 @@
     .sc-cab { padding: 6px 4px; font-size: 10px; }
     #sc-modal .sc-corpo { grid-template-columns: 1fr; }
   }
-  /* ── FORMS (planilha de respostas) — 10/11 (Karina). Prefixo fsh-. Só na WPF. ── */
+  /* ── FORMS (planilha de respostas) — 10/11 (Karina). Prefixo fsh-. Só na WPF.
+     Visual igual ao da Projetos (cabeçalho cinza, linhas de 39px, barra da frente). ── */
   html:not(.org-wpf) #nav-fsh, html:not(.org-wpf) #fsh-view { display: none !important; }
-  #fsh-pop .fsh-pop-a b { font-size: 12px; color: var(--text-muted); }
-  #fsh-pop .fsh-pop-a + .fsh-pop-a { margin-top: 8px; }
-  #fsh-wrap { max-width: min(98vw, 1600px); }
-  #fsh-topo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 4px 0 6px; }
-  #fsh-titulo { margin: 0; font-size: 20px; }
-  #fsh-status { font-size: 12px; color: var(--text-muted); }
-  #fsh-status.erro { color: #b3261e; }
-  #fsh-barra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 12px; }
-  #fsh-barra select, #fsh-barra input {
-    font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border-strong);
-    border-radius: 8px; background: #fff; color: var(--text);
+  #fsh-wrap { padding: 20px 24px 60px; }
+  #fsh-wrap .pj-direita { gap: 12px; }
+  #fsh-filtro { max-width: 320px; }
+  #fsh-busca, #fsh-wrap .pj-frente select {
+    font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid #e9e9e7;
+    border-radius: 8px; background: #fff; color: rgb(55, 53, 47);
   }
-  #fsh-filtro { max-width: 340px; }
   #fsh-busca { min-width: 220px; }
-  #fsh-barra button {
-    font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 8px; cursor: pointer;
-    border: 1px solid var(--border-strong); background: #fff; color: var(--text);
+  .fsh-bt {
+    font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid #e9e9e7; background: #fff; color: rgb(55, 53, 47);
   }
-  #fsh-barra button:hover { border-color: var(--accent); color: var(--accent); }
-  #fsh-link { font-size: 12px; color: var(--text-muted); margin-left: auto; }
-  #fsh-link a { color: var(--accent); }
-  #fsh-tabela-wrap { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: auto; max-height: calc(100vh - 190px); }
-  #fsh-tabela { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
-  #fsh-tabela th, #fsh-tabela td {
-    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
-    text-align: left; vertical-align: top; padding: 8px 10px;
+  .fsh-bt:hover { background: #f7f7f5; }
+  #fsh-sub { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 0 0 10px; font-size: 12.5px; color: rgb(155, 154, 151); }
+  #fsh-status.erro { color: #b3261e; }
+  #fsh-link a { color: rgb(155, 154, 151); text-decoration: underline; text-underline-offset: 2px; }
+  #fsh-link a:hover { color: rgb(55, 53, 47); }
+  #fsh-tabela-wrap { background: #fff; border: 1px solid #e9e9e7; border-radius: 12px; overflow: auto; max-height: calc(100vh - 170px); }
+  #fsh-tabela { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 14px; color: rgb(55, 53, 47); }
+  #fsh-tabela th {
+    position: sticky; top: 0; z-index: 2; background: #fff; text-align: left;
+    font-size: 12.5px; font-weight: 400; color: rgb(155, 154, 151); text-transform: none;
+    padding: 9px 10px; height: 39px; line-height: 20px; border-bottom: 1px solid #e9e9e7;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; min-width: 160px;
   }
-  #fsh-tabela thead th {
-    position: sticky; top: 0; z-index: 2; background: var(--bg);
-    font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
-    max-width: 260px; white-space: normal; line-height: 1.3;
+  #fsh-tabela td {
+    padding: 6px 10px; height: 39px; border-bottom: 1px solid #efefed; background: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; min-width: 160px;
+    vertical-align: middle;
   }
-  #fsh-tabela th.fsh-col-form, #fsh-tabela td.fsh-col-form { position: sticky; left: 0; z-index: 1; background: #fff; min-width: 190px; max-width: 240px; }
-  #fsh-tabela thead th.fsh-col-form { z-index: 3; background: var(--bg); }
-  #fsh-tabela td { max-width: 260px; min-width: 140px; }
-  #fsh-tabela td .fsh-cel { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; word-break: break-word; }
-  #fsh-tabela td.fsh-col-form { font-weight: 600; }
-  #fsh-tabela td.fsh-col-data { white-space: nowrap; color: var(--text-muted); min-width: 120px; }
+  #fsh-tabela tr:last-child td { border-bottom: 0; }
+  #fsh-tabela th.fsh-col-form, #fsh-tabela td.fsh-col-form { position: sticky; left: 0; z-index: 1; min-width: 200px; max-width: 220px; padding-left: 16px; }
+  #fsh-tabela th.fsh-col-form { z-index: 3; }
+  #fsh-tabela td.fsh-col-form { box-shadow: inset 4px 0 0 #c24a87, 1px 0 0 #e9e9e7; }
+  #fsh-tabela td.fsh-col-data { min-width: 130px; color: rgb(120, 119, 116); font-size: 13px; }
+  #fsh-tabela th.fsh-col-data { min-width: 130px; }
   #fsh-tabela tbody tr { cursor: pointer; }
-  #fsh-tabela tbody tr:hover td { background: #f3f1ea; }
-  #fsh-vazio { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 14px; }
-  #fsh-pop-fundo { position: fixed; inset: 0; background: rgba(20, 20, 18, .35); z-index: 900; display: flex; justify-content: flex-end; }
-  #fsh-pop { width: min(560px, 96vw); height: 100%; background: #fff; overflow-y: auto; padding: 24px 26px 40px; box-shadow: -8px 0 30px rgba(0,0,0,.12); }
-  #fsh-pop h3 { margin: 0 0 4px; font-size: 18px; }
-  #fsh-pop .fsh-pop-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 18px; }
-  #fsh-pop .fsh-pop-sec { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5a35c2; margin: 20px 0 8px; }
-  #fsh-pop .fsh-pop-q { font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
-  #fsh-pop .fsh-pop-a { font-size: 14px; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
-  #fsh-pop .fsh-pop-a.vazio { color: var(--text-muted); font-style: italic; }
-  #fsh-pop-fechar { float: right; border: none; background: transparent; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1; }
+  #fsh-tabela tbody tr:hover td { background: #fbfaf7; }
+  .fsh-ico { display: inline-block; min-width: 16px; margin-right: 6px; color: #9b9a97; font-size: 12px; text-align: center; }
+  .fsh-tag { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;
+    border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; background: #fbe7f1; color: #8a2a5c; }
+  .fsh-pill { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 700; background: #eeece4; color: #5f5e58; }
+  .fsh-vazio-cel { color: #c9c8c4; }
+  #fsh-vazio { padding: 40px 20px; text-align: center; color: rgb(155, 154, 151); font-size: 14px; }
+  #fsh-pop-fundo { position: fixed; inset: 0; background: rgba(15, 15, 15, .25); z-index: 900; display: flex; justify-content: flex-end; }
+  #fsh-pop { width: min(560px, 96vw); height: 100%; background: #fff; overflow-y: auto; padding: 28px 30px 48px; box-shadow: -8px 0 30px rgba(0,0,0,.12); color: rgb(55, 53, 47); }
+  #fsh-pop h3 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
+  #fsh-pop .fsh-pop-sub { color: rgb(155, 154, 151); font-size: 13px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #efefed; }
+  #fsh-pop .fsh-pop-sec { font-size: 12.5px; font-weight: 600; color: #c24a87; margin: 24px 0 6px; }
+  #fsh-pop .fsh-pop-q { font-size: 12.5px; color: rgb(155, 154, 151); margin: 14px 0 3px; }
+  #fsh-pop .fsh-pop-a { font-size: 14px; white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
+  #fsh-pop .fsh-pop-a.vazio { color: #c9c8c4; }
+  #fsh-pop .fsh-pop-a b { font-size: 12px; font-weight: 400; color: rgb(155, 154, 151); }
+  #fsh-pop .fsh-pop-a + .fsh-pop-a { margin-top: 8px; }
+  #fsh-pop-fechar { float: right; border: none; background: transparent; font-size: 22px; cursor: pointer; color: rgb(155, 154, 151); line-height: 1; }
 </style>
 
 </head>
@@ -4842,17 +4848,16 @@
 <!-- 10/11 (Karina): FORMS — planilha de respostas. Cada linha = uma resposta; 1ª coluna sempre "Form". -->
 <div id="fsh-view" class="content-view hidden">
   <div id="fsh-wrap">
-    <div id="fsh-topo">
-      <h2 id="fsh-titulo">Forms</h2>
-      <span id="fsh-status"></span>
+    <div class="pj-topo">
+      <div><div class="fsh-logo" aria-label="WPF"></div></div>
+      <div class="pj-direita">
+        <div class="pj-frente"><label for="fsh-filtro">Form</label><select id="fsh-filtro" aria-label="Filtrar por formulário"><option value="">Todos</option></select></div>
+        <input id="fsh-busca" type="search" placeholder="Buscar nas respostas…">
+        <button id="fsh-atualizar" class="fsh-bt" type="button" title="Atualizar">↻</button>
+        <button id="fsh-csv" class="fsh-bt" type="button">Exportar CSV</button>
+      </div>
     </div>
-    <div id="fsh-barra">
-      <select id="fsh-filtro" title="Filtrar por formulário"><option value="">Todos os forms</option></select>
-      <input id="fsh-busca" type="search" placeholder="Buscar nas respostas…">
-      <button id="fsh-atualizar" type="button">↻ Atualizar</button>
-      <button id="fsh-csv" type="button">⬇ Exportar CSV</button>
-      <span id="fsh-link"></span>
-    </div>
+    <div id="fsh-sub"><span id="fsh-status"></span><span id="fsh-link"></span></div>
     <div id="fsh-tabela-wrap">
       <table id="fsh-tabela"><thead></thead><tbody></tbody></table>
       <div id="fsh-vazio" class="hidden">Nenhuma resposta ainda.</div>
@@ -14967,7 +14972,7 @@ async function fshCarregar() {
     fshRespostas = await rr.json();
     fshPreencherFiltro();
     fshRender();
-    fshStatus(`☁️ Atualizado agora · ${fshRespostas.length} resposta${fshRespostas.length === 1 ? "" : "s"}`);
+    fshStatus(`${fshRespostas.length} resposta${fshRespostas.length === 1 ? "" : "s"} · atualizado agora`);
   } catch (e) {
     console.warn("Forms (planilha): não carregou:", e);
     fshStatus("⚠️ Não consegui atualizar. Confira a conexão.", true);
@@ -14979,7 +14984,7 @@ async function fshCarregar() {
 function fshPreencherFiltro() {
   const sel = document.getElementById("fsh-filtro");
   const atual = sel.value;
-  sel.innerHTML = `<option value="">Todos os forms</option>` +
+  sel.innerHTML = `<option value="">Todos</option>` +
     fshForms.map(f => `<option value="${fshEsc(f.id)}">${fshEsc(f.title)}</option>`).join("");
   if (fshForms.some(f => f.id === atual)) sel.value = atual;
 }
@@ -14988,7 +14993,7 @@ function fshPreencherFiltro() {
 function fshColunas(formsVisiveis) {
   const cols = [];
   formsVisiveis.forEach(f => (f.questions || []).forEach(q => {
-    cols.push({ formId: f.id, qid: q.id, label: q.label, prefixo: formsVisiveis.length > 1 ? f.title : "" });
+    cols.push({ formId: f.id, qid: q.id, label: q.label, tipo: q.type, prefixo: formsVisiveis.length > 1 ? f.title : "" });
   }));
   return cols;
 }
@@ -15005,6 +15010,22 @@ function fshLinhasVisiveis() {
   });
 }
 
+// Nome curto do form (antes do " — "), pra tag da 1ª coluna.
+function fshNomeCurto(f) { const t = f ? f.title : ""; return t.split(" — ")[0] || t; }
+const FSH_ICONES = { text: "≡", single_select: "◉", multiple_choice: "◉", checkbox: "☑", projects: "▤" };
+function fshCelula(c, r) {
+  if (c.formId !== r.form_id) return `<span class="fsh-vazio-cel">—</span>`;
+  const bruto = (r.answers || {})[c.qid];
+  const v = fshValor(bruto);
+  if (!v) return `<span class="fsh-vazio-cel">—</span>`;
+  if (c.tipo === "single_select" || c.tipo === "multiple_choice") return `<span class="fsh-pill">${fshEsc(v)}</span>`;
+  if (c.tipo === "projects" && Array.isArray(bruto)) {
+    const nomes = bruto.map(o => o.name).filter(Boolean);
+    return fshEsc(`${bruto.length} projeto${bruto.length === 1 ? "" : "s"}${nomes.length ? ": " + nomes.join(", ") : ""}`);
+  }
+  return fshEsc(v);
+}
+
 function fshRender() {
   const filtro = document.getElementById("fsh-filtro").value;
   const formsVisiveis = filtro ? fshForms.filter(f => f.id === filtro) : fshForms;
@@ -15012,20 +15033,20 @@ function fshRender() {
   const linhas = fshLinhasVisiveis();
   const thead = document.querySelector("#fsh-tabela thead");
   const tbody = document.querySelector("#fsh-tabela tbody");
-  thead.innerHTML = `<tr><th class="fsh-col-form">Form</th><th>Enviado em</th>` +
-    cols.map(c => `<th title="${fshEsc(c.prefixo ? c.prefixo + " › " + c.label : c.label)}">${fshEsc(c.label)}</th>`).join("") + `</tr>`;
+  thead.innerHTML = `<tr><th class="fsh-col-form"><span class="fsh-ico">◈</span>Form</th><th class="fsh-col-data"><span class="fsh-ico">◷</span>Enviado em</th>` +
+    cols.map(c => `<th title="${fshEsc(c.prefixo ? c.prefixo + " › " + c.label : c.label)}"><span class="fsh-ico">${FSH_ICONES[c.tipo] || "≡"}</span>${fshEsc(c.label)}</th>`).join("") + `</tr>`;
   tbody.innerHTML = linhas.map(r => {
     const f = fshForms.find(x => x.id === r.form_id);
     const a = r.answers || {};
-    return `<tr data-id="${fshEsc(r.id)}"><td class="fsh-col-form">${fshEsc(f ? f.title : r.form_id)}</td>` +
+    return `<tr data-id="${fshEsc(r.id)}"><td class="fsh-col-form" title="${fshEsc(f ? f.title : r.form_id)}"><span class="fsh-tag">${fshEsc(f ? fshNomeCurto(f) : r.form_id)}</span></td>` +
       `<td class="fsh-col-data">${fshEsc(fshData(r.submitted_at))}</td>` +
-      cols.map(c => `<td><div class="fsh-cel">${c.formId === r.form_id ? fshEsc(fshValor(a[c.qid])) : ""}</div></td>`).join("") + `</tr>`;
+      cols.map(c => `<td title="${fshEsc(c.formId === r.form_id ? fshValor(a[c.qid]) : "")}">${fshCelula(c, r)}</td>`).join("") + `</tr>`;
   }).join("");
   document.getElementById("fsh-vazio").classList.toggle("hidden", linhas.length > 0);
   // Link público do form filtrado (ou do único form, enquanto só houver um).
   const alvo = filtro || (fshForms.length === 1 ? fshForms[0].id : "");
   const link = alvo && FSH_FORMS[alvo] ? new URL(FSH_FORMS[alvo], window.location.href).href : "";
-  document.getElementById("fsh-link").innerHTML = link ? `Link público: <a href="${fshEsc(link)}" target="_blank" rel="noopener">${fshEsc(link)}</a>` : "";
+  document.getElementById("fsh-link").innerHTML = link ? `· <a href="${fshEsc(link)}" target="_blank" rel="noopener">Abrir o formulário ↗</a>` : "";
 }
 
 function fshAbrirResposta(id) {
@@ -15079,6 +15100,14 @@ function fshExportarCsv() {
 (function fshLigar() {
   const el = id => document.getElementById(id);
   if (!el("fsh-view")) return;
+  // Logo no topo, igual à Projetos (clona o #logo, sem repetir o base64).
+  const lugar = document.querySelector("#fsh-view .fsh-logo"), original = document.getElementById("logo");
+  if (lugar && original) {
+    const logo = original.cloneNode(true);
+    logo.removeAttribute("id");
+    Object.assign(logo.style, { height: "44px", width: "auto", display: "block" });
+    lugar.appendChild(logo);
+  }
   el("fsh-filtro").addEventListener("change", fshRender);
   el("fsh-busca").addEventListener("input", fshRender);
   el("fsh-atualizar").addEventListener("click", fshCarregar);

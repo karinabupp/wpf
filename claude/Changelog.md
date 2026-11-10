@@ -11,6 +11,25 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-10 (4ª) — Guia Forms no visual da Projetos + regra de testes
+
+Aprovado pela Karina (16h31).
+
+- **`index.html` (guia Forms, `#fsh-view`):** visual igual à planilha da
+  Projetos: logo no topo (clone do `#logo`), filtro "FORM" com o estilo de
+  "FRENTE" (classes `pj-topo`/`pj-frente`), busca, ↻ e Exportar CSV; linha
+  cinza com contagem e "Abrir o formulário ↗"; tabela com cabeçalho cinza
+  sem caixa alta e ícones (◈ ◷ ◉ ≡ ▤), linhas de 39px sem bordas verticais,
+  barra rosa da frente Comitê (#c24a87), tag rosa com o nome curto do form,
+  respostas de escolha como pílula, texto em uma linha com "…" (completo no
+  hover), "—" quando vazio, projetos resumidos. Painel da resposta no mesmo
+  estilo. Só a guia Forms mudou (CSS/markup/JS do bloco FORMS).
+- **Teste ponta a ponta (16h22):** formulário no ar preenchido em nome de
+  Karina Bupp ([TESTE]) → gravou em `wpf_form_responses` (id 13) → aparece
+  na guia Forms da Dash. A resposta de teste continua no banco.
+- **Regra nova (Karina):** testes só em nome da Karina (LEIA-PRIMEIRO).
+
+---
 ## 2026-11-10 (3ª) — Formulário do Comitê Feminino: foto nova e Board positions final
 
 Aprovado pela Karina (16h09–16h14).
