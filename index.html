@@ -4662,6 +4662,58 @@
     .sc-cab { padding: 6px 4px; font-size: 10px; }
     #sc-modal .sc-corpo { grid-template-columns: 1fr; }
   }
+  /* ── FORMS (planilha de respostas) — 10/11 (Karina). Prefixo fsh-. Só na WPF. ── */
+  html:not(.org-wpf) #nav-fsh, html:not(.org-wpf) #fsh-view { display: none !important; }
+  #fsh-pop .fsh-pop-a b { font-size: 12px; color: var(--text-muted); }
+  #fsh-pop .fsh-pop-a + .fsh-pop-a { margin-top: 8px; }
+  #fsh-wrap { max-width: min(98vw, 1600px); }
+  #fsh-topo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: 4px 0 6px; }
+  #fsh-titulo { margin: 0; font-size: 20px; }
+  #fsh-status { font-size: 12px; color: var(--text-muted); }
+  #fsh-status.erro { color: #b3261e; }
+  #fsh-barra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 12px; }
+  #fsh-barra select, #fsh-barra input {
+    font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border-strong);
+    border-radius: 8px; background: #fff; color: var(--text);
+  }
+  #fsh-filtro { max-width: 340px; }
+  #fsh-busca { min-width: 220px; }
+  #fsh-barra button {
+    font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--border-strong); background: #fff; color: var(--text);
+  }
+  #fsh-barra button:hover { border-color: var(--accent); color: var(--accent); }
+  #fsh-link { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+  #fsh-link a { color: var(--accent); }
+  #fsh-tabela-wrap { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: auto; max-height: calc(100vh - 190px); }
+  #fsh-tabela { border-collapse: separate; border-spacing: 0; width: max-content; min-width: 100%; font-size: 13px; }
+  #fsh-tabela th, #fsh-tabela td {
+    border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+    text-align: left; vertical-align: top; padding: 8px 10px;
+  }
+  #fsh-tabela thead th {
+    position: sticky; top: 0; z-index: 2; background: var(--bg);
+    font-size: 11px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+    max-width: 260px; white-space: normal; line-height: 1.3;
+  }
+  #fsh-tabela th.fsh-col-form, #fsh-tabela td.fsh-col-form { position: sticky; left: 0; z-index: 1; background: #fff; min-width: 190px; max-width: 240px; }
+  #fsh-tabela thead th.fsh-col-form { z-index: 3; background: var(--bg); }
+  #fsh-tabela td { max-width: 260px; min-width: 140px; }
+  #fsh-tabela td .fsh-cel { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; word-break: break-word; }
+  #fsh-tabela td.fsh-col-form { font-weight: 600; }
+  #fsh-tabela td.fsh-col-data { white-space: nowrap; color: var(--text-muted); min-width: 120px; }
+  #fsh-tabela tbody tr { cursor: pointer; }
+  #fsh-tabela tbody tr:hover td { background: #f3f1ea; }
+  #fsh-vazio { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 14px; }
+  #fsh-pop-fundo { position: fixed; inset: 0; background: rgba(20, 20, 18, .35); z-index: 900; display: flex; justify-content: flex-end; }
+  #fsh-pop { width: min(560px, 96vw); height: 100%; background: #fff; overflow-y: auto; padding: 24px 26px 40px; box-shadow: -8px 0 30px rgba(0,0,0,.12); }
+  #fsh-pop h3 { margin: 0 0 4px; font-size: 18px; }
+  #fsh-pop .fsh-pop-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 18px; }
+  #fsh-pop .fsh-pop-sec { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #5a35c2; margin: 20px 0 8px; }
+  #fsh-pop .fsh-pop-q { font-weight: 600; font-size: 13px; margin: 12px 0 4px; }
+  #fsh-pop .fsh-pop-a { font-size: 14px; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+  #fsh-pop .fsh-pop-a.vazio { color: var(--text-muted); font-style: italic; }
+  #fsh-pop-fechar { float: right; border: none; background: transparent; font-size: 22px; cursor: pointer; color: var(--text-muted); line-height: 1; }
 </style>
 
 </head>
@@ -4742,6 +4794,15 @@
       <circle cx="12" cy="12" r="3"/>
     </svg>
   </button>
+  <!-- 10/11 (Karina): Forms nova — planilha com as respostas de todos os formulários (1ª coluna = Form). -->
+  <button class="nav-icon-btn" id="nav-fsh" data-tooltip="Forms" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="16" rx="2"/>
+      <path d="M3 9h18"/>
+      <path d="M3 14h18"/>
+      <path d="M9 9v11"/>
+    </svg>
+  </button>
   <button class="nav-icon-btn" id="nav-config" data-tooltip="Settings" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"/>
@@ -4776,6 +4837,27 @@
 <!-- 04/11: Observer dentro da Dash (iframe da mesma origem; usa a sessão já aberta) -->
 <div id="observer-view" class="content-view hidden">
   <iframe id="observer-frame" title="Observer: formulários e respostas" style="width:100%; height:calc(100vh - 40px); border:0; border-radius:8px; background:transparent;"></iframe>
+</div>
+
+<!-- 10/11 (Karina): FORMS — planilha de respostas. Cada linha = uma resposta; 1ª coluna sempre "Form". -->
+<div id="fsh-view" class="content-view hidden">
+  <div id="fsh-wrap">
+    <div id="fsh-topo">
+      <h2 id="fsh-titulo">Forms</h2>
+      <span id="fsh-status"></span>
+    </div>
+    <div id="fsh-barra">
+      <select id="fsh-filtro" title="Filtrar por formulário"><option value="">Todos os forms</option></select>
+      <input id="fsh-busca" type="search" placeholder="Buscar nas respostas…">
+      <button id="fsh-atualizar" type="button">↻ Atualizar</button>
+      <button id="fsh-csv" type="button">⬇ Exportar CSV</button>
+      <span id="fsh-link"></span>
+    </div>
+    <div id="fsh-tabela-wrap">
+      <table id="fsh-tabela"><thead></thead><tbody></tbody></table>
+      <div id="fsh-vazio" class="hidden">Nenhuma resposta ainda.</div>
+    </div>
+  </div>
 </div>
 
 <div id="config-view" class="content-view hidden">
@@ -6527,7 +6609,8 @@ async function saveUsersListNow() {
 const NAV_TAB_PERMISSIONS = {
   "nav-marketing": "tabMarketing",
   "nav-forms": "tabForms",
-  "nav-social": "socialCalendar" // 28/10
+  "nav-social": "socialCalendar", // 28/10
+  "nav-fsh": "fshVer" // 10/11
 };
 
 function applyTabVisibility() {
@@ -6771,6 +6854,7 @@ const NAV_VIEWS = {
   "nav-marketing": "marketing-view",
   "nav-forms": "forms-view",
   "nav-observer": "observer-view",
+  "nav-fsh": "fsh-view",
   "nav-config": "config-view"
 };
 Object.keys(NAV_VIEWS).forEach(btnId => {
@@ -6787,6 +6871,7 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     if (btnId === "nav-config" && typeof cfgCarregar === "function") cfgCarregar();
     if (btnId === "nav-observer") { const fr = document.getElementById("observer-frame"); if (fr && !fr.getAttribute("src")) fr.setAttribute("src", "observer.html"); }
     if (btnId === "nav-social" && socialBridge) socialBridge.abrir();
+    if (btnId === "nav-fsh" && typeof fshCarregar === "function") fshCarregar(); // 10/11
   });
 });
 
@@ -13428,7 +13513,7 @@ function presencaOnde() {
     const pl = document.getElementById("planilha2-wrap");
     return "CRM › " + (pl && !pl.classList.contains("hidden") ? "Planilha" : "Mapa");
   }
-  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing", "observer-view": "Observer" }[id] || "Dash";
+  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing", "observer-view": "Observer", "fsh-view": "Forms" }[id] || "Dash";
 }
 // Em que célula a pessoa clicou/está editando.
 function presencaFocoDe(el) {
@@ -14434,6 +14519,10 @@ const CATALOGO_PERMISSOES = [
     { chave: "formsDeleteForm", rotulo: "Apagar formulário" },
     { chave: "formsDeleteResponse", rotulo: "Apagar resposta" }
   ] },
+  // 10/11 (Karina): guia Forms nova (planilha de respostas). Todo mundo vê.
+  { grupo: "Forms (respostas)", itens: [
+    { chave: "fshVer", rotulo: "Ver a guia Forms (planilha com as respostas dos formulários)" }
+  ] },
   { grupo: "Conta", itens: [
     { chave: "google", rotulo: "Conectar o próprio Google (Gmail, Agenda, Drive) ao Carinha" }
   ] },
@@ -14818,6 +14907,187 @@ async function cfgCriarPessoa() {
   });
 })();
 
+
+// ═══════════════════════════════════════════════════════════
+// FORMS — planilha de respostas (10/11, Karina). Guia #nav-fsh / #fsh-view.
+// Lê wpf_forms + wpf_form_responses (mesmas tabelas da Forms antiga, que
+// segue escondida). Cada linha = uma resposta; a 1ª coluna é SEMPRE "Form".
+// Quais formulários entram aqui: FSH_FORMS (id → link público). Form novo
+// na planilha = acrescentar uma linha aqui (e registrar no Changelog).
+// Perguntas com "section" no wpf_forms viram grupos no detalhe da resposta.
+// ═══════════════════════════════════════════════════════════
+const FSH_FORMS = {
+  "wc-2027-guidelines-projects": "womens-committee.html"
+};
+let fshForms = [];      // linhas de wpf_forms (só as de FSH_FORMS), na ordem de FSH_FORMS
+let fshRespostas = [];  // linhas de wpf_form_responses, mais nova primeiro
+let fshCarregando = false;
+
+const fshEsc = s => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+// Projetos (lista de objetos): "Projeto 1: nome | Why: … | How: …".
+const FSH_ROTULOS_CAMPO = { name: "Name", why: "Why", how: "How", needs: "Needs" };
+function fshValor(v) {
+  if (v == null) return "";
+  if (Array.isArray(v) && v.some(x => x && typeof x === "object")) {
+    return v.map((o, i) => `Projeto ${i + 1}: ` + Object.keys(o).map(k => k === "name" ? o[k] : `${FSH_ROTULOS_CAMPO[k] || k}: ${o[k]}`).join(" | ")).join("\n\n");
+  }
+  if (Array.isArray(v)) return v.join(", ");
+  if (typeof v === "object") return v.name || "";
+  return String(v);
+}
+function fshData(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return d.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+function fshStatus(txt, erro) {
+  const el = document.getElementById("fsh-status");
+  if (!el) return;
+  el.textContent = txt;
+  el.classList.toggle("erro", !!erro);
+}
+
+async function fshCarregar() {
+  if (fshCarregando) return;
+  fshCarregando = true;
+  fshStatus("☁️ Atualizando…");
+  try {
+    const ids = Object.keys(FSH_FORMS);
+    const lista = ids.map(encodeURIComponent).join(",");
+    const h = await headersLogado();
+    const [rf, rr] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/wpf_forms?id=in.(${lista})&select=id,title,questions,status`, { headers: h }),
+      fetch(`${SUPABASE_URL}/rest/v1/wpf_form_responses?form_id=in.(${lista})&select=id,form_id,answers,submitted_at&order=submitted_at.desc`, { headers: h })
+    ]);
+    if (!rf.ok || !rr.ok) throw new Error(`HTTP ${rf.status}/${rr.status}`);
+    const forms = await rf.json();
+    fshForms = ids.map(id => forms.find(f => f.id === id)).filter(Boolean);
+    fshRespostas = await rr.json();
+    fshPreencherFiltro();
+    fshRender();
+    fshStatus(`☁️ Atualizado agora · ${fshRespostas.length} resposta${fshRespostas.length === 1 ? "" : "s"}`);
+  } catch (e) {
+    console.warn("Forms (planilha): não carregou:", e);
+    fshStatus("⚠️ Não consegui atualizar. Confira a conexão.", true);
+  } finally {
+    fshCarregando = false;
+  }
+}
+
+function fshPreencherFiltro() {
+  const sel = document.getElementById("fsh-filtro");
+  const atual = sel.value;
+  sel.innerHTML = `<option value="">Todos os forms</option>` +
+    fshForms.map(f => `<option value="${fshEsc(f.id)}">${fshEsc(f.title)}</option>`).join("");
+  if (fshForms.some(f => f.id === atual)) sel.value = atual;
+}
+
+// Colunas: Form | Enviado em | perguntas (dos forms visíveis, na ordem deles).
+function fshColunas(formsVisiveis) {
+  const cols = [];
+  formsVisiveis.forEach(f => (f.questions || []).forEach(q => {
+    cols.push({ formId: f.id, qid: q.id, label: q.label, prefixo: formsVisiveis.length > 1 ? f.title : "" });
+  }));
+  return cols;
+}
+
+function fshLinhasVisiveis() {
+  const filtro = document.getElementById("fsh-filtro").value;
+  const busca = (document.getElementById("fsh-busca").value || "").trim().toLowerCase();
+  return fshRespostas.filter(r => {
+    if (filtro && r.form_id !== filtro) return false;
+    if (!busca) return true;
+    const f = fshForms.find(x => x.id === r.form_id);
+    const txt = [f ? f.title : "", ...Object.values(r.answers || {}).map(fshValor)].join(" ").toLowerCase();
+    return txt.includes(busca);
+  });
+}
+
+function fshRender() {
+  const filtro = document.getElementById("fsh-filtro").value;
+  const formsVisiveis = filtro ? fshForms.filter(f => f.id === filtro) : fshForms;
+  const cols = fshColunas(formsVisiveis);
+  const linhas = fshLinhasVisiveis();
+  const thead = document.querySelector("#fsh-tabela thead");
+  const tbody = document.querySelector("#fsh-tabela tbody");
+  thead.innerHTML = `<tr><th class="fsh-col-form">Form</th><th>Enviado em</th>` +
+    cols.map(c => `<th title="${fshEsc(c.prefixo ? c.prefixo + " › " + c.label : c.label)}">${fshEsc(c.label)}</th>`).join("") + `</tr>`;
+  tbody.innerHTML = linhas.map(r => {
+    const f = fshForms.find(x => x.id === r.form_id);
+    const a = r.answers || {};
+    return `<tr data-id="${fshEsc(r.id)}"><td class="fsh-col-form">${fshEsc(f ? f.title : r.form_id)}</td>` +
+      `<td class="fsh-col-data">${fshEsc(fshData(r.submitted_at))}</td>` +
+      cols.map(c => `<td><div class="fsh-cel">${c.formId === r.form_id ? fshEsc(fshValor(a[c.qid])) : ""}</div></td>`).join("") + `</tr>`;
+  }).join("");
+  document.getElementById("fsh-vazio").classList.toggle("hidden", linhas.length > 0);
+  // Link público do form filtrado (ou do único form, enquanto só houver um).
+  const alvo = filtro || (fshForms.length === 1 ? fshForms[0].id : "");
+  const link = alvo && FSH_FORMS[alvo] ? new URL(FSH_FORMS[alvo], window.location.href).href : "";
+  document.getElementById("fsh-link").innerHTML = link ? `Link público: <a href="${fshEsc(link)}" target="_blank" rel="noopener">${fshEsc(link)}</a>` : "";
+}
+
+function fshAbrirResposta(id) {
+  const r = fshRespostas.find(x => String(x.id) === String(id));
+  if (!r) return;
+  const f = fshForms.find(x => x.id === r.form_id) || { title: r.form_id, questions: [] };
+  const a = r.answers || {};
+  let secAtual = null;
+  const corpo = (f.questions || []).map(q => {
+    let h = "";
+    if (q.section && q.section !== secAtual) { secAtual = q.section; h += `<div class="fsh-pop-sec">${fshEsc(q.section)}</div>`; }
+    if (q.type === "projects" && Array.isArray(a[q.id]) && a[q.id].length) {
+      return h + a[q.id].map((o, i) => `<div class="fsh-pop-q">Projeto ${i + 1}${o.name ? ": " + fshEsc(o.name) : ""}</div>` +
+        (q.fields || []).filter(fl => fl.id !== "name" && o[fl.id]).map(fl =>
+          `<div class="fsh-pop-a"><b>${fshEsc(fl.label)}</b><br>${fshEsc(o[fl.id])}</div>`).join("")).join("");
+    }
+    const v = fshValor(a[q.id]);
+    return h + `<div class="fsh-pop-q">${fshEsc(q.label)}</div><div class="fsh-pop-a${v ? "" : " vazio"}">${v ? fshEsc(v) : "—"}</div>`;
+  }).join("");
+  const fundo = document.createElement("div");
+  fundo.id = "fsh-pop-fundo";
+  fundo.innerHTML = `<div id="fsh-pop"><button id="fsh-pop-fechar" type="button" title="Fechar">×</button>
+    <h3>${fshEsc(f.title)}</h3><div class="fsh-pop-sub">Enviado em ${fshEsc(fshData(r.submitted_at))}</div>${corpo}</div>`;
+  const fechar = () => { fundo.remove(); document.removeEventListener("keydown", esc); };
+  const esc = e => { if (e.key === "Escape") fechar(); };
+  fundo.addEventListener("click", e => { if (e.target === fundo || e.target.id === "fsh-pop-fechar") fechar(); });
+  document.addEventListener("keydown", esc);
+  document.body.appendChild(fundo);
+}
+
+function fshExportarCsv() {
+  const filtro = document.getElementById("fsh-filtro").value;
+  const formsVisiveis = filtro ? fshForms.filter(f => f.id === filtro) : fshForms;
+  const cols = fshColunas(formsVisiveis);
+  const q = s => `"${String(s == null ? "" : s).replace(/"/g, '""')}"`;
+  const linhas = [["Form", "Enviado em", ...cols.map(c => c.prefixo ? `${c.prefixo} › ${c.label}` : c.label)].map(q).join(",")];
+  fshLinhasVisiveis().forEach(r => {
+    const f = fshForms.find(x => x.id === r.form_id);
+    const a = r.answers || {};
+    linhas.push([f ? f.title : r.form_id, fshData(r.submitted_at), ...cols.map(c => c.formId === r.form_id ? fshValor(a[c.qid]) : "")].map(q).join(","));
+  });
+  const blob = new Blob(["﻿" + linhas.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const el = document.createElement("a");
+  el.href = url;
+  el.download = `forms_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(el); el.click(); el.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+(function fshLigar() {
+  const el = id => document.getElementById(id);
+  if (!el("fsh-view")) return;
+  el("fsh-filtro").addEventListener("change", fshRender);
+  el("fsh-busca").addEventListener("input", fshRender);
+  el("fsh-atualizar").addEventListener("click", fshCarregar);
+  el("fsh-csv").addEventListener("click", fshExportarCsv);
+  document.querySelector("#fsh-tabela tbody").addEventListener("click", e => {
+    const tr = e.target.closest("tr[data-id]");
+    if (tr) fshAbrirResposta(tr.dataset.id);
+  });
+})();
 </script>
 
 </body>

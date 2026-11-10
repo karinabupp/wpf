@@ -11,6 +11,46 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-10 — Formulário do Comitê Feminino + guia Forms (planilha de respostas)
+
+Pedido da Karina (apresentação "Women's Committee Meeting", 11/11). Tudo
+aprovado por ela antes: nome do link, perguntas (lista final dela), guia nova
+pra todo mundo, só na WPF, cadastro no banco pelo conector e publicação.
+
+- **Banco (Supabase, pelo conector):** formulário `wc-2027-guidelines-projects`
+  em `wpf_forms` (status `published`), 30 perguntas. Respostas vão pra
+  `wpf_form_responses` (sem mudança de tabela nem de RLS). Script:
+  `sql/2026-11-10_form_comite_feminino.sql` (insert + update da versão final).
+  Campos novos nas perguntas (só a página nova e a guia Forms leem):
+  `section` (blocos), `short` (campo de uma linha), `description`/`prompt`
+  (posições do board), `show_if` (aparece só se outra resposta bater) e o
+  tipo `projects` (blocos de projeto com nome/por quê/como/o que precisa;
+  botão "+ Project", até 5, sem aviso do limite).
+- **`womens-committee.html` (novo) + `womens-committee-hero.jpg` (novo):**
+  página pública no estilo do deck (roxo/ciano, logo e foto da capa). Lê as
+  perguntas do banco: mudar pergunta = mudar o banco, sem mexer no código.
+  Nome e e-mail obrigatórios. Form fechado = trocar status pra `draft`.
+  Link: https://karinabupp.github.io/wpf/womens-committee.html
+- **`index.html` — guia Forms nova (`#nav-fsh`, `#fsh-view`, bloco JS
+  "FORMS — planilha de respostas"):** planilha com uma linha por resposta; 1ª
+  coluna sempre **Form**, depois "Enviado em" e uma coluna por pergunta.
+  Filtro por form, busca, atualizar, exportar CSV, link público, detalhe da
+  resposta ao clicar (por bloco; projetos separados). Só na WPF (CSS
+  `html:not(.org-wpf)`). Quais forms entram: `FSH_FORMS` (id → página).
+  A Forms antiga (construtor, escondida desde 22/09) não foi tocada.
+  Permissão nova no `CATALOGO_PERMISSOES`: `fshVer` (grupo "Forms
+  (respostas)"), ligada em `NAV_TAB_PERMISSIONS`. Linhas existentes
+  alteradas: só 2 (vírgula na lista `NAV_TAB_PERMISSIONS` e "fsh-view" no
+  mapa de títulos da presença); o resto é acréscimo.
+- **Testes:** navegador headless com dados de teste (o banco real não foi
+  usado nos testes): envio, obrigatórios, e-mail inválido, Yes/No abrindo os
+  projetos, projeto vazio descartado; na planilha, linhas, busca, detalhe,
+  Esc, CSV e texto com HTML escapado. Sintaxe do script principal OK.
+- **Por quê:** coletar as respostas do comitê até 15/11 para a reunião de
+  Guidelines and Projects (18/11), e ter um lugar único na Dash para as
+  respostas de todos os formulários daqui pra frente.
+
+---
 ## 2026-11-09 (3ª) — Carinha: avisos de e-mail (pedido do Leonardo)
 
 Pergunta da Karina (17h35) sobre a última mensagem do Leonardo. Encontrado:

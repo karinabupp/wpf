@@ -15,6 +15,19 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Formulário do Comitê Feminino: conferir no ar (10/11)**
+  - *Contexto:* Changelog 10/11. Conferir com o login real: a guia Forms
+    (ícone de planilha) abre na WPF e não aparece na CBTH; a página
+    womens-committee.html carrega com a fonte Jost; mandar uma resposta de
+    teste, ver na planilha e depois apagar (pela Forms antiga ou por SQL).
+  - *Prazo do form:* domingo 15/11. Fechar depois? (`status = 'draft'`).
+    Decisão da Karina.
+  - *Mais perguntas:* a Karina disse que pode acrescentar; é só mudar
+    `questions` em `wpf_forms` (id `wc-2027-guidelines-projects`).
+  - *Form novo na planilha:* acrescentar em `FSH_FORMS` (index.html).
+  - *Onde:* `womens-committee.html`, `index.html` (bloco FORMS — planilha).
+  - *Aberto em:* 10/11
+
 - [ ] **Conferir os avisos de e-mail do Carinha (09/11)**
   - *Contexto:* Changelog 09/11 (3ª). Conferir na terça 10/11: o Leonardo não
     recebe nenhum aviso de e-mail; Roberto/Isabela/Karina recebem só e-mail
