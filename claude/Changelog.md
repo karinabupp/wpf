@@ -11,6 +11,18 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-10 (6ª) — Formulário do Comitê Feminino: ajustes no celular
+
+Pedido da Karina (16h52), depois de checar a versão de celular.
+
+- **`womens-committee.html`:** (1) a última palavra da pergunta fica presa
+  ao "*" (`.fq-nowrap`), o asterisco não cai mais sozinho na linha de
+  baixo; (2) no celular (≤640px), sombra mais forte sobre a foto do topo e
+  texto do subtítulo mais claro, pra ler melhor.
+- **Teste (headless, 390px, só Karina, sem gravar):** sem rolagem
+  horizontal; validação de obrigatórias continua igual.
+
+---
 ## 2026-11-10 (5ª) — Formulário do Comitê Feminino: tudo obrigatório
 
 Pedido da Karina (16h34).

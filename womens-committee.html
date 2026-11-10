@@ -130,6 +130,7 @@
   .fq { margin-bottom: 24px; }
   .fq-label { display: block; font-weight: 600; font-size: 15px; line-height: 1.45; margin-bottom: 10px; }
   .fq-required { color: var(--purple); margin-left: 4px; }
+  .fq-nowrap { white-space: nowrap; }
   .fq-input, .fq-textarea, .fq-select {
     width: 100%;
     background: #f6f4fa;
@@ -245,7 +246,9 @@
   footer b { color: var(--purple-soft); }
 
   @media (max-width: 640px) {
-    .hero::before { left: 0; opacity: 0.5; }
+    .hero::before { left: 0; opacity: 0.45; }
+    .hero::after { background: linear-gradient(180deg, rgba(13, 7, 22, 0.55) 0%, rgba(13, 7, 22, 0.78) 45%, var(--bg) 100%); }
+    .hero-sub { color: #d6cde6; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
     .hero { padding: 28px 18px 48px; }
     .logo { height: 36px; margin-bottom: 44px; }
     main { padding: 32px 14px 70px; }
@@ -330,7 +333,11 @@ function renderQuestion(q) {
   const desc = q.description ? `<div class="fq-desc">${esc(q.description)}</div>` : "";
   const prompt = q.prompt ? `<div class="fq-prompt">${esc(q.prompt)}</div>` : "";
   const holder = q.holder ? ` <span class="fq-holder">· ${esc(q.holder)}</span>` : "";
-  wrap.innerHTML = `<label class="fq-label" for="f-${esc(q.id)}">${esc(q.label)}${holder}${req}</label>${desc}${prompt}${field}<div class="fq-error">This question is required.</div>`;
+  // Última palavra presa ao * (o asterisco nunca cai sozinho na linha de baixo).
+  const palavras = String(q.label || "").trim().split(/\s+/);
+  const ultima = palavras.pop() || "";
+  const rotulo = (palavras.length ? esc(palavras.join(" ")) + " " : "") + `<span class="fq-nowrap">${esc(ultima)}${holder}${req}</span>`;
+  wrap.innerHTML = `<label class="fq-label" for="f-${esc(q.id)}">${rotulo}</label>${desc}${prompt}${field}<div class="fq-error">This question is required.</div>`;
   if (q.show_if) { wrap.classList.add("is-hidden"); wrap.dataset.showQ = q.show_if.q; wrap.dataset.showEq = q.show_if.eq; }
   if (q.type === "projects") {
     const list = wrap.querySelector(".proj-list");
