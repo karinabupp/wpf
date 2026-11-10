@@ -11,6 +11,28 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-10 (3ª) — Formulário do Comitê Feminino: foto nova e Board positions final
+
+Aprovado pela Karina (16h09–16h14).
+
+- **Foto do topo (`womens-committee-hero.jpg`):** troféus "Campeã / Super
+  High Roller" do Ladies Weekend Brasil 2026 (Drive › Brazil › 2. During
+  event › DIA 01 › Foto › Marcas, foto de Rafael Terra), em tom roxo
+  (duotone preto → roxo WPF). Foto à direita, com fade atrás do título
+  (`womens-committee.html`, `.hero::before`).
+  Para trazer as fotos do Drive, o Claude abriu a pasta no navegador do app
+  e subiu candidatas no branch temporário `tmp-fotos-form`, apagado no fim.
+- **Banco (`wc-2027-guidelines-projects`, 26 perguntas):** Board positions só
+  com as posições abertas (Global Affairs, Marketing, Head NA, Head Africa),
+  sem citar ocupantes, + **Ambassadors** ("people with high influence in
+  their regional, continental or global markets"; "Do you have suggestions
+  for ambassadors? Who, and why?"). Saíram as 7 posições ocupadas. Update em
+  `sql/2026-11-10_form_comite_feminino.sql`.
+- **Registro (Karina):** President = nome de renome que traz influência,
+  reputação e parcerias; VP = coordena tudo (trabalho, reuniões, relação com
+  os membros da WPF); Global Affairs = traz parcerias.
+
+---
 ## 2026-11-10 (2ª) — Formulário do Comitê Feminino: visual novo e perguntas ajustadas
 
 Pedido e aprovação da Karina (15h49–15h55).

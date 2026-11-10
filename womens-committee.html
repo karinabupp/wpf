@@ -44,16 +44,16 @@
   }
   .hero::before {
     content: "";
-    position: absolute; top: 0; bottom: 0; right: 0; width: 68%;
-    background: url("womens-committee-hero.jpg") center 30% / cover no-repeat;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 45%);
-    opacity: 0.95;
+    position: absolute; top: 0; bottom: 0; right: 0; left: 32%;
+    background: url("womens-committee-hero.jpg") 45% 40% / cover no-repeat;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 30%);
+    opacity: 0.92;
   }
   .hero::after {
     content: "";
     position: absolute; inset: 0;
-    background: linear-gradient(90deg, rgba(13, 7, 22, 0.6) 0%, rgba(13, 7, 22, 0.35) 45%, rgba(13, 7, 22, 0) 75%),
+    background: linear-gradient(90deg, rgba(13, 7, 22, 0.9) 0%, rgba(13, 7, 22, 0.5) 40%, rgba(40, 12, 80, 0.12) 70%, rgba(40, 12, 80, 0.05) 100%),
                 linear-gradient(0deg, var(--bg) 0%, transparent 30%);
   }
   .hero-inner { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; }
@@ -245,7 +245,7 @@
   footer b { color: var(--purple-soft); }
 
   @media (max-width: 640px) {
-    .hero::before { width: 100%; opacity: 0.45; }
+    .hero::before { left: 0; opacity: 0.5; }
     .hero { padding: 28px 18px 48px; }
     .logo { height: 36px; margin-bottom: 44px; }
     main { padding: 32px 14px 70px; }
