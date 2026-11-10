@@ -27,7 +27,8 @@ Aprovado pela Karina (16h09–16h14).
   sem citar ocupantes, + **Ambassadors** ("people with high influence in
   their regional, continental or global markets"; "Do you have suggestions
   for ambassadors? Who, and why?"). Saíram as 7 posições ocupadas. Update em
-  `sql/2026-11-10_form_comite_feminino.sql`.
+  `sql/2026-11-10_form_comite_feminino.sql`. 16h20: "regional" saiu da
+  descrição de Ambassadors (fica "continental or global markets").
 - **Registro (Karina):** President = nome de renome que traz influência,
   reputação e parcerias; VP = coordena tudo (trabalho, reuniões, relação com
   os membros da WPF); Global Affairs = traz parcerias.
