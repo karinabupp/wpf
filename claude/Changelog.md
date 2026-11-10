@@ -11,6 +11,31 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-10 (2ª) — Formulário do Comitê Feminino: visual novo e perguntas ajustadas
+
+Pedido e aprovação da Karina (15h49–15h55).
+
+- **`womens-committee.html`:** cards de conteúdo brancos sobre o fundo
+  escuro; foto do topo trocada por uma mais limpa (slide de encerramento do
+  deck, `womens-committee-hero.jpg` substituída) e mais visível; saíram a
+  pílula "02 Women's Committee 2027" e os textos "THEME 1/2/3" de cima dos
+  títulos; campos de escrita começam baixos (~2 linhas) e crescem ao
+  arrastar. Campo novo `holder` nas perguntas (nome de quem ocupa a posição).
+- **Banco (`wpf_forms`, `wc-2027-guidelines-projects`, 32 perguntas):**
+  "About you" virou **Identification** = só "Who are you?" (dropdown com os
+  7 nomes do board: Luana Borges, Karina Bupp, Lupe Soto, Carol Bueno,
+  Regina Cassab, Maureen Bloechlinger, Kathy Yeung; sem "Other"; saíram
+  Email, Country e Role). **Board positions** com as 11 posições: abertas
+  (Global Affairs, Marketing, Head NA, Head Africa) perguntam "someone in
+  mind?"; ocupadas mostram quem ocupa e perguntam "Any suggestion or
+  feedback for this position?". Global Affairs = traz parcerias; VP =
+  garante a relação com a WPF (Karina). Ladies Weekend: saíram "remove" e
+  "innovate"; "New ideas" virou pergunta. Update em
+  `sql/2026-11-10_form_comite_feminino.sql`. Nenhuma resposta existia antes
+  da troca.
+- **Testes:** headless com dados de teste (envio, obrigatório, projetos).
+
+---
 ## 2026-11-10 — Formulário do Comitê Feminino + guia Forms (planilha de respostas)
 
 Pedido da Karina (apresentação "Women's Committee Meeting", 11/11). Tudo
