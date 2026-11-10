@@ -429,6 +429,11 @@ function collect() {
     const empty = v === "" || (Array.isArray(v) && !v.length);
     let msg = null;
     if (q.required && empty) msg = "This question is required.";
+    // Projetos: com a pergunta obrigatória, todo bloco aberto precisa de todos os campos.
+    if (!msg && q.required && q.type === "projects") {
+      const incompleto = [...wrap.querySelectorAll(".proj")].some(b => [...b.querySelectorAll("[data-field]")].some(el => !el.value.trim()));
+      if (incompleto) msg = "Please fill in every field of each project (or remove the extra ones).";
+    }
     else if (!empty && wrap.querySelector('input[type="email"]') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) msg = "Please enter a valid email.";
     if (msg) {
       wrap.classList.add("has-error");

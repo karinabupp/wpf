@@ -11,6 +11,24 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-10 (5ª) — Formulário do Comitê Feminino: tudo obrigatório
+
+Pedido da Karina (16h34).
+
+- **Banco:** as 26 perguntas viraram obrigatórias; "Who are you?" com os
+  nomes em ordem alfabética (Carol Bueno, Karina Bupp, Kathy Yeung, Luana
+  Borges, Lupe Soto, Maureen Bloechlinger, Regina Cassab). SQL no
+  `sql/2026-11-10_form_comite_feminino.sql`.
+- **`womens-committee.html`:** com "Yes" nos projetos, cada bloco aberto
+  precisa de todos os campos (nome, por quê, como, o que precisa); senão
+  aparece o aviso e dá pra remover o bloco extra. Sem tudo respondido, o
+  envio é bloqueado.
+- **Teste (headless, só em nome da Karina, sem gravar no banco):** sem
+  Yes/No → bloqueia; projeto incompleto → bloqueia; tudo completo → envia.
+- A resposta de teste da Karina (id 13) fica no banco (Karina). Nada foi
+  enviado a ninguém.
+
+---
 ## 2026-11-10 (4ª) — Guia Forms no visual da Projetos + regra de testes
 
 Aprovado pela Karina (16h31).

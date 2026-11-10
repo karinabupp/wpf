@@ -38,3 +38,13 @@ update wpf_forms set questions = '[{"id": "wc-name", "type": "single_select", "l
 
 -- 10/11/2026 16h20 (Karina): tira "regional" da descrição de Ambassadors.
 update wpf_forms set questions = (select jsonb_agg(case when q->>'id'='wc-ambassadors' then jsonb_set(q,'{description}','"Ambassadors are people with high influence in their continental or global markets."') else q end order by ord) from jsonb_array_elements(questions) with ordinality as t(q,ord)), updated_at = now() where id='wc-2027-guidelines-projects';
+
+-- 10/11/2026 16h34 (Karina): todas as perguntas obrigatórias; nomes do "Who are you?" em ordem alfabética.
+update wpf_forms set questions = (
+  select jsonb_agg(
+    case when q->>'id'='wc-name'
+      then jsonb_set(jsonb_set(q,'{required}','true'),'{options}','["Carol Bueno","Karina Bupp","Kathy Yeung","Luana Borges","Lupe Soto","Maureen Bloechlinger","Regina Cassab"]')
+      else jsonb_set(q,'{required}','true') end
+    order by ord)
+  from jsonb_array_elements(questions) with ordinality as t(q,ord)), updated_at = now()
+where id='wc-2027-guidelines-projects';
