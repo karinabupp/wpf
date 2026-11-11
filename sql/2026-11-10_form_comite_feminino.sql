@@ -48,3 +48,9 @@ update wpf_forms set questions = (
     order by ord)
   from jsonb_array_elements(questions) with ordinality as t(q,ord)), updated_at = now()
 where id='wc-2027-guidelines-projects';
+
+-- 11/11/2026 (Karina): título da seção "New projects" -> "New projects for the committee".
+update wpf_forms set questions = (
+  select jsonb_agg(case when q->>'section'='Theme 3 · New projects' then jsonb_set(q,'{section}','"Theme 3 · New projects for the committee"') else q end order by ord)
+  from jsonb_array_elements(questions) with ordinality as t(q,ord)), updated_at = now()
+where id='wc-2027-guidelines-projects';

@@ -11,6 +11,14 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-11 — Formulário do Comitê Feminino: título "New projects for the committee"
+
+Pedido da Karina (10h21). Banco (`wpf_forms`, `wc-2027-guidelines-projects`):
+a seção "New projects" virou "New projects for the committee" (as 3
+perguntas da seção). Sem mudança de código; SQL no
+`sql/2026-11-10_form_comite_feminino.sql`.
+
+---
 ## 2026-11-10 (6ª) — Formulário do Comitê Feminino: ajustes no celular
 
 Pedido da Karina (16h52), depois de checar a versão de celular.
