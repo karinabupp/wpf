@@ -33,6 +33,12 @@ prazo, obrigatórias, foto 043 e título com cores invertidas.
 - **17h05 — todas as 22 perguntas obrigatórias** (pedido da Karina),
   inclusive nome e as do Ladies Weekend e do comitê. Só banco; conferido no
   ar (envio vazio bloqueia nas 22).
+- **17h33 — ajustes da Karina:** saíram Country, "What do you love most about
+  poker?", "What made you start playing…?", "What would make you go to a
+  Ladies Weekend…?" e "Where would you love to see a Ladies Weekend in
+  2027?". Opções de "How are you connected to poker?" = Player, Dealer,
+  Operator, Media, Other. Fica com 17 perguntas, todas obrigatórias. Só
+  banco. (A resposta de teste id 17 guarda os campos antigos.)
 - **`women-in-poker.html` (novo):** cópia do `womens-committee.html` com
   outro `FORM_ID`, título "Women in Poker" (roxo) / "Your voice for 2027"
   (branco), texto de abertura sobre o planejamento de 2027, sem prazo, novo

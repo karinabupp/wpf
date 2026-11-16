@@ -9,3 +9,10 @@ update wpf_forms set questions='[{"id": "name", "section": "About you", "type": 
 
 -- 16/11 17h05: todas as 22 perguntas obrigatórias (Karina)
 update wpf_forms set questions = (select jsonb_agg(jsonb_set(q, '{required}', 'true'::jsonb) order by ord) from jsonb_array_elements(questions) with ordinality as t(q, ord)), updated_at = now() where id = 'wip-2027-women-in-poker';
+
+-- 16/11 17h33: saem country, love, start_keep, lw_go, lw_where; opções de 'connection' = Player, Dealer, Operator, Media, Other (Karina)
+update wpf_forms set questions = (
+  select jsonb_agg(case when q->>'id'='connection' then jsonb_set(q,'{options}','["Player","Dealer","Operator","Media","Other"]'::jsonb) else q end order by ord)
+  from jsonb_array_elements(questions) with ordinality as t(q, ord)
+  where q->>'id' not in ('country','love','start_keep','lw_go','lw_where')
+), updated_at = now() where id = 'wip-2027-women-in-poker';
