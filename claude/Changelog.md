@@ -30,6 +30,9 @@ prazo, obrigatórias, foto 043 e título com cores invertidas.
   Committee do for women in poker?" e "What should be the committee's top
   priority in 2027?" (abertas, opcionais). Total: 22 perguntas. Só banco;
   conferido no ar.
+- **17h05 — todas as 22 perguntas obrigatórias** (pedido da Karina),
+  inclusive nome e as do Ladies Weekend e do comitê. Só banco; conferido no
+  ar (envio vazio bloqueia nas 22).
 - **`women-in-poker.html` (novo):** cópia do `womens-committee.html` com
   outro `FORM_ID`, título "Women in Poker" (roxo) / "Your voice for 2027"
   (branco), texto de abertura sobre o planejamento de 2027, sem prazo, novo
