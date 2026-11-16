@@ -39,6 +39,9 @@ prazo, obrigatórias, foto 043 e título com cores invertidas.
   2027?". Opções de "How are you connected to poker?" = Player, Dealer,
   Operator, Media, Other. Fica com 17 perguntas, todas obrigatórias. Só
   banco. (A resposta de teste id 17 guarda os campos antigos.)
+- **18h00 — saíram** "Why do you think there are still so few women at the
+  tables?" e "Is there anything the poker world does today that pushes women
+  away?" (Karina). Fica com 15 perguntas, todas obrigatórias. Só banco.
 - **`women-in-poker.html` (novo):** cópia do `womens-committee.html` com
   outro `FORM_ID`, título "Women in Poker" (roxo) / "Your voice for 2027"
   (branco), texto de abertura sobre o planejamento de 2027, sem prazo, novo

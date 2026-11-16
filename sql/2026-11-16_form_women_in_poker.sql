@@ -16,3 +16,6 @@ update wpf_forms set questions = (
   from jsonb_array_elements(questions) with ordinality as t(q, ord)
   where q->>'id' not in ('country','love','start_keep','lw_go','lw_where')
 ), updated_at = now() where id = 'wip-2027-women-in-poker';
+
+-- 16/11 18h00: saem few_women e push_away (Karina)
+update wpf_forms set questions = (select jsonb_agg(q order by ord) from jsonb_array_elements(questions) with ordinality as t(q, ord) where q->>'id' not in ('few_women','push_away')), updated_at = now() where id = 'wip-2027-women-in-poker';
