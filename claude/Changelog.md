@@ -11,6 +11,34 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-16 — Formulário "Women in Poker 2027" (mulheres no poker, fora do comitê)
+
+Pedido e aprovações da Karina (16h09–16h32): perguntas, link, só inglês, sem
+prazo, obrigatórias, foto 043 e título com cores invertidas.
+
+- **Banco (`wpf_forms`, id `wip-2027-women-in-poker`, `published`, 20
+  perguntas):** About you (nome opcional, país obrigatório, ligação com o
+  poker); Your experience (nota 1–10 + "Why?", o que ama, dificuldades,
+  por que começou/continua); Women's poker today (visibilidade, poucas
+  mulheres nas mesas, o que faria começar/ficar, o que afasta); **Ladies
+  Weekend** (o que gosta, o que melhorar, o que quer ver no próximo, o que
+  faria ir/voltar, onde em 2027); Looking ahead. Obrigatórias: país, nota,
+  "Why?", dificuldades e visibilidade. SQL em
+  `sql/2026-11-16_form_women_in_poker.sql`.
+- **`women-in-poker.html` (novo):** cópia do `womens-committee.html` com
+  outro `FORM_ID`, título "Women in Poker" (roxo) / "Your voice for 2027"
+  (branco), texto de abertura sobre o planejamento de 2027, sem prazo, novo
+  agradecimento. A foto fica mais à direita (`.hero::before` left 44%).
+  Link: https://karinabupp.github.io/wpf/women-in-poker.html
+- **`women-in-poker-hero.jpg` (novo):** Main Event, dia final, Ladies
+  Weekend Brasil 2026 (foto 043 de Rafael Terra, salão com as mãos
+  levantadas), em tom roxo mais escuro.
+- **`index.html`:** o form entrou em `FSH_FORMS` (guia Forms). Só essa linha.
+- **Teste no ar (16h37, só Karina):** sem as obrigatórias → bloqueia; com
+  elas → grava (`wpf_form_responses` id 17, "Karina Bupp [TESTE]"). A
+  resposta de teste ficou no banco. Nada foi enviado a ninguém.
+
+---
 ## 2026-11-11 — Formulário do Comitê Feminino: título "New projects for the committee"
 
 Pedido da Karina (10h21). Banco (`wpf_forms`, `wc-2027-guidelines-projects`):

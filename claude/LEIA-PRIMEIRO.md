@@ -182,6 +182,8 @@ dois arquivos antes de propor qualquer coisa**:
   Formulário do Comitê Feminino: `womens-committee.html`, perguntas em
   `wpf_forms` (id `wc-2027-guidelines-projects`) — mudar pergunta = mudar o
   banco.
+  Formulário Women in Poker (16/11): `women-in-poker.html`, id
+  `wip-2027-women-in-poker` — mesma lógica.
 
 ## O que o Claude NÃO consegue fazer sozinho
 

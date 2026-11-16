@@ -15,6 +15,17 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Formulário Women in Poker: conferir e divulgar (16/11)**
+  - *Contexto:* Changelog 16/11. Conferir na guia Forms da Dash que o form
+    "Women in Poker 2027" aparece no filtro e a resposta de teste (id 17,
+    "Karina Bupp [TESTE]") está lá. Apagar o teste antes de divulgar? Decisão
+    da Karina.
+  - *Divulgação:* ainda não foi enviado a ninguém. Link:
+    https://karinabupp.github.io/wpf/women-in-poker.html
+  - *Fechar:* `status = 'draft'` em `wpf_forms` (id `wip-2027-women-in-poker`).
+  - *Onde:* `women-in-poker.html`, `index.html` (`FSH_FORMS`).
+  - *Aberto em:* 16/11
+
 - [ ] **Formulário do Comitê Feminino: conferir no ar (10/11)**
   - *Contexto:* Changelog 10/11. Conferir com o login real: a guia Forms
     (ícone de planilha) abre na WPF e não aparece na CBTH; a página
