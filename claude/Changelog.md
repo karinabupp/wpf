@@ -17,7 +17,7 @@ Pedido e aprovações da Karina (16h09–16h32): perguntas, link, só inglês, s
 prazo, obrigatórias, foto 043 e título com cores invertidas.
 
 - **Banco (`wpf_forms`, id `wip-2027-women-in-poker`, `published`, 20
-  perguntas):** About you (nome opcional, país obrigatório, ligação com o
+  perguntas na 1ª versão):** About you (nome opcional, país obrigatório, ligação com o
   poker); Your experience (nota 1–10 + "Why?", o que ama, dificuldades,
   por que começou/continua); Women's poker today (visibilidade, poucas
   mulheres nas mesas, o que faria começar/ficar, o que afasta); **Ladies
@@ -25,6 +25,11 @@ prazo, obrigatórias, foto 043 e título com cores invertidas.
   faria ir/voltar, onde em 2027); Looking ahead. Obrigatórias: país, nota,
   "Why?", dificuldades e visibilidade. SQL em
   `sql/2026-11-16_form_women_in_poker.sql`.
+- **17h00 — seção "The Women's Committee"** (entre Ladies Weekend e Looking
+  ahead), aprovada pela Karina: "What would you like to see the WPF Women's
+  Committee do for women in poker?" e "What should be the committee's top
+  priority in 2027?" (abertas, opcionais). Total: 22 perguntas. Só banco;
+  conferido no ar.
 - **`women-in-poker.html` (novo):** cópia do `womens-committee.html` com
   outro `FORM_ID`, título "Women in Poker" (roxo) / "Your voice for 2027"
   (branco), texto de abertura sobre o planejamento de 2027, sem prazo, novo
