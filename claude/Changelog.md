@@ -11,6 +11,16 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-17 — Formulário Women in Poker: seção do comitê sai, Looking ahead enxuto
+
+Pedido da Karina (10h48). Só banco (`wpf_forms`, `wip-2027-women-in-poker`):
+saiu a seção "The Women's Committee" (2 perguntas); em Looking ahead saiu "If
+you could change one thing in women's poker in 2027…" e a de iniciativas
+virou "What kind of events, content or initiatives would you like to see for
+women in poker in 2027?". Fica com 12 perguntas, todas obrigatórias. SQL no
+`sql/2026-11-16_form_women_in_poker.sql`.
+
+---
 ## 2026-11-16 — Formulário "Women in Poker 2027" (mulheres no poker, fora do comitê)
 
 Pedido e aprovações da Karina (16h09–16h32): perguntas, link, só inglês, sem

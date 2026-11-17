@@ -19,3 +19,6 @@ update wpf_forms set questions = (
 
 -- 16/11 18h00: saem few_women e push_away (Karina)
 update wpf_forms set questions = (select jsonb_agg(q order by ord) from jsonb_array_elements(questions) with ordinality as t(q, ord) where q->>'id' not in ('few_women','push_away')), updated_at = now() where id = 'wip-2027-women-in-poker';
+
+-- 17/11 10h48: sai a seção The Women's Committee (wc_see, wc_priority) e change_2027; "initiatives" ganha "in 2027" (Karina)
+update wpf_forms set questions = (select jsonb_agg(case when q->>'id'='initiatives' then jsonb_set(q,'{label}','"What kind of events, content or initiatives would you like to see for women in poker in 2027?"'::jsonb) else q end order by ord) from jsonb_array_elements(questions) with ordinality as t(q, ord) where q->>'id' not in ('wc_see','wc_priority','change_2027')), updated_at = now() where id = 'wip-2027-women-in-poker';
