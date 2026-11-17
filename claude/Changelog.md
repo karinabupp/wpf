@@ -20,6 +20,9 @@ virou "What kind of events, content or initiatives would you like to see for
 women in poker in 2027?". Fica com 12 perguntas, todas obrigatórias. SQL no
 `sql/2026-11-16_form_women_in_poker.sql`.
 
+11h26: no texto do topo (`women-in-poker.html`), "about 7 minutes" virou
+"about 5 minutes", porque o form ficou mais curto (Karina).
+
 ---
 ## 2026-11-16 — Formulário "Women in Poker 2027" (mulheres no poker, fora do comitê)
 
