@@ -11,6 +11,50 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-18 — Guia Planejamento (storyline Autoridade › Alcance › Governança)
+
+Pedido e aprovação da Karina (13h23–13h41): storyline que começa pela
+Autoridade; as 3 frases no topo; só ela vê; só na WPF; Portal do Membro
+descartado (ela prefere "um site bem equipado").
+
+- **`index.html` — guia nova `#nav-planejamento` / `#planejamento-view`**
+  (bloco JS "PLANEJAMENTO", antes do `CATALOGO_PERMISSOES`; CSS
+  "PLANEJAMENTO" antes do Social Calendar):
+  - Topo: as 3 frases (Autoridade roxo, Alcance laranja, Governança azul),
+    editáveis: "A autoridade é o resultado que queremos. O alcance faz as
+    pessoas certas verem isso. A governança garante que o que está por trás
+    é real e sólido."
+  - **Pilares de Autoridade** (cartões): Ladies Weekend, Nations Cups,
+    Nations Ladies Cup, Mundial (?), Calendário global de torneios no site,
+    TDA, Valor percebido pelo membro (Governança = site bem equipado). Cada
+    cartão: nome, meta (vazia), "Precisa de Alcance", "Precisa de
+    Governança".
+  - **Em avaliação** (sugestões do Claude): Chancela WPF, Ranking WPF,
+    Summit/assembleia, Relatório anual e Awards, Formação com a TDA,
+    Integridade e jogo responsável.
+  - Tudo editável na tela (grava ao sair do campo); ← → move; ↑/↓ troca de
+    grupo; × apaga com 2 cliques; "+ Pilar"/"+ Sugestão".
+- **Quem vê:** só o login `karina` (`body.pode-planejamento`, ligado em
+  `iniciarSettings`) e só na WPF (CSS `html:not(.org-wpf)`).
+- **Dados:** seção nova `planejamento` em `wpf_dashboard_data` (entrou em
+  `CLOUD_SECTIONS`; `secaoDaOrg` = só WPF + só Karina; a ponte
+  `planejamentoBridge` não lê nem grava pra outro login). Nasce com o
+  conteúdo padrão na 1ª vez que a Karina abrir a guia.
+- **Permissão** no `CATALOGO_PERMISSOES`: `planejamento`, no grupo "Só da
+  Karina (fixo)".
+- Linhas existentes alteradas: só acréscimos dentro de `CLOUD_SECTIONS`,
+  `preencherSecoesPorOrg`, `applyAllData`, `secaoDaOrg`, `NAV_VIEWS`, clique
+  das guias, rótulo da presença, `iniciarSettings` e o grupo fixo do
+  catálogo.
+- **Testes (headless, só como Karina, banco real não usado):** desenho das
+  frases e dos 13 cartões, editar meta, mover, promover, apagar (2
+  cliques), criar pilar, gravação local + coleta pra nuvem, reload, celular
+  (390px); login `isabela` não vê o ícone e não grava a seção; CBTH não
+  mostra a guia. Sem erro de JavaScript.
+- **Por quê:** ter na Dash o planejamento da WPF contado como história —
+  autoridade como resultado, alcance e governança como base.
+
+---
 ## 2026-11-17 — Formulário Women in Poker: seção do comitê sai, Looking ahead enxuto
 
 Pedido da Karina (10h48). Só banco (`wpf_forms`, `wip-2027-women-in-poker`):

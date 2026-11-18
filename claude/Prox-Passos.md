@@ -15,6 +15,30 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
+- [ ] **Planejamento: próximos passos (18/11)**
+  - *Contexto:* Changelog 18/11. Guia no ar, só Karina, só WPF.
+  - *Conferir no ar:* abrir a guia com o login real; a seção `planejamento`
+    deve aparecer em `wpf_dashboard_data` depois da 1ª abertura.
+  - *Decidir (Karina):* quais sugestões de "Em avaliação" viram pilar; se o
+    Mundial fica; as metas de cada pilar (campo Meta).
+  - *Passo 2 (proposto, não feito):* ligar cada pilar às entregas da
+    Projetos (andamento automático + "sem projeto" → criar entrega com
+    prévia e "sim", regra `organizacao-projetos.md`).
+  - *Lacunas achadas em 18/11 (propor uma por vez):* nenhuma entrega de LW
+    2027, nem do 2º Mundial, nem da Nations Ladies Cup; "Desenvolver o
+    Women's Committee" vazio (5 respostas do form de Guidelines esperando
+    virar projeto); Governança só tem 50 Federações e Comunicação com
+    Membros; metas de Alcance (site, IG, menções) vencem entre nov/26 e
+    jan/27, sem metas de 2027; Social Calendar sem objetivo.
+  - *Site bem equipado (pilar Valor do membro):* a Karina descartou o Portal
+    do Membro; o caminho é o site (página completa de cada membro,
+    calendário global, resultados, ranking, páginas institucionais).
+  - *Observado:* a seção `planejamento` fica no mesmo banco que as outras —
+    a Dash só lê/grava pra Karina, mas quem está logado consegue ler pela
+    API (igual às demais seções).
+  - *Onde:* `index.html` (bloco "PLANEJAMENTO"); seção `planejamento`.
+  - *Aberto em:* 18/11
+
 - [ ] **Formulário Women in Poker: conferir e divulgar (16/11)**
   - *Contexto:* Changelog 16/11. Conferir na guia Forms da Dash que o form
     "Women in Poker 2027" aparece no filtro e a resposta de teste (id 17,
