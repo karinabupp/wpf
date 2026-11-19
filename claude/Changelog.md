@@ -11,6 +11,44 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-19 — Planejamento v2: "Planejamento WPF" em tabela de ações
+
+Pedido da Karina (18/11, 15h42–15h51) e OK dela (19/11, 10h49).
+
+- **`index.html` — guia Planejamento refeita** (blocos CSS, HTML e JS
+  "PLANEJAMENTO" trocados inteiros; nada fora deles mudou além do rótulo da
+  permissão `planejamento` no `CATALOGO_PERMISSOES`):
+  - Título **Planejamento WPF**.
+  - **Objetivo:** "Aumentar a autoridade da marca", com "Pra quem está
+    fora" e "Pra quem está dentro".
+  - **Pilar Alcance:** "Garantir visibilidade." · **Pilar Governança:**
+    "Viabilizar a realização das coisas: sistema, processo."
+  - As frases que a Karina editou em 18/11 ficaram como lema de cada bloco
+    ("É o resultado que queremos." / "Faz as pessoas certas verem isso." /
+    "Garante a estrutura/sistema necessário.").
+  - **Tabela de ações:** Ação que faremos · Área (lista: Federações,
+    Comitê, TDA, Institucional, Marketing) · Resultado esperado · O que
+    fazer de Alcance · O que fazer de Governança. 7 linhas: Eventos
+    nacionais das federações; Nations Cups (Ásia e América Latina ou
+    Américas); Fechar 50 federações membros; Ladies Weekend; Nations Ladies
+    Cup; Visibilidade dos grupos femininos; TDA (?).
+  - Saíram, a pedido dela: os cartões de pilares, o bloco "Em avaliação" e
+    o Patrocínio.
+  - Editar: clicar na célula (grava ao sair); Área grava ao escolher; ↑ ↓
+    move a linha; × apaga com 2 cliques; "+ Ação".
+- **Dados:** mesma seção `planejamento`, agora `versao: 2` (`objetivo`,
+  `pilares` {alcance, governanca}, `frases`, `acoes`). O formato de 18/11 é
+  trocado pelo novo na 1ª abertura, mantendo as frases dela.
+- Continua só login `karina`, só WPF.
+- **Testes (headless, só como Karina):** troca v1 → v2 mantendo as frases,
+  editar célula/objetivo, mudar Área, mover, apagar, nova linha, reload
+  (via http), coleta pra nuvem, celular 390px (tabela rola de lado); login
+  `isabela` não vê nem grava; sem erro de JavaScript.
+- **Por quê:** a Karina estruturou o planejamento como objetivo único
+  (autoridade) com Alcance e Governança como ferramentas, e quis as ações
+  numa tabela.
+
+---
 ## 2026-11-18 — Guia Planejamento (storyline Autoridade › Alcance › Governança)
 
 Pedido e aprovação da Karina (13h23–13h41): storyline que começa pela

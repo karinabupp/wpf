@@ -4513,47 +4513,62 @@
   body.pj-arrastando-fill, body.pj-arrastando-fill * { cursor: ns-resize !important; user-select: none !important; }
   /* 21/10: Responsável da mãe é calculado (igual status e prazo). */
   #pj-tabela .pj-resp1.is-auto { cursor: default; color: #8a8985; background: none; border: 0; font: inherit; padding: 0; display: inline-flex; gap: 4px; align-items: center; }
-  /* ── PLANEJAMENTO (18/11, Karina): storyline Autoridade › Alcance › Governança.
+  /* ── PLANEJAMENTO (18/11, Karina; v2 19/11): Planejamento WPF.
+     Objetivo = autoridade da marca (pra quem está fora e pra quem está dentro);
+     Alcance e Governança são as ferramentas; tabela de ações.
      Só na WPF e só no login da Karina (body.pode-planejamento). ── */
   #nav-planejamento { display: none; }
   body.pode-planejamento #nav-planejamento { display: flex; }
   html:not(.org-wpf) #nav-planejamento, html:not(.org-wpf) #planejamento-view { display: none !important; }
-  #pl-wrap { padding: 20px 24px 60px; color: #37352f; max-width: 1400px; }
+  #pl-wrap { padding: 20px 24px 60px; color: #37352f; max-width: 1500px; }
   .pl-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
   .pl-logo { min-height: 44px; display: flex; align-items: center; }
   .pl-salvo { font-size: 12px; color: #9b9a97; }
   .pl-titulo { margin: 0 0 14px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-  .pl-frases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
-  .pl-frase { border: 1px solid #ebeae6; border-left: 4px solid var(--pl-cor); border-radius: 10px; padding: 14px 16px 12px; background: #fff; }
-  .pl-frase-rot { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pl-cor); margin-bottom: 6px; }
-  .pl-frase textarea { font-size: 17px; font-weight: 600; line-height: 1.35; color: #2b2a26; }
   .pl-cor-autoridade { --pl-cor: #7b4fe0; }
   .pl-cor-alcance { --pl-cor: #d0661e; }
   .pl-cor-governanca { --pl-cor: #2f6fd0; }
-  .pl-grupo-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 6px 0 10px; }
-  .pl-grupo-cab h3 { margin: 0; font-size: 15px; font-weight: 700; }
-  .pl-grupo-cab span { font-size: 12.5px; color: #9b9a97; font-weight: 400; margin-left: 8px; }
-  .pl-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-bottom: 30px; }
-  .pl-card { position: relative; border: 1px solid #ebeae6; border-top: 3px solid #7b4fe0; border-radius: 10px; background: #fff; padding: 12px 14px 10px; }
-  .pl-grupo-avaliacao .pl-card { border-top-color: #c9c7c0; background: #fbfbfa; }
-  .pl-card-acoes { position: absolute; top: 8px; right: 8px; display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
-  .pl-card:hover .pl-card-acoes, .pl-card:focus-within .pl-card-acoes { opacity: 1; }
-  .pl-card-acoes button { border: 0; background: transparent; color: #9b9a97; border-radius: 5px; padding: 2px 6px; font: inherit; font-size: 13px; cursor: pointer; line-height: 1.3; }
-  .pl-card-acoes button:hover { background: #f1f0ec; color: #37352f; }
-  .pl-card-acoes button.pl-confirma { background: #fdf2f1; color: #c4332b; font-weight: 600; }
-  .pl-card .pl-nome { font-size: 15px; font-weight: 700; color: #2b2a26; padding-right: 96px; }
-  .pl-card .pl-meta { font-size: 12.5px; color: #6f6e69; margin-top: 2px; }
-  .pl-sec { margin-top: 10px; }
-  .pl-sec-rot { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pl-cor); margin-bottom: 2px; }
-  .pl-sec textarea { font-size: 13px; line-height: 1.45; color: #37352f; }
+  .pl-quadro { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-bottom: 26px; }
+  .pl-bloco { border: 1px solid #ebeae6; border-left: 4px solid var(--pl-cor); border-radius: 10px; padding: 14px 16px 12px; background: #fff; }
+  .pl-rot { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--pl-cor); margin-bottom: 4px; }
+  .pl-bloco .pl-grande { font-size: 18px; font-weight: 700; line-height: 1.3; color: #2b2a26; }
+  .pl-bloco .pl-texto { font-size: 13.5px; line-height: 1.45; color: #37352f; }
+  .pl-bloco .pl-lema { font-size: 13px; font-style: italic; color: #6f6e69; margin-top: 8px; }
+  .pl-duas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .pl-sub { background: #f7f5fe; border-radius: 8px; padding: 8px 10px; }
+  .pl-sub .pl-rot { font-size: 10px; margin-bottom: 2px; }
+  .pl-acoes-cab { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+  .pl-acoes-cab h3 { margin: 0; font-size: 15px; font-weight: 700; }
+  .pl-acoes-cab span { font-size: 12.5px; color: #9b9a97; }
+  .pl-tabela-rolo { overflow-x: auto; border: 1px solid #ebeae6; border-radius: 10px; background: #fff; }
+  .pl-tabela { width: 100%; min-width: 980px; border-collapse: collapse; table-layout: fixed; }
+  .pl-tabela th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #6f6e69; padding: 10px 10px 8px; border-bottom: 1px solid #ebeae6; background: #fbfbfa; }
+  .pl-tabela th.pl-th-alc { color: #d0661e; }
+  .pl-tabela th.pl-th-gov { color: #2f6fd0; }
+  .pl-tabela td { vertical-align: top; padding: 8px 10px; border-bottom: 1px solid #f1f0ec; }
+  .pl-tabela tr:last-child td { border-bottom: 0; }
+  .pl-tabela td.pl-td-acao textarea { font-weight: 600; color: #2b2a26; }
+  .pl-tabela textarea { font-size: 13px; line-height: 1.45; color: #37352f; }
+  .pl-area { font: inherit; font-size: 12px; font-weight: 600; border: 0; border-radius: 999px; padding: 3px 8px; cursor: pointer; background: #f1f0ec; color: #6f6e69; max-width: 100%; }
+  .pl-area[data-area="federacoes"] { background: #e8f0fc; color: #2f6fd0; }
+  .pl-area[data-area="comite"] { background: #fce8f3; color: #c2307f; }
+  .pl-area[data-area="tda"] { background: #e6f5ee; color: #1f8a5a; }
+  .pl-area[data-area="institucional"] { background: #f0ebfd; color: #7b4fe0; }
+  .pl-area[data-area="marketing"] { background: #fdeee2; color: #d0661e; }
+  .pl-linha-acoes { display: flex; gap: 2px; opacity: 0; transition: opacity .12s; }
+  .pl-tabela tr:hover .pl-linha-acoes, .pl-tabela tr:focus-within .pl-linha-acoes { opacity: 1; }
+  .pl-linha-acoes button { border: 0; background: transparent; color: #9b9a97; border-radius: 5px; padding: 2px 6px; font: inherit; font-size: 13px; cursor: pointer; line-height: 1.3; }
+  .pl-linha-acoes button:hover:not(:disabled) { background: #f1f0ec; color: #37352f; }
+  .pl-linha-acoes button:disabled { opacity: .3; cursor: default; }
+  .pl-linha-acoes button.pl-confirma { background: #fdf2f1; color: #c4332b; font-weight: 600; }
+  .pl-nova { margin-top: 8px; border: 1px dashed #d9d7cd; border-radius: 8px; background: transparent; color: #9b9a97; font: inherit; font-size: 13px; cursor: pointer; padding: 8px 14px; }
+  .pl-nova:hover { background: #f7f7f5; color: #37352f; }
   #pl-wrap textarea { display: block; width: 100%; border: 0; outline: 0; resize: none; background: transparent; font-family: inherit; padding: 2px 4px; margin: 0 -4px; border-radius: 5px; overflow: hidden; box-sizing: content-box; }
   #pl-wrap textarea:hover { background: #f7f7f5; }
   #pl-wrap textarea:focus { background: #f4f3ee; box-shadow: inset 0 0 0 1px #e1dfd8; }
-  #pl-wrap textarea::placeholder { color: #b9b8b3; font-weight: 400; }
-  .pl-novo { border: 1px dashed #d9d7cd; border-radius: 10px; background: transparent; color: #9b9a97; font: inherit; font-size: 13px; cursor: pointer; min-height: 90px; }
-  .pl-novo:hover { background: #f7f7f5; color: #37352f; }
-  @media (max-width: 900px) { .pl-frases { grid-template-columns: 1fr; } }
-  @media (max-width: 760px) { #pl-wrap { padding: 14px 16px 60px; } }
+  #pl-wrap textarea::placeholder { color: #b9b8b3; font-weight: 400; font-style: normal; }
+  @media (max-width: 1000px) { .pl-quadro { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { #pl-wrap { padding: 14px 16px 60px; } .pl-duas { grid-template-columns: 1fr; } }
   /* ── SOCIAL CALENDAR (28/10, Karina): só na WPF ── */
   html:not(.org-wpf) #nav-social, html:not(.org-wpf) #social-view { display: none !important; }
   #sc-wrap { padding: 20px 24px 60px; color: #37352f; }
@@ -5113,17 +5128,18 @@
 
 
 
-<!-- PLANEJAMENTO (18/11, Karina): storyline — a Autoridade é o resultado;
-     Alcance e Governança sustentam. Só na WPF, só no login da Karina. -->
+<!-- PLANEJAMENTO (18/11, Karina; v2 19/11): Planejamento WPF — objetivo
+     (autoridade da marca), pilares Alcance e Governança, tabela de ações.
+     Só na WPF, só no login da Karina. -->
 <div id="planejamento-view" class="content-view hidden">
   <div id="pl-wrap">
     <div class="pl-topo">
       <div class="pl-logo" aria-label="WPF"></div>
       <div class="pl-salvo" id="pl-salvo"></div>
     </div>
-    <h2 class="pl-titulo">Planejamento</h2>
-    <div class="pl-frases" id="pl-frases"></div>
-    <div id="pl-grupos"></div>
+    <h2 class="pl-titulo">Planejamento WPF</h2>
+    <div class="pl-quadro" id="pl-quadro"></div>
+    <div id="pl-acoes"></div>
   </div>
 </div>
 
@@ -14570,17 +14586,21 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
 })();
 
 // ════════════════════════════════════════════════════════════════════════
-// PLANEJAMENTO (18/11, Karina) — só na WPF, só no login da Karina
-// Storyline: a Autoridade é o resultado que queremos; o Alcance faz as
-// pessoas certas verem; a Governança garante que o que está por trás é real.
-// No topo, as 3 frases (editáveis). Abaixo, um cartão por pilar de
-// Autoridade, cada um com o que ele pede de Alcance e de Governança. Os
-// pilares sugeridos pelo Claude ficam em "Em avaliação" até a Karina
-// promover ou apagar. Tudo editável na tela.
-// Dados: seção "planejamento" = { frases: {autoridade, alcance, governanca},
-//   pilares: [ {id, grupo: "autoridade"|"avaliacao", nome, meta, alcance,
-//   governanca} ], atualizadoEm, atualizadoPor }.
-// Só a Karina lê e grava (get/apply devolvem nada pra outro login).
+// PLANEJAMENTO (18/11, Karina; v2 19/11) — só na WPF, só no login da Karina
+// Planejamento WPF:
+//  • Objetivo: aumentar a autoridade da marca — pra quem está fora e pra
+//    quem está dentro.
+//  • Ferramentas: Pilar Alcance (garantir visibilidade) e Pilar Governança
+//    (viabilizar a realização das coisas: sistema, processo). Cada bloco
+//    mostra também a frase-lema da Karina.
+//  • Tabela de ações: Ação · Área · Resultado esperado · O que fazer de
+//    Alcance · O que fazer de Governança. Tudo editável na tela.
+// Dados: seção "planejamento" = { versao: 2, objetivo: {titulo, fora,
+//   dentro}, pilares: {alcance, governanca}, frases: {autoridade, alcance,
+//   governanca}, acoes: [ {id, acao, area, resultado, alcance, governanca} ],
+//   atualizadoEm, atualizadoPor }.
+// v1 (18/11, cartões de pilares) é trocado pela v2 na 1ª abertura, mantendo
+// as frases que a Karina editou. Só a Karina lê e grava.
 // ════════════════════════════════════════════════════════════════════════
 (function () {
   if (ORG_ATUAL !== "wpf") return;
@@ -14589,69 +14609,95 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
   const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const novoId = () => "pl-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const quem = () => (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
+  const txt = v => String(v == null ? "" : v);
 
-  const OBJ = [
-    { id: "autoridade", nome: "Autoridade" },
-    { id: "alcance", nome: "Alcance" },
-    { id: "governanca", nome: "Governança" }
+  const AREAS = [
+    { id: "", nome: "—" },
+    { id: "federacoes", nome: "Federações" },
+    { id: "comite", nome: "Comitê" },
+    { id: "tda", nome: "TDA" },
+    { id: "institucional", nome: "Institucional" },
+    { id: "marketing", nome: "Marketing" }
   ];
-  const GRUPOS = [
-    { id: "autoridade", nome: "Pilares de Autoridade", sub: "o que traz autoridade pra marca — e o que cada um pede de Alcance e de Governança" },
-    { id: "avaliacao", nome: "Em avaliação", sub: "sugestões, até decidir se viram pilar" }
+  const FRASES_PADRAO = {
+    autoridade: "A autoridade é o resultado que queremos.",
+    alcance: "O alcance faz as pessoas certas verem isso.",
+    governanca: "A governança garante que o que está por trás é real e sólido."
+  };
+  const ACOES_PADRAO = [
+    ["Eventos nacionais das federações", "federacoes",
+      "• Calendário de torneios bem equipado no site\n• Ações e melhores momentos recortados pra postar",
+      "• Calendário no site\n• Posts com os recortes",
+      "• Processo pras federações mandarem eventos e materiais (Social Calendar)"],
+    ["Nations Cups (Ásia e América Latina ou Américas)", "federacoes",
+      "Divulgação e cobertura muito boas",
+      "• Cobertura antes, durante e depois\n• Mídia parceira",
+      "• Regulamento\n• Candidatura de quem sedia\n• Contrato"],
+    ["Fechar 50 federações membros", "federacoes",
+      "50 membros, com documentos conferidos",
+      "• Página de cada federação no site\n• Anúncio de cada nova",
+      "• Estatutos e registros coletados e conferidos"],
+    ["Ladies Weekend", "comite", "",
+      "• Divulgação e cobertura dos stops",
+      "• Captação e contrato de quem sedia"],
+    ["Nations Ladies Cup", "comite", "",
+      "• Divulgação e cobertura",
+      "• Regulamento\n• Candidatura de quem sedia"],
+    ["Visibilidade dos grupos femininos", "comite",
+      "Grupos e trabalhos mais vistos",
+      "• Posts em mídia\n• Acompanhamento de notícias",
+      "• Processo pros grupos mandarem o que fazem"],
+    ["TDA (?)", "tda", "Em aberto", "", ""]
   ];
-  const EVENTO_ALC = "Divulgação antes e depois · transmissão · mídia parceira oficial · press release a cada etapa";
-  const EVENTO_GOV = "Regulamento da competição · critérios e candidatura pra sediar, com prazo · contrato com o host · patrocínio global";
-  const emLista = t => t.split(" · ").map(x => "• " + x).join("\n");
-  const PADRAO = () => ({
-    frases: {
-      autoridade: "A autoridade é o resultado que queremos.",
-      alcance: "O alcance faz as pessoas certas verem isso.",
-      governanca: "A governança garante que o que está por trás é real e sólido."
+  const PADRAO = frases => ({
+    versao: 2,
+    objetivo: {
+      titulo: "Aumentar a autoridade da marca",
+      fora: "Autoridade da marca pra quem está fora",
+      dentro: "Autoridade da marca pra quem está dentro"
     },
-    pilares: [
-      ["autoridade", "Ladies Weekend", EVENTO_ALC, EVENTO_GOV],
-      ["autoridade", "Nations Cups", EVENTO_ALC, EVENTO_GOV],
-      ["autoridade", "Nations Ladies Cup", EVENTO_ALC, EVENTO_GOV],
-      ["autoridade", "Mundial (?)", EVENTO_ALC, EVENTO_GOV + " · decidir se fica"],
-      ["autoridade", "Calendário global de torneios no site", "Site como hub (SEO, Adwords) · cada torneio com página e resultado", "Membros mandando os eventos (o Social Calendar já coleta) · regra do que entra: só os principais"],
-      ["autoridade", "TDA", "Conteúdo sobre regras · divulgação das certificações", "TDA formalizada como comitê da WPF · programa de certificação"],
-      ["autoridade", "Valor percebido pelo membro", "A WPF divulgando os eventos do membro · kit de divulgação · newsletter",
-        "Site bem equipado: página completa de cada membro (contatos, eventos, resultados, notícias), calendário global, resultados e ranking, membros nas notícias, páginas institucionais (como se filiar, como sediar, regulamentos, estatuto) · direitos e deveres claros · comunicação trimestral"],
-      ["avaliacao", "Chancela WPF (WPF Sanctioned)", "Selo divulgado nos torneios chancelados", "Critérios pra chancelar · pedido e aprovação"],
-      ["avaliacao", "Ranking WPF de nações e jogadoras", "Conteúdo recorrente, pauta pra mídia", "Dados confiáveis dos eventos e dos membros · regra de pontuação"],
-      ["avaliacao", "Summit / assembleia anual", "Cobertura e presença institucional", "Assembleia funcionando · boards completos (Comitê Feminino, TDA)"],
-      ["avaliacao", "Relatório anual e WPF Awards", "Conteúdo que a mídia cita", "Dados dos membros e dos eventos (CRM atualizado) · critérios dos prêmios"],
-      ["avaliacao", "Formação com a TDA", "Divulgação das certificações", "Programa de certificação de diretores de torneio e dealers"],
-      ["avaliacao", "Integridade e jogo responsável", "Posição pública da WPF", "Política de integridade e jogo responsável"]
-    ].map(([grupo, nome, alcance, governanca], i) => ({ id: "pl-padrao-" + (i + 1), grupo, nome, meta: "", alcance: emLista(alcance), governanca: emLista(governanca) })),
+    pilares: {
+      alcance: "Garantir visibilidade.",
+      governanca: "Viabilizar a realização das coisas: sistema, processo."
+    },
+    frases: Object.assign({}, FRASES_PADRAO, frases || {}),
+    acoes: ACOES_PADRAO.map(([acao, area, resultado, alcance, governanca], i) =>
+      ({ id: "pl-acao-" + (i + 1), acao, area, resultado, alcance, governanca })),
     atualizadoEm: "", atualizadoPor: ""
   });
 
-  function normalizarPilar(p) {
-    p = p && typeof p === "object" ? p : {};
+  function normalizarAcao(a) {
+    a = a && typeof a === "object" ? a : {};
     return {
-      id: String(p.id || novoId()),
-      grupo: GRUPOS.some(g => g.id === p.grupo) ? p.grupo : "autoridade",
-      nome: String(p.nome || ""), meta: String(p.meta || ""),
-      alcance: String(p.alcance || ""), governanca: String(p.governanca || "")
+      id: String(a.id || novoId()), acao: txt(a.acao),
+      area: AREAS.some(x => x.id === a.area) ? a.area : "",
+      resultado: txt(a.resultado), alcance: txt(a.alcance), governanca: txt(a.governanca)
     };
   }
+  let migrou = false;   // v1 → v2: grava na 1ª abertura da guia
   function normalizar(d) {
     d = d && typeof d === "object" ? d : {};
-    const f = d.frases && typeof d.frases === "object" ? d.frases : {};
+    const fr = d.frases && typeof d.frases === "object" ? d.frases : null;
     const frases = {};
-    OBJ.forEach(o => { frases[o.id] = String(f[o.id] == null ? "" : f[o.id]); });
+    if (fr) Object.keys(FRASES_PADRAO).forEach(k => { if (fr[k] != null) frases[k] = txt(fr[k]); });
+    if (!Array.isArray(d.acoes)) { migrou = true; return PADRAO(frases); }
+    const base = PADRAO(frases);
+    const o = d.objetivo && typeof d.objetivo === "object" ? d.objetivo : {};
+    const p = d.pilares && typeof d.pilares === "object" && !Array.isArray(d.pilares) ? d.pilares : {};
     return {
-      frases,
-      pilares: Array.isArray(d.pilares) ? d.pilares.map(normalizarPilar) : [],
-      atualizadoEm: String(d.atualizadoEm || ""), atualizadoPor: String(d.atualizadoPor || "")
+      versao: 2,
+      objetivo: { titulo: txt(o.titulo != null ? o.titulo : base.objetivo.titulo), fora: txt(o.fora != null ? o.fora : base.objetivo.fora), dentro: txt(o.dentro != null ? o.dentro : base.objetivo.dentro) },
+      pilares: { alcance: txt(p.alcance != null ? p.alcance : base.pilares.alcance), governanca: txt(p.governanca != null ? p.governanca : base.pilares.governanca) },
+      frases: base.frases,
+      acoes: d.acoes.map(normalizarAcao),
+      atualizadoEm: txt(d.atualizadoEm), atualizadoPor: txt(d.atualizadoPor)
     };
   }
 
   let dados = null;      // null = ainda sem dados (nunca manda vazio por cima da nuvem)
   try {
     const g = JSON.parse(localStorage.getItem(LS_KEY) || "null");
-    if (g && typeof g === "object" && g.frases) dados = normalizar(g);
+    if (g && typeof g === "object" && (g.frases || g.acoes)) dados = normalizar(g);
   } catch (e) {}
 
   const visivel = () => { const v = document.getElementById("planejamento-view"); return !!(v && !v.classList.contains("hidden")); };
@@ -14664,6 +14710,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
   }
   function salvar() {
     if (!pode() || !dados) return;
+    migrou = false;
     dados.atualizadoEm = new Date().toISOString();
     dados.atualizadoPor = quem();
     try { localStorage.setItem(LS_KEY, JSON.stringify(dados)); } catch (e) {}
@@ -14671,53 +14718,65 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
     mostrarSalvo();
   }
   function garantirDados() {
-    if (dados) return;
-    dados = PADRAO();
-    salvar();
+    if (!dados) { dados = PADRAO(); salvar(); return; }
+    if (migrou) salvar();
   }
 
   // ── Desenho ──
   const ta = (attrs, valor, ph) => `<textarea rows="1" ${attrs} placeholder="${esc(ph)}">${esc(valor)}</textarea>`;
   function crescer(el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
-  function cartao(p, i, lista) {
-    const outro = p.grupo === "autoridade" ? "avaliacao" : "autoridade";
-    return `<div class="pl-card" data-id="${esc(p.id)}">
-      <div class="pl-card-acoes">
-        <button type="button" data-acao="esq" title="Mover pra trás" ${i === 0 ? "disabled" : ""}>←</button>
-        <button type="button" data-acao="dir" title="Mover pra frente" ${i === lista.length - 1 ? "disabled" : ""}>→</button>
-        <button type="button" data-acao="grupo" title="${outro === "autoridade" ? "Virar pilar de Autoridade" : "Mandar pra Em avaliação"}">${outro === "autoridade" ? "↑" : "↓"}</button>
-        <button type="button" data-acao="apagar" title="Apagar">×</button>
-      </div>
-      ${ta('class="pl-nome" data-campo="nome"', p.nome, "Nome do pilar")}
-      ${ta('class="pl-meta" data-campo="meta"', p.meta, "+ Meta (número e prazo)")}
-      <div class="pl-sec pl-cor-alcance"><div class="pl-sec-rot">Precisa de Alcance</div>${ta('data-campo="alcance"', p.alcance, "O que precisa de alcance")}</div>
-      <div class="pl-sec pl-cor-governanca"><div class="pl-sec-rot">Precisa de Governança</div>${ta('data-campo="governanca"', p.governanca, "O que precisa de governança")}</div>
-    </div>`;
-  }
   function render() {
-    const fr = document.getElementById("pl-frases"), gr = document.getElementById("pl-grupos");
-    if (!fr || !gr || !dados) return;
-    fr.innerHTML = OBJ.map(o => `<div class="pl-frase pl-cor-${o.id}"><div class="pl-frase-rot">${esc(o.nome)}</div>${ta(`data-frase="${o.id}"`, dados.frases[o.id], "Frase de " + o.nome)}</div>`).join("");
-    gr.innerHTML = GRUPOS.map(g => {
-      const lista = dados.pilares.filter(p => p.grupo === g.id);
-      return `<section class="pl-grupo pl-grupo-${g.id}" data-grupo="${g.id}">
-        <div class="pl-grupo-cab"><h3>${esc(g.nome)}<span>${esc(g.sub)}</span></h3></div>
-        <div class="pl-grade">${lista.map((p, i) => cartao(p, i, lista)).join("")}<button type="button" class="pl-novo" data-novo="${g.id}">+ ${g.id === "autoridade" ? "Pilar" : "Sugestão"}</button></div>
-      </section>`;
-    }).join("");
+    const q = document.getElementById("pl-quadro"), ac = document.getElementById("pl-acoes");
+    if (!q || !ac || !dados) return;
+    q.innerHTML = `
+      <div class="pl-bloco pl-cor-autoridade">
+        <div class="pl-rot">Objetivo</div>
+        ${ta('class="pl-grande" data-c="objetivo.titulo"', dados.objetivo.titulo, "Objetivo")}
+        <div class="pl-duas">
+          <div class="pl-sub"><div class="pl-rot">Pra quem está fora</div>${ta('class="pl-texto" data-c="objetivo.fora"', dados.objetivo.fora, "Pra quem está fora")}</div>
+          <div class="pl-sub"><div class="pl-rot">Pra quem está dentro</div>${ta('class="pl-texto" data-c="objetivo.dentro"', dados.objetivo.dentro, "Pra quem está dentro")}</div>
+        </div>
+        ${ta('class="pl-lema" data-c="frases.autoridade"', dados.frases.autoridade, "Frase da Autoridade")}
+      </div>
+      <div class="pl-bloco pl-cor-alcance">
+        <div class="pl-rot">Pilar Alcance</div>
+        ${ta('class="pl-texto" data-c="pilares.alcance"', dados.pilares.alcance, "Pra que serve o Alcance")}
+        ${ta('class="pl-lema" data-c="frases.alcance"', dados.frases.alcance, "Frase do Alcance")}
+      </div>
+      <div class="pl-bloco pl-cor-governanca">
+        <div class="pl-rot">Pilar Governança</div>
+        ${ta('class="pl-texto" data-c="pilares.governanca"', dados.pilares.governanca, "Pra que serve a Governança")}
+        ${ta('class="pl-lema" data-c="frases.governanca"', dados.frases.governanca, "Frase da Governança")}
+      </div>`;
+    const n = dados.acoes.length;
+    ac.innerHTML = `
+      <div class="pl-acoes-cab"><h3>Ações</h3><span>pra aumentar a autoridade da marca</span></div>
+      <div class="pl-tabela-rolo"><table class="pl-tabela">
+        <colgroup><col style="width:19%"><col style="width:118px"><col style="width:21%"><col style="width:21%"><col style="width:21%"><col style="width:92px"></colgroup>
+        <thead><tr><th>Ação que faremos</th><th>Área</th><th>Resultado esperado</th><th class="pl-th-alc">O que fazer de Alcance</th><th class="pl-th-gov">O que fazer de Governança</th><th></th></tr></thead>
+        <tbody>${dados.acoes.map((a, i) => `<tr data-id="${esc(a.id)}">
+          <td class="pl-td-acao">${ta('data-campo="acao"', a.acao, "Ação")}</td>
+          <td><select class="pl-area" data-campo="area" data-area="${esc(a.area)}">${AREAS.map(x => `<option value="${x.id}"${x.id === a.area ? " selected" : ""}>${esc(x.nome)}</option>`).join("")}</select></td>
+          <td>${ta('data-campo="resultado"', a.resultado, "Resultado esperado")}</td>
+          <td>${ta('data-campo="alcance"', a.alcance, "Alcance")}</td>
+          <td>${ta('data-campo="governanca"', a.governanca, "Governança")}</td>
+          <td><div class="pl-linha-acoes">
+            <button type="button" data-acao="sobe" title="Subir" ${i === 0 ? "disabled" : ""}>↑</button>
+            <button type="button" data-acao="desce" title="Descer" ${i === n - 1 ? "disabled" : ""}>↓</button>
+            <button type="button" data-acao="apagar" title="Apagar">×</button>
+          </div></td>
+        </tr>`).join("")}</tbody>
+      </table></div>
+      <button type="button" class="pl-nova" data-nova="1">+ Ação</button>`;
     document.querySelectorAll("#pl-wrap textarea").forEach(crescer);
     mostrarSalvo();
   }
 
   // ── Ações ──
   function mover(id, passo) {
-    const p = dados.pilares.find(x => x.id === id);
-    if (!p) return;
-    const mesmos = dados.pilares.filter(x => x.grupo === p.grupo);
-    const alvo = mesmos[mesmos.indexOf(p) + passo];
-    if (!alvo) return;
-    const a = dados.pilares.indexOf(p), b = dados.pilares.indexOf(alvo);
-    dados.pilares[a] = alvo; dados.pilares[b] = p;
+    const i = dados.acoes.findIndex(x => x.id === id), j = i + passo;
+    if (i < 0 || j < 0 || j >= dados.acoes.length) return;
+    const t = dados.acoes[i]; dados.acoes[i] = dados.acoes[j]; dados.acoes[j] = t;
     salvar(); render();
   }
   function ligar() {
@@ -14732,44 +14791,44 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
     }
     const wrap = document.getElementById("pl-wrap");
     wrap.addEventListener("input", ev => { if (ev.target.tagName === "TEXTAREA") crescer(ev.target); });
-    // Grava ao sair do campo (não a cada tecla).
+    // Grava ao sair do campo (não a cada tecla); a Área grava ao escolher.
     wrap.addEventListener("change", ev => {
       const el = ev.target;
-      if (el.tagName !== "TEXTAREA" || !dados) return;
-      if (el.dataset.frase) { dados.frases[el.dataset.frase] = el.value; salvar(); return; }
-      const card = el.closest(".pl-card"), campo = el.dataset.campo;
-      const p = card && dados.pilares.find(x => x.id === card.dataset.id);
-      if (p && campo) { p[campo] = el.value; salvar(); }
-    });
-    wrap.addEventListener("keydown", ev => {
-      // Enter no nome e na meta sai do campo; nos textos longos, quebra linha.
-      if (ev.key === "Enter" && ev.target.matches && ev.target.matches(".pl-nome, .pl-meta")) { ev.preventDefault(); ev.target.blur(); }
+      if (!dados || (el.tagName !== "TEXTAREA" && el.tagName !== "SELECT")) return;
+      if (el.dataset.c) {
+        const [grupo, campo] = el.dataset.c.split(".");
+        if (dados[grupo] && campo) { dados[grupo][campo] = el.value; salvar(); }
+        return;
+      }
+      const tr = el.closest("tr[data-id]"), campo = el.dataset.campo;
+      const a = tr && dados.acoes.find(x => x.id === tr.dataset.id);
+      if (!a || !campo) return;
+      a[campo] = el.value;
+      if (campo === "area") el.dataset.area = el.value;
+      salvar();
     });
     wrap.addEventListener("click", ev => {
-      const novo = ev.target.closest("[data-novo]");
-      if (novo) {
-        const p = normalizarPilar({ grupo: novo.dataset.novo });
-        dados.pilares.push(p); salvar(); render();
-        const n = document.querySelector(`.pl-card[data-id="${p.id}"] .pl-nome`); if (n) n.focus();
+      if (ev.target.closest("[data-nova]")) {
+        const a = normalizarAcao({});
+        dados.acoes.push(a); salvar(); render();
+        const c = document.querySelector(`tr[data-id="${a.id}"] textarea`); if (c) c.focus();
         return;
       }
       const b = ev.target.closest("[data-acao]");
       if (!b || b.disabled) return;
-      const card = b.closest(".pl-card"), id = card && card.dataset.id;
-      const p = dados.pilares.find(x => x.id === id);
-      if (!p) return;
-      const acao = b.dataset.acao;
-      if (acao === "esq") mover(id, -1);
-      else if (acao === "dir") mover(id, 1);
-      else if (acao === "grupo") { p.grupo = p.grupo === "autoridade" ? "avaliacao" : "autoridade"; dados.pilares = dados.pilares.filter(x => x !== p).concat(p); salvar(); render(); }
-      else if (acao === "apagar") {
+      const tr = b.closest("tr[data-id]"), id = tr && tr.dataset.id;
+      const a = dados.acoes.find(x => x.id === id);
+      if (!a) return;
+      if (b.dataset.acao === "sobe") mover(id, -1);
+      else if (b.dataset.acao === "desce") mover(id, 1);
+      else if (b.dataset.acao === "apagar") {
         // Dois cliques: o 1º pede confirmação (sem pop-up do navegador).
         if (!b.classList.contains("pl-confirma")) {
           b.classList.add("pl-confirma"); b.textContent = "Apagar?";
           setTimeout(() => { if (b.isConnected) { b.classList.remove("pl-confirma"); b.textContent = "×"; } }, 3000);
           return;
         }
-        dados.pilares = dados.pilares.filter(x => x !== p); salvar(); render();
+        dados.acoes = dados.acoes.filter(x => x !== a); salvar(); render();
       }
     });
   }
@@ -14779,7 +14838,7 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
     apply: data => {
       if (!pode()) return;
       const d = data && data.planejamento;
-      if (!d || typeof d !== "object" || !d.frases) return;
+      if (!d || typeof d !== "object" || !(d.frases || d.acoes)) return;
       dados = normalizar(d);
       try { localStorage.setItem(LS_KEY, JSON.stringify(dados)); } catch (e) {}
       const ae = document.activeElement;
@@ -14832,7 +14891,7 @@ const CATALOGO_PERMISSOES = [
     { chave: "carinha", rotulo: "Usar o Carinha" },
     { chave: "acoesIa", rotulo: "Ações de IA (e-mail, mensagem, pesquisa)" },
     // 18/11 (Karina): Planejamento (só WPF).
-    { chave: "planejamento", rotulo: "Planejamento (storyline Autoridade › Alcance › Governança, só na WPF)" }
+    { chave: "planejamento", rotulo: "Planejamento WPF (objetivo, pilares e tabela de ações, só na WPF)" }
   ] }
 ];
 const CFG_VISTAS_KEY = "wpf_cfg_permissoes_vistas";

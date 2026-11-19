@@ -185,12 +185,13 @@ dois arquivos antes de propor qualquer coisa**:
   Formulário Women in Poker (16/11): `women-in-poker.html`, id
   `wip-2027-women-in-poker` — mesma lógica.
 
-- **Planejamento (18/11):** guia `#nav-planejamento`, só login `karina` e só
-  WPF. Storyline: "A autoridade é o resultado que queremos. O alcance faz as
-  pessoas certas verem isso. A governança garante que o que está por trás é
-  real e sólido." (frases da Karina). Pilares de Autoridade com o que pedem
-  de Alcance e Governança; seção `planejamento`. Valor do membro = site bem
-  equipado (Portal do Membro descartado pela Karina).
+- **Planejamento WPF (18/11; v2 19/11):** guia `#nav-planejamento`, só login
+  `karina` e só WPF. Objetivo: aumentar a autoridade da marca (pra quem está
+  fora / pra quem está dentro); Pilar Alcance = garantir visibilidade; Pilar
+  Governança = viabilizar (sistema, processo); frases-lema da Karina. Tabela
+  de ações: Ação · Área · Resultado esperado · Alcance · Governança. Seção
+  `planejamento` (`versao: 2`). Portal do Membro descartado (site bem
+  equipado).
 
 ## O que o Claude NÃO consegue fazer sozinho
 
