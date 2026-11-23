@@ -298,6 +298,18 @@ reconstruir o raciocínio.
   Propor à Karina antes.
   - *Aberto em:* 2026-10-20
 
+- [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`BANDEIRA 50`)** —
+  guia `worker/instrucoes/prospeccao-federacoes.md` publicado em 23/11.
+  Depois da 1ª sessão da Isabela, conferir com a Karina: qualidade da
+  pesquisa e do ranking, se os e-mails seguiram as regras (Karina em cópia),
+  se Projetos (`pj-cl-f14`, `…-s1-r1..r4`) e CRM (`members2`) foram gravados
+  certo, e ajustar o guia se precisar.
+  - *Em aberto:* UK só pode receber e-mail quando a Karina liberar; Austria,
+    Croatia e Denmark têm recontato marcado pra 24/11 (descobrir antes quem
+    foi contatado em 26–27/10).
+  - *Onde:* guia + Supabase `projetos`/`members2`.
+  - *Aberto em:* 2026-11-23
+
 - [ ] **50 Federações — USA e UK (Karina, 20/10: "falaremos mais tarde")** —
   ficaram fora das mudanças de 20/10 (3ª): sem datas e sem a troca de
   responsáveis/aviso novo. USA está em "Apresentar a WPF" (em andamento),

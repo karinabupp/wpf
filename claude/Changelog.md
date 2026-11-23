@@ -11,6 +11,32 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-23 — Guia de prospecção de federações (senha `BANDEIRA 50`)
+
+Pedido da Karina (12h17–12h26) e OK dela (12h30).
+
+- **Novo `worker/instrucoes/prospeccao-federacoes.md`:** guia pro Claude da
+  Isabela buscar e contatar candidatos nos países da "50 Federações
+  Membros" (`pj-cl-f14`) cujo "Buscar e contatar candidato" não está
+  Finalizado. Em 23/11 são 13: Morocco, Vietnam, Finland, Lithuania,
+  Netherlands, Serbia, Slovakia, Slovenia, New Zealand (não começados);
+  Austria, Croatia, Denmark (contatados em 26–27/10, sem resposta); United
+  Kingdom (bloqueado: pesquisa sim, envio só com a Karina liberando).
+  Conteúdo: pesquisa em 3 blocos com fonte; ranking com 6 critérios e o
+  melhor candidato; contatos com fonte; regras do e-mail (específico, sem
+  promessa, sem mentira, ~150 palavras, Karina sempre em cópia); checklist
+  de revisão que barra escolha ou mensagem ruim e diz qual regra quebrou;
+  quando marcar reunião com a Karina; o que gravar na Projetos e no CRM
+  (`members2`: `__empresas`, `__contatos`, `interacoes`) em cada momento.
+  A Isabela decide se o Claude dela envia ou só faz rascunho.
+- **Autorização da Karina:** dentro do guia, o "sim" da Isabela aprova só
+  esses passos e esses países; responsável continua Karina Bupp.
+- **`claude/LEIA-PRIMEIRO.md`:** item novo com a senha e o resumo.
+- **Dados:** nada mudou no banco nesta sessão (só leitura).
+- **Por quê:** passar a prospecção pra Isabela com o padrão da Karina e sem
+  e-mail genérico.
+
+---
 ## 2026-11-19 — Planejamento v2: "Planejamento WPF" em tabela de ações
 
 Pedido da Karina (18/11, 15h42–15h51) e OK dela (19/11, 10h49).

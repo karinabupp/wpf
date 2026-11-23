@@ -193,6 +193,17 @@ dois arquivos antes de propor qualquer coisa**:
   `planejamento` (`versao: 2`). Portal do Membro descartado (site bem
   equipado).
 
+- **Prospecção de federações — senha `BANDEIRA 50` (Karina, 23/11):**
+  quando alguém (a Isabela) escrever essa senha, seguir
+  **`worker/instrucoes/prospeccao-federacoes.md`** do início ao fim:
+  pesquisa por país (federação, torneios e operadores independentes,
+  campeonato oficial), ranking e melhor candidato, contatos, e-mail
+  personalizado com revisão que barra mensagem ruim, Karina sempre em cópia
+  (`karina@worldpokerfederation.org`), reunião com a Karina só se necessário,
+  e Projetos (`pj-cl-f14`, passos `…-s1`) + CRM atualizados. Nesse guia, o
+  "sim" da Isabela autoriza só esses passos e só esses países; responsável
+  continua Karina. UK: pesquisar, mas não enviar sem a Karina liberar.
+
 ## O que o Claude NÃO consegue fazer sozinho
 
 Publicar no GitHub, sim. Mas **Cloudflare, Supabase e Meta dependem da
