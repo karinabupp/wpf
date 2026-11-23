@@ -11,6 +11,21 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-23 (4ª, tarde) — Guia FEDS50: exceção de cassinos; Marrocos no CRM
+
+Pedido e OK da Isabela (15h), com autorização da Karina para a exceção.
+
+- **`worker/instrucoes/prospeccao-federacoes.md`:** exceção para países em
+  que a lei só permite poker em cassino (Bloco B, critério 4, lista de
+  bloqueios e seção nova "Exceção: países só com poker em cassino").
+- **Supabase `members2` (Morocco):** 4 empresas (Tanger Poker Club, Casino de
+  Tanger, Mazagan, Irish Poker Open), 3 contatos e 5 interações (ranking de
+  parceiros + datas projetadas 26/11, 03/12, 10/12, 17/12). Status segue
+  Lead; campo `torneios` preservado. Backup antes:
+  `bkp_members2_2026_11_23_antes_marrocos` (RLS ativado).
+- **Por quê:** Marrocos não tem federação nacional e o poker é concentrado em
+  cassinos; o guia vetava cassino como candidato.
+
 ## 2026-11-23 (4ª) — Carinha entrega recado do sistema na rodada; FEDS50 enviado
 
 Pedido e OK da Karina (12h53–12h56): mandar a senha FEDS50 pra ela e pra

@@ -77,7 +77,10 @@ Data da última atividade sempre que der (post, torneio, notícia).
   tamanho (field, buy-in, número de etapas).
 - Maiores operadores **independentes**: clubes de poker, organizadores de
   torneio, ligas, circuitos. **Cassinos não entram** como candidatos (podem
-  aparecer só como local onde o torneio acontece).
+  aparecer só como local onde o torneio acontece). **Exceção (Karina,
+  23/11):** se a lei do país proíbe operar poker fora de cassino, nomes e
+  leads que surgirem de cassinos podem ser usados (ver "Exceção: países só
+  com poker em cassino").
 - Online só conta se for liga/comunidade organizada localmente (não site
   de apostas).
 
@@ -89,6 +92,17 @@ Data da última atividade sempre que der (post, torneio, notícia).
 
 **Contexto legal (1–2 linhas):** o poker ao vivo/em clubes é permitido?
 Se a lei restringe muito, dizer, porque muda quem pode ser candidato.
+
+## Exceção: países só com poker em cassino
+
+Autorizada pela Karina em 23/11/2026. Vale **só** quando a lei do país
+proíbe operar poker fora de cassino, e isso tem de estar apoiado em fonte
+citada (de preferência mais de uma; avisar a Isabela se houver só uma).
+- Nomes e leads vindos de cassinos podem entrar no ranking e no CRM.
+- Ordem de contato: primeiro o organizador local/oficial independente, se
+  existir; o contato do cassino só se esse não responder.
+- Registrar no CRM do país o motivo da exceção (Interação "Pesquisa").
+- 1º caso: Morocco.
 
 ## Passo 2 — Escolher o candidato (ranking + o porquê)
 
@@ -102,8 +116,9 @@ Critérios, em ordem de peso:
 2. **Atividade:** organiza poker hoje, com regularidade.
 3. **Alcance nacional:** representa o país (não só uma cidade/um clube),
    ou consegue juntar os principais atores.
-4. **Independência e reputação:** não é cassino; sem polêmica pública
-   relevante; não depende de um site de apostas.
+4. **Independência e reputação:** não é cassino (salvo a exceção dos
+   países só com poker em cassino); sem polêmica pública relevante; não
+   depende de um site de apostas.
 5. **Campeonato oficial:** organiza ou tem relação com o campeonato
    reconhecido.
 6. **Capacidade de resposta:** tem contato direto (e-mail de pessoa,
@@ -235,7 +250,7 @@ Exemplos de bloqueio:
 - "You will become the official federation of X" → promessa (regra 2).
 - "We already have 60 members" quando o site diz outro número → mentira (regra 3).
 - E-mail sem a Karina em cópia → regra 7.
-- Escolher um cassino como candidato → critério 4.
+- Escolher um cassino como candidato → critério 4 (a menos que a exceção abaixo se aplique e esteja registrada no país).
 
 ## Respostas do candidato e quando chamar a Karina
 

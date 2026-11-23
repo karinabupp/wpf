@@ -310,6 +310,16 @@ reconstruir o raciocínio.
     `worker/whatsapp-bridge.js` (`pjEhExterno`).
   - *Aberto em:* 2026-11-23
 
+- [ ] **Marrocos (FEDS50): acompanhar as tentativas** — contatos e ranking no
+  CRM (Tanger Poker Club → Pierre Khoueiri → John Galvani → Irish Poker
+  Open). Isabela envia a 1ª tentativa até 24/11; projeção: 2ª em 03/12, 3ª
+  em 10/12, próxima opção em 17/12. Na Projetos, `-r1`/`-r5`/`-r6` ainda
+  não estão marcados (aguardam a Isabela aprovar o e-mail); substituir as
+  Interações "[Projeção]" pelas datas reais. Pendências da exceção de
+  cassinos (já no guia): confirmar a lei marroquina com uma 2ª fonte (hoje só
+  So Much Poker) e a Karina conferir o texto da exceção.
+  - *Aberto em:* 2026-11-23
+
 - [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`FEDS50`)** —
   guia `worker/instrucoes/prospeccao-federacoes.md` (23/11). Depois da 1ª
   sessão da Isabela (pesquisas a partir de 25/11), conferir com a Karina:
