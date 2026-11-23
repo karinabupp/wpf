@@ -11,6 +11,23 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-23 (3ª) — Guia FEDS50: próxima opção só sem avanço; países grandes
+
+Pedido da Karina (12h52). Só o guia e o LEIA-PRIMEIRO (nada no banco).
+
+- **`worker/instrucoes/prospeccao-federacoes.md`:**
+  - "Contatar a próxima opção" é exceção: só quando não houve **avanço
+    nenhum** em 3 semanas (avanço = resposta, pedido de info, indicação,
+    reunião, documento). Houve avanço → na hora as tentativas que faltam e o
+    `-r7` viram Cancelado (o Carinha só avisa tarefa aberta). Antes de agir
+    no +21, conferir Gmail/CRM/Isabela. Indicação de outra pessoa da mesma
+    entidade = mesma opção. "Não" do candidato = próxima opção na hora.
+  - **Países grandes do poker** (reunião e liberação de envio com a
+    Karina): United Kingdom, Estados Unidos, Alemanha, China. Dos quatro,
+    só o UK está entre os 13 da prospecção hoje.
+- **`claude/LEIA-PRIMEIRO.md`:** item atualizado.
+
+---
 ## 2026-11-23 (2ª) — Prospecção: processo novo nos 13 países, cadência de 3 tentativas, senha `FEDS50`
 
 Pedido da Karina (12h38–12h44); aprovado na mesma conversa.

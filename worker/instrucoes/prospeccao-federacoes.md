@@ -184,17 +184,32 @@ não é fechar.
 | 0 | Fazer a 1ª tentativa (o e-mail) |
 | +7 | Fazer a 2ª tentativa |
 | +14 | Fazer a 3ª tentativa |
-| +21 | Contatar a próxima opção — **o Carinha avisa** (a tarefa começa nesse dia) |
+| +21 | Contatar a próxima opção — **só se não houve avanço**; o Carinha avisa se a tarefa ainda estiver aberta |
 
 - Fim de semana ou feriado → próximo dia útil.
 - 2ª e 3ª tentativas: 2–4 linhas, na mesma thread, cada uma com **um
   elemento novo e verdadeiro** (não só "just following up"), mesma regra de
   não prometer, Karina em cópia.
-- Sem resposta em 3 semanas → partir para a **próxima opção do ranking**
-  (2ª, depois 3ª, etc.), com e-mail novo e o mesmo ciclo de 3 semanas. Se o
-  ranking acabar, pesquisar de novo e trazer novas opções à Isabela.
-- Resposta em qualquer ponto → parar as tentativas e seguir em "Respostas
-  do candidato".
+- **A próxima opção é exceção, não rotina (Karina, 23/11).** Só se parte
+  pra próxima opção quando **não houve avanço nenhum** com a atual em 3
+  semanas. Avanço = qualquer sinal real: resposta (mesmo "vou ver",
+  "falo com a diretoria"), pedido de informação, indicação de outra pessoa
+  da mesma entidade, reunião marcada, documento enviado. Pense como gente:
+  um candidato que respondeu devagar mas está andando **não** é trocado.
+- **Houve avanço → na mesma hora**: as tentativas que faltam e "Contatar a
+  próxima opção" (`-r7`) viram **Cancelado** (o Carinha só avisa tarefa
+  aberta, então o aviso do +21 não sai) e o trabalho segue em "Respostas do
+  candidato". Se a pessoa indicou outro contato da mesma entidade, é a
+  mesma opção: contatar o indicado e reiniciar as datas das tentativas.
+- **Antes de agir no `-r7`** (dia +21, quando o Carinha avisar), conferir:
+  Gmail da Isabela (se tiver acesso), Interações do CRM e o que a Isabela
+  souber. Só com a confirmação de que não houve avanço, propor a próxima
+  opção do ranking — dizendo à Isabela por que a atual está sendo deixada.
+- Troca confirmada → próxima opção (2ª, depois 3ª, etc.), com e-mail novo e
+  o mesmo ciclo de 3 semanas. Se o ranking acabar, pesquisar de novo e
+  trazer novas opções à Isabela.
+- Opção que respondeu "não" → registrar o motivo e propor a próxima na
+  hora (sem esperar o +21).
 
 ## Revisão — o Claude barra o que não está bom
 
@@ -237,8 +252,10 @@ Exemplos de bloqueio:
     outra entidade;
   - é um ator grande/político (governo, órgão do esporte, entidade
     internacional).
-  **Quem faz a reunião:** a Karina nos países grandes do poker (hoje: United
-  Kingdom); nos outros, a Isabela — com a Karina chamada só se o assunto
+  **Quem faz a reunião:** a Karina nos **países grandes do poker: United
+  Kingdom, Estados Unidos, Alemanha e China** (lista da Karina, 23/11; se
+  algum deles entrar na prospecção, o `-s9` é da Karina e o envio também
+  espera a liberação dela); nos outros, a Isabela — com a Karina chamada só se o assunto
   for de condições que só ela responde. Propor 2–3 horários confirmados,
   Karina sempre em cópia. Sem necessidade de reunião → "Fazer reunião" fica
   Cancelado.
@@ -249,7 +266,7 @@ Exemplos de bloqueio:
 |---|---|
 | Buscar e contatar candidato (pesquisa, contatos, e-mail, 3 tentativas, próxima opção) | Isabela |
 | Apresentar a WPF › Responder as dúvidas · Confirmar que o candidato topa seguir · Coletar o WhatsApp do contato · Marcar reunião | Isabela |
-| Fazer reunião | Karina (países grandes, ex. UK) · Isabela (os outros) |
+| Fazer reunião | Karina (países grandes: UK, EUA, Alemanha, China) · Isabela (os outros) |
 | Abrir a federação · Coletar documentos (com as cobranças) · Verificar documentos | Karina |
 | Dar as boas-vindas › Mandar o e-mail de boas-vindas · Fazer o contato no WhatsApp | Karina |
 | Coletar informações pro site › Coletar os dados da federação · Coletar os links de mídia · Coletar a diretoria · Coletar as fotos · Coletar a bio curta | Isabela |
@@ -311,8 +328,8 @@ lista das mudanças pra ela fazer na Dash.
 | Contatos achados / e-mail aprovado | `-r5` / `-r6` Finalizado | — |
 | 1ª tentativa enviada (dia 0) | `-r2` Finalizado; datas: `-r3` = +7, `-r4` = +14, `-r7` = +21 (dia útil) | Interação "1ª tentativa a <nome> (Karina em cópia): <assunto>" |
 | 2ª / 3ª tentativa enviada | `-r3` / `-r4` Finalizado | Interação "2ª/3ª tentativa…" |
-| Resposta recebida | tentativas que não precisaram e `-r7` → Cancelado; `-s1` fica Finalizado; seguir em `-s2` | Interação com o resumo da resposta |
-| Dia +21 sem resposta (o Carinha avisa) | Histórico: "2ª opção: Y"; `-r1` e `-r5`/`-r6` reabertos se precisar; `-r2`, `-r3`, `-r4`, `-r7` reabertos (Não iniciado) com datas novas a partir do novo dia 0 | Interação "Sem resposta de X em 3 semanas; próxima opção: Y" |
+| Qualquer avanço (resposta, pedido de info, indicação, reunião) | **na hora:** tentativas que faltam e `-r7` → Cancelado (o aviso do Carinha não sai); `-s1` Finalizado; seguir em `-s2` | Interação com o resumo do avanço |
+| Dia +21 e **conferido que não houve avanço** (o Carinha avisa) | Histórico: "2ª opção: Y, porque <motivo>"; `-r1` e `-r5`/`-r6` reabertos se precisar; `-r2`, `-r3`, `-r4`, `-r7` reabertos (Não iniciado) com datas novas a partir do novo dia 0 | Interação "Sem resposta de X em 3 semanas; próxima opção: Y" |
 | Respostas e WhatsApp | `-a1`, `-a2`, `-a3` Finalizado conforme acontecem | Contato com `tel` (WhatsApp); Interação |
 | Reunião | `-a4` Finalizado ao marcar; `-s9` com data (ou Cancelado se não precisar) | Interação "Reunião marcada <data> com <quem>" |
 | Candidato topou seguir | `-s2` Finalizado; avisar a Isabela que a Karina assume `-s3`, `-s4`, `-s5`, `-s10` | Interação "Topou seguir"; perguntar se o status vira Negociação |

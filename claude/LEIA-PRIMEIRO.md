@@ -200,8 +200,10 @@ dois arquivos antes de propor qualquer coisa**:
   campeonato oficial), ranking e melhor candidato, contatos, e-mail
   personalizado com revisão que barra mensagem ruim, Karina sempre em cópia
   (`karina@worldpokerfederation.org`), **3 tentativas por contato (1 por
-  semana) e troca de opção no dia +21 (o Carinha avisa)**, reunião só se
-  estritamente necessária, e Projetos + CRM atualizados. Os 13 países do
+  semana) e troca de opção no dia +21 só se não houve avanço nenhum
+  (qualquer avanço cancela a "Contatar a próxima opção" na hora, e o
+  Carinha não avisa)**, reunião só se estritamente necessária (com a
+  Karina nos países grandes: UK, EUA, Alemanha, China), e Projetos + CRM atualizados. Os 13 países do
   guia têm processo próprio na `pj-cl-f14` (10 passos; contato, WhatsApp e
   infos do site = Isabela; reunião de país grande, documentação e
   boas-vindas = Karina). Nesse guia, o "sim" da Isabela autoriza só esses
