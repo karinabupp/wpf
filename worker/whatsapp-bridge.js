@@ -3499,6 +3499,16 @@ function pjNovasTarefas(estado, pj, pessoa, hoje) {
 }
 
 // Rodada da pessoa liberada (chamada pela rodadaProativa e pela do Google).
+async function pjEntregarSistema(env, tel) {
+  const sis = (await pendentesDe(env, tel)).filter(a => String(a.chave).startsWith("sistema|"))
+    .sort((a, b) => (Date.parse(a.detectado_em) - Date.parse(b.detectado_em)) || (a.id - b.id));
+  for (const a of sis) {
+    await enviarTexto(env, tel, a.descricao, { proativa: true, tipo_proativa: "sistema" });
+    await marcarChaves(env, tel, [a.chave], "rodada");
+  }
+  return sis.length;
+}
+
 async function pjRodada(env, pessoa, cron, agoraMs) {
   agoraMs = agoraMs || Date.now();
   const horaFixa = cron === CRON_HORA_FIXA;
@@ -3533,6 +3543,10 @@ async function pjRodada(env, pessoa, cron, agoraMs) {
     }
     return;
   }
+  // 23/11 (Karina): recado do sistema pendente sai na própria rodada dos
+  // :05/:35 pra quem está com a janela aberta (antes só saía quando a pessoa
+  // escrevia). Texto exato, na ordem em que foi gravado; dia útil, 8h–21h.
+  if (!fimDeSemana) await pjEntregarSistema(env, tel);
   const antesDaManha = horaSP < 9 || (horaSP === 9 && minSP < 25);
   const pj = await pjCarregar(env);
   const antesRodada = JSON.stringify([estado.conv, estado.conhecidos, estado.textos]);
@@ -4886,5 +4900,5 @@ export default {
 };
 
 // Exportado só pros testes.
-export const _teste = { fimDoConvite, avisoEmailVencido, pendentesDe, aplicarAvisosEmail, passarPraKarina, pjJuntarSlack, pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
+export const _teste = { pjEntregarSistema, fimDoConvite, avisoEmailVencido, pendentesDe, aplicarAvisosEmail, passarPraKarina, pjJuntarSlack, pjMsgVenceHoje, pjGrupoContexto, pjOrdenarPorGrupo, pjTiraContexto, pjRodada, pjDespachar, pjPlanejarDia, pjTratarConversa, pjRevisar, pjMsgTarefa, pjMsgResumo, pjTrava, pjEstado, pjOrdenar, pjManutencao, somenteEmail, ehAvisoEmail, _gToken, googleRodada, gmailNovos, gmailSemResposta, rotaGoogleConectar, rotaGoogleRetorno, rotaGoogleDash, googleStateOk, googleState, usarFerramentaGoogle, executarGoogle, ferramentasGoogle, montarEmail, emailAutomatico, diasUteisEntre, tratarMensagem, desconectarGoogle, gmailLote, CRON_GOOGLE, janelaAberta, rotaChatDash, rotaAdmin, senhaProvisoria, formatoOpcoes, encurtarOpcao, validarCriacao, terminaEmPergunta, opcoesParaPergunta, buscarTasks, condensarEntregaveis, avisosDoSlack, textoMensagensSlack, resumoSimples, resumoAlertas, instrucoes, donosTexto, paraWhats, agruparAvisos, opcoesDoAviso, textoDetalhes, descricaoGrupo, escreverAvisos, mandarAvisos, sincronizarAvisos, prefixoNo, diasUteisAtras, alvoDaChave, donosDoAlvo, assinaturaMetaOk, limpo, processarEmails, extrairEmails, extrairCodigo, candidatosDoItem, readaiRodada, tokenReadAI, buscarReunioes, compararReuniao, detectarAvisos, rodadaProativa, CRON_HORA_FIXA, formatoOpcoes, corpoInterativo, separarOpcoes, ehSim, ehNao, normalizar, indexar, retratar, mudancasDesde, resumoAlertas, quadroCompleto, buscarTasks, buscarMembers,
   validarMudanca, validarCriacao, validarMembers, validarContexto, contextoDe, aplicarAcao, nomeEmpresa, hojeSP, instrucoes, HAIKU, SONNET };
