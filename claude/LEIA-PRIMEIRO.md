@@ -193,16 +193,20 @@ dois arquivos antes de propor qualquer coisa**:
   `planejamento` (`versao: 2`). Portal do Membro descartado (site bem
   equipado).
 
-- **Prospecção de federações — senha `BANDEIRA 50` (Karina, 23/11):**
+- **Prospecção de federações — senha `FEDS50` (Karina, 23/11):**
   quando alguém (a Isabela) escrever essa senha, seguir
   **`worker/instrucoes/prospeccao-federacoes.md`** do início ao fim:
   pesquisa por país (federação, torneios e operadores independentes,
   campeonato oficial), ranking e melhor candidato, contatos, e-mail
   personalizado com revisão que barra mensagem ruim, Karina sempre em cópia
-  (`karina@worldpokerfederation.org`), reunião com a Karina só se necessário,
-  e Projetos (`pj-cl-f14`, passos `…-s1`) + CRM atualizados. Nesse guia, o
-  "sim" da Isabela autoriza só esses passos e só esses países; responsável
-  continua Karina. UK: pesquisar, mas não enviar sem a Karina liberar.
+  (`karina@worldpokerfederation.org`), **3 tentativas por contato (1 por
+  semana) e troca de opção no dia +21 (o Carinha avisa)**, reunião só se
+  estritamente necessária, e Projetos + CRM atualizados. Os 13 países do
+  guia têm processo próprio na `pj-cl-f14` (10 passos; contato, WhatsApp e
+  infos do site = Isabela; reunião de país grande, documentação e
+  boas-vindas = Karina). Nesse guia, o "sim" da Isabela autoriza só esses
+  passos e só esses países. UK: pesquisar, mas não enviar sem a Karina
+  liberar.
 
 ## O que o Claude NÃO consegue fazer sozinho
 

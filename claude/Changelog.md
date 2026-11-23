@@ -11,7 +11,60 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
-## 2026-11-23 — Guia de prospecção de federações (senha `BANDEIRA 50`)
+## 2026-11-23 (2ª) — Prospecção: processo novo nos 13 países, cadência de 3 tentativas, senha `FEDS50`
+
+Pedido da Karina (12h38–12h44); aprovado na mesma conversa.
+
+- **Supabase, seção `projetos`, entrega `pj-cl-f14`, só nos 13 países**
+  (p66 Morocco, p50 Vietnam, p12 Finland, p21 Lithuania, p23 Netherlands,
+  p29 Serbia, p30 Slovakia, p31 Slovenia, p73 New Zealand, p02 Austria, p07
+  Croatia, p10 Denmark, p35 United Kingdom). Revisão 21268 → 21269.
+  Backup `bkp_projetos_2026-11-23_antes_prospeccao`; script
+  `sql/2026-11-23_prospeccao_13_paises.sql` (com a volta).
+  - `-s1` Buscar e contatar candidato (Isabela): Pesquisar candidato ·
+    **Coletar os contatos** (`-r5`, novo) · **Escrever e revisar o e-mail**
+    (`-r6`, novo) · Contatar candidato → **Fazer a 1ª tentativa** (`-r2`) ·
+    Receber a resposta → **Fazer a 2ª tentativa** (`-r3`, +7) · Recontatar
+    candidato → **Fazer a 3ª tentativa** (`-r4`, +14) · **Contatar a
+    próxima opção** (`-r7`, novo, +21 — o Carinha avisa quando começa).
+  - `-s2` Apresentar a WPF (Isabela) › Responder as dúvidas · Confirmar que
+    o candidato topa seguir · Coletar o WhatsApp do contato · Marcar reunião
+    (`-a1..a4`, novos).
+  - **Fazer reunião** (`-s9`, novo, depois do s2): Karina no UK (país grande),
+    Isabela nos outros 12.
+  - `-s4` Coletar documentos e todas as filhas → Karina (antes parte era da
+    Isabela).
+  - **Dar as boas-vindas** (`-s10`, novo, depois de Verificar documentos;
+    Karina) › Mandar o e-mail de boas-vindas · Fazer o contato no WhatsApp.
+  - `-s6` Coletar informações pro site → Isabela, 5 passos: Coletar os dados
+    da federação (novo) · Links → Coletar os links de mídia · Board →
+    Coletar a diretoria · Fotos → Coletar as fotos · Coletar a bio curta
+    (novo).
+  - **Austria, Croatia, Denmark reiniciados:** Pesquisar/Contatar voltaram
+    de Finalizado pra Não iniciado, sem "Finalizado em" (contato de 26–27/10
+    desconsiderado, pedido da Karina).
+  - **Datas** (2 por dia útil, 27/11 livre — é do Roberto): pesquisa+contatos
+    +e-mail / 1ª tentativa: Morocco e Vietnam 25/11→26/11; Finland e
+    Lithuania 26/11→30/11; Netherlands e Serbia 30/11→01/12; Slovakia e
+    Slovenia 01/12→02/12; New Zealand e Austria 02/12→03/12; Croatia e
+    Denmark 03/12→04/12 (próxima opção 25/12 → 28/12); UK pesquisa 04/12,
+    tentativas sem data até a Karina liberar.
+  - País e `-s1` = Não iniciado, Início = pesquisa, Fim = próxima opção.
+    Tudo no Histórico (autor "Claude (a pedido da Karina)").
+  - Conferido: 13 × (r7, s9, s10); s4 dos 13 só Karina; nenhuma data nova em
+    fim de semana nem em 27–28/11. Outros 57 países e outras entregas
+    intactos.
+- **Guia `worker/instrucoes/prospeccao-federacoes.md`:** senha `BANDEIRA 50`
+  → **`FEDS50`**; cadência de 3 tentativas semanais + troca de opção no
+  +21; tabela "Quem faz o quê"; ids novos e tabela de gravação refeita;
+  reunião da Karina em país grande (UK).
+- **`claude/LEIA-PRIMEIRO.md`:** item da prospecção atualizado (senha nova).
+- **Por quê:** a Karina quis o contato inicial inteiro com a Isabela, com
+  insistência de 3 semanas por contato, e ela (Karina) só a partir da
+  reunião de país grande, documentação e boas-vindas.
+
+---
+## 2026-11-23 — Guia de prospecção de federações (senha `BANDEIRA 50`, trocada por `FEDS50` na 2ª entrada)
 
 Pedido da Karina (12h17–12h26) e OK dela (12h30).
 

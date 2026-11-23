@@ -1,6 +1,6 @@
 # Prospecção de federações (50 Federações Membros) — instrução
 
-> **Senha de ativação: `BANDEIRA 50`.** Quando a Isabela escrever essa senha
+> **Senha de ativação: `FEDS50`.** Quando a Isabela escrever essa senha
 > numa sessão do projeto WPF Gestão, o Claude dela segue este guia do início
 > ao fim. Sem a senha, este guia não se aplica.
 > **Quem usa:** o Claude da Isabela Castro (projeto WPF Gestão, mesmo repo
@@ -11,8 +11,8 @@
 
 Achar, país por país, **o melhor candidato a federação-membro da WPF**,
 trazer os contatos, escrever o e-mail de primeiro contato e acompanhar a
-conversa até o candidato **topar seguir com a WPF** — ou, **só se for
-necessário**, até marcar uma reunião com a Karina. Você pesquisa, organiza,
+conversa até o candidato **topar seguir com a WPF** — com reunião **só se
+for estritamente necessária** (ver "Quem faz o quê"). Você pesquisa, organiza,
 escreve e revisa; **quem decide é a Isabela** (e, acima dela, a Karina).
 
 ## Ao ativar (antes de qualquer coisa)
@@ -20,8 +20,8 @@ escreve e revisa; **quem decide é a Isabela** (e, acima dela, a Karina).
 1. Clonar o repo e ler `claude/LEIA-PRIMEIRO.md`, `claude/Changelog.md` e
    `claude/Prox-Passos.md` (regra do projeto).
 2. Ler o estado atual dos países (seção "Onde ficam os dados") e mostrar à
-   Isabela uma tabela curta: país · passo atual · prazo · candidato já
-   contatado (se houver).
+   Isabela uma tabela curta: país · passo atual · prazo · candidato e
+   opção atual (1ª, 2ª…) · próxima tentativa.
 3. Perguntar: **"Seu Claude envia os e-mails pelo seu Gmail (sempre depois
    do seu 'sim') ou só escreve o rascunho e você envia?"** Guardar a
    resposta pra sessão inteira. Quem decide é a Isabela.
@@ -33,20 +33,25 @@ Os países da entrega **"50 Federações Membros"** (`pj-cl-f14`) cujo passo
 **"Buscar e contatar candidato"** não está Finalizado. Sempre conferir no
 banco: a lista vale pelo que estiver lá, não por esta tabela.
 
-| Situação em 23/11 | Países |
-|---|---|
-| Não começados | Morocco, Vietnam, Finland, Lithuania, Netherlands, Serbia, Slovakia, Slovenia, New Zealand |
-| Contatados em 26–27/10, sem resposta (recontato 24/11) | Austria, Croatia, Denmark |
-| Bloqueado | United Kingdom |
+Datas iniciais gravadas em 23/11 (2 países por dia útil; 27/11 livre). O
+Claude ajusta as datas quando o envio real acontecer.
 
-**Austria, Croatia, Denmark:** antes de pesquisar de novo, descobrir **quem
-foi contatado e quando** (Interações do país no CRM, Histórico da linha,
-Gmail da Isabela/Karina se tiver acesso). Se não achar, perguntar à
-Isabela. Aí decidir com ela: recontatar o mesmo candidato, ou passar pra
-outro melhor.
-**United Kingdom:** é um caso diferente e estava parado ("falaremos mais
-tarde", 20/10). Fazer a pesquisa normalmente, mas **não mandar nada** sem a
-Isabela confirmar com a Karina que o UK está liberado.
+| Pesquisa, contatos e e-mail | 1ª tentativa | Países |
+|---|---|---|
+| 25/11 | 26/11 | Morocco, Vietnam |
+| 26/11 | 30/11 | Finland, Lithuania |
+| 30/11 | 01/12 | Netherlands, Serbia |
+| 01/12 | 02/12 | Slovakia, Slovenia |
+| 02/12 | 03/12 | New Zealand, Austria |
+| 03/12 | 04/12 | Croatia, Denmark |
+| 04/12 | só com liberação da Karina | United Kingdom |
+
+**Austria, Croatia, Denmark:** recomeçam do zero (Karina, 23/11): o contato
+de 26–27/10 é desconsiderado. Pesquisar como se nunca tivessem sido
+contatados.
+**United Kingdom:** país grande, caso diferente. Fazer a pesquisa
+normalmente, mas **não mandar nada** sem a Isabela confirmar com a Karina
+que o UK está liberado. A reunião do UK é da Karina.
 
 ## Passo 1 — Pesquisar o país (sempre estes 3 blocos, com fonte)
 
@@ -172,10 +177,24 @@ não é fechar.
 8. Assunto específico (nada de "Partnership opportunity"): cite o
    candidato ou o país.
 
-**Recontato** (7 dias sem resposta → no dia útil seguinte): 2–4 linhas,
-responde na mesma thread, traz **um elemento novo e verdadeiro** (não só
-"just following up"), mesma regra de não prometer. Sem resposta depois do
-recontato: propor à Isabela o próximo candidato do ranking.
+**Cadência — 3 tentativas por contato, uma por semana (Karina, 23/11):**
+
+| Dia | Passo na Projetos |
+|---|---|
+| 0 | Fazer a 1ª tentativa (o e-mail) |
+| +7 | Fazer a 2ª tentativa |
+| +14 | Fazer a 3ª tentativa |
+| +21 | Contatar a próxima opção — **o Carinha avisa** (a tarefa começa nesse dia) |
+
+- Fim de semana ou feriado → próximo dia útil.
+- 2ª e 3ª tentativas: 2–4 linhas, na mesma thread, cada uma com **um
+  elemento novo e verdadeiro** (não só "just following up"), mesma regra de
+  não prometer, Karina em cópia.
+- Sem resposta em 3 semanas → partir para a **próxima opção do ranking**
+  (2ª, depois 3ª, etc.), com e-mail novo e o mesmo ciclo de 3 semanas. Se o
+  ranking acabar, pesquisar de novo e trazer novas opções à Isabela.
+- Resposta em qualquer ponto → parar as tentativas e seguir em "Respostas
+  do candidato".
 
 ## Revisão — o Claude barra o que não está bom
 
@@ -209,7 +228,7 @@ Exemplos de bloqueio:
   filiar a federação e mandar estatuto e registro). Responda as perguntas
   com fatos do site; o que não souber, diga que vai confirmar e **pergunte
   à Isabela** (que leva à Karina). Nunca invente resposta.
-- **Marcar reunião com a Karina só se necessário**, quando:
+- **Reunião só se for estritamente necessária**, quando:
   - o candidato **pede** uma conversa/call;
   - há interesse real, mas as perguntas são de **condições** (custos,
     compromissos, direitos, papel no board, exclusividade) que só a Karina
@@ -218,28 +237,60 @@ Exemplos de bloqueio:
     outra entidade;
   - é um ator grande/político (governo, órgão do esporte, entidade
     internacional).
-  Nesses casos, propor 2–3 horários que a Isabela confirmou com a Karina,
-  sempre com a Karina em cópia.
-- Candidato topou seguir → avisar a Isabela para a Karina assumir o passo
-  "Apresentar a WPF" / "Abrir a federação". Este guia termina aí.
+  **Quem faz a reunião:** a Karina nos países grandes do poker (hoje: United
+  Kingdom); nos outros, a Isabela — com a Karina chamada só se o assunto
+  for de condições que só ela responde. Propor 2–3 horários confirmados,
+  Karina sempre em cópia. Sem necessidade de reunião → "Fazer reunião" fica
+  Cancelado.
+
+## Quem faz o quê depois do contato (divisão da Karina, 23/11)
+
+| Passo do país | Quem |
+|---|---|
+| Buscar e contatar candidato (pesquisa, contatos, e-mail, 3 tentativas, próxima opção) | Isabela |
+| Apresentar a WPF › Responder as dúvidas · Confirmar que o candidato topa seguir · Coletar o WhatsApp do contato · Marcar reunião | Isabela |
+| Fazer reunião | Karina (países grandes, ex. UK) · Isabela (os outros) |
+| Abrir a federação · Coletar documentos (com as cobranças) · Verificar documentos | Karina |
+| Dar as boas-vindas › Mandar o e-mail de boas-vindas · Fazer o contato no WhatsApp | Karina |
+| Coletar informações pro site › Coletar os dados da federação · Coletar os links de mídia · Coletar a diretoria · Coletar as fotos · Coletar a bio curta | Isabela |
+| Criar página no site · Postar página no site | Karina |
+
+Candidato topou seguir → o Claude da Isabela fecha "Apresentar a WPF",
+passa o WhatsApp do contato pra Karina (Interação no CRM + aviso à Isabela)
+e a Karina assume documentação e boas-vindas. A Isabela continua com
+"Coletar informações pro site". A prospecção deste guia termina aí.
 
 ## Atualizar a Dash (Projetos + CRM)
 
-**Responsável continua Karina Bupp** em todas as linhas (não trocar).
-Toda gravação: **mostrar o que vai mudar e só gravar com o "sim" da
+**Responsáveis** já gravados em 23/11 conforme a tabela "Quem faz o quê"
+(não trocar sem a Karina). Toda gravação: **mostrar o que vai mudar e só gravar com o "sim" da
 Isabela.** Autorização da Karina (23/11/2026): o "sim" da Isabela vale como
-aprovação **só** para os passos desta seção (Projetos `…-s1` e suas filhas,
-Histórico/`proximaAcao` do país, e Empresas/Contatos/Interações do CRM) e
+aprovação **só** para os passos desta seção (Projetos `…-s1`, `…-s2`,
+`…-s9` e `…-s6` com as filhas, Histórico/`proximaAcao` do país, e
+Empresas/Contatos/Interações do CRM) e
 **só** nos países deste guia. Qualquer outra mudança segue a regra geral do
 projeto (aprovação da Karina). Se o Claude da Isabela não tiver acesso ao Supabase, entregar a
 lista das mudanças pra ela fazer na Dash.
 
 **Onde ficam os dados** (Supabase, projeto `ufwmktomjfcvloswgnyt`, tabela
 `wpf_dashboard_data`):
-- **Projetos** = seção `projetos`, entrega `pj-cl-f14`. Cada país tem o
-  passo `…-pNN-s1` "Buscar e contatar candidato" com:
-  `-r1` Pesquisar candidato · `-r2` Contatar candidato · `-r3` Receber a
-  resposta (7 dias) · `-r4` Recontatar candidato (dia útil seguinte).
+- **Projetos** = seção `projetos`, entrega `pj-cl-f14`. Nos 13 países deste
+  guia (ids `pj-cl-f14-pNN`: p66 Morocco, p50 Vietnam, p12 Finland, p21
+  Lithuania, p23 Netherlands, p29 Serbia, p30 Slovakia, p31 Slovenia, p73
+  New Zealand, p02 Austria, p07 Croatia, p10 Denmark, p35 United Kingdom),
+  na ordem:
+  - `-s1` Buscar e contatar candidato › `-s1-r1` Pesquisar candidato ·
+    `-s1-r5` Coletar os contatos · `-s1-r6` Escrever e revisar o e-mail ·
+    `-s1-r2` Fazer a 1ª tentativa · `-s1-r3` Fazer a 2ª tentativa ·
+    `-s1-r4` Fazer a 3ª tentativa · `-s1-r7` Contatar a próxima opção
+  - `-s2` Apresentar a WPF › `-a1` Responder as dúvidas · `-a2` Confirmar
+    que o candidato topa seguir · `-a3` Coletar o WhatsApp do contato ·
+    `-a4` Marcar reunião
+  - `-s9` Fazer reunião · `-s3` Abrir a federação · `-s4` Coletar
+    documentos · `-s5` Verificar documentos · `-s10` Dar as boas-vindas ·
+    `-s6` Coletar informações pro site · `-s7` Criar página · `-s8` Postar
+    página
+  Os outros países da entrega seguem o processo antigo (não mexer).
 - **CRM** = seção `members2`:
   - Empresas do país: `data.paises["<País>"].__empresas[]` —
     `{ id, tipo, nome, email, tel, site, redeSocial }` (tipo
@@ -257,11 +308,15 @@ lista das mudanças pra ela fazer na Dash.
 | Momento | Projetos | CRM |
 |---|---|---|
 | Isabela aprova o candidato | `-r1` Finalizado (finalizadoEm = hoje) | Empresa + Contatos; Interação "Pesquisa: candidato escolhido X, porquê…" |
-| E-mail enviado | `-r2` Finalizado; `-r3` Início = hoje, Fim = +7 dias; `-r4` = dia útil seguinte ao fim do `-r3` | Interação "E-mail enviado a <nome> (Karina em cópia): <assunto>" |
-| Resposta recebida | `-r3` Finalizado; `-r4` Cancelado se não precisou; `s1` Finalizado quando o candidato topou seguir | Interação com o resumo da resposta |
-| Recontato enviado | `-r4` Finalizado | Interação "Recontato enviado…" |
-| Sem resposta após recontato / troca de candidato | Não fechar `s1`; anotar no Histórico | Interação "Sem resposta; próximo candidato: Y" |
-| Reunião marcada com a Karina | Anotar no Histórico do país e em `proximaAcao` | Interação "Reunião marcada <data>" |
+| Contatos achados / e-mail aprovado | `-r5` / `-r6` Finalizado | — |
+| 1ª tentativa enviada (dia 0) | `-r2` Finalizado; datas: `-r3` = +7, `-r4` = +14, `-r7` = +21 (dia útil) | Interação "1ª tentativa a <nome> (Karina em cópia): <assunto>" |
+| 2ª / 3ª tentativa enviada | `-r3` / `-r4` Finalizado | Interação "2ª/3ª tentativa…" |
+| Resposta recebida | tentativas que não precisaram e `-r7` → Cancelado; `-s1` fica Finalizado; seguir em `-s2` | Interação com o resumo da resposta |
+| Dia +21 sem resposta (o Carinha avisa) | Histórico: "2ª opção: Y"; `-r1` e `-r5`/`-r6` reabertos se precisar; `-r2`, `-r3`, `-r4`, `-r7` reabertos (Não iniciado) com datas novas a partir do novo dia 0 | Interação "Sem resposta de X em 3 semanas; próxima opção: Y" |
+| Respostas e WhatsApp | `-a1`, `-a2`, `-a3` Finalizado conforme acontecem | Contato com `tel` (WhatsApp); Interação |
+| Reunião | `-a4` Finalizado ao marcar; `-s9` com data (ou Cancelado se não precisar) | Interação "Reunião marcada <data> com <quem>" |
+| Candidato topou seguir | `-s2` Finalizado; avisar a Isabela que a Karina assume `-s3`, `-s4`, `-s5`, `-s10` | Interação "Topou seguir"; perguntar se o status vira Negociação |
+| Infos pro site | `-s6` filhas Finalizado conforme coletadas | Empresa/links atualizados |
 
 Regras de gravação:
 - **Sempre SQL atômico** (`update … set data = jsonb_set(…)`, lendo e
@@ -270,7 +325,7 @@ Regras de gravação:
   padrão de `worker/instrucoes/agente-eventos.md`.
 - Toda mudança na Projetos vira item no `historico` da linha:
   `{ id, tipo:"edicao", autor:"Claude (Isabela)", texto, quando }`.
-- Datas nunca em sábado/domingo (vai pra segunda).
+- Datas nunca em sábado/domingo nem feriado (vai pro próximo dia útil).
 - Linhas-mãe (país, `s1`) têm status e datas calculados das filhas: deixar
   coerente (a Dash recalcula ao abrir).
 - Nunca mexer em outras entregas, outros países ou outros campos.

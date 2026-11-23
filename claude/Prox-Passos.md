@@ -298,15 +298,20 @@ reconstruir o raciocínio.
   Propor à Karina antes.
   - *Aberto em:* 2026-10-20
 
-- [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`BANDEIRA 50`)** —
-  guia `worker/instrucoes/prospeccao-federacoes.md` publicado em 23/11.
-  Depois da 1ª sessão da Isabela, conferir com a Karina: qualidade da
-  pesquisa e do ranking, se os e-mails seguiram as regras (Karina em cópia),
-  se Projetos (`pj-cl-f14`, `…-s1-r1..r4`) e CRM (`members2`) foram gravados
-  certo, e ajustar o guia se precisar.
-  - *Em aberto:* UK só pode receber e-mail quando a Karina liberar; Austria,
-    Croatia e Denmark têm recontato marcado pra 24/11 (descobrir antes quem
-    foi contatado em 26–27/10).
+- [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`FEDS50`)** —
+  guia `worker/instrucoes/prospeccao-federacoes.md` (23/11). Depois da 1ª
+  sessão da Isabela (pesquisas a partir de 25/11), conferir com a Karina:
+  qualidade da pesquisa e do ranking, se os e-mails seguiram as regras
+  (Karina em cópia), se Projetos (`pj-cl-f14`, 13 países, `-s1-r1..r7`,
+  `-s2-a1..a4`, `-s9`) e CRM (`members2`) foram gravados certo, e ajustar o
+  guia se precisar.
+  - *Em aberto:* UK sem datas nas tentativas até a Karina liberar o envio.
+    Conferir se o aviso do Carinha no dia +21 ("Contatar a próxima opção")
+    chega pra Isabela como esperado (1º caso: Morocco/Vietnam, 17/12).
+    "Fazer reunião" com a Karina só no UK — se ela considerar outro país
+    "grande do poker", trocar o responsável do `-s9`.
+  - *Processo diferente:* os 13 países têm o processo novo (10 passos); os
+    outros 57 da entrega seguem o antigo (decisão da Karina, opção 2).
   - *Onde:* guia + Supabase `projetos`/`members2`.
   - *Aberto em:* 2026-11-23
 
