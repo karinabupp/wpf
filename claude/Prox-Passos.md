@@ -298,6 +298,18 @@ reconstruir o raciocínio.
   Propor à Karina antes.
   - *Aberto em:* 2026-10-20
 
+- [ ] **Resumos do Agente de Eventos não chegam no WhatsApp (achado 23/11)**
+  — o agente grava `recado|<epoch>|agente_eventos` em `wpf_agente_avisos`,
+  mas na rotina da Projetos (Karina está em `projetos_liberados`) o Carinha
+  só entrega `email|`, `slack|` e `sistema|` (`pjEhExterno`). Os de 05/11,
+  16/11 e 19/11 estão com `avisado_em` vazio. Opções: o agente passar a
+  gravar `sistema|agente_eventos|<epoch>` (sai na rodada desde 23/11), ou o
+  Carinha aceitar `recado|` em `pjEhExterno`. Propor à Karina; decidir o que
+  fazer com os 3 resumos velhos (descartar ou mandar).
+  - *Onde:* `worker/instrucoes/agente-eventos.md` (seção do resumo) ou
+    `worker/whatsapp-bridge.js` (`pjEhExterno`).
+  - *Aberto em:* 2026-11-23
+
 - [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`FEDS50`)** —
   guia `worker/instrucoes/prospeccao-federacoes.md` (23/11). Depois da 1ª
   sessão da Isabela (pesquisas a partir de 25/11), conferir com a Karina:

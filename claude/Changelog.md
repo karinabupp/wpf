@@ -11,6 +11,29 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-23 (4ª) — Carinha entrega recado do sistema na rodada; FEDS50 enviado
+
+Pedido e OK da Karina (12h53–12h56): mandar a senha FEDS50 pra ela e pra
+Isabela pelo WhatsApp, com a senha como 1ª mensagem.
+
+- **`worker/whatsapp-bridge.js`:** função nova `pjEntregarSistema`, chamada
+  em `pjRodada` (rodadas dos :05/:35, janela aberta, dia útil, 8h–21h).
+  Recado com chave `sistema|…` pendente sai sozinho, texto exato, na ordem
+  em que foi gravado (`detectado_em`, depois `id`), marcado `via=rodada`.
+  Antes só saía quando a pessoa escrevia pro Carinha. Exportada em
+  `_teste`. Teste com fetch simulado: só `sistema|` sai, na ordem, e é
+  marcado. Sem custo extra (não chama o Claude; dentro da janela de 24h).
+  Deploy pelo GitHub Actions (ok, 15:57 UTC). Nenhum recado `sistema|`
+  antigo estava pendente.
+- **Supabase `wpf_agente_avisos`:** 4 linhas — pra Karina (5513997290197)
+  e Isabela (5511986898886): `sistema|feds50|1|<tel>` = "FEDS50" e, 1 s
+  depois, `sistema|feds50|2|<tel>` com a explicação (sem a palavra "WPF").
+  **Entregues:** Karina 15:57 UTC e Isabela 15:59 UTC, na ordem certa
+  (FEDS50 primeiro). As duas escreveram pro Carinha antes da rodada, então
+  saíram pela conversa (`via=conversa`); a entrega pela rodada ainda não
+  foi vista em produção (conferir no próximo recado do sistema).
+
+---
 ## 2026-11-23 (3ª) — Guia FEDS50: próxima opção só sem avanço; países grandes
 
 Pedido da Karina (12h52). Só o guia e o LEIA-PRIMEIRO (nada no banco).
