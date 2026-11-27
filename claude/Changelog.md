@@ -11,6 +11,17 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (12ª entrada) — 2027: frentes em roxo; sem barra de rolagem do topo
+
+Pedido e OK da Karina (19:14–19:20). Só no bloco "2027" do `index.html`.
+
+- Chips das Frentes em tons de roxo, do escuro ao claro: Comunidade
+  `#3b0f7a`, Membro `#6d28d9`, Mídia `#c4b5fd` e Stakeholders `#e9e2fd`. Nos
+  dois claros, o texto é roxo-escuro (`TXT_FR`).
+- A barra de rolagem extra acima da tabela (`#p27-rolagem-topo`) foi
+  escondida. A rolagem normal da tabela continua.
+
+---
 ## 2026-11-27 (11ª entrada) — 2027: coluna Descrição
 
 Pedido e OK da Karina (19:05–19:15).
