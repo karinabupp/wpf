@@ -11,6 +11,28 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (14ª entrada) — 2027: chips de Autoridade no topo; selecionar várias linhas
+
+Pedido e OK da Karina (19:30–19:45). Só no bloco "2027" do `index.html`.
+
+- **Topo:** embaixo do logo ficam só os chips de **Autoridade** (Comunidade,
+  Membro, Mídia, Stakeholders, em cinza), com x/total. Clicar filtra e
+  clicar de novo tira. Saíram os chips de objetivo, a lateral (13ª entrada)
+  e a **coluna Objetivo** (tirada de `COLUNAS`; o campo `objs` continua
+  guardado, sem uso). Larguras padrão: Nome 480, Descrição 300, Autoridade
+  320.
+- **Selecionar várias linhas e colocar dentro de outra:** caixinha no começo
+  da linha (aparece ao passar o mouse, ou sempre que há seleção). Com 1+
+  marcadas, aparece uma barra "N selecionadas · Colocar dentro de ▾ ·
+  Limpar". O destino é escolhido numa lista com busca; destinos inválidos
+  (passaria de 6 níveis ou entraria nela mesma) ficam apagados. Se uma
+  marcada está dentro de outra marcada, vai junto com a mãe. Usa o mesmo
+  `moverLinha` do arrastar (Histórico igual), e um Ctrl/Cmd+Z desfaz o
+  movimento inteiro.
+- **Testes:** no Chromium headless, 2 linhas marcadas entraram na linha
+  escolhida, o Ctrl+Z voltou tudo e não houve erro de JS.
+
+---
 ## 2026-11-27 (13ª entrada) — 2027: objetivos sob o logo; Frentes viram "Autoridade" na lateral
 
 Pedido e OK da Karina (19:23–19:35). Só no bloco "2027" do `index.html`.
