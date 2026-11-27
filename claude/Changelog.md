@@ -11,6 +11,23 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (11ª entrada) — 2027: coluna Descrição
+
+Pedido e OK da Karina (19:05–19:15).
+
+- **`index.html`, só no bloco "2027":** a coluna "Critério de conclusão" da
+  2027 virou **"Descrição"** (mesmo campo `criterio`; placeholder e
+  Histórico dizem "Descrição"). Ela aparece logo depois de Nome. Na
+  Projetos continua "Critério de conclusão". As colunas ocultas usam a
+  chave nova `wpf_p27_ocultas_v3` (Nome, Descrição, Objetivo e Frentes
+  visíveis). As larguras padrão ficaram Nome 480, Descrição 280, Objetivo
+  250 e Frentes 270.
+- **Banco:** não mexi. A Karina já tinha tirado "(eles + a gente)" do nome
+  da linha da TDA pela tela, com a Dash aberta. Gravar por fora
+  arriscaria ser sobrescrito pela aba dela, então a descrição dessa linha
+  fica pra ela digitar.
+
+---
 ## 2026-11-27 (10ª entrada) — 2027: chips de objetivo, Objetivo/Frentes múltiplos, 10 projetos
 
 Pedido e OK da Karina (18:46–19:05).
