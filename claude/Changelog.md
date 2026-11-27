@@ -11,6 +11,43 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (10ª entrada) — 2027: chips de objetivo, Objetivo/Frentes múltiplos, 10 projetos
+
+Pedido e OK da Karina (18:46–19:05).
+
+- **`index.html`, só no bloco "2027" (prefixo `p27-`). A Projetos não mudou.**
+  - **Topo:** as barras deram lugar a 3 chips coloridos, **Autoridade**
+    (azul), **Caminho do Mundial** (verde) e **Gasto** (laranja). Cada um
+    mostra "projetos com o objetivo / total de projetos", respeitando o
+    filtro de Frente. Clicar filtra e clicar de novo tira o filtro. O filtro
+    de Prioridade saiu da tela.
+  - **Objetivo e Frentes viraram múltipla escolha** (campos novos `objs` e
+    `frs` da entrega; os antigos `objetivo`/`frente` ficam sem uso na 2027).
+    Objetivos: autoridade, mundial, gasto. Frentes: comunidade, membro,
+    midia, stakeholders. Só aparecem os chips escolhidos; o "+" (ou um
+    clique num chip) abre uma lista com caixinhas. Só a entrega tem esses
+    campos. As mudanças vão pro Histórico, e o arrastar-pra-copiar também
+    vale pra eles.
+  - **Colunas:** só Nome, Objetivo e Frentes aparecem (as outras ficam
+    ocultas e voltam pelo botão ⋯). Chaves novas no navegador:
+    `wpf_p27_colunas_v2` e `wpf_p27_ocultas_v2`. O filtro de Frente usa as 4
+    frentes novas.
+  - **Linhas mais finas:** chips menores, células com menos espaço e a
+    coluna Nome mais larga (440).
+- **Banco:** a seção `projetos_2027` foi criada com 10 entregas: Destacar/Divulgar
+  Campeonatos Nacionais; Ladies Weekend 2027; Ladies Nations Cup; Nations
+  Cup; Ranking; App WPF para jogador (Critério: controle de bankroll,
+  acompanhamento de sessões, guias de regras/modalidades e conteúdo
+  quente); Desenvolver o aspecto “networking” do membership; App
+  WPF/Pokercine para gerenciar torneios e clubes; TDA: Site da TDA; TDA:
+  Divulgação do App como ferramenta (eles + a gente). Objetivo e Frentes
+  ficaram em branco; a Karina preenche.
+- **Testes:** Dash inteira no Chromium headless, com as libs locais e a
+  nuvem bloqueada: chips contam e filtram, a lista marca/desmarca vários,
+  o filtro de Frente funciona, o Histórico registra, a Projetos não mudou.
+  Nenhum erro de JS.
+
+---
 ## 2026-11-27 (9ª entrada) — Guia nova "2027"; saem Planejamento e Plano de Ações
 
 Pedido e OK da Karina (18:32).

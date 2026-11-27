@@ -23,6 +23,9 @@ reconstruir o raciocínio.
   - *Backup:* tabela `bkp_planejamento_mindmap_2026_11_27_antes_apagar` com
     o que havia de Planejamento/Mindmap. A Karina pediu "apagar de vez":
     apagar a tabela quando ela confirmar que não quer nada de volta.
+  - *Em aberto (Karina):* marcar Objetivo e Frentes das 10 linhas; o
+    "dos e etc" do App WPF para jogador ficou de fora porque não deu pra
+    entender — confirmar com ela.
   - *Lembrete:* a 2027 é uma cópia da Projetos. Uma melhoria na Projetos só
     vale na 2027 se for repetida lá (prefixo `p27-`, bloco JS "2027").
   - *Aberto em:* 27/11
