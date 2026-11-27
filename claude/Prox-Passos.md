@@ -372,6 +372,16 @@ reconstruir o raciocínio.
   - *Onde:* Supabase `projetos` (`pj-cl-f14-p21`) e `members2` (Lithuania).
   - *Aberto em:* 2026-11-27
 
+- [ ] **Social media automática: avisar a Karina do novo cronograma (27/11)** —
+  as 21 tarefas abertas foram deslocadas +67 dias (início 15/01/2027, fim
+  02/04/2027; antes 25/01/2027). Falta: (1) avisar a Karina; (2) conferir se
+  as metas do Instagram (16 mil seguidores) e o calendário de posts que
+  dependem do agente precisam de ajuste; (3) "Montar a postagem automática"
+  (02/02/2027) tem partes finalizadas em 2026, vale a Karina rever.
+  - *Onde:* Supabase `projetos` (`pj-v4-0114`). Backup:
+    `bkp_projetos_2026_11_27_antes_social_media_auto`.
+  - *Aberto em:* 2026-11-27
+
 - [ ] **Tarefas em atraso da Isabela — pendências que sobraram (27/11)** —
   feito: Filipinas, Macau, Malásia, Singapura (prazos/cobranças) e background
   check do Justin Crespo (Equador/Panamá, histórico da tarefa do Equador).

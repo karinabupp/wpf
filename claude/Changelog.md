@@ -11,6 +11,22 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (8ª entrada) — Social media automática: prazos a partir de 15/01/2027 (só banco da Dash)
+
+Pedido da Isabela, com backup `bkp_projetos_2026_11_27_antes_social_media_auto`
+(projetos 21365 → 21366). Nenhum arquivo de código foi alterado.
+
+- Projeto "Social media automática" (`pj-v4-0114`, responsável Karina): as 21
+  tarefas não finalizadas foram deslocadas em +67 dias (datas em fim de
+  semana passaram para a segunda). A 1ª, "Mapear todos os erros do social
+  media", agora começa em 15/01/2027. Ordem e intervalos mantidos.
+- Etapas e projeto recalculados: o projeto passa a terminar em 02/04/2027 (antes
+  25/01/2027); "Aplicar na WPF" fica em 16/03 a 02/04/2027. O objetivo "Chegar a
+  16 mil seguidores" herdou o novo fim.
+- Tarefas finalizadas e o trabalho da Karina ficaram intactos. Cada tarefa
+  alterada recebeu uma entrada no Histórico.
+
+---
 ## 2026-11-27 (7ª entrada) — Irlanda: Board e Fotos finalizadas (só banco da Dash)
 
 Pedido da Isabela, com backup `bkp_projetos_2026_11_27_antes_ok_irlanda`
