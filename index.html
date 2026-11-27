@@ -4480,6 +4480,8 @@
      (x/total, clicar filtra); sem o filtro de Prioridade; Objetivo e Frentes
      como botões liga/desliga na linha da entrega. */
   #p27-view .p27-frente:has(#p27-prio-sel) { display: none; }
+  /* 27/11 (Karina): sem a barra de rolagem extra do topo na 2027. */
+  #p27-rolagem-topo { display: none !important; }
   #p27-objetivos .p27-chip { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--c); color: var(--c); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-weight: 650; cursor: pointer; user-select: none; }
   #p27-objetivos .p27-chip b { background: var(--c); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; }
   #p27-objetivos .p27-chip:hover { background: color-mix(in srgb, var(--c) 8%, #fff); }
@@ -4490,14 +4492,14 @@
   .p27-togs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 0; min-height: 20px; }
   /* 27/11 (Karina): linhas mais finas na 2027. */
   #p27-tabela tr.p27-linha > td { padding-top: 2px; padding-bottom: 2px; }
-  .p27-tog { border: 1px solid var(--c); background: var(--c); color: #fff; border-radius: 999px; padding: 1px 8px; font: inherit; font-size: 11.5px; font-weight: 550; cursor: pointer; line-height: 1.4; }
+  .p27-tog { border: 1px solid color-mix(in srgb, var(--c) 80%, #3b0f7a); background: var(--c); color: var(--t, #fff); border-radius: 999px; padding: 1px 8px; font: inherit; font-size: 11.5px; font-weight: 550; cursor: pointer; line-height: 1.4; }
   .p27-tog-add { border: 1px dashed #d3d1cb; background: transparent; color: #9b9a97; border-radius: 999px; width: 20px; height: 20px; padding: 0; font: 600 13px/1 Inter, system-ui, sans-serif; cursor: pointer; opacity: 0; }
   tr:hover .p27-tog-add, .p27-tog-add.is-vazio, .p27-tog-add:focus-visible { opacity: 1; }
   .p27-tog-add:hover { border-color: #37352f; color: #37352f; }
   #p27-togmenu { position: fixed; z-index: 1000; background: #fff; border: 1px solid #e6e5e2; border-radius: 10px; box-shadow: 0 10px 28px rgba(15,15,15,.14); padding: 6px; display: flex; flex-direction: column; min-width: 200px; }
   #p27-togmenu button { display: flex; align-items: center; gap: 9px; border: 0; background: none; text-align: left; padding: 7px 9px; border-radius: 6px; font: inherit; font-size: 13px; color: #37352f; cursor: pointer; }
   #p27-togmenu button:hover { background: #f4f3f1; }
-  .p27-togmenu-caixa { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid var(--c); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .p27-togmenu-caixa { width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid color-mix(in srgb, var(--c) 70%, #3b0f7a); color: var(--t, #fff); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
   #p27-togmenu button[aria-checked="true"] .p27-togmenu-caixa { background: var(--c); }
   #p27-wrap { padding: 20px 24px 60px; }
   .p27-topo { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -14085,7 +14087,9 @@ applyRolePermissions();
   const OBJETIVOS_PJ = [{ id: "autoridade", nome: "Autoridade" }, { id: "mundial", nome: "Caminho do Mundial" }, { id: "gasto", nome: "Gasto" }];
   const FRENTES_PJ = [{ id: "comunidade", nome: "Comunidade" }, { id: "membro", nome: "Membro" }, { id: "midia", nome: "Mídia" }, { id: "stakeholders", nome: "Stakeholders" }];
   const COR_OBJ = { autoridade: "#2f6fd0", mundial: "#0f8a66", gasto: "#c2410c" };
-  const COR_FR = { comunidade: "#0e7490", membro: "#7c3aed", midia: "#be185d", stakeholders: "#4b5563" };
+  // 27/11 (Karina): frentes em tons de roxo, do escuro ao claro (TXT_FR = cor do texto no chip).
+  const COR_FR = { comunidade: "#3b0f7a", membro: "#6d28d9", midia: "#c4b5fd", stakeholders: "#e9e2fd" };
+  const TXT_FR = { midia: "#3b0f7a", stakeholders: "#4c1d95" };
   const soIds = (v, L) => (Array.isArray(v) ? v.filter((x, i, arr) => L.some(o => o.id === x) && arr.indexOf(x) === i) : []);
   const SEM_FRENTE = "__sem__";
   const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -14537,7 +14541,7 @@ applyRolePermissions();
     const sel = e[campo] || [];
     const titulo = campo === "objs" ? "objetivo" : "frente";
     return `<div class="p27-togs">` + L.filter(o => sel.includes(o.id)).map(o =>
-      `<button type="button" class="p27-tog is-on" data-tog="${campo}" style="--c:${cores[o.id]}" title="Clique pra mudar">${esc(o.nome)}</button>`).join("") +
+      `<button type="button" class="p27-tog is-on" data-tog="${campo}" style="--c:${cores[o.id]};--t:${(campo === "frs" && TXT_FR[o.id]) || "#fff"}" title="Clique pra mudar">${esc(o.nome)}</button>`).join("") +
       `<button type="button" class="p27-tog-add${sel.length ? "" : " is-vazio"}" data-tog="${campo}" title="Escolher ${titulo}" aria-label="Escolher ${titulo}">+</button></div>`;
   }
   function lixoHtml(e, loc) {
@@ -16133,7 +16137,7 @@ applyRolePermissions();
     const el = document.createElement("div");
     el.id = "p27-togmenu";
     el.setAttribute("role", "menu");
-    el.innerHTML = L.map(o => `<button type="button" role="menuitemcheckbox" aria-checked="${sel.includes(o.id)}" data-v="${o.id}" style="--c:${cores[o.id]}"><span class="p27-togmenu-caixa">${sel.includes(o.id) ? "✓" : ""}</span>${esc(o.nome)}</button>`).join("");
+    el.innerHTML = L.map(o => `<button type="button" role="menuitemcheckbox" aria-checked="${sel.includes(o.id)}" data-v="${o.id}" style="--c:${cores[o.id]};--t:${(campo === "frs" && TXT_FR[o.id]) || "#fff"}"><span class="p27-togmenu-caixa">${sel.includes(o.id) ? "✓" : ""}</span>${esc(o.nome)}</button>`).join("");
     document.body.appendChild(el);
     const r = btn.getBoundingClientRect();
     el.style.left = Math.min(r.left, window.innerWidth - el.offsetWidth - 8) + "px";
