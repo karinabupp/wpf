@@ -375,14 +375,17 @@ reconstruir o raciocínio.
 - [ ] **Tarefas em atraso da Isabela — pendências que sobraram (27/11)** —
   feito: Filipinas, Macau, Malásia, Singapura (prazos/cobranças) e background
   check do Justin Crespo (Equador/Panamá, histórico da tarefa do Equador).
-  Falta: (1) Equador/Panamá: checar registros judiciais e a entidade em cada
-  país, e criar tarefa de background check no Panamá, que não tem; (2) CRM
+  Falta: (1) Equador/Panamá: [feito em 27/11: background check e cobrança final
+  finalizados] opcional: checar registros judiciais do Justin Crespo; (2) CRM
   (`members2`) de Filipinas, Macau, Malásia, Singapura, Equador e Panamá: não
   há registro com o nome do país como chave, decidir como lançar as interações;
   (3) Malásia: a tarefa "Confirmar sobre envio de documentação" da Isabela
   (04/12) cai antes da cobrança de 08/12, avaliar se uma substitui a outra;
-  (4) Portugal "Aprovar com Karina envio de Obs Member letter" (17/11): falta
-  contexto; (5) Grupos Fem FLP&Co FR background check (23/11); (6) Irlanda
+  (4) Portugal "Aprovar com Karina envio de Obs Member letter" (17/11): carta é a
+  mesma das Filipinas; rascunho no Gmail sem destinatário (sem e-mail dos
+  contatos; só info@pokerpt.com) e sem anexo (adaptar o PDF para Portugal);
+  confirmar com a Karina a associação, o Diogo Cardoso e a ligação com a PokerPT; (5) FPL&CO FR: background check feito em 27/11; pedir à federação o
+  comprovante da mudança de endereço/diretoria e os estatutos assinados; (6) Irlanda
   Fotos/Links/Board (24/11); (7) itens antigos: CBTH "detalhador de tarefas",
   renomear "Enviar e-mail de convocação" no Programa de Excelência, Portugal
   background check. Marco do Observer Member das Filipinas: 02/03/2027.

@@ -11,6 +11,25 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (5ª entrada) — Tarefas em atraso da Isabela: Equador, Panamá e FPL&CO (só banco da Dash)
+
+Pedido da Isabela, com backups `bkp_projetos_2026_11_27_antes_final_equ_pan` e
+`bkp_projetos_2026_11_27_antes_fplco` (revisões 21363 → 21365). Nenhum arquivo
+de código foi alterado.
+
+- **Equador e Panamá:** "Efetuar background check dos candidatos"
+  (`pj-mwj910l9cu67`) e a cobrança final com o aviso (`-p57-s4-c3`/`-c4`,
+  `-p60-s4-c3`/`-c4`) finalizados em 27/11 (a Isabela já enviou a cobrança).
+- **FPL&CO FR (Grupos Fem):** "Realizar pesquisa background check"
+  (`pj-mwt2pk71fznt`) finalizada em 27/11. Resultado no histórico: associação
+  de 1901 registrada (W751278044), sem notícia negativa, sem aposta em dinheiro;
+  pendências: comprovante da mudança de endereço e da declaração dos estatutos
+  de 23/11/2025 e da diretoria, estatutos assinados, original em francês.
+- **Portugal:** respostas do formulário "WPF Affiliation Submission" (id 12)
+  conferidas e rascunho da carta de Observer Member criado no Gmail (sem
+  destinatário e sem anexo). CRM de Portugal só tem o status "Abertura".
+
+---
 ## 2026-11-27 (4ª entrada) — Tarefas em atraso da Isabela: Filipinas, Macau, Malásia, Singapura e Equador (só banco da Dash)
 
 Pedido da Isabela (sessão FEDS50). Gravado depois do "pode aplicar" dela, com
