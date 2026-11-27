@@ -11,6 +11,24 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (6ª entrada) — Irlanda: dados do Irish Poker Open (só banco da Dash)
+
+Pedido da Isabela, com backups `bkp_projetos_2026_11_27_antes_irlanda` e
+`bkp_members2_2026_11_27_antes_irlanda` (projetos 21365 → 21366, members2
+18 → 19). Nenhum arquivo de código foi alterado.
+
+- **Projetos (Irlanda › Coletar informações pro site):** "Links"
+  (`pj-cl-np-9f4e3cdd67`) finalizada, com site, redes e e-mail no histórico;
+  "Board" (`pj-cl-np-d763c1134a`) e "Fotos" (`pj-cl-np-65581ea6ed`) em
+  andamento. O Open não tem diretoria formal; as fotos não saíram do site
+  (galeria oficial e autorização pendentes).
+- **CRM (`members2`, Ireland):** empresa `emp_cl_ie01` (Irish Poker Open),
+  contatos `ct_cl_ie01` (Paul O'Reilly) e `ct_cl_ie02` (JP McCann), interação
+  `int_cl_ie01`. A empresa "Irish Poker Open" de Marrocos (`emp_cl_ma04`)
+  ficou como estava.
+- Rascunho no Gmail para o Roberto com esses dados.
+
+---
 ## 2026-11-27 (5ª entrada) — Tarefas em atraso da Isabela: Equador, Panamá e FPL&CO (só banco da Dash)
 
 Pedido da Isabela, com backups `bkp_projetos_2026_11_27_antes_final_equ_pan` e
