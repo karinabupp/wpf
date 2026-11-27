@@ -11,6 +11,16 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (7ª entrada) — Irlanda: Board e Fotos finalizadas (só banco da Dash)
+
+Pedido da Isabela, com backup `bkp_projetos_2026_11_27_antes_ok_irlanda`
+(projetos 21366 → 21367). Nenhum arquivo de código foi alterado.
+
+- "Board" (`pj-cl-np-d763c1134a`) e "Fotos" (`pj-cl-np-65581ea6ed`)
+  finalizadas em 27/11. As três tarefas de "Coletar informações pro site" da
+  Irlanda estão fechadas.
+
+---
 ## 2026-11-27 (6ª entrada) — Irlanda: dados do Irish Poker Open (só banco da Dash)
 
 Pedido da Isabela, com backups `bkp_projetos_2026_11_27_antes_irlanda` e

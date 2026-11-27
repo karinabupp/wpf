@@ -393,13 +393,14 @@ reconstruir o raciocínio.
     `pj-mwj910l9cu67`).
   - *Aberto em:* 2026-11-27
 
-- [ ] **Irlanda — fechar Board e Fotos (27/11)** — dados do Irish Poker Open
-  levantados (Links finalizado). Falta: (1) confirmar com a Karina se o Open é
-  o candidato da Irlanda (é evento comercial, com PokerStars e Paddy Power; o
-  Irish Poker Tour é outra entidade); (2) pedir autorização e as fotos a
+- [ ] **Irlanda — acompanhar o Irish Poker Open (27/11)** — Links, Board e
+  Fotos finalizadas pela Isabela em 27/11 (dados do Irish Poker Open). Falta:
+  (1) confirmar com a Karina se o Open é o candidato da Irlanda (é evento
+  comercial, com PokerStars e Paddy Power; o Irish Poker Tour é outra
+  entidade); (2) as fotos de verdade: pedir autorização e arquivos a
   info@irishpokeropen.com (galeria: irishpokeropen.com/global-gallery); (3)
-  confirmar quem representa o Open (Paul O'Reilly e JP McCann); (4) enviar o
-  rascunho para o Roberto; (5) razão social (talvez IPF Entertainment Ltd).
+  enviar o rascunho para o Roberto; (4) razão social (talvez IPF
+  Entertainment Ltd).
   - *Onde:* Supabase `projetos` (`pj-cl-f14-p18-s6`) e `members2` (Ireland).
   - *Aberto em:* 2026-11-27
 
