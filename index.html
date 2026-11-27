@@ -4482,6 +4482,22 @@
   #p27-view .p27-frente:has(#p27-prio-sel) { display: none; }
   /* 27/11 (Karina): sem a barra de rolagem extra do topo na 2027. */
   #p27-rolagem-topo { display: none !important; }
+  /* 27/11 (Karina): objetivos embaixo do logo; Autoridade (ex-Frentes) em
+     chips cinza na lateral esquerda, no lugar do menu Frente. */
+  #p27-view .p27-direita { display: none; }
+  #p27-view .p27-topo #p27-objetivos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .p27-meio { display: flex; gap: 16px; align-items: flex-start; }
+  .p27-meio-tabela { flex: 1; min-width: 0; }
+  #p27-lateral { flex: none; width: 170px; display: flex; flex-direction: column; gap: 8px; position: sticky; top: 12px; }
+  .p27-lat-tit { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #9b9a97; margin: 2px 0 2px 2px; }
+  #p27-lateral .p27-chip { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1.5px solid color-mix(in srgb, var(--c) 75%, #1f2937); background: #fff; color: #1f2937; border-radius: 999px; padding: 6px 8px 6px 12px; font-size: 12.5px; font-weight: 650; cursor: pointer; user-select: none; }
+  #p27-lateral .p27-chip b { background: var(--c); color: var(--t, #fff); border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; }
+  #p27-lateral .p27-chip:hover { background: #f6f6f5; }
+  #p27-lateral .p27-chip.is-ativo { background: var(--c); color: var(--t, #fff); }
+  #p27-lateral .p27-chip.is-ativo b { background: #fff; color: #1f2937; }
+  #p27-lateral .p27-chip.is-apagado { opacity: .45; }
+  #p27-lateral .p27-chip:focus-visible { outline: 2px solid #1f2937; outline-offset: 2px; }
+  @media (max-width: 760px) { .p27-meio { flex-direction: column; } #p27-lateral { position: static; width: auto; flex-direction: row; flex-wrap: wrap; } }
   #p27-objetivos .p27-chip { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--c); color: var(--c); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-weight: 650; cursor: pointer; user-select: none; }
   #p27-objetivos .p27-chip b { background: var(--c); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; }
   #p27-objetivos .p27-chip:hover { background: color-mix(in srgb, var(--c) 8%, #fff); }
@@ -5597,22 +5613,27 @@
     <div class="p27-topo">
       <div>
         <div class="p27-logo" aria-label="WPF"></div>
+        <div id="p27-objetivos" aria-label="Projetos por objetivo"></div>
       </div>
       <div class="p27-direita">
-        <div id="p27-objetivos" aria-label="Andamento por objetivo"></div>
         <div class="p27-frente"><label for="p27-frente-sel">Frente</label><select id="p27-frente-sel" aria-label="Filtrar por frente"></select></div>
         <div class="p27-frente"><label for="p27-prio-sel">Prioridade</label><select id="p27-prio-sel" aria-label="Filtrar por prioridade"><option value="">Todas</option><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option><option value="__sem__">Sem prioridade</option></select></div>
       </div>
     </div>
     <div id="p27-rolagem-topo" aria-hidden="true"><div></div></div>
-    <div id="p27-rolagem">
-      <table id="p27-tabela">
-        <colgroup id="p27-colgroup"></colgroup>
-        <thead id="p27-cabeca"></thead>
-        <tbody id="p27-corpo"></tbody>
-      </table>
+    <div class="p27-meio">
+      <div id="p27-lateral" role="group" aria-label="Filtrar por autoridade"></div>
+      <div class="p27-meio-tabela">
+        <div id="p27-rolagem">
+          <table id="p27-tabela">
+            <colgroup id="p27-colgroup"></colgroup>
+            <thead id="p27-cabeca"></thead>
+            <tbody id="p27-corpo"></tbody>
+          </table>
+        </div>
+        <div class="p27-rodape"><button id="p27-add" type="button">+ Nova entrega</button><small id="p27-contagem"></small></div>
+      </div>
     </div>
-    <div class="p27-rodape"><button id="p27-add" type="button">+ Nova entrega</button><small id="p27-contagem"></small></div>
   </div>
 </div>
 
@@ -14084,12 +14105,13 @@ applyRolePermissions();
   // 27/11 (Karina): na 2027 o Objetivo e as Frentes são de múltipla escolha
   // (campos objs e frs da entrega, listas de ids). Os campos antigos
   // objetivo/frente ficam sem uso aqui.
-  const OBJETIVOS_PJ = [{ id: "autoridade", nome: "Autoridade" }, { id: "mundial", nome: "Caminho do Mundial" }, { id: "gasto", nome: "Gasto" }];
+  // 27/11 (Karina, 19:23): o objetivo Autoridade saiu; "Frentes" passou a se chamar Autoridade.
+  const OBJETIVOS_PJ = [{ id: "mundial", nome: "Caminho do Mundial" }, { id: "gasto", nome: "Gasto" }];
   const FRENTES_PJ = [{ id: "comunidade", nome: "Comunidade" }, { id: "membro", nome: "Membro" }, { id: "midia", nome: "Mídia" }, { id: "stakeholders", nome: "Stakeholders" }];
-  const COR_OBJ = { autoridade: "#2f6fd0", mundial: "#0f8a66", gasto: "#c2410c" };
-  // 27/11 (Karina): frentes em tons de roxo, do escuro ao claro (TXT_FR = cor do texto no chip).
-  const COR_FR = { comunidade: "#3b0f7a", membro: "#6d28d9", midia: "#c4b5fd", stakeholders: "#e9e2fd" };
-  const TXT_FR = { midia: "#3b0f7a", stakeholders: "#4c1d95" };
+  const COR_OBJ = { mundial: "#2f6fd0", gasto: "#7b4fe0" };
+  // 27/11 (Karina): Autoridade (ex-Frentes) em tons de cinza, do escuro ao claro (TXT_FR = cor do texto no chip).
+  const COR_FR = { comunidade: "#374151", membro: "#6b7280", midia: "#d1d5db", stakeholders: "#eceef1" };
+  const TXT_FR = { midia: "#1f2937", stakeholders: "#374151" };
   const soIds = (v, L) => (Array.isArray(v) ? v.filter((x, i, arr) => L.some(o => o.id === x) && arr.indexOf(x) === i) : []);
   const SEM_FRENTE = "__sem__";
   const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -14354,8 +14376,8 @@ applyRolePermissions();
   // uma coluna só (Tags); larguras enxutas. Objetivo, Frente e Prioridade
   // nascem ocultas (botão ⋯ no fim do cabeçalho mostra/oculta colunas).
   const COLUNAS = [
-    { id: "nome",        titulo: "Nome",                  largura: 480 }, // 27/11: mais larga (nome numa linha só)
-    { id: "criterio",    titulo: "Descrição",             largura: 280 }, // 27/11: na 2027 o Critério aparece como Descrição
+    { id: "nome",        titulo: "Nome",                  largura: 430 }, // 27/11: mais larga (nome numa linha só)
+    { id: "criterio",    titulo: "Descrição",             largura: 210 }, // 27/11: na 2027 o Critério aparece como Descrição
     { id: "status",      titulo: "Status",                largura: 128 },
     { id: "prazo",       titulo: "Prazo",                 largura: 128 },
     { id: "finalizado",  titulo: "Finalizado",            largura: 118 },
@@ -14366,8 +14388,8 @@ applyRolePermissions();
     { id: "proximaAcao", titulo: "Próxima ação",          largura: 200 },
     { id: "bloq",        titulo: "Bloqueios",             largura: 100 },
     { id: "historico",   titulo: "Histórico",             largura: 100 },
-    { id: "obj",         titulo: "Objetivo",              largura: 250 },
-    { id: "frente",      titulo: "Frentes",               largura: 270 }
+    { id: "obj",         titulo: "Objetivo",              largura: 190 },
+    { id: "frente",      titulo: "Autoridade",            largura: 240 }
   ];
   const SO_ENTREGA = ["frente", "obj"];
   const LARGURA_LIXO = 50;
@@ -14539,7 +14561,7 @@ applyRolePermissions();
   // Só os escolhidos aparecem; "+" (ou clicar num chip) abre a lista pra marcar/desmarcar.
   function togsHtml(e, campo, L, cores) {
     const sel = e[campo] || [];
-    const titulo = campo === "objs" ? "objetivo" : "frente";
+    const titulo = campo === "objs" ? "objetivo" : "autoridade";
     return `<div class="p27-togs">` + L.filter(o => sel.includes(o.id)).map(o =>
       `<button type="button" class="p27-tog is-on" data-tog="${campo}" style="--c:${cores[o.id]};--t:${(campo === "frs" && TXT_FR[o.id]) || "#fff"}" title="Clique pra mudar">${esc(o.nome)}</button>`).join("") +
       `<button type="button" class="p27-tog-add${sel.length ? "" : " is-vazio"}" data-tog="${campo}" title="Escolher ${titulo}" aria-label="Escolher ${titulo}">+</button></div>`;
@@ -14651,6 +14673,15 @@ applyRolePermissions();
       const n = lista.filter(e => (e.objs || []).includes(o.id)).length;
       const ativo = objFiltro === o.id;
       return `<div class="p27-chip${ativo ? " is-ativo" : objFiltro ? " is-apagado" : ""}" style="--c:${COR_OBJ[o.id]}" data-obj="${o.id}" role="button" tabindex="0" aria-pressed="${ativo}" title="${esc(o.nome)}: ${n} de ${lista.length} projeto${lista.length === 1 ? "" : "s"} · ${ativo ? "clique pra ver todos" : "clique pra ver só os dele"}"><span>${esc(o.nome)}</span><b>${n}/${lista.length}</b></div>`;
+    }).join("");
+    // Lateral: Autoridade (ex-Frentes), contando dentro do objetivo escolhido.
+    const lat = document.getElementById("p27-lateral");
+    if (!lat) return;
+    const base = objFiltro ? entregas.filter(e => (e.objs || []).includes(objFiltro)) : entregas;
+    lat.innerHTML = `<div class="p27-lat-tit">Autoridade</div>` + FRENTES_PJ.map(f => {
+      const n = base.filter(e => (e.frs || []).includes(f.id)).length;
+      const ativo = frenteFiltro === f.id;
+      return `<div class="p27-chip${ativo ? " is-ativo" : frenteFiltro ? " is-apagado" : ""}" style="--c:${COR_FR[f.id]};--t:${TXT_FR[f.id] || "#fff"}" data-fr="${f.id}" role="button" tabindex="0" aria-pressed="${ativo}" title="${esc(f.nome)}: ${n} de ${base.length} projeto${base.length === 1 ? "" : "s"} · ${ativo ? "clique pra ver todos" : "clique pra ver só os dela"}"><span>${esc(f.nome)}</span><b>${n}/${base.length}</b></div>`;
     }).join("");
   }
 
@@ -15086,7 +15117,7 @@ applyRolePermissions();
   const CANAIS = ["Conversa", "WhatsApp", "E-mail", "Telefone", "Reunião", "Slack", "Outro"];
   const ROTULO_CAMPO = { nome: "Nome", criterio: "Descrição", status: "Status", startDate: "Início", endDate: "Fim",
     finalizadoEm: "Finalizado", prioridade: "Prioridade", dificuldade: "Dificuldade", proximaAcao: "Próxima ação",
-    frente: "Frente", objetivo: "Objetivo", frs: "Frentes", objs: "Objetivo" };
+    frente: "Frente", objetivo: "Objetivo", frs: "Autoridade", objs: "Objetivo" };
   const novoIdH = () => "h-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const quemSou = () => (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
   function valorLegivel(campo, v) {
@@ -16123,6 +16154,16 @@ applyRolePermissions();
     render();
   }
   barrasObj.addEventListener("click", clicarObjetivo);
+  // 27/11: chips de Autoridade na lateral filtram como o antigo menu Frente.
+  function clicarLateral(ev) {
+    const b = ev.target.closest("[data-fr]");
+    if (!b || (ev.type === "keydown" && ev.key !== "Enter" && ev.key !== " ")) return;
+    if (ev.type === "keydown") ev.preventDefault();
+    frenteFiltro = frenteFiltro === b.dataset.fr ? "" : b.dataset.fr;
+    render();
+  }
+  document.getElementById("p27-lateral").addEventListener("click", clicarLateral);
+  document.getElementById("p27-lateral").addEventListener("keydown", clicarLateral);
   barrasObj.addEventListener("keydown", clicarObjetivo);
   // 27/11: lista de Objetivo / Frentes (múltipla escolha) na entrega.
   let togMenu = null; // { id, campo, el }
