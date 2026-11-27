@@ -4487,6 +4487,25 @@
   #p27-view .p27-direita { display: none; }
   #p27-view .p27-topo #p27-objetivos { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
   .p27-meio-tabela { min-width: 0; }
+  /* 27/11 (Karina): selecionar várias linhas e colocar dentro de outra. */
+  .p27-sel { width: 14px; height: 14px; margin: 0 2px 0 0; flex: none; cursor: pointer; accent-color: #37352f; visibility: hidden; }
+  #p27-tabela tr:hover .p27-sel, .p27-sel:checked, #p27-view.tem-sel .p27-sel, .p27-sel:focus-visible { visibility: visible; }
+  #p27-tabela tr.p27-selecionada > td { background: #f1f0ff !important; }
+  #p27-selbar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 7px 12px; background: #37352f; color: #fff; border-radius: 10px; font-size: 13px; }
+  #p27-selbar[hidden] { display: none; }
+  #p27-selbar b { font-weight: 650; }
+  #p27-selbar button { border: 0; border-radius: 7px; padding: 5px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  #p27-selbar .p27-sel-mover { background: #fff; color: #37352f; font-weight: 600; }
+  #p27-selbar .p27-sel-limpar { background: transparent; color: #d6d4cf; }
+  #p27-selbar .p27-sel-limpar:hover { color: #fff; }
+  #p27-destmenu { position: fixed; z-index: 1000; background: #fff; border: 1px solid #e6e5e2; border-radius: 10px; box-shadow: 0 10px 28px rgba(15,15,15,.16); padding: 6px; width: 380px; max-height: 60vh; display: flex; flex-direction: column; }
+  #p27-destmenu input { border: 1px solid #e6e5e2; border-radius: 7px; padding: 7px 9px; font: inherit; font-size: 13px; margin-bottom: 6px; }
+  #p27-destmenu input:focus { outline: none; border-color: #2383e2; box-shadow: 0 0 0 2px rgba(35,131,226,.2); }
+  #p27-destmenu .p27-dest-lista { overflow-y: auto; }
+  #p27-destmenu button { display: block; width: 100%; border: 0; background: none; text-align: left; padding: 6px 9px; border-radius: 6px; font: inherit; font-size: 13px; color: #37352f; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #p27-destmenu button:hover, #p27-destmenu button:focus-visible { background: #f4f3f1; outline: none; }
+  #p27-destmenu button[disabled] { color: #c3c1bb; cursor: default; background: none; }
+  #p27-destmenu .p27-dest-vazio { padding: 10px; color: #9b9a97; font-size: 12.5px; }
   #p27-objetivos .p27-chip { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid color-mix(in srgb, var(--c) 75%, #1f2937); background: #fff; color: #1f2937; border-radius: 999px; padding: 5px 8px 5px 12px; font-size: 12.5px; font-weight: 650; cursor: pointer; user-select: none; }
   #p27-objetivos .p27-chip b { background: var(--c); color: var(--t, #fff); border-radius: 999px; padding: 1px 8px; font-size: 11.5px; font-weight: 700; }
   #p27-objetivos .p27-chip:hover { background: #f6f6f5; }
@@ -5612,6 +5631,7 @@
     <div id="p27-rolagem-topo" aria-hidden="true"><div></div></div>
     <div class="p27-meio">
       <div class="p27-meio-tabela">
+        <div id="p27-selbar" hidden></div>
         <div id="p27-rolagem">
           <table id="p27-tabela">
             <colgroup id="p27-colgroup"></colgroup>
@@ -14114,6 +14134,7 @@ applyRolePermissions();
   let entregas = [];
   let temDados = false; // só envia pra nuvem depois de ter algo (nunca [] por cima do que está lá)
   let frenteFiltro = "";
+  let selecionadas = new Set(); // 27/11: linhas marcadas pra mover juntas
   try {
     const g = JSON.parse(localStorage.getItem(LS_KEY) || "null");
     if (Array.isArray(g)) { entregas = g.map(x => normalizar(x, 0)); temDados = true; }
@@ -14456,7 +14477,7 @@ applyRolePermissions();
       // Checklist virou subtarefa (09/10); o + volta quando o Formulário existir.
       const icones = "";
       const ver = htmlNomeComMencoes(e.nome);
-      return `<div class="p27-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><span class="p27-alca" draggable="true" title="Arraste pra mudar de lugar: no meio de uma linha entra DENTRO dela; na borda fica antes/depois">⠿</span>${seta}` +
+      return `<div class="p27-nome-linha ${ver ? "tem-mencao" : ""}" title="${NOME_NIVEL[nivel]}"><input type="checkbox" class="p27-sel" aria-label="Selecionar “${esc(e.nome || "sem nome")}”"${selecionadas.has(e.id) ? " checked" : ""}><span class="p27-alca" draggable="true" title="Arraste pra mudar de lugar: no meio de uma linha entra DENTRO dela; na borda fica antes/depois">⠿</span>${seta}` +
         `<textarea class="p27-txt p27-nome" data-campo="nome" rows="1" placeholder="Nome da ${NOME_NIVEL[nivel].toLowerCase()}">${esc(e.nome)}</textarea>` +
         `<div class="p27-txt p27-nome p27-nome-ver">${ver}</div>` +
         chipContagem(e) + icones + `</div>`;
@@ -14563,7 +14584,7 @@ applyRolePermissions();
     // 20/10 (Karina): passar o mouse na cor da barrinha mostra a frente.
     const nomeFr = (FRENTES_PJ.find(f => f.id === fr) || {}).nome || "Sem frente";
     const dicaFr = `<span class="p27-barra-dica" title="Frente: ${esc(nomeFr)}"></span>`;
-    return `<tr data-id="${e.id}" class="p27-linha is-${nivel}${loc.nivel > 3 ? " is-subtarefa" : ""} fr-${esc(fr)}">` +
+    return `<tr data-id="${e.id}" class="p27-linha is-${nivel}${loc.nivel > 3 ? " is-subtarefa" : ""} fr-${esc(fr)}${selecionadas.has(e.id) ? " p27-selecionada" : ""}">` +
       cols.map((id, i) => `<td data-col="${id}">${i === 0 ? dicaFr : ""}${CELULAS[id](e, loc)}</td>`).join("") +
       `<td data-col="lixo">${lixoHtml(e, loc)}</td></tr>`;
   }
@@ -14663,6 +14684,79 @@ applyRolePermissions();
       const ativo = frenteFiltro === f.id;
       return `<div class="p27-chip${ativo ? " is-ativo" : frenteFiltro ? " is-apagado" : ""}" style="--c:${COR_FR[f.id]};--t:${TXT_FR[f.id] || "#fff"}" data-fr="${f.id}" role="button" tabindex="0" aria-pressed="${ativo}" title="${esc(f.nome)}: ${n} de ${entregas.length} projeto${entregas.length === 1 ? "" : "s"} · ${ativo ? "clique pra ver todos" : "clique pra ver só os dela"}"><span>${esc(f.nome)}</span><b>${n}/${entregas.length}</b></div>`;
     }).join("");
+    renderSelBar();
+  }
+  // ── Selecionar várias linhas e colocar dentro de outra (27/11, Karina) ──
+  function renderSelBar() {
+    [...selecionadas].forEach(id => { if (!achar(id)) selecionadas.delete(id); });
+    const bar = document.getElementById("p27-selbar");
+    const view = document.getElementById("p27-view");
+    if (view) view.classList.toggle("tem-sel", selecionadas.size > 0);
+    if (!bar) return;
+    if (!selecionadas.size) { bar.hidden = true; bar.innerHTML = ""; fecharDestMenu(); return; }
+    bar.hidden = false;
+    const n = selecionadas.size;
+    bar.innerHTML = `<b>${n} selecionada${n === 1 ? "" : "s"}</b><button type="button" class="p27-sel-mover" aria-haspopup="menu">Colocar dentro de ▾</button><button type="button" class="p27-sel-limpar">Limpar</button>`;
+  }
+  // As de cima da seleção (se uma marcada está dentro de outra marcada, vai junto com a mãe).
+  function topoDaSelecao() {
+    const out = [];
+    (function walk(l, temMaeMarcada) { (l || []).forEach(x => { const m = selecionadas.has(x.id); if (m && !temMaeMarcada) out.push(x.id); walk(x.subtasks, temMaeMarcada || m); }); })(entregas, false);
+    return out;
+  }
+  let destMenu = null;
+  function fecharDestMenu() { if (destMenu) { destMenu.remove(); destMenu = null; } }
+  function abrirDestMenu(botao) {
+    fecharDestMenu();
+    const ids = topoDaSelecao();
+    const todas = [];
+    (function walk(l, nivel, bloqueada) { (l || []).forEach(x => { const blq = bloqueada || ids.includes(x.id); todas.push({ x, nivel, blq }); walk(x.subtasks, nivel + 1, blq); }); })(entregas, 0, false);
+    const el = document.createElement("div");
+    el.id = "p27-destmenu";
+    el.setAttribute("role", "menu");
+    el.innerHTML = `<input type="search" placeholder="Buscar a linha de destino…" aria-label="Buscar a linha de destino"><div class="p27-dest-lista"></div>`;
+    document.body.appendChild(el);
+    destMenu = el;
+    const lista = el.querySelector(".p27-dest-lista"), busca = el.querySelector("input");
+    const semAc = t => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    function desenhar() {
+      const q = semAc(busca.value.trim());
+      const itens = todas.filter(t => !q || semAc(t.x.nome).includes(q));
+      lista.innerHTML = itens.length ? itens.map(t => {
+        const de = ids.map(id => localizar(id)).filter(Boolean);
+        const para = localizar(t.x.id);
+        const ok = !t.blq && para && de.every(d => destinoValido(d, { tipo: "dentro", para }));
+        return `<button type="button" role="menuitem" data-dest="${esc(t.x.id)}" style="padding-left:${9 + t.nivel * 16}px"${ok ? "" : " disabled title=\"Não dá pra colocar aqui\""}>${t.nivel ? "↳ " : ""}${esc(t.x.nome || "sem nome")}</button>`;
+      }).join("") : `<div class="p27-dest-vazio">Nenhuma linha com esse nome.</div>`;
+    }
+    desenhar();
+    busca.addEventListener("input", desenhar);
+    busca.addEventListener("keydown", ev => { if (ev.key === "Escape") fecharDestMenu(); });
+    const r = botao.getBoundingClientRect();
+    el.style.left = Math.max(8, Math.min(r.left, window.innerWidth - el.offsetWidth - 8)) + "px";
+    el.style.top = (r.bottom + 6) + "px";
+    busca.focus();
+    lista.addEventListener("click", ev => {
+      const b = ev.target.closest("[data-dest]");
+      if (!b || b.disabled) return;
+      fecharDestMenu();
+      colocarSelecionadasDentro(b.dataset.dest);
+    });
+  }
+  function colocarSelecionadasDentro(destId) {
+    const ids = topoDaSelecao();
+    if (!ids.length) return;
+    const para0 = localizar(destId);
+    if (!para0 || !ids.map(id => localizar(id)).every(d => d && destinoValido(d, { tipo: "dentro", para: para0 }))) {
+      avisoPj("Não dá pra colocar aqui (passaria de 6 níveis ou iria pra dentro dela mesma).");
+      return;
+    }
+    const snap = JSON.stringify(entregas);
+    ids.forEach(id => { const para = localizar(destId); if (para) moverLinha(id, { tipo: "dentro", para }); });
+    desfazerMover = { snap, id: destId }; // um Ctrl/Cmd+Z desfaz o movimento inteiro
+    selecionadas = new Set();
+    render();
+    avisoPj(`${ids.length} linha${ids.length === 1 ? "" : "s"} dentro de “${nomeOu(achar(destId))}”. Ctrl+Z desfaz.`);
   }
 
   function render() {
@@ -16145,6 +16239,23 @@ applyRolePermissions();
   barrasObj.addEventListener("click", clicarLateral);
   barrasObj.addEventListener("keydown", clicarLateral);
   barrasObj.addEventListener("keydown", clicarObjetivo);
+  // 27/11: marcar linhas (caixinha) e a barra da seleção.
+  document.getElementById("p27-corpo").addEventListener("click", ev => {
+    const c = ev.target.closest && ev.target.closest(".p27-sel");
+    if (!c) return;
+    ev.stopPropagation();
+    const id = c.closest("tr[data-id]").dataset.id;
+    if (c.checked) selecionadas.add(id); else selecionadas.delete(id);
+    c.closest("tr").classList.toggle("p27-selecionada", c.checked);
+    renderSelBar();
+  }, true);
+  document.getElementById("p27-selbar").addEventListener("click", ev => {
+    if (ev.target.closest(".p27-sel-limpar")) { selecionadas = new Set(); render(); return; }
+    const m = ev.target.closest(".p27-sel-mover");
+    if (m) { if (destMenu) fecharDestMenu(); else abrirDestMenu(m); }
+  });
+  document.addEventListener("mousedown", ev => { if (destMenu && !ev.target.closest("#p27-destmenu, .p27-sel-mover")) fecharDestMenu(); });
+  document.addEventListener("keydown", ev => { if (ev.key === "Escape" && destMenu) fecharDestMenu(); });
   // 27/11: lista de Objetivo / Frentes (múltipla escolha) na entrega.
   let togMenu = null; // { id, campo, el }
   function fecharTogMenu() { if (togMenu) { togMenu.el.remove(); togMenu = null; } }
