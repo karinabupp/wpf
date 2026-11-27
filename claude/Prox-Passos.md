@@ -346,6 +346,32 @@ reconstruir o raciocínio.
   - *Onde:* Supabase `projetos` (`pj-cl-f14-p50`) e `members2` (Vietnam).
   - *Aberto em:* 2026-11-27
 
+- [ ] **Finlândia (FEDS50): registrar o envio e acompanhar** — candidato
+  Suomen Pokerinpelaajat ry (hallitus@pokeriyhdistys.fi), e-mail enviado pela
+  Isabela em 27/11 (~16:07 BRT). Já gravado na Dash (27/11): `-r2` finalizado;
+  `-r3` 04/12, `-r4` 11/12, `-r7` 18/12; interações no CRM (substituir as
+  "[Projeção]" pelas datas reais). Pendências da pesquisa: confirmar se a Finlândia já é membro da WPF;
+  confirmar se a diretoria de 2023 do site ainda vale (assembleia de
+  13/11/2026); exceção dos cassinos precisaria de 2ª fonte (hoje só
+  SoMuchPoker) caso o candidato 1 não responda e se parta para o Veikkaus.
+  - *Onde:* Supabase `projetos` (`pj-cl-f14-p12`) e `members2` (Finland).
+  - *Aberto em:* 2026-11-27
+
+- [ ] **Lituânia (FEDS50): registrar o envio e acompanhar** — candidato LSPF
+  (Skirmantas Tomkevičius, skirmantas.tomkevicius@gmail.com), e-mail enviado
+  pela Isabela em 27/11 (~16:29 BRT) como resposta na thread de julho (ele
+  tinha dito em 08/07 que voltaria para marcar a reunião; sem retorno).
+  Já gravado na Dash (27/11): `-r2` finalizado; `-r3` 04/12, `-r4` 11/12,
+  `-r7` 18/12; interações no CRM (substituir as "[Projeção]" pelas datas
+  reais). Como já houve contato, o
+  "avanço" é diferente: se ele responder, seguir em "Apresentar a WPF". Se
+  não houver avanço em 3 semanas, a próxima opção é o Nacionalinis sportinio
+  pokerio klubas (membro da LSPF). Pendências: confirmar se a Lituânia já é
+  membro da WPF; atividade da LSPF em 2025/26 (última notícia pública da
+  IFMP: 05/2024).
+  - *Onde:* Supabase `projetos` (`pj-cl-f14-p21`) e `members2` (Lithuania).
+  - *Aberto em:* 2026-11-27
+
 - [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`FEDS50`)** —
   guia `worker/instrucoes/prospeccao-federacoes.md` (23/11). Depois da 1ª
   sessão da Isabela (pesquisas a partir de 25/11), conferir com a Karina:

@@ -11,6 +11,50 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (3ª entrada) — FEDS50: Finlândia e Lituânia (e-mails enviados; só banco da Dash)
+
+Pedido da Isabela (sessão FEDS50). Cada gravação só depois do "sim" dela, com
+backup antes. Nenhum arquivo de código foi alterado.
+
+- **Finlândia (`pj-cl-f14-p12`) — e-mail enviado pela Isabela em 27/11
+  (~16:07 BRT).** Candidato: **Suomen Pokerinpelaajat ry** (hallitus@
+  pokeriyhdistys.fi; e-mail geral, sem contato pessoal público). Ranking:
+  1) a associação, 2) Veikkaus/Casino Helsinki (cassino estatal; só pela
+  exceção dos cassinos, que ainda precisa de 2ª fonte), 3) nenhum outro
+  independente achado (monopólio do Veikkaus no poker até 30/06/2027, fonte
+  única). Projetos: `-r1`/`-r5`/`-r6` finalizados em 27/11, `-s1` e o país em
+  andamento. CRM (`members2`): empresa `emp_cl_fi01` e interação
+  `int_cl_fi01` (pesquisa). Sem contato pessoal criado.
+- **Lituânia (`pj-cl-f14-p21`) — e-mail enviado pela Isabela em 27/11
+  (~16:29 BRT), como resposta na thread de julho.** Achado no Gmail: em
+  07/07/2026 a Isabela convidou a LSPF a iniciar a filiação; em 08/07 o
+  presidente Skirmantas Tomkevičius respondeu que voltaria na semana
+  seguinte para marcar a reunião, sem retorno depois. Candidato: **LSPF**
+  (reconhecida em 2010 como federação esportiva oficial, membro da IFP/IFMP,
+  liga nacional de Match Poker na 2ª temporada em 2024). Contato:
+  skirmantas.tomkevicius@gmail.com (o que respondeu em julho; o
+  info@lspf.lt, do diretório oficial, ficou como e-mail da entidade). A
+  exceção dos cassinos não se aplica (poker esportivo sem dinheiro é legal
+  fora de cassino sob a LSPF). Projetos: `-r1`/`-r5`/`-r6` finalizados em
+  27/11, `-s1` e o país em andamento. CRM: empresa `emp_cl_lt01`, contato
+  `ct_cl_lt01`, interações `int_cl_lt01` (histórico de julho, do Gmail) e
+  `int_cl_lt02` (pesquisa).
+- **E-mails:** estrutura nova pedida pela Isabela (ela e a WPF primeiro,
+  depois os dois fatos, depois a pergunta). Karina em cópia.
+- **Backups (Supabase, RLS ligado):** `bkp_projetos_2026_11_27_antes_finlandia`,
+  `bkp_members2_2026_11_27_antes_finlandia`,
+  `bkp_projetos_2026_11_27_antes_lituania`,
+  `bkp_members2_2026_11_27_antes_lituania`.
+- **Envio gravado na Dash (mesma sessão, a pedido da Isabela):** `-r2`
+  finalizado em 27/11 e datas reprogramadas a partir do envio real: `-r3`
+  04/12, `-r4` 11/12, `-r7` 18/12 (`-s1` e o país até 18/12), com Histórico
+  `h-cl-<fi|lt>-2711e-<id>`. CRM: interação "1ª tentativa" (27/11) e
+  projeções "[Projeção]" de 04/12, 11/12 e 18/12 para cada país
+  (`int_cl_fi02`–`05`, `int_cl_lt03`–`06`). Backups:
+  `bkp_projetos_2026_11_27_antes_envio_fi_lt` e
+  `bkp_members2_2026_11_27_antes_envio_fi_lt`.
+
+---
 ## 2026-11-27 (2ª entrada) — FEDS50: Marrocos enviado e Vietnã (só banco da Dash)
 
 Pedido da Isabela (sessão FEDS50). Cada gravação só depois do "sim" dela, com
