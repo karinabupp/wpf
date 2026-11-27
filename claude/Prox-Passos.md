@@ -15,19 +15,16 @@ reconstruir o raciocínio.
 
 ## Em aberto
 
-- [ ] **Planejamento (mindmap): conferir e completar (27/11)**
-  - *Contexto:* Changelog 27/11. Conferir com o login real: ícone de árvore
-    aparece só pra Karina e só na WPF; a guia abre com o logo branco e a
-    fonte Jost; editar um balão grava e aparece em outro navegador; a guia
-    antiga aparece como "Plano de Ações".
-  - *Em aberto (Karina):* filhos de Membros, Mídia e Stakeholders; partes 2
-    e 3 (provavelmente Alcance e Governança — confirmar).
-  - *Melhorias possíveis, não feitas:* mudar a ordem dos balões
-    (subir/descer ou arrastar); exportar como imagem/PDF; ligar balões às
-    ações do Plano de Ações ou às entregas da Projetos.
-  - *Sobra:* canvas de Design "Mindmap WPF — Autoridade" (claude.ai) com os
-    rascunhos — a Karina disse pra deixar pra lá.
-  - *Onde:* `index.html` (bloco "MINDMAP", `#mindmap-view`); seção `mindmap`.
+- [ ] **2027: conferir no login real e decidir o backup (27/11)**
+  - *Contexto:* Changelog 27/11 (9ª entrada). Conferir: o ícone "27"
+    aparece só pra Karina e só na WPF; criar uma entrega na 2027 grava (some
+    e volta depois de recarregar, e aparece em outro navegador) e não aparece
+    na Projetos.
+  - *Backup:* tabela `bkp_planejamento_mindmap_2026_11_27_antes_apagar` com
+    o que havia de Planejamento/Mindmap. A Karina pediu "apagar de vez":
+    apagar a tabela quando ela confirmar que não quer nada de volta.
+  - *Lembrete:* a 2027 é uma cópia da Projetos. Uma melhoria na Projetos só
+    vale na 2027 se for repetida lá (prefixo `p27-`, bloco JS "2027").
   - *Aberto em:* 27/11
 
 - [ ] **Planejamento WPF: próximos passos (18–19/11)**

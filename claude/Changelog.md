@@ -11,6 +11,36 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (9ª entrada) — Guia nova "2027"; saem Planejamento e Plano de Ações
+
+Pedido e OK da Karina (18:32).
+
+- **Removidas as guias "Planejamento" (mindmap) e "Plano de Ações"** no
+  `index.html`: botões do nav rail, telas, CSS, blocos JS PLANEJAMENTO e
+  MINDMAP, pontes, seções `planejamento` e `mindmap` em `CLOUD_SECTIONS`,
+  `secaoDaOrg`, `NAV_VIEWS`, nomes de tela da presença e itens do
+  `CATALOGO_PERMISSOES`. A classe `body.pode-planejamento` virou
+  `body.pode-2027`.
+- **Banco:** as linhas `planejamento` e `mindmap` de `wpf_dashboard_data`
+  foram apagadas (a Karina pediu "apagar de vez"). Antes, foi feito o backup
+  temporário `bkp_planejamento_mindmap_2026_11_27_antes_apagar` (RLS ligado).
+- **Guia nova "2027"** (`#nav-p27`, ícone de calendário com "27"): CÓPIA da
+  Projetos com o prefixo `p27-` no lugar de `pj-` (CSS, HTML e JS; nada é
+  compartilhado), que começa vazia. Dados na seção nova `projetos_2027`
+  (ponte `projetos2027Bridge`, localStorage `wpf_p27*`). Só na WPF e só no
+  login da Karina. Sem as barras Autoridade/Alcance/Governança do topo
+  (`#p27-objetivos` escondido). Frente e Prioridade continuam. Também saíram
+  da cópia: o link direto `?pj=`/`?dia=` e o painel do dia (são do WhatsApp)
+  e o aviso ao CRM. O WhatsApp e o CRM continuam lendo só a Projetos.
+- **Atenção:** mudança futura feita na Projetos **não** vale pra 2027
+  automaticamente (e vice-versa).
+- **Testes:** a Dash inteira foi testada no Chromium headless, com as libs
+  locais e a nuvem bloqueada. No login da Karina, o menu mostra Projetos,
+  2027 e as outras guias, sem Planejamento nem Plano de Ações. Uma entrega
+  criada na 2027 entra na seção `projetos_2027` e não aparece na Projetos.
+  O login da Isabela não vê a 2027. Nenhum erro de JS.
+
+---
 ## 2026-11-27 (8ª entrada) — Social media automática: prazos a partir de 15/01/2027 (só banco da Dash)
 
 Pedido da Isabela, com backup `bkp_projetos_2026_11_27_antes_social_media_auto`
