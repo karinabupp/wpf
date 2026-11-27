@@ -11,6 +11,39 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (4ª entrada) — Tarefas em atraso da Isabela: Filipinas, Macau, Malásia, Singapura e Equador (só banco da Dash)
+
+Pedido da Isabela (sessão FEDS50). Gravado depois do "pode aplicar" dela, com
+backup antes (`bkp_projetos_2026_11_27_antes_prazos_fil_mac_sin_mal`) e
+revisão conferida (21362 → 21363). Nenhum arquivo de código foi alterado. As
+tarefas "Estatuto", "Registro" e "Confirmar sobre envio de documentação"
+(Malásia, da Isabela) ficaram como estavam.
+
+- **Filipinas (`pj-cl-f14-p45-s4`):** prazos refeitos pelos 6 meses do
+  Observer Member (carta enviada em 02/09/2026; fim em 02/03/2027). Cobranças
+  da Karina em 07/12, 04/01, 18/01 e 08/02 (novas `-c8`, `-c9`, `-c10`);
+  cobrança final + aviso em 22/02; "Tirar o país do site" e "Reiniciar" em
+  02/03/2027. Fim do projeto: 15/01/2027 → 02/03/2027.
+- **Macau (`-p41-s4`):** sem resposta às 3 cobranças e só há WhatsApp. A
+  "cobrança final" virou "Garantir resposta": 4ª tentativa em 30/11 (Isabela,
+  nova `-c8`) e 5ª em 07/12 (Karina, no lugar do aviso), avisando que a vaga
+  não dá pra manter. "Tirar o país do site" e "Reiniciar o processo de contato
+  com outro lead": 07/12 → 14/12.
+- **Malásia (`-p42-s4`):** registrada a resposta (aguardam o secretário e
+  submetem os papéis na semana de 30/11). Nova cobrança em 08/12 no lugar da
+  cobrança final; "Tirar o país do site" e "Reiniciar": 07/12 → 21/12.
+- **Singapura (`-p46-s4`):** "Acompanhar processo de abertura" finalizada (a
+  Karina conversou com ele; tenta parceria com a Singapore Mind Sports
+  Federation e cuida dos papéis). A 3ª cobrança virou tarefa da Karina para
+  perguntar sobre os papéis em 07/01/2027; cobrança final 21/01 e "Tirar o
+  país do site"/"Reiniciar" 04/02/2027.
+- **Equador (`pj-mwj910l9cu67`):** histórico com o resultado da pesquisa sobre
+  Justin Crespo (sem notícia negativa em fontes abertas; atenção reputacional;
+  registros judiciais não verificados). Tarefa continua aberta.
+- Datas de pais recalculadas só para frente (região Ásia e grupo FEDS50: fim
+  2027-03-02). **CRM (`members2`) não foi alterado** nesta rodada.
+
+---
 ## 2026-11-27 (3ª entrada) — FEDS50: Finlândia e Lituânia (e-mails enviados; só banco da Dash)
 
 Pedido da Isabela (sessão FEDS50). Cada gravação só depois do "sim" dela, com

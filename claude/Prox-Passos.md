@@ -350,7 +350,7 @@ reconstruir o raciocínio.
   Suomen Pokerinpelaajat ry (hallitus@pokeriyhdistys.fi), e-mail enviado pela
   Isabela em 27/11 (~16:07 BRT). Já gravado na Dash (27/11): `-r2` finalizado;
   `-r3` 04/12, `-r4` 11/12, `-r7` 18/12; interações no CRM (substituir as
-  "[Projeção]" pelas datas reais). Pendências da pesquisa: confirmar se a Finlândia já é membro da WPF;
+  "[Projeção]" pelas datas reais). Pendências da pesquisa: (já confirmado em 27/11: a Finlândia não é membro da WPF);
   confirmar se a diretoria de 2023 do site ainda vale (assembleia de
   13/11/2026); exceção dos cassinos precisaria de 2ª fonte (hoje só
   SoMuchPoker) caso o candidato 1 não responda e se parta para o Veikkaus.
@@ -366,10 +366,28 @@ reconstruir o raciocínio.
   reais). Como já houve contato, o
   "avanço" é diferente: se ele responder, seguir em "Apresentar a WPF". Se
   não houver avanço em 3 semanas, a próxima opção é o Nacionalinis sportinio
-  pokerio klubas (membro da LSPF). Pendências: confirmar se a Lituânia já é
-  membro da WPF; atividade da LSPF em 2025/26 (última notícia pública da
+  pokerio klubas (membro da LSPF). Pendências: (já confirmado em 27/11: a Lituânia não é
+  membro da WPF); atividade da LSPF em 2025/26 (última notícia pública da
   IFMP: 05/2024).
   - *Onde:* Supabase `projetos` (`pj-cl-f14-p21`) e `members2` (Lithuania).
+  - *Aberto em:* 2026-11-27
+
+- [ ] **Tarefas em atraso da Isabela — pendências que sobraram (27/11)** —
+  feito: Filipinas, Macau, Malásia, Singapura (prazos/cobranças) e background
+  check do Justin Crespo (Equador/Panamá, histórico da tarefa do Equador).
+  Falta: (1) Equador/Panamá: checar registros judiciais e a entidade em cada
+  país, e criar tarefa de background check no Panamá, que não tem; (2) CRM
+  (`members2`) de Filipinas, Macau, Malásia, Singapura, Equador e Panamá: não
+  há registro com o nome do país como chave, decidir como lançar as interações;
+  (3) Malásia: a tarefa "Confirmar sobre envio de documentação" da Isabela
+  (04/12) cai antes da cobrança de 08/12, avaliar se uma substitui a outra;
+  (4) Portugal "Aprovar com Karina envio de Obs Member letter" (17/11): falta
+  contexto; (5) Grupos Fem FLP&Co FR background check (23/11); (6) Irlanda
+  Fotos/Links/Board (24/11); (7) itens antigos: CBTH "detalhador de tarefas",
+  renomear "Enviar e-mail de convocação" no Programa de Excelência, Portugal
+  background check. Marco do Observer Member das Filipinas: 02/03/2027.
+  - *Onde:* Supabase `projetos` (`pj-cl-f14-p41`, `-p42`, `-p45`, `-p46`,
+    `pj-mwj910l9cu67`).
   - *Aberto em:* 2026-11-27
 
 - [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`FEDS50`)** —
