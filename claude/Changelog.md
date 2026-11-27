@@ -11,6 +11,25 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (13ª entrada) — 2027: objetivos sob o logo; Frentes viram "Autoridade" na lateral
+
+Pedido e OK da Karina (19:23–19:35). Só no bloco "2027" do `index.html`.
+
+- **Objetivos:** "Autoridade" saiu da lista; ficaram **Caminho do Mundial**
+  (azul `#2f6fd0`) e **Gasto** (roxo `#7b4fe0`). Os chips agora ficam
+  embaixo do logo. Marcações antigas de "autoridade" em `objs` são
+  descartadas ao carregar.
+- **"Frentes" passou a se chamar "Autoridade"** (coluna, lista do "+",
+  Histórico). Comunidade, Membro, Mídia e Stakeholders ficam em tons de
+  cinza, do escuro ao claro. O campo continua `frs`.
+- **Lateral esquerda:** chips de Autoridade com x/total (contando dentro do
+  objetivo filtrado). Clicar filtra e clicar de novo tira. Eles substituem
+  o menu Frente, que foi escondido (`.p27-direita`). HTML novo:
+  `.p27-meio` › `#p27-lateral` + `.p27-meio-tabela`. No celular a lateral
+  vira uma linha.
+- **Larguras padrão:** Nome 430, Descrição 210, Objetivo 190, Autoridade 240.
+
+---
 ## 2026-11-27 (12ª entrada) — 2027: frentes em roxo; sem barra de rolagem do topo
 
 Pedido e OK da Karina (19:14–19:20). Só no bloco "2027" do `index.html`.
