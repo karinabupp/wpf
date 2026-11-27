@@ -4513,6 +4513,59 @@
   body.pj-arrastando-fill, body.pj-arrastando-fill * { cursor: ns-resize !important; user-select: none !important; }
   /* 21/10: Responsável da mãe é calculado (igual status e prazo). */
   #pj-tabela .pj-resp1.is-auto { cursor: default; color: #8a8985; background: none; border: 0; font: inherit; padding: 0; display: inline-flex; gap: 4px; align-items: center; }
+  /* ── PLANEJAMENTO — MINDMAP (27/11, Karina): árvore genealógica escura
+     neon (logo branco no topo › Parte › ramos › filhos em lista). Editável:
+     clicar no texto renomeia, "+" cria filho, "×" apaga (2 cliques).
+     Só na WPF e só no login da Karina (body.pode-planejamento). ── */
+  #nav-mindmap { display: none; }
+  body.pode-planejamento #nav-mindmap { display: flex; }
+  html:not(.org-wpf) #nav-mindmap, html:not(.org-wpf) #mindmap-view { display: none !important; }
+  #mindmap-view { padding: 16px 20px 24px; box-sizing: border-box; }
+  #mm-wrap { background: #0B1020; border-radius: 14px; min-height: calc(100vh - 40px); box-sizing: border-box; padding: 36px 32px 56px; overflow: auto; color: #fff; font-family: "Jost", Inter, system-ui, sans-serif; position: relative; }
+  .mm-topo { display: flex; justify-content: center; margin-bottom: 36px; }
+  .mm-logo img { height: 96px; width: auto; display: block; }
+  .mm-salvo { position: absolute; top: 14px; right: 18px; font-family: Inter, system-ui, sans-serif; font-size: 12px; color: #6F7BA0; }
+  .mm-arvore { display: flex; justify-content: center; align-items: flex-start; gap: 72px; width: max-content; min-width: 100%; margin: 0 auto; }
+  .mm-col { display: inline-flex; flex-direction: column; align-items: stretch; min-width: 240px; vertical-align: top; }
+  .mm-n0 > .mm-col { align-items: center; }
+  .mm-caixa { position: relative; box-sizing: border-box; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 60px; }
+  .mm-n0 > .mm-col > .mm-caixa { width: 320px; min-height: 96px; background: linear-gradient(90deg, #1CC6F2 0%, #7B4FE0 100%); box-shadow: 0 0 32px rgba(123, 79, 224, 0.45); }
+  .mm-n1 > .mm-col > .mm-caixa { min-height: 76px; background: #141B2E; border: 2px solid var(--mm-cor); box-shadow: 0 0 20px color-mix(in srgb, var(--mm-cor) 22%, transparent); }
+  .mm-nf > .mm-col > .mm-caixa { background: #10172A; border: 1px solid color-mix(in srgb, var(--mm-cor) 55%, transparent); }
+  .mm-txt { cursor: text; white-space: pre-line; max-width: 100%; overflow-wrap: anywhere; }
+  .mm-caixa > .mm-txt > .mm-rot { display: block; font-size: 13px; letter-spacing: 4px; font-weight: 600; }
+  .mm-n0 > .mm-col > .mm-caixa .mm-principal { font-size: 32px; line-height: 38px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; }
+  .mm-n1 > .mm-col > .mm-caixa .mm-principal { font-size: 21px; line-height: 26px; font-weight: 600; }
+  .mm-nf > .mm-col > .mm-caixa .mm-principal { font-family: Inter, system-ui, sans-serif; font-size: 14.5px; line-height: 20px; font-weight: 500; color: #E6F6FD; }
+  .mm-detalhe { display: block; font-family: Inter, system-ui, sans-serif; font-size: 12.5px; line-height: 17px; font-weight: 400; color: #9AA6C4; margin-top: 2px; }
+  .mm-n0 > .mm-col > .mm-caixa .mm-detalhe { color: #F1EDFF; }
+  .mm-vazio { color: #6F7BA0; font-style: italic; }
+  .mm-edita { width: 100%; box-sizing: border-box; resize: none; border: 0; outline: 1px solid rgba(255,255,255,.35); border-radius: 4px; background: rgba(255,255,255,.08); color: #fff; font: inherit; font-size: 15px; line-height: 20px; text-align: center; padding: 4px 6px; overflow: hidden; }
+  .mm-botoes { position: absolute; top: -12px; right: -10px; display: flex; gap: 4px; opacity: 0; transition: opacity .12s; z-index: 2; }
+  .mm-caixa:hover .mm-botoes, .mm-caixa:focus-within .mm-botoes { opacity: 1; }
+  .mm-botoes button { border: 1px solid #3D4C78; background: #1A2340; color: #D4E2F2; border-radius: 6px; min-width: 26px; height: 26px; padding: 0 7px; font: 600 14px/1 Inter, system-ui, sans-serif; cursor: pointer; }
+  .mm-botoes button:hover { background: #26315A; color: #fff; }
+  .mm-botoes button.mm-confirma { background: #7A1F3D; border-color: #C2307F; color: #fff; font-size: 12px; }
+  /* Ramos (Parte › ramos): linhas de árvore genealógica. */
+  .mm-h { display: flex; justify-content: center; padding-top: 28px; position: relative; }
+  .mm-h::before { content: ""; position: absolute; top: 0; left: 50%; height: 28px; border-left: 2px solid #3D4C78; }
+  .mm-h > .mm-n1 { position: relative; padding: 28px 14px 0; }
+  .mm-h > .mm-n1::before, .mm-h > .mm-n1::after { content: ""; position: absolute; top: 0; right: 50%; width: 50%; height: 28px; border-top: 2px solid #3D4C78; }
+  .mm-h > .mm-n1::after { right: auto; left: 50%; border-left: 2px solid #3D4C78; }
+  .mm-h > .mm-n1:first-child::before, .mm-h > .mm-n1:last-child::after { border: 0; }
+  .mm-h > .mm-n1:last-child::before { border-right: 2px solid #3D4C78; border-top-right-radius: 8px; }
+  .mm-h > .mm-n1:first-child::after { border-top-left-radius: 8px; }
+  .mm-h > .mm-n1:only-child { padding-top: 0; }
+  .mm-h > .mm-n1:only-child::before, .mm-h > .mm-n1:only-child::after { display: none; }
+  /* Filhos (dos ramos pra baixo): lista com tronco à esquerda. */
+  .mm-v { display: flex; flex-direction: column; gap: 12px; padding: 12px 0 0 28px; }
+  .mm-v > .mm-nf { position: relative; }
+  .mm-v > .mm-nf > .mm-col { display: flex; min-width: 0; }
+  .mm-v > .mm-nf::before { content: ""; position: absolute; left: -14px; top: -12px; width: 14px; height: 42px; border-left: 2px solid #3D4C78; border-bottom: 2px solid #3D4C78; border-bottom-left-radius: 8px; }
+  .mm-v > .mm-nf:not(:last-child)::after { content: ""; position: absolute; left: -14px; top: 0; bottom: -12px; border-left: 2px solid #3D4C78; }
+  .mm-rodape { display: flex; justify-content: center; margin-top: 40px; }
+  .mm-nova-parte { border: 1px dashed #3D4C78; background: transparent; color: #8A97BD; border-radius: 8px; padding: 10px 16px; font: 500 14px Inter, system-ui, sans-serif; cursor: pointer; }
+  .mm-nova-parte:hover { color: #fff; border-color: #7B4FE0; }
   /* ── PLANEJAMENTO (18/11, Karina; v2 19/11): Planejamento WPF.
      Objetivo = autoridade da marca (pra quem está fora e pra quem está dentro);
      Alcance e Governança são as ferramentas; tabela de ações.
@@ -4820,8 +4873,17 @@
   <button class="nav-icon-btn active" id="nav-projetos" data-tooltip="Projetos" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M7 12.5h10"/><path d="M7 15.5h6"/></svg>
   </button>
-  <!-- 18/11 (Karina): Planejamento — storyline Autoridade › Alcance › Governança. Só Karina, só WPF. -->
-  <button class="nav-icon-btn" id="nav-planejamento" data-tooltip="Planejamento" type="button">
+  <!-- 27/11 (Karina): Planejamento — mindmap em árvore (Autoridade › ramos › filhos). Só Karina, só WPF. A guia antiga virou "Plano de Ações". -->
+  <button class="nav-icon-btn" id="nav-mindmap" data-tooltip="Planejamento" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="3" width="6" height="4" rx="1"/>
+      <rect x="3" y="17" width="6" height="4" rx="1"/>
+      <rect x="15" y="17" width="6" height="4" rx="1"/>
+      <path d="M12 7v5M6 17v-5h12v5"/>
+    </svg>
+  </button>
+  <!-- 18/11 (Karina): Planejamento — storyline Autoridade › Alcance › Governança. Só Karina, só WPF. 27/11: renomeada pra "Plano de Ações". -->
+  <button class="nav-icon-btn" id="nav-planejamento" data-tooltip="Plano de Ações" type="button">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9"/>
       <circle cx="12" cy="12" r="5"/>
@@ -5128,6 +5190,17 @@
 
 
 
+<!-- PLANEJAMENTO — MINDMAP (27/11, Karina): árvore genealógica escura neon,
+     editável. Só na WPF, só no login da Karina. Bloco JS "MINDMAP". -->
+<div id="mindmap-view" class="content-view hidden">
+  <div id="mm-wrap">
+    <div class="mm-salvo" id="mm-salvo"></div>
+    <div class="mm-topo"><div class="mm-logo" aria-label="World Poker Federation"></div></div>
+    <div id="mm-arvore" class="mm-arvore"></div>
+    <div class="mm-rodape"><button type="button" class="mm-nova-parte" data-mm="parte">+ Parte</button></div>
+  </div>
+</div>
+
 <!-- PLANEJAMENTO (18/11, Karina; v2 19/11): Planejamento WPF — objetivo
      (autoridade da marca), pilares Alcance e Governança, tabela de ações.
      Só na WPF, só no login da Karina. -->
@@ -5137,7 +5210,7 @@
       <div class="pl-logo" aria-label="WPF"></div>
       <div class="pl-salvo" id="pl-salvo"></div>
     </div>
-    <h2 class="pl-titulo">Planejamento WPF</h2>
+    <h2 class="pl-titulo">Plano de Ações</h2>
     <div class="pl-quadro" id="pl-quadro"></div>
     <div id="pl-acoes"></div>
   </div>
@@ -5616,7 +5689,9 @@ const CLOUD_SECTIONS = ["users", "historicoGeral", "members2", "members2__cbth",
   // Social Calendar (28/10): só na WPF (secaoDaOrg).
   "socialCalendar",
   // Planejamento (18/11): só na WPF e só no login da Karina (secaoDaOrg + ponte).
-  "planejamento"];
+  "planejamento",
+  // Mindmap do Planejamento (27/11): mesma regra do Planejamento.
+  "mindmap"];
 // Sufixo da empresa ativa, usado nos nomes de secao acima.
 const SUFIXO_ORG = () => (ORG_ATUAL === "wpf" ? "" : "__" + ORG_ATUAL);
 
@@ -5630,6 +5705,8 @@ let tagsBridge = null;
 let socialBridge = null;
 // 18/11: ponte do Planejamento (bloco "PLANEJAMENTO"); null até carregar.
 let planejamentoBridge = null;
+// 27/11: ponte do Mindmap (bloco "MINDMAP"); null até carregar.
+let mindmapBridge = null;
 // 21/10 (Karina): a Projetos é a aba de todo mundo (a Tasks saiu).
 function projetosLiberado() { return !!currentUser; }
 
@@ -5698,6 +5775,10 @@ function preencherSecoesPorOrg(p) {
     const pl = planejamentoBridge.get();
     if (pl !== undefined) p.planejamento = pl;
   }
+  if (mindmapBridge && ORG_ATUAL === "wpf") {
+    const mm = mindmapBridge.get();
+    if (mm !== undefined) p.mindmap = mm;
+  }
   return p;
 }
 
@@ -5713,6 +5794,7 @@ function applyAllData(data) {
   if (projetosBridge) projetosBridge.apply(data);
   if (socialBridge && ORG_ATUAL === "wpf") socialBridge.apply(data);
   if (planejamentoBridge && ORG_ATUAL === "wpf") planejamentoBridge.apply(data);
+  if (mindmapBridge && ORG_ATUAL === "wpf") mindmapBridge.apply(data); // 27/11
   if (window.membros2Bridge && membros2Bridge.apply) {
     membros2Bridge.apply(data["members2" + SUFIXO_ORG()]);
   }
@@ -5996,6 +6078,7 @@ const ehSecaoHistorico = s => SECOES_HISTORICO.includes(s);
 function secaoDaOrg(s) {
   if (s === "socialCalendar") return ORG_ATUAL === "wpf"; // 28/10: só a WPF tem o Social Calendar
   if (s === "planejamento") return ORG_ATUAL === "wpf" && typeof podeSettings === "function" && podeSettings(); // 18/11: só Karina
+  if (s === "mindmap") return ORG_ATUAL === "wpf" && typeof podeSettings === "function" && podeSettings(); // 27/11: só Karina
   const porEmpresa = /^(tasks2|tasks2Areas|tasks2Kpis|tasks2Historico|members2|tasksPiloto|tasksPilotoAreas|tasksPilotoKpis|tasksPilotoCadastro|projetos)(__.+)?$/.exec(s);
   if (!porEmpresa) return true;
   return (porEmpresa[2] || "") === SUFIXO_ORG();
@@ -6943,6 +7026,7 @@ function formatEntryDate(dateStr) {
 }
 const NAV_VIEWS = {
   "nav-projetos": "projetos-view",
+  "nav-mindmap": "mindmap-view",
   "nav-planejamento": "planejamento-view",
   "nav-members2": "members2-view",
   "nav-social": "social-view",
@@ -6967,6 +7051,7 @@ Object.keys(NAV_VIEWS).forEach(btnId => {
     if (btnId === "nav-observer") { const fr = document.getElementById("observer-frame"); if (fr && !fr.getAttribute("src")) fr.setAttribute("src", "observer.html"); }
     if (btnId === "nav-social" && socialBridge) socialBridge.abrir();
     if (btnId === "nav-planejamento" && planejamentoBridge) planejamentoBridge.abrir(); // 18/11
+    if (btnId === "nav-mindmap" && mindmapBridge) mindmapBridge.abrir(); // 27/11
     if (btnId === "nav-fsh" && typeof fshCarregar === "function") fshCarregar(); // 10/11
   });
 });
@@ -13609,7 +13694,7 @@ function presencaOnde() {
     const pl = document.getElementById("planilha2-wrap");
     return "CRM › " + (pl && !pl.classList.contains("hidden") ? "Planilha" : "Mapa");
   }
-  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing", "observer-view": "Observer", "fsh-view": "Forms", "planejamento-view": "Planejamento" }[id] || "Dash";
+  return { "slack-view": "Slack", "forms-view": "Forms", "marketing-view": "Marketing", "observer-view": "Observer", "fsh-view": "Forms", "planejamento-view": "Plano de Ações", "mindmap-view": "Planejamento" }[id] || "Dash";
 }
 // Em que célula a pessoa clicou/está editando.
 function presencaFocoDe(el) {
@@ -14849,6 +14934,238 @@ const CFG_EMPRESAS = [["wpf", "WPF"], ["cbth", "CBTH"]]; // 29/10: Canário saiu
   };
 })();
 
+// ════════════════════════════════════════════════════════════════════════
+// MINDMAP (27/11, Karina) — guia "Planejamento", só na WPF, só no login da Karina
+// Árvore genealógica escura neon: logo branco no topo › Parte (degradê do
+// logo) › ramos (lado a lado) › filhos (lista com tronco, em qualquer nível).
+// Editável: clicar no texto renomeia (Enter grava, Shift+Enter quebra linha,
+// Esc cancela; a 2ª linha em diante aparece menor, como detalhe); "+" cria
+// filho; "×" apaga com 2 cliques (leva junto o que está dentro);
+// "+ Parte" cria uma parte nova ao lado.
+// Dados: seção "mindmap" = { versao: 1, partes: [ {id, texto, filhos: [
+//   {id, texto, filhos: [...] } ] } ], atualizadoEm, atualizadoPor }.
+// A guia antiga "Planejamento" (tabela de ações) virou "Plano de Ações".
+// ════════════════════════════════════════════════════════════════════════
+(function () {
+  if (ORG_ATUAL !== "wpf") return;
+  const LS_KEY = "wpf_mindmap";
+  const pode = () => typeof podeSettings === "function" && podeSettings();
+  const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const novoId = () => "mm-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const quem = () => (typeof currentUser !== "undefined" && currentUser && currentUser.username) || "";
+  const CORES = ["#1CC6F2", "#3B9BF0", "#5F7BEA", "#7B4FE0"];   // ciano → roxo do logo
+
+  const no = (texto, filhos) => ({ id: novoId(), texto, filhos: filhos || [] });
+  const PADRAO = () => ({
+    versao: 1,
+    partes: [no("Autoridade", [
+      no("Comunidade do Poker", [
+        no("Aparecer mais na mídia"),
+        no("Interagir mais com a comunidade"),
+        no("Ser mais presente nas ações das feds")
+      ]),
+      no("Membros"),
+      no("Mídia"),
+      no("Stakeholders\n(TDA, operadores não federados, etc)")
+    ])],
+    atualizadoEm: "", atualizadoPor: ""
+  });
+  function normNo(n, prof) {
+    n = n && typeof n === "object" ? n : {};
+    return {
+      id: String(n.id || novoId()),
+      texto: String(n.texto == null ? "" : n.texto),
+      filhos: prof < 12 && Array.isArray(n.filhos) ? n.filhos.map(f => normNo(f, prof + 1)) : []
+    };
+  }
+  function normalizar(d) {
+    d = d && typeof d === "object" ? d : {};
+    return {
+      versao: 1,
+      partes: Array.isArray(d.partes) ? d.partes.map(p => normNo(p, 0)) : [],
+      atualizadoEm: String(d.atualizadoEm || ""), atualizadoPor: String(d.atualizadoPor || "")
+    };
+  }
+
+  let dados = null;      // null = ainda sem dados (nunca manda vazio por cima da nuvem)
+  try {
+    const g = JSON.parse(localStorage.getItem(LS_KEY) || "null");
+    if (g && typeof g === "object" && Array.isArray(g.partes)) dados = normalizar(g);
+  } catch (e) {}
+
+  const visivel = () => { const v = document.getElementById("mindmap-view"); return !!(v && !v.classList.contains("hidden")); };
+  function mostrarSalvo() {
+    const el = document.getElementById("mm-salvo");
+    if (!el || !dados) return;
+    if (!dados.atualizadoEm) { el.textContent = ""; return; }
+    const d = new Date(dados.atualizadoEm);
+    el.textContent = "Atualizado em " + d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) + (dados.atualizadoPor ? " · " + dados.atualizadoPor : "");
+  }
+  function salvar() {
+    if (!pode() || !dados) return;
+    dados.atualizadoEm = new Date().toISOString();
+    dados.atualizadoPor = quem();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(dados)); } catch (e) {}
+    scheduleCloudSave();
+    mostrarSalvo();
+  }
+  function garantirDados() { if (!dados) { dados = PADRAO(); salvar(); } }
+
+  // Acha o nó e a lista onde ele está.
+  function achar(id, lista, pai) {
+    lista = lista || dados.partes;
+    for (let i = 0; i < lista.length; i++) {
+      if (lista[i].id === id) return { no: lista[i], lista, i, pai: pai || null };
+      const r = achar(id, lista[i].filhos, lista[i]);
+      if (r) return r;
+    }
+    return null;
+  }
+
+  // ── Desenho ──
+  function textoHtml(n, rotulo) {
+    const linhas = n.texto.split("\n");
+    const principal = linhas.shift().trim();
+    const detalhe = linhas.join("\n").trim();
+    return `<div class="mm-txt" data-edita="${esc(n.id)}" title="Clique pra editar">`
+      + (rotulo ? `<span class="mm-rot">${esc(rotulo)}</span>` : "")
+      + `<span class="mm-principal${principal ? "" : " mm-vazio"}">${esc(principal || "Sem nome")}</span>`
+      + (detalhe ? `<span class="mm-detalhe">${esc(detalhe)}</span>` : "")
+      + `</div>`;
+  }
+  function botoes(n) {
+    return `<div class="mm-botoes">
+      <button type="button" data-mm="filho" data-id="${esc(n.id)}" title="Criar filho" aria-label="Criar filho">+</button>
+      <button type="button" data-mm="apagar" data-id="${esc(n.id)}" title="Apagar" aria-label="Apagar">×</button>
+    </div>`;
+  }
+  function desenharNo(n, nivel, cor, rotulo) {
+    const classe = nivel === 0 ? "mm-n0" : nivel === 1 ? "mm-n1" : "mm-nf";
+    const filhosClasse = nivel === 0 ? "mm-h" : "mm-v";
+    const filhos = n.filhos.map((f, i) => desenharNo(f, nivel + 1, nivel === 0 ? CORES[i % CORES.length] : cor)).join("");
+    return `<div class="${classe}" data-no="${esc(n.id)}"${cor ? ` style="--mm-cor:${cor}"` : ""}>
+      <div class="mm-col">
+        <div class="mm-caixa">${textoHtml(n, rotulo)}${botoes(n)}</div>
+        ${n.filhos.length ? `<div class="${filhosClasse}">${filhos}</div>` : ""}
+      </div>
+    </div>`;
+  }
+  function render() {
+    const arv = document.getElementById("mm-arvore");
+    if (!arv || !dados) return;
+    arv.innerHTML = dados.partes.map((p, i) => desenharNo(p, 0, null, "PARTE " + (i + 1))).join("");
+    mostrarSalvo();
+  }
+
+  // ── Edição de texto ──
+  function editar(id) {
+    const r = achar(id);
+    const alvo = document.querySelector(`#mm-arvore [data-edita="${CSS.escape(id)}"]`);
+    if (!r || !alvo) return;
+    const t = document.createElement("textarea");
+    t.className = "mm-edita"; t.rows = 1; t.value = r.no.texto;
+    t.setAttribute("aria-label", "Texto do balão");
+    alvo.replaceWith(t);
+    const crescer = () => { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; };
+    crescer(); t.focus(); t.select();
+    let feito = false;
+    const fim = gravar => {
+      if (feito) return; feito = true;
+      if (gravar && t.value !== r.no.texto) { r.no.texto = t.value.replace(/\s+$/, ""); salvar(); }
+      render();
+    };
+    t.addEventListener("input", crescer);
+    t.addEventListener("keydown", ev => {
+      if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); fim(true); }
+      else if (ev.key === "Escape") { ev.preventDefault(); fim(false); }
+    });
+    t.addEventListener("blur", () => fim(true));
+  }
+
+  // Logo da Dash com o texto em branco (o original tem letra preta).
+  function logoBranco(lugar) {
+    const orig = document.getElementById("logo");
+    if (!lugar || lugar.firstChild || !orig) return;
+    const img = new Image();
+    img.alt = "World Poker Federation";
+    const usarOriginal = () => { img.src = orig.src; };
+    try {
+      const fonte = new Image();
+      fonte.onload = () => {
+        try {
+          const c = document.createElement("canvas");
+          c.width = fonte.naturalWidth; c.height = fonte.naturalHeight;
+          const ctx = c.getContext("2d");
+          ctx.drawImage(fonte, 0, 0);
+          const px = ctx.getImageData(0, 0, c.width, c.height), d = px.data;
+          for (let i = 0; i < d.length; i += 4) {
+            if (d[i + 3] && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) < 40) { d[i] = d[i + 1] = d[i + 2] = 255; }
+          }
+          ctx.putImageData(px, 0, 0);
+          img.src = c.toDataURL("image/png");
+        } catch (e) { usarOriginal(); }
+      };
+      fonte.onerror = usarOriginal;
+      fonte.src = orig.src;
+    } catch (e) { usarOriginal(); }
+    lugar.appendChild(img);
+  }
+
+  function ligar() {
+    const view = document.getElementById("mindmap-view");
+    if (!view || view.dataset.ligado) return;
+    view.dataset.ligado = "1";
+    // Fonte Jost (a mesma dos forms da WPF), só quando a guia abre.
+    if (!document.getElementById("mm-fonte")) {
+      const l = document.createElement("link");
+      l.id = "mm-fonte"; l.rel = "stylesheet";
+      l.href = "https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700;800&display=swap";
+      document.head.appendChild(l);
+    }
+    logoBranco(view.querySelector(".mm-logo"));
+    document.getElementById("mm-wrap").addEventListener("click", ev => {
+      const ed = ev.target.closest("[data-edita]");
+      if (ed) { editar(ed.dataset.edita); return; }
+      const b = ev.target.closest("[data-mm]");
+      if (!b || !dados) return;
+      if (b.dataset.mm === "parte") {
+        const n = no("");
+        dados.partes.push(n); salvar(); render(); editar(n.id);
+        return;
+      }
+      const r = achar(b.dataset.id);
+      if (!r) return;
+      if (b.dataset.mm === "filho") {
+        const n = no("");
+        r.no.filhos.push(n); salvar(); render(); editar(n.id);
+      } else if (b.dataset.mm === "apagar") {
+        // Dois cliques: o 1º pede confirmação (sem pop-up do navegador).
+        if (!b.classList.contains("mm-confirma")) {
+          b.classList.add("mm-confirma"); b.textContent = "Apagar?";
+          setTimeout(() => { if (b.isConnected) { b.classList.remove("mm-confirma"); b.textContent = "×"; } }, 3000);
+          return;
+        }
+        r.lista.splice(r.i, 1); salvar(); render();
+      }
+    });
+  }
+
+  mindmapBridge = {
+    get: () => (pode() && dados ? dados : undefined),
+    apply: data => {
+      if (!pode()) return;
+      const d = data && data.mindmap;
+      if (!d || typeof d !== "object" || !Array.isArray(d.partes)) return;
+      dados = normalizar(d);
+      try { localStorage.setItem(LS_KEY, JSON.stringify(dados)); } catch (e) {}
+      const ae = document.activeElement;
+      if (visivel() && !(ae && ae.closest && ae.closest("#mm-wrap"))) render();
+    },
+    abrir: () => { if (!pode()) return; ligar(); garantirDados(); render(); },
+    _dados: () => dados
+  };
+})();
+
 const CATALOGO_PERMISSOES = [
   // 21/10 (Karina): a Tasks saiu; a Projetos é a aba de todo mundo.
   { grupo: "Projetos", itens: [
@@ -14891,7 +15208,9 @@ const CATALOGO_PERMISSOES = [
     { chave: "carinha", rotulo: "Usar o Carinha" },
     { chave: "acoesIa", rotulo: "Ações de IA (e-mail, mensagem, pesquisa)" },
     // 18/11 (Karina): Planejamento (só WPF).
-    { chave: "planejamento", rotulo: "Planejamento WPF (objetivo, pilares e tabela de ações, só na WPF)" }
+    { chave: "planejamento", rotulo: "Plano de Ações (objetivo, pilares e tabela de ações, só na WPF)" },
+    // 27/11 (Karina): Planejamento — mindmap em árvore (só WPF).
+    { chave: "mindmap", rotulo: "Planejamento (mindmap em árvore: Autoridade › ramos › filhos, só na WPF)" }
   ] }
 ];
 const CFG_VISTAS_KEY = "wpf_cfg_permissoes_vistas";

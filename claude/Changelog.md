@@ -11,6 +11,42 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 — Guia nova "Planejamento" (mindmap em árvore); antiga vira "Plano de Ações"
+
+Pedido e OK da Karina (13:11–13:25).
+
+- **`index.html` — guia nova `#nav-mindmap` ("Planejamento", ícone de
+  árvore):** só login `karina` e só WPF (mesma regra do Planejamento:
+  `body.pode-planejamento`, `secaoDaOrg`). Mindmap em árvore genealógica,
+  escuro neon: logo da Dash com o texto em branco (recolorido na hora por
+  canvas, sem arquivo novo) › Parte (degradê do logo, "PARTE N" automático)
+  › ramos lado a lado (borda ciano→roxo) › filhos em lista com tronco, em
+  qualquer nível. Editável: clicar no texto renomeia (Enter grava,
+  Shift+Enter quebra linha — 2ª linha em diante aparece menor, como
+  detalhe; Esc cancela), "+" cria filho, "×" apaga com 2 cliques (leva o
+  que está dentro), "+ Parte" cria parte nova. Fonte Jost carregada só
+  quando a guia abre. Conteúdo inicial: Parte 1 Autoridade › Comunidade do
+  Poker (Aparecer mais na mídia, Interagir mais com a comunidade, Ser mais
+  presente nas ações das feds), Membros, Mídia, Stakeholders (TDA,
+  operadores não federados, etc).
+- **Dados:** seção nova `mindmap` em `CLOUD_SECTIONS` (ponte
+  `mindmapBridge`; `{ versao: 1, partes: [{id, texto, filhos}], atualizadoEm,
+  atualizadoPor }`; localStorage `wpf_mindmap`). Pontos: CSS antes do bloco
+  PLANEJAMENTO, botão no nav rail, `#mindmap-view`, `NAV_VIEWS`, push/apply
+  da nuvem, nome da tela pra presença, bloco JS "MINDMAP" antes do
+  `CATALOGO_PERMISSOES`.
+- **Guia antiga renomeada:** tooltip e título "Plano de Ações" (era
+  "Planejamento"/"Planejamento WPF"); nada mais mudou nela.
+- **`CATALOGO_PERMISSOES`:** `mindmap` no grupo "Só da Karina (fixo)";
+  rótulo de `planejamento` atualizado pra "Plano de Ações".
+- **Testes:** sintaxe do script ok; página isolada com os mesmos CSS/JS no
+  Chromium headless: renomear, criar filho, criar e apagar parte, gravação
+  chamada, sem erro de JS. Não testado logado na Dash real.
+- **Por quê:** a Karina quer o planejamento como mindmap visual com o logo
+  da WPF no topo (rascunhos num canvas de Design antes; ela escolheu árvore
+  genealógica, escuro neon, cantos levemente arredondados).
+
+---
 ## 2026-11-23 (4ª, tarde) — Guia FEDS50: exceção de cassinos; Marrocos no CRM
 
 Pedido e OK da Isabela (15h), com autorização da Karina para a exceção.
