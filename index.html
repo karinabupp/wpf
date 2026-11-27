@@ -14350,8 +14350,8 @@ applyRolePermissions();
   // uma coluna só (Tags); larguras enxutas. Objetivo, Frente e Prioridade
   // nascem ocultas (botão ⋯ no fim do cabeçalho mostra/oculta colunas).
   const COLUNAS = [
-    { id: "nome",        titulo: "Nome",                  largura: 440 }, // 27/11: mais larga (nome numa linha só)
-    { id: "criterio",    titulo: "Critério de conclusão", largura: 220 },
+    { id: "nome",        titulo: "Nome",                  largura: 480 }, // 27/11: mais larga (nome numa linha só)
+    { id: "criterio",    titulo: "Descrição",             largura: 280 }, // 27/11: na 2027 o Critério aparece como Descrição
     { id: "status",      titulo: "Status",                largura: 128 },
     { id: "prazo",       titulo: "Prazo",                 largura: 128 },
     { id: "finalizado",  titulo: "Finalizado",            largura: 118 },
@@ -14362,8 +14362,8 @@ applyRolePermissions();
     { id: "proximaAcao", titulo: "Próxima ação",          largura: 200 },
     { id: "bloq",        titulo: "Bloqueios",             largura: 100 },
     { id: "historico",   titulo: "Histórico",             largura: 100 },
-    { id: "obj",         titulo: "Objetivo",              largura: 360 },
-    { id: "frente",      titulo: "Frentes",               largura: 400 }
+    { id: "obj",         titulo: "Objetivo",              largura: 250 },
+    { id: "frente",      titulo: "Frentes",               largura: 270 }
   ];
   const SO_ENTREGA = ["frente", "obj"];
   const LARGURA_LIXO = 50;
@@ -14384,8 +14384,8 @@ applyRolePermissions();
   // Colunas ocultas (09/10): ficam fora da tabela; o botão ⋯ do cabeçalho
   // mostra/oculta (por navegador). Padrão: Objetivo, Frente e Prioridade.
   // 27/11 (Karina): na 2027 só Nome, Objetivo e Frentes aparecem; o resto nasce oculto.
-  const OCULTAS_KEY = "wpf_p27_ocultas_v2";
-  let ocultas = new Set(COLUNAS.map(c => c.id).filter(id => !["nome", "obj", "frente"].includes(id)));
+  const OCULTAS_KEY = "wpf_p27_ocultas_v3"; // 27/11: Descrição passou a aparecer
+  let ocultas = new Set(COLUNAS.map(c => c.id).filter(id => !["nome", "criterio", "obj", "frente"].includes(id)));
   try { const o = JSON.parse(localStorage.getItem(OCULTAS_KEY) || "null"); if (Array.isArray(o)) ocultas = new Set(o.filter(id => id !== "nome")); } catch (e) {}
   // Dificuldade (09/10) nasce oculta também pra quem já tinha a lista salva (uma vez só).
   const visiveis = () => ordemColunas.filter(id => !ocultas.has(id));
@@ -14458,8 +14458,8 @@ applyRolePermissions();
       return `<button type="button" class="p27-mini ${n ? "tem" : ""}" data-acao="historico" title="${ult ? esc(dataHora(ult.quando) + " · " + (ult.autor || "") + ": " + ult.texto) : "Registrar no histórico"}">${n ? BALAO + " " + n : "+"}</button>`;
     },
     // Critério numa linha só (Karina, 09/10); clicar expande pra ler/editar inteiro.
-    criterio: e => `<div class="p27-crit ${e.criterio ? "" : "is-vazio"}" data-acao="crit" title="${esc(e.criterio || "Clique pra escrever")}">${esc(e.criterio) || "O que é pronto?"}</div>` +
-      `<textarea class="p27-txt p27-crit-txt" data-campo="criterio" rows="1" placeholder="O que é pronto?">${esc(e.criterio)}</textarea>`,
+    criterio: e => `<div class="p27-crit ${e.criterio ? "" : "is-vazio"}" data-acao="crit" title="${esc(e.criterio || "Clique pra escrever")}">${esc(e.criterio) || "Descrição"}</div>` +
+      `<textarea class="p27-txt p27-crit-txt" data-campo="criterio" rows="1" placeholder="Descrição">${esc(e.criterio)}</textarea>`,
     status: e => {
       const cls = classeStatus(e);
       const mae = temFilhas(e);
@@ -15080,7 +15080,7 @@ applyRolePermissions();
   // aqui (quem, o quê, quando), e dá pra registrar à mão o que foi pedido e
   // por onde (WhatsApp, e-mail, telefone…). ──
   const CANAIS = ["Conversa", "WhatsApp", "E-mail", "Telefone", "Reunião", "Slack", "Outro"];
-  const ROTULO_CAMPO = { nome: "Nome", criterio: "Critério", status: "Status", startDate: "Início", endDate: "Fim",
+  const ROTULO_CAMPO = { nome: "Nome", criterio: "Descrição", status: "Status", startDate: "Início", endDate: "Fim",
     finalizadoEm: "Finalizado", prioridade: "Prioridade", dificuldade: "Dificuldade", proximaAcao: "Próxima ação",
     frente: "Frente", objetivo: "Objetivo", frs: "Frentes", objs: "Objetivo" };
   const novoIdH = () => "h-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
