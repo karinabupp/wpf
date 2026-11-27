@@ -327,13 +327,24 @@ reconstruir o raciocínio.
 
 - [ ] **Marrocos (FEDS50): acompanhar as tentativas** — contatos e ranking no
   CRM (Tanger Poker Club → Pierre Khoueiri → John Galvani → Irish Poker
-  Open). Isabela envia a 1ª tentativa até 24/11; projeção: 2ª em 03/12, 3ª
-  em 10/12, próxima opção em 17/12. Na Projetos, `-r1`/`-r5`/`-r6` ainda
-  não estão marcados (aguardam a Isabela aprovar o e-mail); substituir as
-  Interações "[Projeção]" pelas datas reais. Pendências da exceção de
+  Open). **1ª tentativa enviada pela Isabela em 27/11.** Projeção: 2ª em
+  04/12, 3ª em 11/12, próxima opção em 18/12. Projetos (`-r1`/`-r5`/`-r6`/
+  `-r2`) já finalizados em 27/11; trocar as Interações "[Projeção]" do CRM
+  pelas datas reais conforme as tentativas saírem. Pendências da exceção de
   cassinos (já no guia): confirmar a lei marroquina com uma 2ª fonte (hoje só
   So Much Poker) e a Karina conferir o texto da exceção.
-  - *Aberto em:* 2026-11-23
+  - *Aberto em:* 2026-11-23 · *Atualizado em:* 2026-11-27
+
+- [ ] **Vietnã (FEDS50): acompanhar as tentativas** — 1º contato: VSOP
+  (Nguyen Tien Thanh, thanhnt.vnu@gmail.com), enviado pela Isabela em 27/11
+  (a Associação Vietnamita de Bridge & Poker não tem e-mail/site/rede).
+  Projeção: 2ª em 04/12, 3ª em 11/12, decidir a próxima opção em 18/12
+  (conferir Gmail e CRM antes). O e-mail vem de listagem da IFMP de 2022: se
+  voltar erro, reabrir a busca; a Associação (tel. e endereço no CRM, sede em
+  Ho Chi Minh) fica como alternativa sem e-mail. Poker no Vietnã só é legal
+  como torneio sob a Associação; cash game é ilegal.
+  - *Onde:* Supabase `projetos` (`pj-cl-f14-p50`) e `members2` (Vietnam).
+  - *Aberto em:* 2026-11-27
 
 - [ ] **Prospecção com a Isabela — conferir a 1ª rodada (`FEDS50`)** —
   guia `worker/instrucoes/prospeccao-federacoes.md` (23/11). Depois da 1ª
@@ -344,7 +355,7 @@ reconstruir o raciocínio.
   guia se precisar.
   - *Em aberto:* UK sem datas nas tentativas até a Karina liberar o envio.
     Conferir se o aviso do Carinha no dia +21 ("Contatar a próxima opção")
-    chega pra Isabela como esperado (1º caso: Morocco/Vietnam, 17/12).
+    chega pra Isabela como esperado (1º caso: Morocco/Vietnam, 18/12).
     "Fazer reunião" com a Karina só no UK — se ela considerar outro país
     "grande do poker", trocar o responsável do `-s9`.
   - *Processo diferente:* os 13 países têm o processo novo (10 passos); os

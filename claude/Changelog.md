@@ -11,6 +11,36 @@ toda sessão em que algo for alterado.
 - **Por quê** — motivo/contexto da mudança
 
 ---
+## 2026-11-27 (2ª entrada) — FEDS50: Marrocos enviado e Vietnã (só banco da Dash)
+
+Pedido da Isabela (sessão FEDS50). Cada gravação só depois do "sim" dela, com
+backup antes. Nenhum arquivo do repositório de código foi alterado.
+
+- **Marrocos — e-mail enviado pela Isabela em 27/11.** Projetos: `-r1`/`-r5`/
+  `-r6`/`-r2` finalizados em 27/11; tentativas projetadas: 2ª em **04/12**, 3ª
+  em **11/12**, próxima opção em **18/12** (substituem as datas antigas
+  03/12, 10/12 e 17/12). CRM (`members2`): Interações reais no lugar das
+  "[Projeção]" da 1ª tentativa.
+- **Vietnã (`pj-cl-f14-p50`) — e-mail enviado pela Isabela em 27/11 (~09:56
+  BRT).** Contato escolhido: **VSOP** (Nguyen Tien Thanh,
+  thanhnt.vnu@gmail.com), porque a Associação Vietnamita de Bridge & Poker
+  não tem e-mail, site nem rede social. Projetos: `-p50` e `-s1` em
+  andamento até 18/12; `-r1`/`-r5`/`-r6`/`-r2` finalizados em 27/11; `-r3`
+  04/12, `-r4` 11/12, `-r7` 18/12; Histórico `h-cl-vn-2711-<id>` em cada.
+  CRM: empresas VSOP e Associação (telefone/endereço do cadastro tributário
+  guardados como alternativa sem e-mail), contatos Nguyen Tien Thanh e
+  Nguyen Hong, Interações de 27/11 (pesquisa e 1ª tentativa) e projeções
+  04/12, 11/12, 18/12. Status do país continua "Lead".
+- **Backups (Supabase, RLS ligado):** `bkp_projetos_2026_11_27_antes_marrocos`,
+  `bkp_members2_2026_11_27_antes_marrocos`,
+  `bkp_projetos_2026_11_27_antes_vietna` (rev. 21277),
+  `bkp_members2_2026_11_27_antes_vietna` (rev. 13).
+- **Pontos de atenção:** o e-mail do Thanh vem de listagem da IFMP de 2022 (não
+  confirmado como atual); se voltar erro, reabrir a busca.
+- **Ainda não feito:** Finlândia, Lituânia e as demais tarefas vencidas da
+  Isabela.
+
+---
 ## 2026-11-27 — Guia nova "Planejamento" (mindmap em árvore); antiga vira "Plano de Ações"
 
 Pedido e OK da Karina (13:11–13:25).
